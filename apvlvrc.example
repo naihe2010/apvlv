@@ -1,0 +1,63 @@
+" some map
+
+" open a PDF document
+map o open
+
+" quit
+map q quit
+
+" go to the number page
+map g goto
+
+" go to next page
+map C-f nextpage
+
+" go to pre page
+map C-b prepage
+
+" scroll up the page
+map k scrollup
+
+" scroll down the page
+map j scrolldown
+
+map h scrollleft
+map l scrollright
+
+" zoom in a page, this will make the chracter look bigger
+map zi zoomin
+
+" zoom out a pge
+map zo zoomout
+
+" fullscreen and unfullscreen mode
+map f fullscreen
+
+" search 
+map / search
+
+" back search
+map ? backsearch
+
+" run command
+map : commandmode
+
+" some settings
+
+" default fullscreen
+set fullscreen=no
+
+" default zoom
+" zoom has 4 styles
+" a float type number
+" fitwidth
+" fitheight
+" normal
+set zoom=fitwidth
+
+" set window size
+set width=800
+set height=600
+
+" set command timeout between two key press 
+set commandtimeout=1000
