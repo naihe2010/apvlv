@@ -106,6 +106,7 @@ namespace apvlv
         CUSTOM
       } zoommode;
     double zoomrate;
+    bool zoominit;
     int width, height;
     GtkAdjustment *vaj, *haj;
 

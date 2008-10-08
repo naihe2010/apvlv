@@ -42,6 +42,7 @@ namespace apvlv
 {
   ApvlvDoc::ApvlvDoc (const char *zm, GtkWidget *v, GtkWidget *h)
     {
+      zoominit = false;
       doc = NULL;
       pagedata = NULL;
       pixbuf = NULL;
@@ -162,21 +163,26 @@ namespace apvlv
           {
             poppler_page_get_size (page, &pagex, &pagey);
 
-            switch (zoommode)
+            if (zoominit == false)
               {
-              case NORMAL:
-                zoomrate = 1.2;
-                break;
-              case FITWIDTH:
-                zoomrate = ((double) (width - 26)) / pagex;
-                break;
-              case FITHEIGHT:
-                zoomrate = ((double) (height - 26)) / pagey;
-                break;
-              case CUSTOM:
-                break;
-              default:
-                break;
+                switch (zoommode)
+                  {
+                  case NORMAL:
+                    zoomrate = 1.2;
+                    break;
+                  case FITWIDTH:
+                    zoomrate = ((double) (width - 26)) / pagex;
+                    break;
+                  case FITHEIGHT:
+                    zoomrate = ((double) (height - 26)) / pagey;
+                    break;
+                  case CUSTOM:
+                    break;
+                  default:
+                    break;
+                  }
+
+                zoominit = true;
               }
 
             pagenum = p;
