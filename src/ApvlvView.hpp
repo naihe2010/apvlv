@@ -116,7 +116,6 @@ namespace apvlv
 
     static gint apvlv_view_statusbar_cb (GtkWidget * wid, GdkEvent * ev);
 
-    string searchstr;
     ApvlvDoc *adoc, *crtadoc;
     };
 }

@@ -78,8 +78,9 @@ namespace apvlv
 
   private:
     PopplerPage *getpage (int p);
-    void markselection (PopplerPage *page, GList *sell);
-    GList * searchpage (int num, const char *str);
+    void markselection ();
+    bool needsearch (const char *str);
+    GList * searchpage (int num);
     void refresh ();
 
     ApvlvDoc *parent;
@@ -88,6 +89,7 @@ namespace apvlv
     PopplerDocument *doc;
 
     GList *results;
+    string searchstr;
 
     PopplerPage *page;
     guchar *pagedata;

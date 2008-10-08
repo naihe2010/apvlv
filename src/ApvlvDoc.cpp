@@ -46,6 +46,8 @@ namespace apvlv
       pagedata = NULL;
       pixbuf = NULL;
       page = NULL;
+      results = NULL;
+      searchstr = "";
 
       v? vbox = v: vbox = gtk_vbox_new (TRUE, 0);
       h? hbox = h: hbox = gtk_hbox_new (TRUE, 0);
@@ -196,6 +198,7 @@ namespace apvlv
             delete []pagedata;
           }
         pagedata = (guchar *) new char[ix * iy * 3];
+//        memset (pagedata, 0xFF, ix * iy * 3);
 
         if (pixbuf)
           {
@@ -210,7 +213,7 @@ namespace apvlv
                                     3 * ix,
                                     NULL, NULL);
 
-        poppler_page_render_to_pixbuf (page, 0, 0, ix, iy, zoomrate, 1, pixbuf);
+        poppler_page_render_to_pixbuf (page, 0, 0, ix, iy, zoomrate, 0, pixbuf);
 
         gtk_image_set_from_pixbuf (GTK_IMAGE (image), pixbuf);
 
@@ -307,77 +310,128 @@ namespace apvlv
       }
 
   void
-    ApvlvDoc::markselection (PopplerPage *page, GList *sell)
+    ApvlvDoc::markselection ()
       {
         /*
-        GdkColor gcolor = {0, 255, 0, 0}, bcolor = {0, 0, 255, 0};
+        double height;
 
-        PopplerRectangle *rect = (PopplerRectangle *) sell->data;
-        PopplerRectangle orect = {0, 0, pagex, pagey};
-        cout << "x1: " << rect->x1 << "\ty1: " << rect->y1 << "\tx2: " << rect->x2 << "\ty2: " << rect->y2 << endl;
-        poppler_page_render_selection (page, zoomrate, 1, pixbuf, rect, &orect, &gcolor, &bcolor);
-        results = g_list_next (sell);
-        g_list_free (sell); */
+        poppler_page_get_size (page, NULL, &height);
+
+        PopplerRectangle *rect = (PopplerRectangle *) results->data;
+
+        gint x1 = (gint) (rect->x1 * zoomrate - 0.5);
+        gint x2 = (gint) (rect->x2 * zoomrate + 0.5);
+        gint y1 = (gint) ((height - rect->y1) * zoomrate - 0.5);
+        gint y2 = (gint) ((height - rect->y2) * zoomrate + 0.5);
+
+        for ( gint y = y1; y < y2; y++ )
+          {
+            for ( gint x = x1; x < x2; x++ )
+              {
+                gint position = x * y * 3 + (x * 3);
+                pagedata[position + 0] = 255 - pagedata[position + 0];
+                pagedata[position + 1] = 255 - pagedata[position + 1];
+                pagedata[position + 2] = 255 - pagedata[position + 2];
+              }
+          }
+
+        gint ix = (int) (pagex * zoomrate), iy = (int) (pagey * zoomrate);
+
+        g_object_unref (G_OBJECT (pixbuf));
+        pixbuf =
+          gdk_pixbuf_new_from_data (pagedata, GDK_COLORSPACE_RGB,
+                                    FALSE,
+                                    8,
+                                    ix, iy,
+                                    3 * ix,
+                                    NULL, NULL);
+
+        poppler_page_render_to_pixbuf (page, 0, 0, ix, iy, zoomrate, 0, pixbuf);
+        gtk_image_set_from_pixbuf (GTK_IMAGE (image), pixbuf);*/
+
+        results = g_list_next (results); 
       }
 
   GList *
-    ApvlvDoc::searchpage (int num, const char *str)
+    ApvlvDoc::searchpage (int num)
       {
         if (doc == NULL)
           return NULL;
 
         PopplerPage *page = poppler_document_get_page (doc, num);
 
-        GList *ret = poppler_page_find_text (page, str);
+        GList *ret = poppler_page_find_text (page, searchstr.c_str ());
 
         return ret;
       }
 
-void 
-    ApvlvDoc::search (const char *str)
+  bool 
+    ApvlvDoc::needsearch (const char *str)
       {
         if (doc == NULL)
-          return;
+          return false;
 
-        if (results != NULL)
+        if (strlen (str) > 0)
           {
-            markselection (page, results);
+            g_list_free (results);
+            results = NULL;
+
+            searchstr = str;
+
+            return true;
           }
-
-        int num = poppler_document_get_n_pages (doc);
-        for (int i = pagenum + 1; i < num; ++ i)
+        else
           {
-            results = searchpage (i, str);
             if (results != NULL)
               {
-                showpage (i);
-                markselection (page, results);
-                break;
+                markselection ();
+                return false;
+              }
+            else
+              {
+                return true;
               }
           }
       }
 
-void 
-  ApvlvDoc::backsearch (const char *str)
-    {
-      if (doc == NULL)
-        return;
+  void 
+    ApvlvDoc::search (const char *str)
+      {
+        if (needsearch (str))
+          {
+            int num = poppler_document_get_n_pages (doc);
+            int i = strlen (str) > 0? pagenum - 1: pagenum;
+            while (i ++ < num - 1)
+              {
+                results = searchpage (i);
+                if (results != NULL)
+                  {
+                    showpage (i);
+                    markselection ();
+                    break;
+                  }
+                i ++;
+              }
+          }
+      }
 
-      if (results != NULL)
-        {
-          markselection (page, results);
-        }
-
-      int num = poppler_document_get_n_pages (doc);
-      for (int i = pagenum - 1; i > -1; -- i)
-        {
-          results = g_list_reverse (searchpage (i, str));
-          if (results != NULL)
-            {
-              showpage (i);
-              markselection (page, results);
-              break;
-            }
-        }
-    }
+  void 
+    ApvlvDoc::backsearch (const char *str)
+      {
+        if (needsearch (str))
+          {
+            int num = poppler_document_get_n_pages (doc);
+            int i = strlen (str) > 0? pagenum + 1: pagenum;
+            while (i -- > 0)
+              {
+                results = g_list_reverse (searchpage (i));
+                if (results != NULL)
+                  {
+                    showpage (i);
+                    markselection ();
+                    break;
+                  }
+              }
+          }
+      }
 }

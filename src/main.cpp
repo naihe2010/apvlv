@@ -50,14 +50,14 @@ main (int argc, char *argv[])
   gtk_init (&argc, &argv);
 
   ApvlvParams param;
-  param.debug ();
+//  param.debug ();
 
   char path[1024];
 
   strcpy (path, getenv ("HOME"));
   strcat (path, "/.apvlvrc");
   param.loadfile (path);
-  param.debug ();
+//  param.debug ();
 
   ApvlvView view (&param);
   if (argc > 1)

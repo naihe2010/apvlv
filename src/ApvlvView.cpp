@@ -48,8 +48,6 @@ namespace apvlv
 {
   ApvlvView::ApvlvView (ApvlvParams *pa): ApvlvCmds (pa)
     {
-      searchstr = "";
-
       mainwindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
       g_signal_connect (G_OBJECT (mainwindow), "size-allocate",
                         G_CALLBACK (apvlv_view_resized_cb), this);
@@ -212,19 +210,11 @@ namespace apvlv
         switch (cmd_mode)
           {
           case SEARCH:
-            if (strlen (str) > 0)
-              {
-                searchstr = string (str);
-              }
-            crtadoc->search (searchstr.c_str ());
+            crtadoc->search (str);
             break;
 
           case BACKSEARCH:
-            if (strlen (str) > 0)
-              {
-                searchstr = string (str);
-              }
-            crtadoc->search (searchstr.c_str ());
+            crtadoc->backsearch (str);
             break;
 
           case COMMANDMODE:
