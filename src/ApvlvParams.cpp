@@ -61,6 +61,7 @@ namespace apvlv
       push ("width", "800");
       push ("height", "600");
       push ("commandtimeout", "1000");
+      push ("defaultdir", "/tmp");
     }
 
   ApvlvParams::~ApvlvParams ()

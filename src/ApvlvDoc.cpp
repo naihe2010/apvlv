@@ -204,7 +204,6 @@ namespace apvlv
             delete []pagedata;
           }
         pagedata = (guchar *) new char[ix * iy * 3];
-//        memset (pagedata, 0xFF, ix * iy * 3);
 
         if (pixbuf)
           {

@@ -61,3 +61,6 @@ set height=600
 
 " set command timeout between two key press 
 set commandtimeout=1000
+
+" set default dir
+set defaultdir=/tmp
