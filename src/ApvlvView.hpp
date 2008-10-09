@@ -89,7 +89,7 @@ namespace apvlv
 
     void cmd_show ();
 
-    void cmd_hide ();
+    void status_show ();
 
     enum 
       {

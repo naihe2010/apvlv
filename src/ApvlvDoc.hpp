@@ -52,6 +52,16 @@ namespace apvlv
     void vseperate ();
     void hseperate ();
 
+    const char *filename () { return filestr.c_str (); }
+
+    int pagenumber () { return pagenum; }
+
+    int pagesum () { return doc? poppler_document_get_n_pages (doc): 0; }
+
+    double scrollrate ();
+
+    double zoomvalue () { return zoomrate; }
+
     GtkWidget *widget () { return vbox; }
 
     bool loadfile (string & filename) { loadfile (filename.c_str ()); }
@@ -86,6 +96,7 @@ namespace apvlv
     ApvlvDoc *parent;
     vector <ApvlvDoc *> hchildren, vchildren;
 
+    string filestr;
     PopplerDocument *doc;
 
     GList *results;

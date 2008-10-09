@@ -103,6 +103,11 @@ namespace apvlv
     doc = poppler_document_new_from_file (uri, NULL, NULL);
     g_free (uri);
 
+    if (doc != NULL)
+      {
+        filestr = filename;
+      }
+
     return doc == NULL? FALSE: TRUE;
   }
 
@@ -226,14 +231,27 @@ namespace apvlv
         hrate = (haj->upper - haj->lower) / 78;
       }
 
+  double
+    ApvlvDoc::scrollrate ()
+      {
+        double maxv = vaj->upper - vaj->lower - vaj->page_size;
+        if (vaj->value < maxv)
+          {
+            return vaj->value / maxv;
+          }
+        else
+          {
+            return (vaj->value + vaj->page_size) / maxv;
+          }
+      }
+
   void
     ApvlvDoc::scrollup (int times)
       {
         if (doc == NULL)
           return;
 
-        gdouble val = gtk_adjustment_get_value (vaj);
-        val -= vrate * times;
+        gdouble val = vaj->value - vrate * times;
         if (val > vaj->lower)
           {
             gtk_adjustment_set_value (vaj, val);
@@ -258,8 +276,7 @@ namespace apvlv
         if (doc == NULL)
           return;
 
-        gdouble val = gtk_adjustment_get_value (vaj);
-        val += vrate * times;
+        gdouble val = vaj->value + vrate * times;
         if (val + vaj->page_size < vaj->upper)
           {
             gtk_adjustment_set_value (vaj, val);
@@ -284,8 +301,7 @@ namespace apvlv
         if (doc == NULL)
           return;
 
-        gdouble val = gtk_adjustment_get_value (haj);
-        val -= hrate * times;
+        gdouble val = haj->value - hrate * times;
         if (val > vaj->lower)
           {
             gtk_adjustment_set_value (haj, val);
@@ -302,8 +318,7 @@ namespace apvlv
         if (doc == NULL)
           return;
 
-        gdouble val = gtk_adjustment_get_value (haj);
-        val += hrate * times;
+        gdouble val = haj->value + hrate * times;
         if (val + haj->page_size < haj->upper)
           {
             gtk_adjustment_set_value (haj, val);
