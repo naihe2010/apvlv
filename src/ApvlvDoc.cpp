@@ -317,44 +317,59 @@ namespace apvlv
   void
     ApvlvDoc::markselection ()
       {
-        /*
-        double height;
-
-        poppler_page_get_size (page, NULL, &height);
-
         PopplerRectangle *rect = (PopplerRectangle *) results->data;
 
-        gint x1 = (gint) (rect->x1 * zoomrate - 0.5);
-        gint x2 = (gint) (rect->x2 * zoomrate + 0.5);
-        gint y1 = (gint) ((height - rect->y1) * zoomrate - 0.5);
-        gint y2 = (gint) ((height - rect->y2) * zoomrate + 0.5);
+        // Caculate the correct position
+        gint x1 = (gint) ((rect->x1) * zoomrate);
+        gint y1 = (gint) ((pagey - rect->y2) * zoomrate);
+        gint x2 = (gint) ((rect->x2) * zoomrate);
+        gint y2 = (gint) ((pagey - rect->y1) * zoomrate);
 
-        for ( gint y = y1; y < y2; y++ )
+        // make the selection at the page center
+        gdouble val = ((y1 + y2) - vaj->page_size) / 2;
+        if (val + vaj->page_size > vaj->upper)
           {
-            for ( gint x = x1; x < x2; x++ )
+            gtk_adjustment_set_value (vaj, vaj->upper);
+          }
+        else if (val > 0)
+          {
+            gtk_adjustment_set_value (vaj, val);
+          }
+        else
+          {
+            gtk_adjustment_set_value (vaj, vaj->lower);
+          }
+        val = ((x1 + x2) - haj->page_size) / 2;
+        if (val + haj->page_size > haj->upper)
+          {
+            gtk_adjustment_set_value (haj, haj->upper);
+          }
+        else if (val > 0)
+          {
+            gtk_adjustment_set_value (haj, val);
+          }
+        else
+          {
+            gtk_adjustment_set_value (haj, haj->lower);
+          }
+
+
+        // change the back color of the selection
+        for (gint y = y1; y < y2; y ++)
+          {
+            for (gint x = x1; x < x2; x ++)
               {
-                gint position = x * y * 3 + (x * 3);
-                pagedata[position + 0] = 255 - pagedata[position + 0];
-                pagedata[position + 1] = 255 - pagedata[position + 1];
-                pagedata[position + 2] = 255 - pagedata[position + 2];
+                gint p = (gint) (y * 3 * pagex * zoomrate + (x * 3));
+                pagedata[p + 0] = 0xFF - pagedata[p + 0];
+                pagedata[p + 1] = 0xFF - pagedata[p + 0];
+                pagedata[p + 2] = 0xFF - pagedata[p + 0];
               }
           }
 
-        gint ix = (int) (pagex * zoomrate), iy = (int) (pagey * zoomrate);
+        gtk_image_set_from_pixbuf (GTK_IMAGE (image), pixbuf);
 
-        g_object_unref (G_OBJECT (pixbuf));
-        pixbuf =
-          gdk_pixbuf_new_from_data (pagedata, GDK_COLORSPACE_RGB,
-                                    FALSE,
-                                    8,
-                                    ix, iy,
-                                    3 * ix,
-                                    NULL, NULL);
-
-        poppler_page_render_to_pixbuf (page, 0, 0, ix, iy, zoomrate, 0, pixbuf);
-        gtk_image_set_from_pixbuf (GTK_IMAGE (image), pixbuf);*/
-
-        results = g_list_next (results); 
+        g_free (rect);
+        results = g_list_remove (results, rect);
       }
 
   GList *
