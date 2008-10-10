@@ -235,14 +235,7 @@ namespace apvlv
     ApvlvDoc::scrollrate ()
       {
         double maxv = vaj->upper - vaj->lower - vaj->page_size;
-        if (vaj->value < maxv)
-          {
-            return vaj->value / maxv;
-          }
-        else
-          {
-            return (vaj->value + vaj->page_size) / maxv;
-          }
+        return vaj->value / maxv;
       }
 
   void
@@ -367,7 +360,6 @@ namespace apvlv
           {
             gtk_adjustment_set_value (haj, haj->lower);
           }
-
 
         // change the back color of the selection
         for (gint y = y1; y < y2; y ++)
