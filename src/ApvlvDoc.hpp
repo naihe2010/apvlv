@@ -39,10 +39,18 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
+
 using namespace std;
 
 namespace apvlv
 {
+  struct ApvlvDocPosition
+    {
+      int pagenum;
+      double scrollrate;
+    };
+
   class ApvlvDoc
     {
   public:
@@ -52,7 +60,7 @@ namespace apvlv
     void vseperate ();
     void hseperate ();
 
-    const char *filename () { return filestr.c_str (); }
+    const char *filename () { return doc? filestr.c_str (): NULL; }
 
     int pagenumber () { return pagenum; }
 
@@ -68,7 +76,12 @@ namespace apvlv
     bool loadfile (const char *src);
 
     void setsize (int wid, int hei) { width = wid; height = hei; }
-    void showpage (int p);
+
+    void markposition (const char s);
+
+    void jump (const char s);
+
+    void showpage (int p, double s = 0.00);
 
     void prepage (int times = 1) { showpage (pagenum - times); }
     void nextpage (int times = 1) { showpage (pagenum + times); }
@@ -92,12 +105,20 @@ namespace apvlv
     bool needsearch (const char *str);
     GList * searchpage (int num);
     void refresh ();
+    void scrollto (double s);
+    bool savelastposition ();
+    bool loadlastposition ();
+
+    static gboolean apvlv_doc_first_scroll_cb (gpointer);
 
     ApvlvDoc *parent;
     vector <ApvlvDoc *> hchildren, vchildren;
 
     string filestr;
     PopplerDocument *doc;
+
+    double scrollvalue;
+    map <char, ApvlvDocPosition> positions;
 
     GList *results;
     string searchstr;

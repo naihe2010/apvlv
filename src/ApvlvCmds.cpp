@@ -42,6 +42,7 @@ namespace apvlv
     { 
       param = pa;
 
+      argu = "";
       queue = ""; 
 
       timer = -1; 
@@ -82,13 +83,29 @@ namespace apvlv
         const char *s = param->value (p);
         if (s == NULL)
           {
-            int cmd_timeout = atoi (param->value ("commandtimeout"));
-            timer = gtk_timeout_add (cmd_timeout, apvlv_cmds_timeout_cb, this);
-            return false;
+            if (argu != "")
+              {
+                doargu (*p);
+                queue = "";
+                return true;
+              }
+            else
+              {
+                int cmd_timeout = atoi (param->value ("commandtimeout"));
+                timer = gtk_timeout_add (cmd_timeout, apvlv_cmds_timeout_cb, this);
+                return false;
+              }
           }
 
-        int times = atoi (queue.c_str ());
-        times > 0? docmd (s, times): docmd (s);
+        if (isdigit (* queue.c_str ()))
+          {
+            int times = atoi (queue.c_str ());
+            docmd (s, times);
+          }
+        else
+          {
+            docmd (s);
+          }
 
         queue = "";
         return true;
@@ -112,8 +129,32 @@ namespace apvlv
             open ();
           }
 
+        else if (strcmp (s, "mark") == 0)
+          {
+            if (argu == "mark")
+              {
+                doargu (* param->key (s));
+              }
+            else
+              {
+                argu = "mark";
+              }
+          }
+        else if (strcmp (s, "jump") == 0)
+          {
+            if (argu == "jump")
+              {
+                doargu (* param->key (s));
+              }
+            else
+              {
+                argu = "jump";
+              }
+          }
+
         else if (strcmp (s, "goto") == 0)
           {
+            markposition ('\'');
             showpage (times);
           }
         else if (strcmp (s, "nextpage") == 0)
@@ -160,10 +201,12 @@ namespace apvlv
           }
         else if (strcmp (s, "search") == 0)
           {
+            markposition ('\'');
             promptsearch ();
           }
         else if (strcmp (s, "backsearch") == 0)
           {
+            markposition ('\'');
             promptbacksearch ();
           }
         else if (strcmp (s, "commandmode") == 0)
@@ -171,6 +214,25 @@ namespace apvlv
             promptcommand ();
           }
 
+        return true;
+      }
+
+  bool
+    ApvlvCmds::doargu (const char s)
+      {
+        if (argu == "mark")
+          {
+            if ('a' <= s && s <= 'z')
+              {
+                markposition (s);
+              }
+          }
+        else if (argu == "jump")
+          {
+            jump (s);
+          }
+
+        argu = "";
         return true;
       }
 

@@ -58,13 +58,16 @@ namespace apvlv
 
     void run (const char *str);
 
-    void loadfile (const char *filename) { crtadoc->loadfile (filename); crtadoc->showpage (0); }
+    void loadfile (const char *filename) { crtadoc->loadfile (filename); }
 
     void open ();
 
     void quit () { apvlv_view_delete_cb (NULL, NULL, this); }
 
     void fullscreen ();
+
+    void markposition (const char p) { crtadoc->markposition (p); }
+    void jump (const char p) { crtadoc->jump (p); }
 
     void showpage (int p) { crtadoc->showpage (p); }
     void prepage (int times = 1) { crtadoc->prepage (times); }

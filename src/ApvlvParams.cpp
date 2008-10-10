@@ -44,6 +44,8 @@ namespace apvlv
       push ("o", "open");
       push ("q", "quit");
       push ("g", "goto");
+      push ("m", "mark");
+      push ("'", "jump");
       push ("C-f", "nextpage");
       push ("C-b", "prepage");
       push ("k", "scrollup");

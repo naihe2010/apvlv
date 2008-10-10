@@ -37,6 +37,8 @@
 #include <glib/poppler.h>
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 namespace apvlv
 {
@@ -73,8 +75,75 @@ namespace apvlv
 
   ApvlvDoc::~ApvlvDoc ()
     {
+      savelastposition ();
+      positions.clear ();
       gtk_widget_destroy (vbox);
     }
+
+  bool
+    ApvlvDoc::savelastposition ()
+      {
+        char temp[256];
+        strcpy (temp, getenv ("HOME"));
+        strcat (temp, "/.apvlvinfo");
+
+        ofstream os (temp, ios::app);
+
+        if (os.is_open ())
+          {
+            os << ">";
+            os << filename () << "\t";
+            os << pagenum << "\t";
+            os << scrollrate ();
+            os << "\n";
+            os.close ();
+          }
+      }
+
+  bool
+    ApvlvDoc::loadlastposition ()
+      {
+        char temp[256];
+        strcpy (temp, getenv ("HOME"));
+        strcat (temp, "/.apvlvinfo");
+
+        ifstream os (temp, ios::in);
+
+        if (os.is_open ())
+          {
+            string line;
+            int pagen = 0;
+            double scrollr = 0.00;
+
+            while ((getline (os, line)) != NULL)
+              {
+                const char *p = line.c_str ();
+
+                if (*p == '>')
+                  {
+                    stringstream ss (++ p);
+
+                    string files;
+                    ss >> files;
+
+                    if (files == filestr)
+                      {
+                        ss >> pagen >> scrollr;
+                      }
+                  }
+              }
+
+            scrollvalue = scrollr;
+            showpage (pagen);
+
+            // Warning
+            // I can't think a better way to scroll correctly when 
+            // the page is not be displayed correctly
+            gtk_timeout_add (50, apvlv_doc_first_scroll_cb, this);
+
+            os.close ();
+          }
+      }
 
   void 
     ApvlvDoc::vseperate ()
@@ -97,7 +166,7 @@ namespace apvlv
     if (uri == NULL)
       {
 	cerr << "Can't convert" << filename << "to a valid uri";
-        return FALSE;
+        return false;
       }
 
     doc = poppler_document_new_from_file (uri, NULL, NULL);
@@ -106,9 +175,10 @@ namespace apvlv
     if (doc != NULL)
       {
         filestr = filename;
+        loadlastposition ();
       }
 
-    return doc == NULL? FALSE: TRUE;
+    return doc == NULL? false: true;
   }
 
   void
@@ -160,8 +230,31 @@ namespace apvlv
         return NULL;
       }
 
+  void
+    ApvlvDoc::markposition (const char s)
+      {
+        ApvlvDocPosition adp = { pagenum, scrollrate () };
+        positions[s] = adp;
+      }
+
   void 
-    ApvlvDoc::showpage (int p)
+    ApvlvDoc::jump (const char s)
+      {
+        map <char, ApvlvDocPosition>::iterator it;
+        for (it = positions.begin (); it != positions.end (); ++ it)
+          {
+            if ((*it).first == s)
+              {
+                ApvlvDocPosition adp = (*it).second;
+                markposition ('\'');
+                showpage (adp.pagenum, adp.scrollrate);
+                break;
+              }
+          }
+      }
+
+  void 
+    ApvlvDoc::showpage (int p, double s)
       {
         page = getpage (p);
         if (page != NULL)
@@ -193,6 +286,8 @@ namespace apvlv
             pagenum = p;
 
             refresh ();
+
+            scrollto (s);
           }
       }
 
@@ -235,7 +330,27 @@ namespace apvlv
     ApvlvDoc::scrollrate ()
       {
         double maxv = vaj->upper - vaj->lower - vaj->page_size;
-        return vaj->value / maxv;
+        double val =  vaj->value / maxv;
+        if (val > 1.0)
+          {
+            return 1.00;
+          }
+        else if (val > 0.0)
+          {
+            return val;
+          }
+        else
+          {
+            return 0.00;
+          }
+      }
+
+  void
+    ApvlvDoc::scrollto (double s)
+      {
+        double maxv = vaj->upper - vaj->lower - vaj->page_size;
+        double val = maxv * s;
+        gtk_adjustment_set_value (vaj, val);
       }
 
   void
@@ -257,8 +372,7 @@ namespace apvlv
               }
             else
               {
-                prepage ();
-                gtk_adjustment_set_value (vaj, vaj->upper);
+                showpage (pagenum - 1, 1.00);
               }
           }
       }
@@ -282,8 +396,7 @@ namespace apvlv
               }
             else
               {
-                nextpage ();
-                gtk_adjustment_set_value (vaj, vaj->lower);
+                showpage (pagenum + 1, 0.00);
               }
           }
       }
@@ -461,4 +574,13 @@ namespace apvlv
               }
           }
       }
+
+  gboolean 
+    ApvlvDoc::apvlv_doc_first_scroll_cb (gpointer data)
+      {
+        ApvlvDoc *doc = (ApvlvDoc *) data;
+        doc->scrollto (doc->scrollvalue);
+        return FALSE;
+      }
+
 }

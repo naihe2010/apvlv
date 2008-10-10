@@ -6,8 +6,17 @@ map o open
 " quit
 map q quit
 
+" mark a position to a char
+map m mark
+
 " go to the number page
 map g goto
+
+" mark a position
+map n mark
+
+" jump to a marked position
+map J jump
 
 " go to next page
 map C-f nextpage

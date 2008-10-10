@@ -166,33 +166,15 @@ namespace apvlv
       {
         char temp[256] = { 0 };
 
-        if (crtadoc != NULL)
+        if (crtadoc != NULL && crtadoc->filename ())
           {
-            snprintf (temp, sizeof temp, "\"%s\"\t%d/%d",
+            snprintf (temp, sizeof temp, "\"%s\"\t%d/%d\t\t%d\%\t\t\t\t%d\%",
                       crtadoc->filename (),
                       crtadoc->pagenumber (),
-                      crtadoc->pagesum ()
+                      crtadoc->pagesum (),
+                      (int) (crtadoc->zoomvalue () * 100),
+                      (int) (crtadoc->scrollrate () * 100)
             );
-
-            char tz2[16];
-            int z = (int) (crtadoc->zoomvalue () * 100);
-            snprintf (tz2, sizeof tz2, "\t\t%d\%", z);
-            strcat (temp, tz2);
-
-            z = (int) (crtadoc->scrollrate () * 100);
-            if (z >= 100)
-              {
-                snprintf (tz2, sizeof tz2, "\t\t\t\t%d\%", 100);
-              }
-            else if (z >= 0)
-              {
-                snprintf (tz2, sizeof tz2, "\t\t\t\t%d\%", z);
-              }
-            else
-              {
-                snprintf (tz2, sizeof tz2, "\t\t\t\t%d\%", 0);
-              }
-            strcat (temp, tz2);
           }
 
         gtk_entry_set_text (GTK_ENTRY (statusbar), temp);

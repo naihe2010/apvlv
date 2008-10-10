@@ -69,6 +69,9 @@ namespace apvlv
 
     virtual void fullscreen () { }
 
+    virtual void markposition (const char p) { }
+    virtual void jump (const char p) { }
+
     virtual void showpage (int p) { }
     virtual void prepage (int times = 1) { }
     virtual void nextpage (int times = 1) { }
@@ -91,6 +94,7 @@ namespace apvlv
   private:
     bool tryrun ();
     bool docmd (const char *s, int times = 1);
+    bool doargu (const char s);
 
     static gboolean apvlv_cmds_timeout_cb (gpointer);
 
@@ -98,6 +102,7 @@ namespace apvlv
     guint cmd_timeout;
     guint cmd_last_time;
     string queue;
+    string argu;
     char *p;
     };
 }
