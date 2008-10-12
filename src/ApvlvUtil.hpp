@@ -24,67 +24,36 @@
  * holders shall not be used in advertising or otherwise to promote the     
  * sale, use or other dealings in this Software without prior written       
  * authorization.                                                           
- ****************************************************************************/
+****************************************************************************/
 
 /****************************************************************************
  *  Author:    YuPengda
  *  AuthorRef: Alf <naihe2010@gmail.com>
  *  Blog:      http://naihe2010.cublog.cn
- ****************************************************************************/
-#ifndef _APVLV_PARAMS_H_
-#define _APVLV_PARAMS_H_
+****************************************************************************/
+#ifndef _APVLV_UTIL_H_
+#define _APVLV_UTIL_H_
 
 #ifdef HAVE_CONFIG_H
 # include "config.hpp"
 #endif
 
 #include <iostream>
-#include <map>
-
 using namespace std;
 
 namespace apvlv
 {
-  class ApvlvParams
-    {
-  public:
-    ApvlvParams ();
-    ~ApvlvParams ();
+  extern string helppdf;
 
-    bool loadfile (const char *filename);
+  // Converts the path given to a absolute path.
+  // Warning: The string is returned in a statically allocated buffer,  which  subse-
+  // quent calls will overwrite.
+  char *absolutepath (const char *path);
 
-    bool mappush (string &cmd1, string &cmd2);
+  // Copy a file
+  bool filecpy (const char *dst, const char *src);
 
-    const char *mapvalue (const char *key);
+//  bool filecpy (string dst, string src) { return filecpy (dst.c_str (), src.c_str ()); }
 
-    const char *cmd (const char *key);
-
-    bool settingpush (const char *ch, const char *str);
-
-    const char *settingvalue (const char *key);
-    
-    //for debug
-    void debug ()
-      {
-        map <string, string>::iterator it;
-
-        cerr << "maps" << endl;
-        for (it = m_maps.begin (); it != m_maps.end (); ++ it)
-          {
-            cerr << "first:[" << (*it).first << "], second[" << (*it).second << "]" << endl;
-          }
-        cerr << endl;
-
-        cerr << "settings" << endl;
-        for (it = m_settings.begin (); it != m_settings.end (); ++ it)
-          {
-            cerr << "first:[" << (*it).first << "], second[" << (*it).second << "]" << endl;
-          }
-      }
-
-  private:
-    map <string, string> m_maps, m_settings;
-    };
 }
-
 #endif

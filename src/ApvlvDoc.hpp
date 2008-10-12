@@ -34,6 +34,10 @@
 #ifndef _APVLV_DOC_H_
 #define _APVLV_DOC_H_
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include <gtk/gtk.h>
 #include <glib/poppler.h>
 
@@ -62,7 +66,7 @@ namespace apvlv
 
     const char *filename () { return doc? filestr.c_str (): NULL; }
 
-    int pagenumber () { return pagenum; }
+    int pagenumber () { return pagenum + 1; }
 
     int pagesum () { return doc? poppler_document_get_n_pages (doc): 0; }
 
@@ -72,8 +76,11 @@ namespace apvlv
 
     GtkWidget *widget () { return vbox; }
 
-    bool loadfile (string & filename) { loadfile (filename.c_str ()); }
-    bool loadfile (const char *src);
+    bool loadfile (string & filename, bool check = true) { loadfile (filename.c_str (), check); }
+
+    bool loadfile (const char *src, bool check = true);
+
+    bool reload () { savelastposition (); return loadfile (filestr, false); }
 
     void setsize (int wid, int hei) { width = wid; height = hei; }
 

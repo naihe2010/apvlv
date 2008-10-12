@@ -41,40 +41,31 @@ namespace apvlv
 {
   ApvlvParams::ApvlvParams ()
     {
-      push ("o", "open");
-      push ("q", "quit");
-      push ("g", "goto");
-      push ("m", "mark");
-      push ("'", "jump");
-      push ("C-f", "nextpage");
-      push ("C-b", "prepage");
-      push ("k", "scrollup");
-      push ("j", "scrolldown");
-      push ("h", "scrollleft");
-      push ("l", "scrollright");
-      push ("zi", "zoomin");
-      push ("zo", "zoomout");
-      push ("f", "fullscreen");
-      push ("/", "search");
-      push ("?", "backsearch");
-      push (":", "commandmode");
-      push ("fullscreen", "no");
-      push ("zoom", "fitwidth");
-      push ("width", "800");
-      push ("height", "600");
-      push ("commandtimeout", "1000");
-      push ("defaultdir", "/tmp");
+      settingpush ("fullscreen", "no");
+      settingpush ("zoom", "fitwidth");
+      settingpush ("width", "800");
+      settingpush ("height", "600");
+      settingpush ("commandtimeout", "1000");
+      settingpush ("defaultdir", "/tmp");
     }
 
   ApvlvParams::~ApvlvParams ()
     {
-      params.clear ();
+      m_maps.clear ();
+      m_settings.clear ();
     }
 
-  bool ApvlvParams::loadfile (string & filename)
+  bool ApvlvParams::loadfile (const char *filename)
     {
-      fstream os (filename.c_str (), ios::in);
       string str;
+      fstream os (filename, ios::in);
+
+      if (! os.is_open ())
+        {
+          cerr << "Open configure file " << filename << " error." << endl;
+          return false;
+        }
+
       while ((getline (os, str)) != NULL)
         {
           string argu, data, crap;
@@ -95,7 +86,7 @@ namespace apvlv
                   is >> crap >> data;
                   if (crap == "=" && data.length () > 0)
                     {
-                      push (argu, data);
+                      settingpush (argu.c_str (), data.c_str ());
                       continue;
                     }
                 }
@@ -113,7 +104,7 @@ namespace apvlv
                     {
                       strncpy (v, argu.c_str () + off + 1, 31);
                       v[31] = '\0';
-                      push (k, v);
+                      settingpush (k, v);
                       continue;
                     }
                 }
@@ -126,7 +117,7 @@ namespace apvlv
               is >> argu >> data;
               if (argu.length () > 0 && data.length () > 0)
                 {
-                  push (argu, data);
+                  mappush (argu, data);
                 }
               else
                 {
@@ -141,35 +132,40 @@ namespace apvlv
     }
 
   bool
-    ApvlvParams::push (string &ch, string &str)
+    ApvlvParams::mappush (string &ch, string &str)
       {
-        params[ch] = str;
+        m_maps[ch] = str;
+      }
+
+  bool
+    ApvlvParams::settingpush (const char *ch, const char *str)
+      {
+        string sch (ch), sstr (str);
+        m_settings[sch] = sstr;
       }
 
   const char *
-    ApvlvParams::key (const char *s)
+    ApvlvParams::mapvalue (const char *s)
       {
+        string ss (s);
         map <string, string>::iterator it;
-        for (it = params.begin (); it != params.end (); ++ it)
+        it = m_maps.find (ss);
+        if (it != m_maps.end ())
           {
-            if (strcmp ((*it).second.c_str (), s) == 0)
-              {
-                return (*it).first.c_str ();
-              }
+            return (*it).second.c_str ();
           }
+        return NULL;
       }
 
-
   const char *
-    ApvlvParams::value (const char *s)
+    ApvlvParams::settingvalue (const char *s)
       {
+        string ss (s);
         map <string, string>::iterator it;
-        for (it = params.begin (); it != params.end (); ++ it)
+        it = m_settings.find (ss);
+        if (it != m_settings.end ())
           {
-            if (strcmp ((*it).first.c_str (), s) == 0)
-              {
-                return (*it).second.c_str ();
-              }
+            return (*it).second.c_str ();
           }
         return NULL;
       }

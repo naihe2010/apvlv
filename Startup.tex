@@ -1,0 +1,218 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{graphicx}
+\usepackage[top=2in,bottom=1in,left=1.25in,right=1.25in]{geometry}
+
+\begin{document}
+
+\large
+
+\title{Apvlv - Alf's PDF Viewer Like Vim}
+\author{version 0.0.2}
+\date{by Alf $<$naihe2010@gmail.com$>$ \\Apvlv is open source and freely distributable}
+\maketitle{}
+
+\begin{center}
+\begin{tabular}{lll}
+type & :help info$<$Enter$>$      & for infomation \\
+type & :q                         & for exit \\
+type & :help command$<$Enter$>$   & for command \\
+type & :help setting$<$Enter$>$   & for setting \\
+\end{tabular}
+\end{center}
+
+\newpage
+
+\section{Infomation}
+
+Apvlv is a open source software, and was created by Alf. Now, it is still growing.
+
+Like the name, Apvlv makes people reading their PDF files just like using Vim.
+
+So, Apvlv bindings lots of Vim command and its behaviour is like Vim. For example, $<$Ctrl-f$>$ to forward page, $<$Ctrl-b$>$ to previous page, 'k','j','h','l' to scrolling a page up, down, left or right, and so on. 
+
+And, Apvlv can understand that how many times you want to run the command.
+
+The only thing you need to do is typing the number before the command. For example, typing '50' and $<$Ctrl-f$>$ will go forward 50 pages, typing '30' and $<$Ctrl-b$>$ will go previous 30 pages.
+
+What's more important, Apvlv can understand negative numbers too. If it got '-50' and 'Ctrl-B', PDF document will go FORWARD (preward -50) 50 pages. For example, typing '50g' will goto the 50th page, and typing '-50g' will go to the 50th page from the last page to count.
+
+Do you like it? If yes, continue read the help document.
+
+\newpage
+
+\section{How to start}
+
+\subsection{How to install}
+
+Apvlv is a standard GNU software, so you can install it as normal.
+
+Just need to
+\begin{verbatim}
+# ./configure
+# make
+# make install
+\end{verbatim}
+will install it to /usr/local.
+
+If you got error message like 'No package 'poppler-glib' found', mya be there is not poppler in your OS. You need to install it by yourself.
+
+If you want to install apvlv in a custom path, use './configure --prefix=YOUR CUSTOM PATH' to replace './confiugre' will OK.
+
+\subsection{How to start the binary program}
+
+You can start apvlv by typing 'apvlv' in any terminal which is running under X.
+
+If you got message like 'command not found', make sure the path which apvlv's binary in is in your "PATH" evorment. 
+
+If not, run 'export PATH="/usr/local/bin:\$PATH"' to append the path.
+
+\newpage
+
+\section{Command}
+
+\begin{description}
+
+\item o
+
+display a file chooser dialog to select a PDF file to open.
+
+\item R
+
+reload the file which was be read.
+
+\item g
+
+[count] page show
+
+\item C-f
+
+[count] page forward
+
+\item C-b
+
+[count] page preward
+
+\item k
+
+[count] page scroll up
+
+\item j
+
+[count] page scroll down
+
+\item h
+
+[count] page scroll left
+
+\item l
+
+[count] page scroll right
+
+\item f
+
+If Apvlv is in full screen mode, switch to normal mode. Other wise, switch to full screen.
+
+\item zi
+
+zoom in the page
+
+\item zo
+
+zoom out the page
+
+\item m
+
+Mark the read position to the followed char. \\
+That is, press 'ma' will mark the current position to a, and you can return here by press 'a.
+
+\item '
+
+Goto the position which point by the followed char. \\
+The next key be pressed must had been marked before. 
+
+\item ''
+
+Return to the presious position
+
+\end{description}
+
+And, all of the commands can be map to other keys.
+
+For examble, if you put 
+'map C-n o'
+in your .apvlvrc.
+
+Then, you type 'Ctrl-n' will run the 'o' command, that is, show a file chooser dialog to select a PDF file to open.
+
+Becareful, You Should not map a command to itself.
+
+So, 'map god god' will make the application to loop test the command 'god' for ever.
+
+\newpage
+
+\section{Setting}
+
+Apvlv support these settings. You can set any of them in .apvlvrc.
+
+\begin{description}
+
+\item fullscreen=yes/no
+
+If set yes, apvlv will in full screen mode after starup.
+
+\item width=$<int>$
+
+When fullscreen is not set to yes, this is the window width.
+
+\item height=$<int>$
+
+When fullscreen is not set to yes, this is the window height.
+
+\item defaultdir=$<path>$
+
+When display the open dialog, this is the default directory.
+
+\item zoom
+
+This argument has 4 types.
+
+\begin{enumerate}
+
+\item normal=
+
+the default zoom value will be set by the application itself.
+
+\item fitwidth
+
+the default zoom value will let the page width eque to the window width
+
+\item fitheight
+
+the default zoom value will let the page height eque to the window height
+
+\item custom
+
+set a custom value. like zoom=1.0, zoom=1.2, zoom=0.8, ...
+
+\end{enumerate}
+
+\end{description}
+
+\newpage
+
+\section{Prompt Command}
+
+To be developing now.
+
+\newpage
+
+\section{About}
+
+\large
+\begin{tabular}{l}
+Website: http://apvlv.googlecode.com \\
+Author: Alf $<naihe2010@gmail.com>$ \\
+Author's Blog: http://naihe2010.cublog.cn
+\end{tabular}
+
+\end{document}

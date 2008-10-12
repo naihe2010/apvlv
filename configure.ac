@@ -2,7 +2,7 @@ dnl
 dnl APVLV - Alf's PDF Viewer Like Vim
 dnl
  
-AC_INIT(apvlv, 0.0.1, naihe2010@gmail.com)
+AC_INIT(apvlv, 0.0.2, naihe2010@gmail.com)
 AC_COPYRIGHT([Copyright (C) 2008 Alf's Software.])
 
 if test -e .svn; then
@@ -27,8 +27,15 @@ if test "$prefix" = "NONE"; then
    prefix="/usr/local"
 fi
 
-GTK2_REQUIRED=2.4.0
-PKG_CHECK_MODULES(GTK, gtk+-2.0, CPPFLAGS="$CPPFLAGS $GTK_CFLAGS"; LIBS="$LIBS $GTK_LIBS")
-PKG_CHECK_MODULES(POPPLER, poppler-glib, CPPFLAGS="$CPPFLAGS $POPPLER_CFLAGS"; LIBS="$LIBS $POPPLER_LIBS")
+AC_DEFINE_UNQUOTED(PREFIX, ["$prefix"], [The prefix path])
+
+PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.4.0, CPPFLAGS="$CPPFLAGS $GTK_CFLAGS"; LIBS="$LIBS $GTK_LIBS")
+PKG_CHECK_MODULES(POPPLER, poppler-glib >= 0.5.4, CPPFLAGS="$CPPFLAGS $POPPLER_CFLAGS"; LIBS="$LIBS $POPPLER_LIBS")
+
+dnl
+dnl check whether Startup.pdf should be created by self.
+dnl
+AC_PATH_PROG(latexpath, latex)
+AC_PATH_PROG(dvipdfpath, dvipdf)
 
 AC_OUTPUT(Makefile src/Makefile)

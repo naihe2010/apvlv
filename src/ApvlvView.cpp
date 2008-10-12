@@ -34,6 +34,7 @@
 #include "ApvlvDoc.hpp"
 #include "ApvlvParams.hpp"
 #include "ApvlvCmds.hpp"
+#include "ApvlvUtil.hpp"
 #include "ApvlvView.hpp"
 
 #include <gtk/gtk.h>
@@ -52,8 +53,8 @@ namespace apvlv
       g_signal_connect (G_OBJECT (mainwindow), "size-allocate",
                         G_CALLBACK (apvlv_view_resized_cb), this);
 
-      width = atoi (param->value ("width"));
-      height = atoi (param->value ("height"));
+      width = atoi (param->settingvalue ("width"));
+      height = atoi (param->settingvalue ("height"));
 
       full_has = FALSE;
       gtk_widget_set_size_request (mainwindow, width, height);
@@ -65,7 +66,7 @@ namespace apvlv
       GtkWidget *vbox = gtk_vbox_new (FALSE, 0);
       gtk_container_add (GTK_CONTAINER (mainwindow), vbox);
 
-      adoc = new ApvlvDoc (param->value ("zoom"));
+      adoc = new ApvlvDoc (param->settingvalue ("zoom"));
       gtk_box_pack_start (GTK_BOX (vbox), adoc->widget (), FALSE, FALSE, 0);
       crtadoc = adoc;
 
@@ -83,7 +84,7 @@ namespace apvlv
 
       cmd_has = FALSE;
 
-      const char *fs = param->value ("fullscreen");
+      const char *fs = param->settingvalue ("fullscreen");
       if (strcmp (fs, "yes") == 0)
         {
           fullscreen ();
@@ -110,7 +111,7 @@ namespace apvlv
                                                       GTK_STOCK_OK,
                                                       GTK_RESPONSE_ACCEPT,
                                                       NULL);
-        gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dia), param->value ("defaultdir"));
+        gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dia), param->settingvalue ("defaultdir"));
 
         GtkFileFilter *filter = gtk_file_filter_new ();
         gtk_file_filter_add_mime_type (filter, "PDF File");
@@ -132,7 +133,7 @@ namespace apvlv
   void 
     ApvlvView::promptsearch ()
       {
-        gtk_entry_set_text (GTK_ENTRY (statusbar), param->key ("search"));
+        gtk_entry_set_text (GTK_ENTRY (statusbar), "/");
         cmd_mode = SEARCH;
         cmd_show ();
       }
@@ -140,7 +141,7 @@ namespace apvlv
   void 
     ApvlvView::promptbacksearch ()
       {
-        gtk_entry_set_text (GTK_ENTRY (statusbar), param->key ("backsearch"));
+        gtk_entry_set_text (GTK_ENTRY (statusbar), "?");
         cmd_mode = BACKSEARCH;
         cmd_show ();
       }
@@ -148,7 +149,7 @@ namespace apvlv
   void 
     ApvlvView::promptcommand ()
       {
-        gtk_entry_set_text (GTK_ENTRY (statusbar), param->key ("commandmode"));
+        gtk_entry_set_text (GTK_ENTRY (statusbar), ":");
         cmd_mode = COMMANDMODE;
         cmd_show ();
       }
@@ -156,6 +157,9 @@ namespace apvlv
   void 
     ApvlvView::cmd_show ()
       {
+        if (mainwindow == NULL)
+          return;
+
         gtk_widget_grab_focus (statusbar);
         gtk_entry_set_position (GTK_ENTRY (statusbar), 1);
         cmd_has = TRUE;
@@ -164,6 +168,9 @@ namespace apvlv
   void 
     ApvlvView::status_show ()
       {
+        if (mainwindow == NULL)
+          return;
+
         char temp[256] = { 0 };
 
         if (crtadoc != NULL && crtadoc->filename ())
@@ -240,6 +247,8 @@ namespace apvlv
           default:
             break;
           }
+
+        status_show ();
       }
 
   void 
@@ -267,9 +276,52 @@ namespace apvlv
             else if (cmd == "hsp")
               {
               }
-            else
+            else if (cmd == "zoom" || cmd == "z")
               {
+                setzoom (subcmd.c_str ());
               }
+            else if (cmd == "forwardpage" || cmd == "fp")
+              {
+                nextpage (atoi (subcmd.c_str ()));
+              }
+            else if (cmd == "prewardpage" || cmd == "pp")
+              {
+                prepage (atoi (subcmd.c_str ()));
+              }
+            else if (cmd == "goto" || cmd == "g")
+              {
+                showpage (atoi (subcmd.c_str ()));
+              }
+            else if ((cmd == "help" || cmd == "h")
+                     && subcmd == "info")
+              {
+                loadfile (helppdf);
+                showpage (2);
+              }
+            else if ((cmd == "help" || cmd == "h")
+                     && subcmd == "command")
+              {
+                loadfile (helppdf);
+                showpage (4);
+              }
+            else if ((cmd == "help" || cmd == "h")
+                     && subcmd == "setting")
+              {
+                loadfile (helppdf);
+                showpage (6);
+              }
+            else if (cmd == "help" || cmd == "h")
+              {
+                loadfile (helppdf);
+              }
+            else if (cmd == "q" || cmd == "quit")
+              {
+                // return, avoid to return to status mode
+                quit ();
+              }
+
+            // After processed the command, return to status mode
+            status_show ();
           }
       }
 
@@ -317,7 +369,6 @@ namespace apvlv
                 if (str)
                   {
                     view->run (str + 1);
-                    view->status_show ();
                   }
                 return TRUE;
               }
@@ -343,7 +394,7 @@ namespace apvlv
             view->adoc = NULL;
           }
 
-        view->cmd_has = true;
+        view->mainwindow = NULL;
 
         gtk_main_quit ();
       }

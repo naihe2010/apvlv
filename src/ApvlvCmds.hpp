@@ -34,6 +34,10 @@
 #ifndef _APVLV_CMDS_H_
 #define _APVLV_CMDS_H_
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include "ApvlvParams.hpp"
 
 #include <iostream>
@@ -72,6 +76,8 @@ namespace apvlv
     virtual void markposition (const char p) { }
     virtual void jump (const char p) { }
 
+    virtual bool reload () { }
+
     virtual void showpage (int p) { }
     virtual void prepage (int times = 1) { }
     virtual void nextpage (int times = 1) { }
@@ -98,12 +104,18 @@ namespace apvlv
 
     static gboolean apvlv_cmds_timeout_cb (gpointer);
 
+    enum
+      {
+        CMD_OK,
+        NEED_ARGUMENT,
+        NOT_MATCH,
+      } state;
+
     gint timer;
     guint cmd_timeout;
     guint cmd_last_time;
     string queue;
     string argu;
-    char *p;
     };
 }
 

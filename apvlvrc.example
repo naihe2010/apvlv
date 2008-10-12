@@ -1,60 +1,17 @@
 " some map
 
-" open a PDF document
-map o open
+" map n to C-f to goto next page
+"map n C-f
 
-" quit
-map q quit
+" and p to prepage
+"map p C-b
 
-" mark a position to a char
-map m mark
-
-" go to the number page
-map g goto
-
-" mark a position
-map n mark
-
-" jump to a marked position
-map J jump
-
-" go to next page
-map C-f nextpage
-
-" go to pre page
-map C-b prepage
-
-" scroll up the page
-map k scrollup
-
-" scroll down the page
-map j scrolldown
-
-map h scrollleft
-map l scrollright
-
-" zoom in a page, this will make the chracter look bigger
-map zi zoomin
-
-" zoom out a pge
-map zo zoomout
-
-" fullscreen and unfullscreen mode
-map f fullscreen
-
-" search 
-map / search
-
-" back search
-map ? backsearch
-
-" run command
-map : commandmode
-
-" some settings
+" map I to zi, and O to zo
+"map I zi
+"map O zo
 
 " default fullscreen
-set fullscreen=no
+"set fullscreen=no
 
 " default zoom
 " zoom has 4 styles
@@ -62,14 +19,14 @@ set fullscreen=no
 " fitwidth
 " fitheight
 " normal
-set zoom=fitwidth
+"set zoom=fitwidth
 
 " set window size
-set width=800
-set height=600
+"set width=800
+"set height=600
 
 " set command timeout between two key press 
-set commandtimeout=1000
+"set commandtimeout=1000
 
 " set default dir
-set defaultdir=/tmp
+"set defaultdir=/tmp

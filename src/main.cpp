@@ -35,6 +35,7 @@
 #include "ApvlvView.hpp"
 #include "ApvlvCmds.hpp"
 #include "ApvlvParams.hpp"
+#include "ApvlvUtil.hpp"
 
 #include <iostream>
 
@@ -50,28 +51,42 @@ main (int argc, char *argv[])
   gtk_init (&argc, &argv);
 
   ApvlvParams param;
-//  param.debug ();
+  //  param.debug ();
 
-  char path[1024];
+  char *path = absolutepath ("~/.apvlvrc");
+  bool exist = g_file_test (path, G_FILE_TEST_IS_REGULAR);
+  if (!exist)
+    {
+      string file = "";
+      file += PREFIX;
+      file += "/share/doc/apvlv/apvlvrc.example";
+      filecpy (path, file.c_str ());
+    }
+  else
+    {
+      param.loadfile (path);
+    }
+  //  param.debug ();
 
-  strcpy (path, getenv ("HOME"));
-  strcat (path, "/.apvlvrc");
-  param.loadfile (path);
-//  param.debug ();
+  // build the helppdf string
+  helppdf = "";
+  helppdf += PREFIX;
+  helppdf += "/share/doc/apvlv/Startup.pdf";
 
   ApvlvView view (&param);
   if (argc > 1)
     {
-      if (argv[1][0] == '~')
-        {
-          strcpy (path, getenv ("HOME"));
-          strcat (path, argv[1] + 1);
-        }
-      else
-        {
-          realpath (argv[1], path);
-        }
+      path = absolutepath (argv[1]);
       view.loadfile (path);
+    }
+  else
+    {
+      char startfile[256];
+      snprintf (startfile, sizeof startfile, "%s/%s",
+                PREFIX,
+                "share/doc/apvlv/Startup.pdf"
+      );
+      view.loadfile (helppdf);
     }
 
   gtk_main ();

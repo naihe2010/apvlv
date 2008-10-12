@@ -24,67 +24,67 @@
  * holders shall not be used in advertising or otherwise to promote the     
  * sale, use or other dealings in this Software without prior written       
  * authorization.                                                           
- ****************************************************************************/
+****************************************************************************/
 
 /****************************************************************************
  *  Author:    YuPengda
  *  AuthorRef: Alf <naihe2010@gmail.com>
  *  Blog:      http://naihe2010.cublog.cn
- ****************************************************************************/
-#ifndef _APVLV_PARAMS_H_
-#define _APVLV_PARAMS_H_
+****************************************************************************/
+#include "ApvlvUtil.hpp"
 
-#ifdef HAVE_CONFIG_H
-# include "config.hpp"
-#endif
+#include <stdlib.h>
+#include <gtk/gtk.h>
 
 #include <iostream>
-#include <map>
-
+#include <fstream>
 using namespace std;
 
 namespace apvlv
 {
-  class ApvlvParams
-    {
-  public:
-    ApvlvParams ();
-    ~ApvlvParams ();
 
-    bool loadfile (const char *filename);
+  string helppdf;
 
-    bool mappush (string &cmd1, string &cmd2);
-
-    const char *mapvalue (const char *key);
-
-    const char *cmd (const char *key);
-
-    bool settingpush (const char *ch, const char *str);
-
-    const char *settingvalue (const char *key);
-    
-    //for debug
-    void debug ()
+  char *
+    absolutepath (const char *path)
       {
-        map <string, string>::iterator it;
+        static char abpath[512];
 
-        cerr << "maps" << endl;
-        for (it = m_maps.begin (); it != m_maps.end (); ++ it)
+        if (g_path_is_absolute (path))
           {
-            cerr << "first:[" << (*it).first << "], second[" << (*it).second << "]" << endl;
+            return (char *) path;
           }
-        cerr << endl;
 
-        cerr << "settings" << endl;
-        for (it = m_settings.begin (); it != m_settings.end (); ++ it)
+        if (*path == '~')
           {
-            cerr << "first:[" << (*it).first << "], second[" << (*it).second << "]" << endl;
+            snprintf (abpath, sizeof abpath, "%s%s", 
+                      getenv ("HOME"), 
+                      ++ path);
           }
+        else
+          {
+            realpath (path, abpath);
+          }
+
+        return abpath;
       }
 
-  private:
-    map <string, string> m_maps, m_settings;
-    };
-}
+  bool 
+    filecpy (const char *dst, const char *src)
+      {
+        ifstream ifs (absolutepath (src));
+        ofstream ofs (absolutepath (dst));
+        if (ifs.is_open () && ofs.is_open ())
+          {
+            while (ifs.eof () == false)
+              {
+                string s;
+                getline (ifs, s);
+                ofs << s << endl;
+              }
 
-#endif
+            ifs.close ();
+            ofs.close ();
+          }
+      }
+}

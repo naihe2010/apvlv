@@ -45,6 +45,7 @@ namespace apvlv
       argu = "";
       queue = ""; 
 
+      state = CMD_OK;
       timer = -1; 
     }
 
@@ -66,102 +67,140 @@ namespace apvlv
             timer = -1;
           }
 
-        p = (char *) queue.c_str ();
+        char *p = (char *) queue.c_str ();
+
+        bool hasop = false; 
+        char *op = p;
+        bool hastimes = false;
+        int times = 0;
 
         while (*p != '\0')
           {
-            if (! ('0' <= *p && *p <= '9'))
+            if (*p == '-')
               {
+                hasop = !hasop;
+                op = ++ p;
+              }
+
+            if (! isdigit (*p))
+              {
+                if (hastimes)
+                  {
+                    if (hasop)
+                      {
+                        times = 0 - atoi (op);
+                      }
+                    else
+                      {
+                        times = atoi (op);
+                      }
+                  }
                 break;
               }
             else
               {
+                hastimes = true;
                 p ++;
               }
           }
 
-        const char *s = param->value (p);
-        if (s == NULL)
+        const char *s = param->mapvalue (p);
+        if (s != NULL)
           {
-            if (argu != "")
+            queue.replace (p - queue.c_str (), strlen (p), s);
+            return tryrun ();
+          }
+
+        bool ret;
+        if (argu == "")
+          {
+            if (hastimes)
               {
-                doargu (*p);
-                queue = "";
-                return true;
+                ret = docmd (p, times);
               }
             else
               {
-                int cmd_timeout = atoi (param->value ("commandtimeout"));
-                timer = gtk_timeout_add (cmd_timeout, apvlv_cmds_timeout_cb, this);
-                return false;
+                ret = docmd (p);
               }
-          }
-
-        if (isdigit (* queue.c_str ()))
-          {
-            int times = atoi (queue.c_str ());
-            docmd (s, times);
           }
         else
           {
-            docmd (s);
+            ret = doargu (*p);
           }
 
-        queue = "";
+        if (state != NOT_MATCH)
+          {
+            queue = "";
+          }
+
+        if (state != CMD_OK)
+          {
+            int cmd_timeout = atoi (param->settingvalue ("commandtimeout"));
+            timer = gtk_timeout_add (cmd_timeout, apvlv_cmds_timeout_cb, this);
+            return false;
+          }
+
         return true;
       }
 
   bool 
     ApvlvCmds::docmd (const char *s, int times)
       {
-        if (strcmp (s, "fullscreen") == 0)
+        if (strcmp (s, "f") == 0)
           {
             fullscreen ();
           }
 
-        else if (strcmp (s, "quit") == 0)
+        else if (strcmp (s, "q") == 0)
           {
             quit ();
           }
 
-        else if (strcmp (s, "open") == 0)
+        else if (strcmp (s, "o") == 0)
           {
             open ();
           }
 
-        else if (strcmp (s, "mark") == 0)
+        else if (strcmp (s, "m") == 0)
           {
-            if (argu == "mark")
+            if (argu == "m")
               {
-                doargu (* param->key (s));
+                doargu ('m');
               }
             else
               {
-                argu = "mark";
+                argu = "m";
+                state = NEED_ARGUMENT;
               }
           }
-        else if (strcmp (s, "jump") == 0)
+        else if (strcmp (s, "'") == 0)
           {
-            if (argu == "jump")
+            if (argu == "'")
               {
-                doargu (* param->key (s));
+                doargu ('\'');
               }
             else
               {
-                argu = "jump";
+                argu = "'";
+                state = NEED_ARGUMENT;
               }
           }
 
-        else if (strcmp (s, "goto") == 0)
+        else if (strcmp (s, "R") == 0)
+          {
+            reload ();
+          }
+
+        else if (strcmp (s, "g") == 0)
           {
             markposition ('\'');
             showpage (times);
           }
-        else if (strcmp (s, "nextpage") == 0)
+        else if (strcmp (s, "C-f") == 0)
           {
             nextpage (times);
           }
-        else if (strcmp (s, "prepage") == 0)
+        else if (strcmp (s, "C-b") == 0)
           {
             prepage (times);
           }
@@ -174,62 +213,73 @@ namespace apvlv
         //    prehalfpage (times);
         //  }
 
-        else if (strcmp (s, "scrollup") == 0)
+        else if (strcmp (s, "k") == 0)
           {
             scrollup (times);
           }
-        else if (strcmp (s, "scrolldown") == 0)
+        else if (strcmp (s, "j") == 0)
           {
             scrolldown (times);
           }
-        else if (strcmp (s, "scrollleft") == 0)
+        else if (strcmp (s, "h") == 0)
           {
             scrollleft (times);
           }
-        else if (strcmp (s, "scrollright") == 0)
+        else if (strcmp (s, "l") == 0)
           {
             scrollright (times);
           }
 
-        else if (strcmp (s, "zoomin") == 0)
+        else if (strcmp (s, "zi") == 0)
           {
             zoomin ();
           }
-        else if (strcmp (s, "zoomout") == 0)
+        else if (strcmp (s, "zo") == 0)
           {
             zoomout ();
           }
-        else if (strcmp (s, "search") == 0)
+
+        else if (strcmp (s, "/") == 0)
           {
             markposition ('\'');
             promptsearch ();
           }
-        else if (strcmp (s, "backsearch") == 0)
+        else if (strcmp (s, "?") == 0)
           {
             markposition ('\'');
             promptbacksearch ();
           }
-        else if (strcmp (s, "commandmode") == 0)
+        else if (strcmp (s, ":") == 0)
           {
             promptcommand ();
           }
+        else
+          {
+            state = NOT_MATCH;
+            return false;
+          }
 
+        state = CMD_OK;
         return true;
       }
 
   bool
     ApvlvCmds::doargu (const char s)
       {
-        if (argu == "mark")
+        if (argu == "m")
           {
             if ('a' <= s && s <= 'z')
               {
                 markposition (s);
               }
           }
-        else if (argu == "jump")
+        else if (argu == "'")
           {
             jump (s);
+          }
+        else
+          {
+            return false;
           }
 
         argu = "";

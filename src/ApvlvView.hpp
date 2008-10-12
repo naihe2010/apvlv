@@ -34,6 +34,10 @@
 #ifndef _APVLV_VIEW_H_
 #define _APVLV_VIEW_H_
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include "ApvlvDoc.hpp"
 #include "ApvlvCmds.hpp"
 #include "ApvlvParams.hpp"
@@ -58,6 +62,7 @@ namespace apvlv
 
     void run (const char *str);
 
+    void loadfile (string file) { loadfile (file.c_str ()); }
     void loadfile (const char *filename) { crtadoc->loadfile (filename); }
 
     void open ();
@@ -69,7 +74,9 @@ namespace apvlv
     void markposition (const char p) { crtadoc->markposition (p); }
     void jump (const char p) { crtadoc->jump (p); }
 
-    void showpage (int p) { crtadoc->showpage (p); }
+    bool reload () { return crtadoc->reload (); }
+
+    void showpage (int p) { crtadoc->showpage (p - 1); }
     void prepage (int times = 1) { crtadoc->prepage (times); }
     void nextpage (int times = 1) { crtadoc->nextpage (times); }
     //void prehalfpage (int times = 1) { crtadoc->prehalfpage (times); }
@@ -100,6 +107,8 @@ namespace apvlv
         BACKSEARCH,
         COMMANDMODE
       } cmd_mode;
+
+    bool destroy;
 
     void runcmd (const char *cmd);
 

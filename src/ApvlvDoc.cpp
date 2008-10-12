@@ -31,6 +31,7 @@
  *  AuthorRef: Alf <naihe2010@gmail.com>
  *  Blog:      http://naihe2010.cublog.cn
 ****************************************************************************/
+#include "ApvlvUtil.hpp"
 #include "ApvlvDoc.hpp"
 
 #include <gtk/gtk.h>
@@ -44,7 +45,6 @@ namespace apvlv
 {
   ApvlvDoc::ApvlvDoc (const char *zm, GtkWidget *v, GtkWidget *h)
     {
-      zoominit = false;
       doc = NULL;
       pagedata = NULL;
       pixbuf = NULL;
@@ -75,7 +75,10 @@ namespace apvlv
 
   ApvlvDoc::~ApvlvDoc ()
     {
-      savelastposition ();
+      if (filestr != helppdf)
+        {
+          savelastposition ();
+        }
       positions.clear ();
       gtk_widget_destroy (vbox);
     }
@@ -83,11 +86,9 @@ namespace apvlv
   bool
     ApvlvDoc::savelastposition ()
       {
-        char temp[256];
-        strcpy (temp, getenv ("HOME"));
-        strcat (temp, "/.apvlvinfo");
+        char *path = absolutepath ("~/.apvlvinfo");
 
-        ofstream os (temp, ios::app);
+        ofstream os (path, ios::app);
 
         if (os.is_open ())
           {
@@ -103,11 +104,9 @@ namespace apvlv
   bool
     ApvlvDoc::loadlastposition ()
       {
-        char temp[256];
-        strcpy (temp, getenv ("HOME"));
-        strcat (temp, "/.apvlvinfo");
+        char *path = absolutepath ("~/.apvlvinfo");
 
-        ifstream os (temp, ios::in);
+        ifstream os (path, ios::in);
 
         if (os.is_open ())
           {
@@ -160,8 +159,16 @@ namespace apvlv
     }
 
   bool 
-    ApvlvDoc::loadfile (const char *filename)
+    ApvlvDoc::loadfile (const char *filename, bool check)
   {
+    if (check)
+      {
+        if (strcmp (filename, filestr.c_str ()) == 0)
+          {
+            return false;
+          }
+      }
+
     gchar *uri = g_filename_to_uri (filename, NULL, NULL);
     if (uri == NULL)
       {
@@ -174,6 +181,7 @@ namespace apvlv
 
     if (doc != NULL)
       {
+        zoominit = false;
         filestr = filename;
         loadlastposition ();
       }
@@ -224,7 +232,13 @@ namespace apvlv
           {
             int c = poppler_document_get_n_pages (doc);
             if (0 <= p && p < c)
-              return poppler_document_get_page (doc, p);
+              {
+                return poppler_document_get_page (doc, p);
+              }
+            else if (p < 0)
+              {
+                return poppler_document_get_page (doc, c + p);
+              }
           }
 
         return NULL;
@@ -283,11 +297,11 @@ namespace apvlv
                 zoominit = true;
               }
 
-            pagenum = p;
-
             refresh ();
 
             scrollto (s);
+
+            pagenum = poppler_page_get_index (page);
           }
       }
 
@@ -359,21 +373,18 @@ namespace apvlv
         if (doc == NULL)
           return;
 
-        gdouble val = vaj->value - vrate * times;
-        if (val > vaj->lower)
+        gdouble val = gtk_adjustment_get_value (vaj);
+        if (val - vrate * times > vaj->lower)
           {
-            gtk_adjustment_set_value (vaj, val);
+            gtk_adjustment_set_value (vaj, val - vrate * times);
           }
-        else
+        else if (val > vaj->lower)
           {
-            if (pagenum == 0) 
-              {
-                gtk_adjustment_set_value (vaj, vaj->lower);
-              }
-            else
-              {
-                showpage (pagenum - 1, 1.00);
-              }
+            gtk_adjustment_set_value (vaj, vaj->lower);
+          }
+        else if (pagenum > 0) 
+          {
+            showpage (pagenum - 1, 1.00);
           }
       }
 
@@ -383,21 +394,18 @@ namespace apvlv
         if (doc == NULL)
           return;
 
-        gdouble val = vaj->value + vrate * times;
-        if (val + vaj->page_size < vaj->upper)
+        gdouble val = gtk_adjustment_get_value (vaj);
+        if (val + vrate * times + vaj->page_size < vaj->upper)
           {
-            gtk_adjustment_set_value (vaj, val);
+            gtk_adjustment_set_value (vaj, val + vrate * times);
           }
-        else 
+        else if (val + vaj->page_size < vaj->upper)
           {
-            if (pagenum == poppler_document_get_n_pages (doc) - 1)
-              {
-                gtk_adjustment_set_value (vaj, vaj->upper);
-              }
-            else
-              {
-                showpage (pagenum + 1, 0.00);
-              }
+            gtk_adjustment_set_value (vaj, vaj->upper - vaj->page_size);
+          }
+        else if (pagenum < poppler_document_get_n_pages (doc) - 1)
+          {
+            showpage (pagenum + 1, 0.00);
           }
       }
 
