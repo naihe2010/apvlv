@@ -196,6 +196,14 @@ namespace apvlv
             markposition ('\'');
             showpage (times);
           }
+        else if (strcmp (s, "C-d") == 0)
+          {
+            halfnextpage (times);
+          }
+        else if (strcmp (s, "C-u") == 0)
+          {
+            halfprepage (times);
+          }
         else if (strcmp (s, "C-f") == 0)
           {
             nextpage (times);
@@ -204,14 +212,6 @@ namespace apvlv
           {
             prepage (times);
           }
-        //else if (strcmp (s, "nexthalfpage") == 0)
-        //  {
-        //    nexthalfpage (times);
-        //  }
-        //else if (strcmp (s, "prehalfpage") == 0)
-        //  {
-        //    prehalfpage (times);
-        //  }
 
         else if (strcmp (s, "k") == 0)
           {

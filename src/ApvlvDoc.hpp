@@ -90,8 +90,10 @@ namespace apvlv
 
     void showpage (int p, double s = 0.00);
 
-    void prepage (int times = 1) { showpage (pagenum - times); }
     void nextpage (int times = 1) { showpage (pagenum + times); }
+    void prepage (int times = 1) { showpage (pagenum - times); }
+    void halfnextpage (int times = 1);
+    void halfprepage (int times = 1);
 
     void scrollup (int times = 1);
     void scrolldown (int times = 1);
@@ -146,6 +148,7 @@ namespace apvlv
       } zoommode;
     double zoomrate;
     bool zoominit;
+    int lines, chars;
     int width, height;
     GtkAdjustment *vaj, *haj;
 

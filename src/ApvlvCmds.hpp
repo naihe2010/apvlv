@@ -81,8 +81,8 @@ namespace apvlv
     virtual void showpage (int p) { }
     virtual void prepage (int times = 1) { }
     virtual void nextpage (int times = 1) { }
-    //void prehalfpage (int times = 1) { }
-    //void nexhalftpage (int times = 1) { }
+    virtual void halfnextpage (int times = 1) { }
+    virtual void halfprepage (int times = 1) { }
 
     virtual void scrollup (int times = 1) { }
     virtual void scrolldown (int times = 1) { }

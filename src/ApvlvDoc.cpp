@@ -182,6 +182,8 @@ namespace apvlv
     if (doc != NULL)
       {
         zoominit = false;
+        lines = 50;
+        chars = 80;
         filestr = filename;
         loadlastposition ();
       }
@@ -336,8 +338,34 @@ namespace apvlv
 
         gtk_image_set_from_pixbuf (GTK_IMAGE (image), pixbuf);
 
-        vrate = (vaj->upper - vaj->lower) / 50;
-        hrate = (haj->upper - haj->lower) / 78;
+        vrate = (vaj->upper - vaj->lower) / lines;
+        hrate = (haj->upper - haj->lower) / chars;
+      }
+
+  void
+    ApvlvDoc::halfnextpage (int times)
+      {
+        double sr = scrollrate ();
+        int rtimes = times / 2;
+
+        showpage (pagenum + rtimes, sr);
+        if (times % 2 != 0)
+          {
+            scrolldown (lines / 2);
+          }
+      }
+
+  void
+    ApvlvDoc::halfprepage (int times)
+      {
+        double sr = scrollrate ();
+        int rtimes = times / 2;
+
+        showpage (pagenum - rtimes, sr);
+        if (times % 2 != 0)
+          {
+            scrollup (lines / 2);
+          }
       }
 
   double

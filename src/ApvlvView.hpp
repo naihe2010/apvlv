@@ -77,10 +77,10 @@ namespace apvlv
     bool reload () { return crtadoc->reload (); }
 
     void showpage (int p) { crtadoc->showpage (p - 1); }
-    void prepage (int times = 1) { crtadoc->prepage (times); }
     void nextpage (int times = 1) { crtadoc->nextpage (times); }
-    //void prehalfpage (int times = 1) { crtadoc->prehalfpage (times); }
-    //void nexhalftpage (int times = 1) { crtadoc->nexthalfpage (times); }
+    void prepage (int times = 1) { crtadoc->prepage (times); }
+    void halfnextpage (int times = 1) { crtadoc->halfnextpage (times); }
+    void halfprepage (int times = 1) { crtadoc->halfprepage (times); }
 
     void scrollup (int times = 1) { crtadoc->scrollup (times); }
     void scrolldown (int times = 1) { crtadoc->scrolldown (times); }
