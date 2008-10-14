@@ -33,6 +33,8 @@
 ****************************************************************************/
 #include "ApvlvParams.hpp"
 
+#include <string.h>
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
