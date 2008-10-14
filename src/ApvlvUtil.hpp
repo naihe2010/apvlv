@@ -52,8 +52,5 @@ namespace apvlv
 
   // Copy a file
   bool filecpy (const char *dst, const char *src);
-
-//  bool filecpy (string dst, string src) { return filecpy (dst.c_str (), src.c_str ()); }
-
 }
 #endif

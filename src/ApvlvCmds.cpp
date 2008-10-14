@@ -34,6 +34,8 @@
 #include "ApvlvParams.hpp"
 #include "ApvlvCmds.hpp"
 
+#include <stdlib.h>
+#include <string.h>
 #include <gtk/gtk.h>
 
 namespace apvlv

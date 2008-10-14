@@ -34,6 +34,9 @@
 #include "ApvlvUtil.hpp"
 #include "ApvlvDoc.hpp"
 
+#include <stdlib.h>
+#include <string.h>
+
 #include <gtk/gtk.h>
 #include <glib/poppler.h>
 
