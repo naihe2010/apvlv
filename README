@@ -1,0 +1,19 @@
+
+    Apvlv
+    ========
+
+    Apvlv is a PDF viewer which behaviour like Vim.
+    For more general information about Apvlv please visit the project's
+website at http://apvlv.googlecode.com
+
+    This software is licensed under the GNU General Public License (GPL).
+    The icons used by this software are part of the Gnome Icon Theme, which is
+copyright The GNOME Project and released under the GNU General Public
+License (GPL).
+
+
+    Requirements
+    ============
+
+    GTK+ version 2.6.0 or higher ( http://www.gtk.org/ )
+    Poppler version 0.5.0 with glib bindings ( http://poppler.freedesktop.org/ )
