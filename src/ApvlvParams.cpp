@@ -74,7 +74,7 @@ namespace apvlv
           stringstream is (str);
           // avoid commet line, continue next
           is >> crap;
-          if (crap == "\"" || crap == "")
+          if (*(crap.c_str ()) == '\"' || crap == "")
             {
               continue;
             }
