@@ -127,7 +127,7 @@ namespace apvlv
           }
         else
           {
-            ret = doargu (*p);
+            ret = doargu (p);
           }
 
         if (state != NOT_MATCH)
@@ -167,7 +167,7 @@ namespace apvlv
           {
             if (argu == "m")
               {
-                doargu ('m');
+                doargu ("m");
               }
             else
               {
@@ -179,7 +179,7 @@ namespace apvlv
           {
             if (argu == "'")
               {
-                doargu ('\'');
+                doargu ("\'");
               }
             else
               {
@@ -191,6 +191,19 @@ namespace apvlv
         else if (strcmp (s, "R") == 0)
           {
             reload ();
+          }
+
+        else if (strcmp (s, "C-w") == 0)
+          {
+            if (argu == "C-w")
+              {
+                doargu ("C-w");
+              }
+            else
+              {
+                argu = "C-w";
+                state = NEED_ARGUMENT;
+              }
           }
 
         else if (strcmp (s, "g") == 0)
@@ -266,18 +279,22 @@ namespace apvlv
       }
 
   bool
-    ApvlvCmds::doargu (const char s)
+    ApvlvCmds::doargu (const char *s)
       {
         if (argu == "m")
           {
-            if ('a' <= s && s <= 'z')
+            if ('a' <= *s && *s <= 'z')
               {
-                markposition (s);
+                markposition (*s);
               }
           }
         else if (argu == "'")
           {
-            jump (s);
+            jump (*s);
+          }
+        else if (argu == "C-w")
+          {
+            dowindow (s);
           }
         else
           {

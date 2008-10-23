@@ -100,7 +100,6 @@ namespace apvlv
 
   ApvlvView::~ApvlvView ()
     {
-      delete adoc;
     }
 
   void 
@@ -209,6 +208,41 @@ namespace apvlv
       }
 
   void
+    ApvlvView::dowindow (const char *s)
+      {
+        ApvlvDoc *ndoc = NULL;
+        if (strcmp (s, "C-w") == 0)
+          {
+            ndoc = crtadoc->getneighbor ("j");
+            if (ndoc == NULL)
+              {
+                ndoc = crtadoc->getneighbor ("l");
+              }
+          }
+
+        else if (strcmp (s, "-") == 0)
+          {
+            crtadoc->sizesmaller (1);
+          }
+        else if (strcmp (s, "+") == 0)
+          {
+            crtadoc->sizebigger (1);
+          }
+
+        else
+          {
+            ndoc = crtadoc->getneighbor (s);
+          }
+
+        if (ndoc != NULL)
+          {
+            crtadoc = ndoc;
+          }
+
+        status_show ();
+      }
+
+  void
     ApvlvView::parse_cmd (GdkEventKey * gek)
       {
         if (gek->keyval == GDK_Page_Up)
@@ -275,9 +309,11 @@ namespace apvlv
               }
             else if (cmd == "vsp")
               {
+                vseparate ();
               }
             else if (cmd == "hsp")
               {
+                hseparate ();
               }
             else if (cmd == "zoom" || cmd == "z")
               {
@@ -320,7 +356,16 @@ namespace apvlv
             else if (cmd == "q" || cmd == "quit")
               {
                 // return, avoid to return to status mode
-                quit ();
+                ApvlvDoc *ndoc = crtadoc->getneighbor ("n");
+                if (ndoc == crtadoc)
+                  {
+                    quit ();
+                  }
+                else
+                  {
+                    delete crtadoc;
+                    crtadoc = ndoc;
+                  }
               }
 
             // After processed the command, return to status mode
@@ -391,14 +436,7 @@ namespace apvlv
     ApvlvView::apvlv_view_delete_cb (GtkWidget * wid, GtkAllocation * al,
                                      ApvlvView * view)
       {
-        if (view->adoc)
-          {
-            delete view->adoc;
-            view->adoc = NULL;
-          }
-
         view->mainwindow = NULL;
-
         gtk_main_quit ();
       }
 }

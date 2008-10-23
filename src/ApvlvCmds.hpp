@@ -78,6 +78,8 @@ namespace apvlv
 
     virtual bool reload () { }
 
+    virtual void dowindow (const char *s) { }
+
     virtual void showpage (int p) { }
     virtual void prepage (int times = 1) { }
     virtual void nextpage (int times = 1) { }
@@ -98,9 +100,11 @@ namespace apvlv
     ApvlvParams *param;
 
   private:
+    GObject *base;
+
     bool tryrun ();
     bool docmd (const char *s, int times = 1);
-    bool doargu (const char s);
+    bool doargu (const char *s);
 
     static gboolean apvlv_cmds_timeout_cb (gpointer);
 

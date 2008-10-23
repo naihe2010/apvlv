@@ -58,11 +58,19 @@ namespace apvlv
   class ApvlvDoc
     {
   public:
-    ApvlvDoc (const char *zm = "NORMAL", GtkWidget *vbox = NULL, GtkWidget *hbox = NULL);
+    ApvlvDoc (const char *zm = "NORMAL");
     ~ApvlvDoc ();
+
+    // 
+    // type == true? v separate: h separate
+    ApvlvDoc *copy (bool type);
 
     void vseperate ();
     void hseperate ();
+
+    //
+    // type's meaning like 'j', 'k', 'l', 'm'
+    ApvlvDoc *getneighbor (const char *type);
 
     const char *filename () { return doc? filestr.c_str (): NULL; }
 
@@ -83,6 +91,10 @@ namespace apvlv
     bool reload () { savelastposition (); return loadfile (filestr, false); }
 
     void setsize (int wid, int hei) { width = wid; height = hei; }
+
+    void sizesmaller (int s = 1);
+
+    void sizebigger (int s = 1);
 
     void markposition (const char s);
 
@@ -108,6 +120,10 @@ namespace apvlv
     void search (const char *str);
     void backsearch (const char *str);
 
+    // 
+    // for split window
+    ApvlvDoc *left, *right, *up, *down;
+
   private:
     PopplerPage *getpage (int p);
     void markselection ();
@@ -119,6 +135,8 @@ namespace apvlv
     bool loadlastposition ();
 
     static gboolean apvlv_doc_first_scroll_cb (gpointer);
+
+    static gboolean apvlv_doc_first_copy_cb (gpointer);
 
     ApvlvDoc *parent;
     vector <ApvlvDoc *> hchildren, vchildren;

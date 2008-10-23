@@ -92,6 +92,11 @@ namespace apvlv
     void zoomin () { crtadoc->zoomin (); }
     void zoomout () { crtadoc->zoomout (); }
 
+    void vseparate () { crtadoc->copy (true); }
+    void hseparate () { crtadoc->copy (false); }
+
+    void dowindow (const char *s);
+
   private:
     void parse_cmd (GdkEventKey * gek);
 

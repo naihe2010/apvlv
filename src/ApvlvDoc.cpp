@@ -46,7 +46,7 @@
 
 namespace apvlv
 {
-  ApvlvDoc::ApvlvDoc (const char *zm, GtkWidget *v, GtkWidget *h)
+  ApvlvDoc::ApvlvDoc (const char *zm)
     {
       doc = NULL;
       pagedata = NULL;
@@ -55,8 +55,12 @@ namespace apvlv
       results = NULL;
       searchstr = "";
 
-      v? vbox = v: vbox = gtk_vbox_new (TRUE, 0);
-      h? hbox = h: hbox = gtk_hbox_new (TRUE, 0);
+      up = down = left = right = NULL;
+
+      vbox = gtk_vbox_new (TRUE, 5);
+      g_object_set_data (G_OBJECT (vbox), "doc", this);
+      hbox = gtk_hbox_new (TRUE, 5);
+      g_object_set_data (G_OBJECT (hbox), "doc", this);
 
       gtk_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
 
@@ -83,7 +87,25 @@ namespace apvlv
           savelastposition ();
         }
       positions.clear ();
-      gtk_widget_destroy (vbox);
+
+      if (up)
+        up->down = down;
+      if (down)
+        down->up = up;
+      if (left)
+        left->right = right;
+      if (right)
+        right->left = left;
+
+      gtk_widget_destroy (scrollwin);
+
+      if (right == NULL)
+        {
+          gtk_widget_destroy (hbox);
+
+          if (down == NULL )
+            gtk_widget_destroy (vbox);
+        }
     }
 
   bool
@@ -147,52 +169,112 @@ namespace apvlv
           }
       }
 
-  void 
-    ApvlvDoc::vseperate ()
-    {
-      ApvlvDoc *ndoc = new ApvlvDoc ("NORMAL", vbox, NULL);
-      vchildren.insert (vchildren.end (), ndoc);
-    }
+  ApvlvDoc *
+    ApvlvDoc::copy (bool type)
+      {
+        ApvlvDoc *ndoc = new ApvlvDoc;
 
-  void 
-    ApvlvDoc::hseperate ()
-    {
-      ApvlvDoc *ndoc = new ApvlvDoc ("NORMAL", NULL, hbox);
-      hchildren.insert (vchildren.end (), ndoc);
-    }
+        if (type)
+          {
+            gtk_box_pack_start (GTK_BOX (vbox), ndoc->widget (), TRUE, TRUE, 0); 
+            gtk_widget_show_all (ndoc->widget ());
+            down = ndoc;
+            ndoc->up = this;
+          }
+        else
+          {
+            gtk_box_pack_start (GTK_BOX (hbox), ndoc->widget (), TRUE, TRUE, 0);
+            gtk_widget_show_all (ndoc->widget ());
+            right = ndoc;
+            ndoc->left = this;
+          }
+
+        ndoc->setzoom (zoomrate);
+        ndoc->filestr = (filestr);
+        gtk_timeout_add (50, apvlv_doc_first_copy_cb, ndoc);
+
+        return ndoc;
+      }
+
+  ApvlvDoc *
+    ApvlvDoc::getneighbor (const char *type)
+      {
+        ApvlvDoc *ndoc;
+
+        if ((strcmp (type, "C-w") == 0)
+            || (strcmp (type, "n") == 0)
+        )
+          {
+            ndoc = down;
+            if (ndoc == NULL)
+              {
+                ndoc = right;
+                if (ndoc == NULL)
+                  {
+                    ndoc = this;
+                    if (left != NULL)
+                      {
+                        while (ndoc->left != NULL) ndoc = ndoc->left;
+                      }
+                    else
+                      {
+                        while (ndoc->up != NULL) ndoc = ndoc->up;
+                      }
+                  }
+              }
+          }
+        else if (strcmp (type, "k") == 0)
+          {
+            ndoc = up;
+          }
+        else if (strcmp (type, "j") == 0)
+          {
+            ndoc = down;
+          }
+        else if (strcmp (type, "h") == 0)
+          {
+            ndoc = left;
+          }
+        else if (strcmp (type, "l") == 0)
+          {
+            ndoc = right;
+          }
+
+        return ndoc;
+      }
 
   bool 
     ApvlvDoc::loadfile (const char *filename, bool check)
-  {
-    if (check)
       {
-        if (strcmp (filename, filestr.c_str ()) == 0)
+        if (check)
           {
+            if (strcmp (filename, filestr.c_str ()) == 0)
+              {
+                return false;
+              }
+          }
+
+        gchar *uri = g_filename_to_uri (filename, NULL, NULL);
+        if (uri == NULL)
+          {
+            cerr << "Can't convert" << filename << "to a valid uri";
             return false;
           }
+
+        doc = poppler_document_new_from_file (uri, NULL, NULL);
+        g_free (uri);
+
+        if (doc != NULL)
+          {
+            zoominit = false;
+            lines = 50;
+            chars = 80;
+            filestr = filename;
+            loadlastposition ();
+          }
+
+        return doc == NULL? false: true;
       }
-
-    gchar *uri = g_filename_to_uri (filename, NULL, NULL);
-    if (uri == NULL)
-      {
-	cerr << "Can't convert" << filename << "to a valid uri";
-        return false;
-      }
-
-    doc = poppler_document_new_from_file (uri, NULL, NULL);
-    g_free (uri);
-
-    if (doc != NULL)
-      {
-        zoominit = false;
-        lines = 50;
-        chars = 80;
-        filestr = filename;
-        loadlastposition ();
-      }
-
-    return doc == NULL? false: true;
-  }
 
   void
     ApvlvDoc::setzoom (const char *z)
@@ -228,6 +310,18 @@ namespace apvlv
         zoommode = CUSTOM;
         zoomrate = d;
         refresh ();
+      }
+
+  void 
+    ApvlvDoc::sizesmaller (int s)
+      {
+        gtk_widget_set_size_request (widget (), width - width / chars * s, height);
+      }
+
+  void 
+    ApvlvDoc::sizebigger (int s)
+      {
+        gtk_widget_set_size_request (widget (), width + width / chars * s, height);
       }
 
   PopplerPage *
@@ -622,4 +716,11 @@ namespace apvlv
         return FALSE;
       }
 
+  gboolean 
+    ApvlvDoc::apvlv_doc_first_copy_cb (gpointer data)
+      {
+        ApvlvDoc *doc = (ApvlvDoc *) data;
+        doc->loadfile (doc->filestr, false);
+        return FALSE;
+      }
 }
