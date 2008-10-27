@@ -24,69 +24,69 @@
  * holders shall not be used in advertising or otherwise to promote the     
  * sale, use or other dealings in this Software without prior written       
  * authorization.                                                           
- ****************************************************************************/
+****************************************************************************/
 
 /****************************************************************************
  *  Author:    YuPengda
  *  AuthorRef: Alf <naihe2010@gmail.com>
  *  Blog:      http://naihe2010.cublog.cn
- ****************************************************************************/
-#ifndef _APVLV_PARAMS_H_
-#define _APVLV_PARAMS_H_
+****************************************************************************/
+#ifndef _APVLV_WINDOW_H_
+#define _APVLV_WINDOW_H_
 
 #ifdef HAVE_CONFIG_H
 # include "config.hpp"
 #endif
 
-#include <iostream>
-#include <map>
+#include "ApvlvDoc.hpp"
 
+#include <gtk/gtk.h>
+
+#include <iostream>
 using namespace std;
 
 namespace apvlv
 {
-  class ApvlvParams
+  class ApvlvDoc;
+
+  class ApvlvWindow
     {
   public:
-    ApvlvParams ();
-    ~ApvlvParams ();
+      ApvlvWindow (ApvlvDoc *doc);
+      ~ApvlvWindow ();
 
-    bool loadfile (const char *filename);
+      ApvlvWindow *copy (int type);
 
-    bool mappush (string &cmd1, string &cmd2);
+      GtkWidget *widget () { return m_Doc? m_Doc->widget (): m_blank; }
 
-    const char *mapvalue (const char *key);
+      ApvlvDoc *loadDoc (const char *filename);
 
-    const char *cmd (const char *key);
+      void setDoc (ApvlvDoc *doc);
 
-    bool settingpush (const char *ch, const char *str);
+      ApvlvDoc *getDoc () { return m_Doc; }
 
-    const char *settingvalue (const char *key);
-    
-    //for debug
-    void debug ()
-      {
-        map <string, string>::iterator it;
+      void setsize (int wid, int hei);
 
-        cerr << "maps" << endl;
-        for (it = m_maps.begin (); it != m_maps.end (); ++ it)
-          {
-            cerr << "first:[" << (*it).first << "], second[" << (*it).second << "]" << endl;
-          }
-        cerr << endl;
+      void vseparate ();
+      void hseparate ();
 
-        cerr << "settings" << endl;
-        for (it = m_settings.begin (); it != m_settings.end (); ++ it)
-          {
-            cerr << "first:[" << (*it).first << "], second[" << (*it).second << "]" << endl;
-          }
-      }
+      void firstminner (int times = 1);
+      void firstmaxer (int times = 1);
+      void secondminner (int times = 1);
+      void secondmaxer (int times = 1);
+
+      ApvlvWindow *m_left, *m_right;
 
   private:
-    map <string, string> m_maps, m_settings;
-    };
 
-  extern ApvlvParams *gParams;
+      GtkWidget *m_blank;
+
+      ApvlvDoc *m_Doc;
+
+      int m_width, m_height;
+
+      enum windowtype { SINGLE, VDOUBLE, HDOUBLE } type;
+    };
 }
 
 #endif

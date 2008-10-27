@@ -38,66 +38,23 @@
 # include "config.hpp"
 #endif
 
-#include "ApvlvParams.hpp"
+#include <gtk/gtk.h>
 
 #include <iostream>
-
-#include <gtk/gtk.h>
+using namespace std;
 
 namespace apvlv
 {
   class ApvlvCmds
     {
   public:
-    ApvlvCmds (ApvlvParams *pa);
+    ApvlvCmds ();
 
     ~ApvlvCmds ();
 
     void push (char c) { char t[2] = { 0 }; t[0] = c; queue.append (t); tryrun (); }
 
     void push (const char *cmd) { queue.append (cmd); tryrun (); }
-
-    void settimeout (guint msec) { cmd_timeout = msec; }
-
-    virtual void promptsearch () { }
-    virtual void promptbacksearch () { }
-    virtual void promptcommand () { }
-
-    virtual void run (const char *str) { }
-
-    virtual void loadfile (const char *filename) { }
-
-    virtual void open () { }
-
-    virtual void quit () { }
-
-    virtual void fullscreen () { }
-
-    virtual void markposition (const char p) { }
-    virtual void jump (const char p) { }
-
-    virtual bool reload () { }
-
-    virtual void dowindow (const char *s) { }
-
-    virtual void showpage (int p) { }
-    virtual void prepage (int times = 1) { }
-    virtual void nextpage (int times = 1) { }
-    virtual void halfnextpage (int times = 1) { }
-    virtual void halfprepage (int times = 1) { }
-
-    virtual void scrollup (int times = 1) { }
-    virtual void scrolldown (int times = 1) { }
-    virtual void scrollleft (int times = 1) { }
-    virtual void scrollright (int times = 1) { }
-
-    virtual void setzoom (const char *s) { }
-    virtual void setzoom (double d) { }
-    virtual void zoomin () { }
-    virtual void zoomout () { }
-
-  protected:
-    ApvlvParams *param;
 
   private:
     GObject *base;
@@ -106,21 +63,21 @@ namespace apvlv
     bool docmd (const char *s, int times = 1);
     bool doargu (const char *s);
 
-    static gboolean apvlv_cmds_timeout_cb (gpointer);
-
-    enum
+    enum 
       {
         CMD_OK,
-        NEED_ARGUMENT,
         NOT_MATCH,
+        NEED_ARGUMENT
       } state;
 
+    static gboolean apvlv_cmds_timeout_cb (gpointer);
+
     gint timer;
-    guint cmd_timeout;
-    guint cmd_last_time;
     string queue;
     string argu;
     };
+
+  extern ApvlvCmds *gCmds;
 }
 
 #endif

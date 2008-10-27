@@ -48,10 +48,16 @@ int
 main (int argc, char *argv[])
 {
   setlocale (LC_ALL, "");
-  gtk_init (&argc, &argv);
 
-  ApvlvParams param;
-  //  param.debug ();
+  if (!gParams)
+    {
+      gParams = new ApvlvParams;
+    }
+
+  if (!gCmds)
+    {
+      gCmds = new ApvlvCmds;
+    }
 
   char *path = absolutepath ("~/.apvlvrc");
   bool exist = g_file_test (path, G_FILE_TEST_IS_REGULAR);
@@ -64,7 +70,7 @@ main (int argc, char *argv[])
     }
   else
     {
-      param.loadfile (path);
+      gParams->loadfile (path);
     }
   //  param.debug ();
 
@@ -73,11 +79,15 @@ main (int argc, char *argv[])
   helppdf += PREFIX;
   helppdf += "/share/doc/apvlv/Startup.pdf";
 
-  ApvlvView view (&param);
+  if (!gView)
+    {
+      gView = new ApvlvView (argc, argv);
+    }
+
   if (argc > 1)
     {
       path = absolutepath (argv[1]);
-      view.loadfile (path);
+      gView->loadfile (path);
     }
   else
     {
@@ -86,10 +96,14 @@ main (int argc, char *argv[])
                 PREFIX,
                 "share/doc/apvlv/Startup.pdf"
       );
-      view.loadfile (helppdf);
+      gView->loadfile (helppdf);
     }
 
-  gtk_main ();
+  gView->show ();
+
+  delete gParams;
+  delete gCmds;
+  delete gView;
 
   return 0;
 }

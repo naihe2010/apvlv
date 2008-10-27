@@ -24,69 +24,112 @@
  * holders shall not be used in advertising or otherwise to promote the     
  * sale, use or other dealings in this Software without prior written       
  * authorization.                                                           
- ****************************************************************************/
+****************************************************************************/
 
 /****************************************************************************
  *  Author:    YuPengda
  *  AuthorRef: Alf <naihe2010@gmail.com>
  *  Blog:      http://naihe2010.cublog.cn
- ****************************************************************************/
-#ifndef _APVLV_PARAMS_H_
-#define _APVLV_PARAMS_H_
+****************************************************************************/
+#include "ApvlvParams.hpp"
+#include "ApvlvWindow.hpp"
 
-#ifdef HAVE_CONFIG_H
-# include "config.hpp"
-#endif
-
-#include <iostream>
-#include <map>
-
-using namespace std;
+#include <gtk/gtk.h>
 
 namespace apvlv
 {
-  class ApvlvParams
+  ApvlvWindow::ApvlvWindow (ApvlvDoc *doc)
     {
-  public:
-    ApvlvParams ();
-    ~ApvlvParams ();
+      m_left = m_right = NULL;
+      m_Doc = doc;
+      m_blank = gtk_image_new ();
+    }
 
-    bool loadfile (const char *filename);
+  ApvlvWindow::~ApvlvWindow ()
+    {
+    }
 
-    bool mappush (string &cmd1, string &cmd2);
-
-    const char *mapvalue (const char *key);
-
-    const char *cmd (const char *key);
-
-    bool settingpush (const char *ch, const char *str);
-
-    const char *settingvalue (const char *key);
-    
-    //for debug
-    void debug ()
+  ApvlvWindow *
+    ApvlvWindow::copy (int type)
       {
-        map <string, string>::iterator it;
+      }
 
-        cerr << "maps" << endl;
-        for (it = m_maps.begin (); it != m_maps.end (); ++ it)
+  void
+    ApvlvWindow::setsize (int width, int height)
+      {
+        m_width = width;
+        m_height = height;
+        if (m_Doc)
           {
-            cerr << "first:[" << (*it).first << "], second[" << (*it).second << "]" << endl;
-          }
-        cerr << endl;
-
-        cerr << "settings" << endl;
-        for (it = m_settings.begin (); it != m_settings.end (); ++ it)
-          {
-            cerr << "first:[" << (*it).first << "], second[" << (*it).second << "]" << endl;
+            m_Doc->setsize (m_width, m_height);
           }
       }
 
-  private:
-    map <string, string> m_maps, m_settings;
-    };
+  ApvlvDoc *
+    ApvlvWindow::loadDoc (const char *filename)
+      {
+        GtkWidget *parent = gtk_widget_get_parent (widget ());
+        g_object_ref (G_OBJECT (widget ()));
+        gtk_container_remove (GTK_CONTAINER (parent), widget ());
 
-  extern ApvlvParams *gParams;
+        ApvlvDoc *ndoc = new ApvlvDoc (gParams->settingvalue ("zoom"));
+        ndoc->setsize (m_width, m_height);
+        bool ret = ndoc->loadfile (filename);
+        if (ret)
+          {
+            m_Doc = ndoc;
+            gtk_container_add (GTK_CONTAINER (parent), ndoc->widget ());
+            gtk_widget_show_all (parent);
+            return ndoc;
+          }
+        else
+          {
+            delete ndoc;
+            return NULL;
+          }
+      }
+
+  void
+    ApvlvWindow::setDoc (ApvlvDoc *doc)
+      {
+        GtkWidget *parent = gtk_widget_get_parent (widget ());
+        g_object_ref (G_OBJECT (widget ()));
+        gtk_container_remove (GTK_CONTAINER (parent), widget ());
+
+        doc->setsize (m_width, m_height);
+        m_Doc = doc;
+
+        gtk_container_add (GTK_CONTAINER (parent), doc->widget ());
+        gtk_widget_show_all (parent);
+      }
+
+  void 
+    ApvlvWindow::vseparate ()
+      {
+      }
+
+  void 
+    ApvlvWindow::hseparate ()
+      {
+      }
+
+  void 
+    ApvlvWindow::firstminner (int times)
+      {
+      }
+
+  void 
+    ApvlvWindow::firstmaxer (int times)
+      {
+      }
+
+  void 
+    ApvlvWindow::secondminner (int times)
+      {
+      }
+
+  void 
+    ApvlvWindow::secondmaxer (int times)
+      {
+      }
 }
-
-#endif

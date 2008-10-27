@@ -39,6 +39,7 @@
 #endif
 
 #include "ApvlvDoc.hpp"
+#include "ApvlvWindow.hpp"
 #include "ApvlvCmds.hpp"
 #include "ApvlvParams.hpp"
 
@@ -48,13 +49,20 @@
 
 namespace apvlv
 {
-  class ApvlvView: public ApvlvCmds
+  class ApvlvDoc;
+  class ApvlvWindow;
+
+  class ApvlvView
     {
   public:
-    ApvlvView (ApvlvParams *pa = NULL);
+    ApvlvView (int argc, char *argv[]);
     ~ApvlvView ();
 
+    void show ();
+
     GtkWidget *widget () { return mainwindow; }
+
+    ApvlvWindow *getWindow () { return window; }
 
     void promptsearch ();
     void promptbacksearch ();
@@ -62,8 +70,8 @@ namespace apvlv
 
     void run (const char *str);
 
-    void loadfile (string file) { loadfile (file.c_str ()); }
-    void loadfile (const char *filename) { crtadoc->loadfile (filename); }
+    bool loadfile (string file) { return loadfile (file.c_str ()); }
+    bool loadfile (const char *filename);
 
     void open ();
 
@@ -71,33 +79,32 @@ namespace apvlv
 
     void fullscreen ();
 
-    void markposition (const char p) { crtadoc->markposition (p); }
-    void jump (const char p) { crtadoc->jump (p); }
+    void markposition (const char p) { crtadoc ()->markposition (p); }
+    void jump (const char p) { crtadoc ()->jump (p); }
 
-    bool reload () { return crtadoc->reload (); }
+    bool reload () { return crtadoc ()->reload (); }
 
-    void showpage (int p) { crtadoc->showpage (p - 1); }
-    void nextpage (int times = 1) { crtadoc->nextpage (times); }
-    void prepage (int times = 1) { crtadoc->prepage (times); }
-    void halfnextpage (int times = 1) { crtadoc->halfnextpage (times); }
-    void halfprepage (int times = 1) { crtadoc->halfprepage (times); }
+    void showpage (int p) { crtadoc ()->showpage (p - 1); }
+    void nextpage (int times = 1) { crtadoc ()->nextpage (times); }
+    void prepage (int times = 1) { crtadoc ()->prepage (times); }
+    void halfnextpage (int times = 1) { crtadoc ()->halfnextpage (times); }
+    void halfprepage (int times = 1) { crtadoc ()->halfprepage (times); }
 
-    void scrollup (int times = 1) { crtadoc->scrollup (times); }
-    void scrolldown (int times = 1) { crtadoc->scrolldown (times); }
-    void scrollleft (int times = 1) { crtadoc->scrollleft (times); }
-    void scrollright (int times = 1) { crtadoc->scrollright (times); }
+    void scrollup (int times = 1) { crtadoc ()->scrollup (times); }
+    void scrolldown (int times = 1) { crtadoc ()->scrolldown (times); }
+    void scrollleft (int times = 1) { crtadoc ()->scrollleft (times); }
+    void scrollright (int times = 1) { crtadoc ()->scrollright (times); }
 
-    void setzoom (const char *s) { crtadoc->setzoom (s); }
-    void setzoom (double d) { crtadoc->setzoom (d); }
-    void zoomin () { crtadoc->zoomin (); }
-    void zoomout () { crtadoc->zoomout (); }
-
-    void vseparate () { crtadoc->copy (true); }
-    void hseparate () { crtadoc->copy (false); }
+    void setzoom (const char *s) { crtadoc ()->setzoom (s); }
+    void setzoom (double d) { crtadoc ()->setzoom (d); }
+    void zoomin () { crtadoc ()->zoomin (); }
+    void zoomout () { crtadoc ()->zoomout (); }
 
     void dowindow (const char *s);
 
   private:
+    ApvlvDoc *crtadoc () { return getWindow ()->getDoc (); }
+
     void parse_cmd (GdkEventKey * gek);
 
     void refresh ();
@@ -133,8 +140,13 @@ namespace apvlv
 
     static gint apvlv_view_statusbar_cb (GtkWidget * wid, GdkEvent * ev);
 
-    ApvlvDoc *adoc, *crtadoc;
+    ApvlvWindow *window;
+
+    map <string, ApvlvDoc *> m_Docs;
+    vector <ApvlvWindow *> m_Windows;
     };
+
+  extern ApvlvView *gView;
 }
 
 #endif

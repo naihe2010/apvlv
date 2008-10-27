@@ -48,24 +48,18 @@ namespace apvlv
 {
   ApvlvDoc::ApvlvDoc (const char *zm)
     {
+      up = down = left = right = NULL;
+
       doc = NULL;
+
       pagedata = NULL;
       pixbuf = NULL;
       page = NULL;
+
       results = NULL;
       searchstr = "";
 
-      up = down = left = right = NULL;
-
-      vbox = gtk_vbox_new (TRUE, 5);
-      g_object_set_data (G_OBJECT (vbox), "doc", this);
-      hbox = gtk_hbox_new (TRUE, 5);
-      g_object_set_data (G_OBJECT (hbox), "doc", this);
-
-      gtk_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
-
       scrollwin = gtk_scrolled_window_new (NULL, NULL);
-      gtk_box_pack_start (GTK_BOX (hbox), scrollwin, TRUE, TRUE, 0);
 
       image = gtk_image_new ();
       gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (scrollwin),
@@ -87,25 +81,6 @@ namespace apvlv
           savelastposition ();
         }
       positions.clear ();
-
-      if (up)
-        up->down = down;
-      if (down)
-        down->up = up;
-      if (left)
-        left->right = right;
-      if (right)
-        right->left = left;
-
-      gtk_widget_destroy (scrollwin);
-
-      if (right == NULL)
-        {
-          gtk_widget_destroy (hbox);
-
-          if (down == NULL )
-            gtk_widget_destroy (vbox);
-        }
     }
 
   bool
@@ -169,81 +144,7 @@ namespace apvlv
           }
       }
 
-  ApvlvDoc *
-    ApvlvDoc::copy (bool type)
-      {
-        ApvlvDoc *ndoc = new ApvlvDoc;
-
-        if (type)
-          {
-            gtk_box_pack_start (GTK_BOX (vbox), ndoc->widget (), TRUE, TRUE, 0); 
-            gtk_widget_show_all (ndoc->widget ());
-            down = ndoc;
-            ndoc->up = this;
-          }
-        else
-          {
-            gtk_box_pack_start (GTK_BOX (hbox), ndoc->widget (), TRUE, TRUE, 0);
-            gtk_widget_show_all (ndoc->widget ());
-            right = ndoc;
-            ndoc->left = this;
-          }
-
-        ndoc->setzoom (zoomrate);
-        ndoc->filestr = (filestr);
-        gtk_timeout_add (50, apvlv_doc_first_copy_cb, ndoc);
-
-        return ndoc;
-      }
-
-  ApvlvDoc *
-    ApvlvDoc::getneighbor (const char *type)
-      {
-        ApvlvDoc *ndoc;
-
-        if ((strcmp (type, "C-w") == 0)
-            || (strcmp (type, "n") == 0)
-        )
-          {
-            ndoc = down;
-            if (ndoc == NULL)
-              {
-                ndoc = right;
-                if (ndoc == NULL)
-                  {
-                    ndoc = this;
-                    if (left != NULL)
-                      {
-                        while (ndoc->left != NULL) ndoc = ndoc->left;
-                      }
-                    else
-                      {
-                        while (ndoc->up != NULL) ndoc = ndoc->up;
-                      }
-                  }
-              }
-          }
-        else if (strcmp (type, "k") == 0)
-          {
-            ndoc = up;
-          }
-        else if (strcmp (type, "j") == 0)
-          {
-            ndoc = down;
-          }
-        else if (strcmp (type, "h") == 0)
-          {
-            ndoc = left;
-          }
-        else if (strcmp (type, "l") == 0)
-          {
-            ndoc = right;
-          }
-
-        return ndoc;
-      }
-
-  bool 
+  bool
     ApvlvDoc::loadfile (const char *filename, bool check)
       {
         if (check)
@@ -312,16 +213,10 @@ namespace apvlv
         refresh ();
       }
 
-  void 
-    ApvlvDoc::sizesmaller (int s)
+  GtkWidget *
+    ApvlvDoc::widget ()
       {
-        gtk_widget_set_size_request (widget (), width - width / chars * s, height);
-      }
-
-  void 
-    ApvlvDoc::sizebigger (int s)
-      {
-        gtk_widget_set_size_request (widget (), width + width / chars * s, height);
+        return scrollwin;
       }
 
   PopplerPage *
@@ -434,9 +329,6 @@ namespace apvlv
         poppler_page_render_to_pixbuf (page, 0, 0, ix, iy, zoomrate, 0, pixbuf);
 
         gtk_image_set_from_pixbuf (GTK_IMAGE (image), pixbuf);
-
-        vrate = (vaj->upper - vaj->lower) / lines;
-        hrate = (haj->upper - haj->lower) / chars;
       }
 
   void
@@ -499,6 +391,7 @@ namespace apvlv
           return;
 
         gdouble val = gtk_adjustment_get_value (vaj);
+        vrate = (vaj->upper - vaj->lower) / lines;
         if (val - vrate * times > vaj->lower)
           {
             gtk_adjustment_set_value (vaj, val - vrate * times);
@@ -520,6 +413,7 @@ namespace apvlv
           return;
 
         gdouble val = gtk_adjustment_get_value (vaj);
+        vrate = (vaj->upper - vaj->lower) / lines;
         if (val + vrate * times + vaj->page_size < vaj->upper)
           {
             gtk_adjustment_set_value (vaj, val + vrate * times);
@@ -540,6 +434,7 @@ namespace apvlv
         if (doc == NULL)
           return;
 
+        hrate = (haj->upper - haj->lower) / chars;
         gdouble val = haj->value - hrate * times;
         if (val > vaj->lower)
           {
@@ -557,6 +452,7 @@ namespace apvlv
         if (doc == NULL)
           return;
 
+        hrate = (haj->upper - haj->lower) / chars;
         gdouble val = haj->value + hrate * times;
         if (val + haj->page_size < haj->upper)
           {

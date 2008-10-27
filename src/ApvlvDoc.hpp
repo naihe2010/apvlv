@@ -55,6 +55,8 @@ namespace apvlv
       double scrollrate;
     };
 
+  class ApvlvWindow;
+
   class ApvlvDoc
     {
   public:
@@ -82,7 +84,7 @@ namespace apvlv
 
     double zoomvalue () { return zoomrate; }
 
-    GtkWidget *widget () { return vbox; }
+    GtkWidget *widget ();
 
     bool loadfile (string & filename, bool check = true) { loadfile (filename.c_str (), check); }
 
@@ -120,8 +122,12 @@ namespace apvlv
     void search (const char *str);
     void backsearch (const char *str);
 
+    ApvlvWindow *getWindow ();
+    void setWindow (ApvlvWindow *window);
+
     // 
     // for split window
+    // left & right and up & down can't show at once
     ApvlvDoc *left, *right, *up, *down;
 
   private:
@@ -172,7 +178,9 @@ namespace apvlv
 
     // vbox and hbox for multiple windows
     // vbox will be the main widget
-    GtkWidget *vbox, *hbox, *scrollwin, *image;
+    GtkWidget *scrollwin, *image;
+
+    ApvlvWindow *m_window;
     };
 }
 

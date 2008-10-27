@@ -32,6 +32,7 @@
  *  Blog:      http://naihe2010.cublog.cn
 ****************************************************************************/
 #include "ApvlvParams.hpp"
+#include "ApvlvView.hpp"
 #include "ApvlvCmds.hpp"
 
 #include <stdlib.h>
@@ -40,14 +41,13 @@
 
 namespace apvlv
 {
-  ApvlvCmds::ApvlvCmds (ApvlvParams *pa) 
-    { 
-      param = pa;
+  ApvlvCmds *gCmds = NULL;
 
+  ApvlvCmds::ApvlvCmds () 
+    { 
       argu = "";
       queue = ""; 
 
-      state = CMD_OK;
       timer = -1; 
     }
 
@@ -106,7 +106,7 @@ namespace apvlv
               }
           }
 
-        const char *s = param->mapvalue (p);
+        const char *s = gParams->mapvalue (p);
         if (s != NULL)
           {
             queue.replace (p - queue.c_str (), strlen (p), s);
@@ -137,7 +137,7 @@ namespace apvlv
 
         if (state != CMD_OK)
           {
-            int cmd_timeout = atoi (param->settingvalue ("commandtimeout"));
+            int cmd_timeout = atoi (gParams->settingvalue ("commandtimeout"));
             timer = gtk_timeout_add (cmd_timeout, apvlv_cmds_timeout_cb, this);
             return false;
           }
@@ -150,17 +150,17 @@ namespace apvlv
       {
         if (strcmp (s, "f") == 0)
           {
-            fullscreen ();
+            gView->fullscreen ();
           }
 
         else if (strcmp (s, "q") == 0)
           {
-            quit ();
+            gView->quit ();
           }
 
         else if (strcmp (s, "o") == 0)
           {
-            open ();
+            gView->open ();
           }
 
         else if (strcmp (s, "m") == 0)
@@ -190,7 +190,7 @@ namespace apvlv
 
         else if (strcmp (s, "R") == 0)
           {
-            reload ();
+            gView->reload ();
           }
 
         else if (strcmp (s, "C-w") == 0)
@@ -208,65 +208,65 @@ namespace apvlv
 
         else if (strcmp (s, "g") == 0)
           {
-            markposition ('\'');
-            showpage (times);
+            gView->markposition ('\'');
+            gView->showpage (times);
           }
         else if (strcmp (s, "C-d") == 0)
           {
-            halfnextpage (times);
+            gView->halfnextpage (times);
           }
         else if (strcmp (s, "C-u") == 0)
           {
-            halfprepage (times);
+            gView->halfprepage (times);
           }
         else if (strcmp (s, "C-f") == 0)
           {
-            nextpage (times);
+            gView->nextpage (times);
           }
         else if (strcmp (s, "C-b") == 0)
           {
-            prepage (times);
+            gView->prepage (times);
           }
 
         else if (strcmp (s, "k") == 0)
           {
-            scrollup (times);
+            gView->scrollup (times);
           }
         else if (strcmp (s, "j") == 0)
           {
-            scrolldown (times);
+            gView->scrolldown (times);
           }
         else if (strcmp (s, "h") == 0)
           {
-            scrollleft (times);
+            gView->scrollleft (times);
           }
         else if (strcmp (s, "l") == 0)
           {
-            scrollright (times);
+            gView->scrollright (times);
           }
 
         else if (strcmp (s, "zi") == 0)
           {
-            zoomin ();
+            gView->zoomin ();
           }
         else if (strcmp (s, "zo") == 0)
           {
-            zoomout ();
+            gView->zoomout ();
           }
 
         else if (strcmp (s, "/") == 0)
           {
-            markposition ('\'');
-            promptsearch ();
+            gView->markposition ('\'');
+            gView->promptsearch ();
           }
         else if (strcmp (s, "?") == 0)
           {
-            markposition ('\'');
-            promptbacksearch ();
+            gView->markposition ('\'');
+            gView->promptbacksearch ();
           }
         else if (strcmp (s, ":") == 0)
           {
-            promptcommand ();
+            gView->promptcommand ();
           }
         else
           {
@@ -285,16 +285,16 @@ namespace apvlv
           {
             if ('a' <= *s && *s <= 'z')
               {
-                markposition (*s);
+                gView->markposition (*s);
               }
           }
         else if (argu == "'")
           {
-            jump (*s);
+            gView->jump (*s);
           }
         else if (argu == "C-w")
           {
-            dowindow (s);
+            gView->dowindow (s);
           }
         else
           {

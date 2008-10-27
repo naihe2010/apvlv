@@ -5,6 +5,7 @@ HEAD = config.hpp \
        ApvlvView.hpp \
        ApvlvCmds.hpp \
        ApvlvParams.hpp \
+       ApvlvWindow.hpp \
        ApvlvDoc.hpp
 
 SOURCE = main.cpp \
@@ -12,6 +13,7 @@ SOURCE = main.cpp \
 	 ApvlvView.cpp \
 	 ApvlvCmds.cpp \
 	 ApvlvParams.cpp \
+	 ApvlvWindow.cpp \
 	 ApvlvDoc.cpp
 
 bin_PROGRAMS = apvlv 

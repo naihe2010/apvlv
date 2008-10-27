@@ -41,6 +41,8 @@
 
 namespace apvlv
 {
+  ApvlvParams *gParams = NULL;
+
   ApvlvParams::ApvlvParams ()
     {
       settingpush ("fullscreen", "no");
