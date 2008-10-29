@@ -113,14 +113,15 @@ namespace apvlv
       }
 
   inline ApvlvWindow *
-    ApvlvWindow::getkj (int num, bool next)
+    ApvlvWindow::getkj (int num, bool down)
       {
-        ApvlvWindow *w, *nw, *fw;
+        ApvlvWindow *bw, *w, *nw, *fw;
+        int id;
 
         if (m_parent == NULL)
           return NULL;
 
-        for (w = this; w != NULL; w = w->m_parent)
+        for (w = this; w != NULL; bw = w, w = w->m_parent)
           {
             if (w->m_parent == NULL)
               {
@@ -128,12 +129,12 @@ namespace apvlv
                 goto end;
               }
 
-            if (next == false)
-              nw = w->m_prev;
-            else
+            if (down)
               nw = w->m_next;
-            if (w->m_parent->type == AW_SP && nw != NULL)
-              break;
+            else
+              nw = w->m_prev;
+
+            if (w->m_parent->type == AW_SP && nw != NULL) break;
           }
 
         for (;;)
@@ -145,16 +146,19 @@ namespace apvlv
               }
 
             fw = nw->m_child;
-            if (nw->type == AW_SP && !next)
+            if (nw->type == AW_VSP)
+              {
+                while (fw->m_next != NULL && bw != bw->m_parent->m_child)
+                  {
+                    fw = fw->m_next;
+                    bw = bw->m_prev;
+                  }
+              }
+
+            if (nw->type == AW_SP && !down)
               {
                 while (fw->m_next != NULL)
                   fw = fw->m_next;
-              }
-
-            if (nw->type == AW_VSP && next)
-              {
-                while (nw->m_next != NULL)
-                  nw = nw->m_next;
               }
             nw = fw;
           }
@@ -164,14 +168,15 @@ end:
       }
 
   inline ApvlvWindow *
-    ApvlvWindow::gethl (int num, bool next)
+    ApvlvWindow::gethl (int num, bool right)
       {
-        ApvlvWindow *w, *nw, *fw;
+        ApvlvWindow *bw, *w, *nw, *fw;
+        int id;
 
         if (m_parent == NULL)
           return NULL;
 
-        for (w = this; w != NULL; w = w->m_parent)
+        for (w = this; w != NULL; bw = w, w = w->m_parent)
           {
             if (w->m_parent == NULL)
               {
@@ -179,12 +184,11 @@ end:
                 goto end;
               }
 
-            if (next == false)
-              nw = w->m_prev;
-            else
+            if (right)
               nw = w->m_next;
-            if (w->m_parent->type == AW_VSP && nw != NULL)
-              break;
+            else
+              nw = w->m_prev;
+            if (w->m_parent->type == AW_VSP && nw != NULL) break;
           }
 
         for (;;)
@@ -196,16 +200,19 @@ end:
               }
 
             fw = nw->m_child;
-            if (nw->type == AW_VSP && !next)
+            if (nw->type == AW_SP)
+              {
+                while (fw->m_next != NULL && bw != bw->m_parent->m_child)
+                  {
+                    fw = fw->m_next;
+                    bw = bw->m_prev;
+                  }
+              }
+
+            if (nw->type == AW_VSP && !right)
               {
                 while (fw->m_next != NULL)
                   fw = fw->m_next;
-              }
-
-            if (nw->type == AW_SP && next)
-              {
-                while (nw->m_next != NULL)
-                  nw = nw->m_next;
               }
             nw = fw;
           }
