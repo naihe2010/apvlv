@@ -57,6 +57,10 @@ namespace apvlv
 
       ApvlvWindow *birth (ApvlvDoc *doc = NULL);
 
+      ApvlvWindow *insertafter (ApvlvWindow *bwin);
+
+      ApvlvWindow *insertbefore (ApvlvWindow *awin);
+
       ApvlvWindow *getneighbor (const char *s);
 
       GtkWidget *widget () { return m_Doc->widget (); }
@@ -80,8 +84,8 @@ namespace apvlv
       ApvlvWindow *m_prev, *m_next, *m_parent, *m_child;
 
   private:
-      inline ApvlvWindow *getv (int num, bool next);
-      inline ApvlvWindow *geth (int num, bool next);
+      inline ApvlvWindow *getkj (int num, bool next);
+      inline ApvlvWindow *gethl (int num, bool next);
       inline ApvlvWindow *getnext (int num);
 
       bool defaultdoc;

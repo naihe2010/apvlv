@@ -55,7 +55,6 @@ namespace apvlv
 
   ApvlvWindow::~ApvlvWindow ()
     {
-      cout << __LINE__ << ":" << __func__ << ": " << "delete a window: " << this << endl;
       if (type == AW_DOC && gView->hasloaded (m_Doc->filename ()) != m_Doc)
         {
           delete m_Doc;
@@ -97,31 +96,38 @@ namespace apvlv
           }
         else if (strcmp (s, "k") == 0)
           {
-            return getv (1, false);
+            return getkj (1, false);
           }
         else if (strcmp (s, "j") == 0)
           {
-            return getv (1, true);
+            return getkj (1, true);
           }
         else if (strcmp (s, "h") == 0)
           {
-            return geth (1, false);
+            return gethl (1, false);
           }
         else if (strcmp (s, "l") == 0)
           {
-            return geth (1, true);
+            return gethl (1, true);
           }
       }
 
   inline ApvlvWindow *
-    ApvlvWindow::getv (int num, bool next)
+    ApvlvWindow::getkj (int num, bool next)
       {
-        ApvlvWindow *w, *nw, *nfw;
+        ApvlvWindow *w, *nw, *fw;
+
+        if (m_parent == NULL)
+          return NULL;
 
         for (w = this; w != NULL; w = w->m_parent)
           {
             if (w->m_parent == NULL)
-              return NULL;
+              {
+                fw = nw;
+                goto end;
+              }
+
             if (next == false)
               nw = w->m_prev;
             else
@@ -134,41 +140,50 @@ namespace apvlv
           {
             if (nw->type == AW_DOC)
               {
-                nfw = nw;
+                fw = nw;
                 break;
               }
-            nfw = nw->m_child;
-            if (nw->type == AW_SP)
+
+            fw = nw->m_child;
+            if (nw->type == AW_SP && !next)
               {
-                while (nfw->m_next != NULL)
-                  nfw = nfw->m_next;
+                while (fw->m_next != NULL)
+                  fw = fw->m_next;
               }
-            if (nw->type == AW_VSP && !next)
+
+            if (nw->type == AW_VSP && next)
               {
-              while (nw->m_next != NULL)
-                nw = nw->m_next;
+                while (nw->m_next != NULL)
+                  nw = nw->m_next;
               }
-            nfw = nw;
+            nw = fw;
           }
+
 end:
-        if (nfw != NULL)
-          return nfw;
+        return fw;
       }
 
   inline ApvlvWindow *
-    ApvlvWindow::geth (int num, bool next)
+    ApvlvWindow::gethl (int num, bool next)
       {
-        ApvlvWindow *w, *nw, *nfw;
+        ApvlvWindow *w, *nw, *fw;
+
+        if (m_parent == NULL)
+          return NULL;
 
         for (w = this; w != NULL; w = w->m_parent)
           {
             if (w->m_parent == NULL)
-              return NULL;
+              {
+                fw = nw;
+                goto end;
+              }
+
             if (next == false)
               nw = w->m_prev;
             else
               nw = w->m_next;
-            if (w->m_parent->type == AW_SP && nw != NULL)
+            if (w->m_parent->type == AW_VSP && nw != NULL)
               break;
           }
 
@@ -176,39 +191,41 @@ end:
           {
             if (nw->type == AW_DOC)
               {
-                nfw = nw;
+                fw = nw;
                 break;
               }
-            nfw = nw->m_child;
-            if (nw->type == AW_SP)
-              {
-                while (nfw->m_next != NULL)
-                  nfw = nfw->m_next;
-              }
+
+            fw = nw->m_child;
             if (nw->type == AW_VSP && !next)
               {
-              while (nw->m_next != NULL)
-                nw = nw->m_next;
+                while (fw->m_next != NULL)
+                  fw = fw->m_next;
               }
-            nfw = nw;
+
+            if (nw->type == AW_SP && next)
+              {
+                while (nw->m_next != NULL)
+                  nw = nw->m_next;
+              }
+            nw = fw;
           }
+
 end:
-        if (nfw != NULL)
-          return nfw;
+        return fw;
       }
 
   inline ApvlvWindow *
     ApvlvWindow::getnext (int num)
       {
-        ApvlvWindow *n = getv (num, true);
+        ApvlvWindow *n = getkj (num, true);
         if (n == NULL)
           {
-            n = geth (num, true);
+            n = gethl (num, true);
             if (n == NULL)
               {
-                n = geth (num, false);
+                n = gethl (num, false);
                 if (n == NULL)
-                  n = getv (num, false);
+                  n = getkj (num, false);
               }
           }
         return n;
@@ -229,15 +246,36 @@ end:
           {
             m_child = nwindow;
           }
-        else
-          {
-            ApvlvWindow *nw;
-            for (nw = m_child; nw->m_next != NULL; nw = nw->m_next);
-            nw->m_next = nwindow;
-            nwindow->m_prev = nw;
-          }
 
         return nwindow;
+      }
+
+  ApvlvWindow *
+    ApvlvWindow::insertafter (ApvlvWindow *awin)
+      {
+        awin->m_prev = this;
+        awin->m_next = m_next;
+        if (m_next != NULL)
+          {
+            m_next->m_prev = awin;
+          }
+        m_next = awin;
+      }
+
+  ApvlvWindow *
+    ApvlvWindow::insertbefore (ApvlvWindow *bwin)
+      {
+        if (m_prev != NULL)
+          {
+            m_prev->m_next = bwin;
+            bwin->m_prev = m_prev;
+          }
+        bwin->m_next = this;
+        m_prev = bwin;
+        if (m_parent && m_parent->m_child == this)
+          {
+            m_parent->m_child = bwin;
+          }
       }
 
   ApvlvWindow *
@@ -248,7 +286,7 @@ end:
         if (m_parent != NULL && m_parent->type == ttype)
           {
             ApvlvWindow *nwin = m_parent->birth ();
-            cout << __LINE__ << ":" << __func__ << ": create a new window: " << nwin << endl;
+            insertafter (nwin);
             gtk_box_pack_start (GTK_BOX (m_parent->m_box), nwin->widget (), TRUE, TRUE, 0);
             gtk_widget_show_all (m_parent->m_box);
             return this;
@@ -261,8 +299,7 @@ end:
 
         ApvlvWindow *nwindow = birth (m_Doc);
         ApvlvWindow *nwindow2 = birth ();
-        cout << __LINE__ << ":" << __func__ << ": create 2 new window: " \
-          << nwindow << "&" << nwindow2 << endl;
+        m_child->insertafter (nwindow2);
 
         type = windowType (ttype);
 
