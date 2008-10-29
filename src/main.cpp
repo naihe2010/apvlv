@@ -49,17 +49,13 @@ main (int argc, char *argv[])
 {
   setlocale (LC_ALL, "");
 
-  if (!gParams)
-    {
-      gParams = new ApvlvParams;
-    }
+  ApvlvParams sParams;
+  gParams = &sParams;
 
-  if (!gCmds)
-    {
-      gCmds = new ApvlvCmds;
-    }
+  ApvlvCmds sCmds;
+  gCmds = &sCmds;
 
-  char *path = absolutepath ("~/.apvlvrc");
+  const char *path = absolutepath ("~/.apvlvrc");
   bool exist = g_file_test (path, G_FILE_TEST_IS_REGULAR);
   if (!exist)
     {
@@ -74,36 +70,22 @@ main (int argc, char *argv[])
     }
   //  param.debug ();
 
+  ApvlvView sView (argc, argv);
+  gView = &sView;
+
   // build the helppdf string
-  helppdf = "";
-  helppdf += PREFIX;
+  helppdf = string (PREFIX);
   helppdf += "/share/doc/apvlv/Startup.pdf";
 
-  if (!gView)
-    {
-      gView = new ApvlvView (argc, argv);
-    }
-
+  path = helppdf.c_str ();
   if (argc > 1)
     {
       path = absolutepath (argv[1]);
-      gView->loadfile (path);
     }
-  else
-    {
-      char startfile[256];
-      snprintf (startfile, sizeof startfile, "%s/%s",
-                PREFIX,
-                "share/doc/apvlv/Startup.pdf"
-      );
-      gView->loadfile (helppdf);
-    }
+  
+  gView->loadfile (path);
 
   gView->show ();
-
-  delete gParams;
-  delete gCmds;
-  delete gView;
 
   return 0;
 }

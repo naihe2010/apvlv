@@ -31,6 +31,7 @@
  *  AuthorRef: Alf <naihe2010@gmail.com>
  *  Blog:      http://naihe2010.cublog.cn
 ****************************************************************************/
+#include "ApvlvView.hpp"
 #include "ApvlvParams.hpp"
 #include "ApvlvWindow.hpp"
 
@@ -40,18 +41,239 @@ namespace apvlv
 {
   ApvlvWindow::ApvlvWindow (ApvlvDoc *doc)
     {
-      m_left = m_right = NULL;
-      m_Doc = doc;
-      m_blank = gtk_image_new ();
+      type = AW_DOC;
+      if (doc == NULL)
+        {
+          m_Doc = new ApvlvDoc (gParams->settingvalue ("zoom"));
+        }
+      else
+        {
+          m_Doc = doc;
+        }
+      m_prev = m_next = m_parent = m_child = NULL;
     }
 
   ApvlvWindow::~ApvlvWindow ()
     {
+      cout << __LINE__ << ":" << __func__ << ": " << "delete a window: " << this << endl;
+      if (type == AW_DOC && gView->hasloaded (m_Doc->filename ()) != m_Doc)
+        {
+          delete m_Doc;
+        }
+
+      if (m_parent != NULL)
+        {
+          if (m_parent->m_child == this)
+            {
+              m_parent->m_child = m_next;
+            }
+
+          if (m_prev != NULL)
+            {
+              m_prev->m_next = m_next;
+            }
+          if (m_next != NULL)
+            {
+              m_next->m_prev = m_prev;
+            }
+        }
+
+      if (type != AW_DOC)
+        {
+          ApvlvWindow *nwin;
+          while ((nwin = m_child) != NULL)
+            {
+              delete nwin;
+            }
+        }
     }
 
   ApvlvWindow *
-    ApvlvWindow::copy (int type)
+    ApvlvWindow::getneighbor (const char *s)
       {
+        if (strcmp (s, "C-w") == 0)
+          {
+            return getnext (1);
+          }
+        else if (strcmp (s, "k") == 0)
+          {
+            return getv (1, false);
+          }
+        else if (strcmp (s, "j") == 0)
+          {
+            return getv (1, true);
+          }
+        else if (strcmp (s, "h") == 0)
+          {
+            return geth (1, false);
+          }
+        else if (strcmp (s, "l") == 0)
+          {
+            return geth (1, true);
+          }
+      }
+
+  inline ApvlvWindow *
+    ApvlvWindow::getv (int num, bool next)
+      {
+        ApvlvWindow *w, *nw, *nfw;
+
+        for (w = this; w != NULL; w = w->m_parent)
+          {
+            if (w->m_parent == NULL)
+              return NULL;
+            if (next == false)
+              nw = w->m_prev;
+            else
+              nw = w->m_next;
+            if (w->m_parent->type == AW_SP && nw != NULL)
+              break;
+          }
+
+        for (;;)
+          {
+            if (nw->type == AW_DOC)
+              {
+                nfw = nw;
+                break;
+              }
+            nfw = nw->m_child;
+            if (nw->type == AW_SP)
+              {
+                while (nfw->m_next != NULL)
+                  nfw = nfw->m_next;
+              }
+            if (nw->type == AW_VSP && !next)
+              {
+              while (nw->m_next != NULL)
+                nw = nw->m_next;
+              }
+            nfw = nw;
+          }
+end:
+        if (nfw != NULL)
+          return nfw;
+      }
+
+  inline ApvlvWindow *
+    ApvlvWindow::geth (int num, bool next)
+      {
+        ApvlvWindow *w, *nw, *nfw;
+
+        for (w = this; w != NULL; w = w->m_parent)
+          {
+            if (w->m_parent == NULL)
+              return NULL;
+            if (next == false)
+              nw = w->m_prev;
+            else
+              nw = w->m_next;
+            if (w->m_parent->type == AW_SP && nw != NULL)
+              break;
+          }
+
+        for (;;)
+          {
+            if (nw->type == AW_DOC)
+              {
+                nfw = nw;
+                break;
+              }
+            nfw = nw->m_child;
+            if (nw->type == AW_SP)
+              {
+                while (nfw->m_next != NULL)
+                  nfw = nfw->m_next;
+              }
+            if (nw->type == AW_VSP && !next)
+              {
+              while (nw->m_next != NULL)
+                nw = nw->m_next;
+              }
+            nfw = nw;
+          }
+end:
+        if (nfw != NULL)
+          return nfw;
+      }
+
+  inline ApvlvWindow *
+    ApvlvWindow::getnext (int num)
+      {
+        ApvlvWindow *n = getv (num, true);
+        if (n == NULL)
+          {
+            n = geth (num, true);
+            if (n == NULL)
+              {
+                n = geth (num, false);
+                if (n == NULL)
+                  n = getv (num, false);
+              }
+          }
+        return n;
+      }
+
+  ApvlvWindow *
+    ApvlvWindow::birth (ApvlvDoc *doc)
+      {
+        if (doc == NULL)
+          {
+            doc = m_Doc->copy ();
+          }
+        ApvlvWindow *nwindow = new ApvlvWindow (doc);
+        
+        nwindow->m_parent = this;
+
+        if (m_child == NULL)
+          {
+            m_child = nwindow;
+          }
+        else
+          {
+            ApvlvWindow *nw;
+            for (nw = m_child; nw->m_next != NULL; nw = nw->m_next);
+            nw->m_next = nwindow;
+            nwindow->m_prev = nw;
+          }
+
+        return nwindow;
+      }
+
+  ApvlvWindow *
+    ApvlvWindow::separate (bool vsp)
+      {
+        int ttype = vsp == false? AW_SP: AW_VSP;
+
+        if (m_parent != NULL && m_parent->type == ttype)
+          {
+            ApvlvWindow *nwin = m_parent->birth ();
+            cout << __LINE__ << ":" << __func__ << ": create a new window: " << nwin << endl;
+            gtk_box_pack_start (GTK_BOX (m_parent->m_box), nwin->widget (), TRUE, TRUE, 0);
+            gtk_widget_show_all (m_parent->m_box);
+            return this;
+          }
+
+        GtkWidget *old = widget ();
+        GtkWidget *parent = gtk_widget_get_parent (old);
+        g_object_ref (G_OBJECT (old));
+        gtk_container_remove (GTK_CONTAINER (parent), old);
+
+        ApvlvWindow *nwindow = birth (m_Doc);
+        ApvlvWindow *nwindow2 = birth ();
+        cout << __LINE__ << ":" << __func__ << ": create 2 new window: " \
+          << nwindow << "&" << nwindow2 << endl;
+
+        type = windowType (ttype);
+
+        m_box = type == AW_SP? gtk_vbox_new (TRUE, 2): gtk_hbox_new (TRUE, 2);
+        gtk_container_add (GTK_CONTAINER (parent), m_box);
+
+        gtk_box_pack_start (GTK_BOX (m_box), nwindow->widget (), TRUE, TRUE, 0);
+        gtk_box_pack_end (GTK_BOX (m_box), nwindow2->widget (), TRUE, TRUE, 0);
+        gtk_widget_show_all (parent);
+
+        return nwindow;
       }
 
   void
@@ -68,15 +290,22 @@ namespace apvlv
   ApvlvDoc *
     ApvlvWindow::loadDoc (const char *filename)
       {
-        GtkWidget *parent = gtk_widget_get_parent (widget ());
-        g_object_ref (G_OBJECT (widget ()));
-        gtk_container_remove (GTK_CONTAINER (parent), widget ());
+        if (m_Doc->filename () == NULL)
+          {
+            m_Doc->setsize (m_width, m_height);
+            bool ret = m_Doc->loadfile (filename);
+            return ret? m_Doc: NULL;
+          }
 
         ApvlvDoc *ndoc = new ApvlvDoc (gParams->settingvalue ("zoom"));
         ndoc->setsize (m_width, m_height);
         bool ret = ndoc->loadfile (filename);
         if (ret)
           {
+            GtkWidget *parent = gtk_widget_get_parent (widget ());
+            g_object_ref (G_OBJECT (widget ()));
+            gtk_container_remove (GTK_CONTAINER (parent), widget ());
+
             m_Doc = ndoc;
             gtk_container_add (GTK_CONTAINER (parent), ndoc->widget ());
             gtk_widget_show_all (parent);
@@ -104,32 +333,12 @@ namespace apvlv
       }
 
   void 
-    ApvlvWindow::vseparate ()
+    ApvlvWindow::smaller (int times)
       {
       }
 
   void 
-    ApvlvWindow::hseparate ()
-      {
-      }
-
-  void 
-    ApvlvWindow::firstminner (int times)
-      {
-      }
-
-  void 
-    ApvlvWindow::firstmaxer (int times)
-      {
-      }
-
-  void 
-    ApvlvWindow::secondminner (int times)
-      {
-      }
-
-  void 
-    ApvlvWindow::secondmaxer (int times)
+    ApvlvWindow::bigger (int times)
       {
       }
 }

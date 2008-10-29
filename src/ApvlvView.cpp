@@ -34,6 +34,7 @@
 #include "ApvlvDoc.hpp"
 #include "ApvlvParams.hpp"
 #include "ApvlvCmds.hpp"
+#include "ApvlvWindow.hpp"
 #include "ApvlvUtil.hpp"
 #include "ApvlvView.hpp"
 
@@ -70,12 +71,11 @@ namespace apvlv
       g_signal_connect (G_OBJECT (mainwindow), "event",
                         G_CALLBACK (apvlv_view_keypress_cb), this);
 
-      GtkWidget *vbox = gtk_vbox_new (FALSE, 0);
+      GtkWidget *vbox = gtk_vbox_new (FALSE, 2);
       gtk_container_add (GTK_CONTAINER (mainwindow), vbox);
 
-      window = new ApvlvWindow (NULL);
-      m_Windows.push_back (window);
-      gtk_box_pack_start (GTK_BOX (vbox), window->widget (), FALSE, FALSE, 0);
+      m_rootWindow = m_curWindow = new ApvlvWindow (NULL);
+      gtk_box_pack_start (GTK_BOX (vbox), m_curWindow->widget (), FALSE, FALSE, 0);
 
       statusbar = gtk_entry_new ();
       gtk_box_pack_end (GTK_BOX (vbox), statusbar, FALSE, FALSE, 0);
@@ -104,11 +104,7 @@ namespace apvlv
 
   ApvlvView::~ApvlvView ()
     {
-      for (unsigned int i=0; i<m_Windows.size (); ++ i)
-        {
-          delete m_Windows[i];
-        }
-      m_Windows.clear ();
+      delete m_rootWindow;
 
       map <string, ApvlvDoc *>::iterator it;
       for (it = m_Docs.begin (); it != m_Docs.end (); ++ it)
@@ -158,16 +154,16 @@ namespace apvlv
   bool
     ApvlvView::loadfile (const char *filename)
       {
-        char *abpath = absolutepath (filename);
-        ApvlvDoc *ndoc;
-        if ((ndoc = m_Docs[abpath]) != NULL)
+        const char *abpath = absolutepath (filename);
+        ApvlvDoc *ndoc = hasloaded (abpath);
+        if (ndoc != NULL)
           {
             getWindow ()->setDoc (ndoc);
             return true;
           }
         else
           {
-            ApvlvDoc *ndoc = getWindow ()->loadDoc (abpath);
+            ndoc = getWindow ()->loadDoc (filename);
             if (ndoc)
               {
                 m_Docs[abpath] = ndoc;
@@ -178,6 +174,18 @@ namespace apvlv
                 return false;
               }
           }
+      }
+
+  ApvlvDoc *
+    ApvlvView::hasloaded (const char *filename)
+      {
+        char *abpath = absolutepath (filename);
+        ApvlvDoc *ndoc;
+        if ((ndoc = m_Docs[abpath]) != NULL)
+          {
+            return ndoc;
+          }
+        return NULL;
       }
 
   void 
@@ -221,7 +229,7 @@ namespace apvlv
         if (mainwindow == NULL)
           return;
 
-        char temp[256] = { 0 };
+        char temp[256];
 
         if (crtadoc () != NULL && crtadoc ()->filename ())
           {
@@ -258,12 +266,8 @@ namespace apvlv
   void
     ApvlvView::dowindow (const char *s)
       {
-        ApvlvDoc *ndoc = NULL;
-        if (strcmp (s, "C-w") == 0)
-          {
-          }
-
-        else if (strcmp (s, "-") == 0)
+        ApvlvWindow *nwin = NULL;
+        if (strcmp (s, "-") == 0)
           {
           }
         else if (strcmp (s, "+") == 0)
@@ -272,10 +276,12 @@ namespace apvlv
 
         else
           {
+            nwin = getWindow ()->getneighbor (s);
           }
 
-        if (ndoc != NULL)
+        if (nwin != NULL)
           {
+            setWindow (nwin);
           }
 
         status_show ();
@@ -346,11 +352,15 @@ namespace apvlv
             else if (cmd == "map")
               {
               }
+            else if (cmd == "sp")
+              {
+                ApvlvWindow * nwin = getWindow ()->separate (false);
+                setWindow (nwin);
+              }
             else if (cmd == "vsp")
               {
-              }
-            else if (cmd == "hsp")
-              {
+                ApvlvWindow * nwin = getWindow ()->separate (true);
+                setWindow (nwin);
               }
             else if (cmd == "zoom" || cmd == "z")
               {
@@ -392,15 +402,15 @@ namespace apvlv
               }
             else if (cmd == "q" || cmd == "quit")
               {
-                // return, avoid to return to status mode
-                ApvlvDoc *ndoc;
-                if (ndoc == crtadoc ())
+                ApvlvWindow *nwin = getWindow ()->getneighbor ("C-w");
+                if (nwin == NULL)
                   {
                     quit ();
                   }
                 else
                   {
-                    delete crtadoc ();
+                    delete getWindow ();
+                    setWindow (nwin);
                   }
               }
 
@@ -414,7 +424,7 @@ namespace apvlv
                                       ApvlvView * view)
       {
         gtk_window_get_size (GTK_WINDOW (wid), &view->width, &view->height);
-        view->window->setsize (view->width, view->height - 20);
+        view->getWindow ()->setsize (view->width, view->height - 20);
         gtk_widget_set_usize (view->statusbar, view->width, 20);
       }
 

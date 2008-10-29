@@ -55,9 +55,11 @@ namespace apvlv
       ApvlvWindow (ApvlvDoc *doc);
       ~ApvlvWindow ();
 
-      ApvlvWindow *copy (int type);
+      ApvlvWindow *birth (ApvlvDoc *doc = NULL);
 
-      GtkWidget *widget () { return m_Doc? m_Doc->widget (): m_blank; }
+      ApvlvWindow *getneighbor (const char *s);
+
+      GtkWidget *widget () { return m_Doc->widget (); }
 
       ApvlvDoc *loadDoc (const char *filename);
 
@@ -67,26 +69,27 @@ namespace apvlv
 
       void setsize (int wid, int hei);
 
-      void vseparate ();
-      void hseparate ();
+      ApvlvWindow * separate (bool vsp = false);
 
-      void firstminner (int times = 1);
-      void firstmaxer (int times = 1);
-      void secondminner (int times = 1);
-      void secondmaxer (int times = 1);
+      void smaller (int times = 1);
+      void bigger (int times = 1);
 
-      ApvlvWindow *m_left, *m_right;
+      enum windowType { AW_SP, AW_VSP, AW_DOC } type;
+      GtkWidget *m_box;
+      unsigned int m_children_num;
+      ApvlvWindow *m_prev, *m_next, *m_parent, *m_child;
 
   private:
+      inline ApvlvWindow *getv (int num, bool next);
+      inline ApvlvWindow *geth (int num, bool next);
+      inline ApvlvWindow *getnext (int num);
 
-      GtkWidget *m_blank;
-
+      bool defaultdoc;
       ApvlvDoc *m_Doc;
 
       int m_width, m_height;
-
-      enum windowtype { SINGLE, VDOUBLE, HDOUBLE } type;
     };
+
 }
 
 #endif

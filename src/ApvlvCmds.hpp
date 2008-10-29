@@ -57,8 +57,6 @@ namespace apvlv
     void push (const char *cmd) { queue.append (cmd); tryrun (); }
 
   private:
-    GObject *base;
-
     bool tryrun ();
     bool docmd (const char *s, int times = 1);
     bool doargu (const char *s);
@@ -71,8 +69,8 @@ namespace apvlv
       } state;
 
     static gboolean apvlv_cmds_timeout_cb (gpointer);
-
     gint timer;
+
     string queue;
     string argu;
     };

@@ -55,24 +55,13 @@ namespace apvlv
       double scrollrate;
     };
 
-  class ApvlvWindow;
-
   class ApvlvDoc
     {
   public:
     ApvlvDoc (const char *zm = "NORMAL");
     ~ApvlvDoc ();
 
-    // 
-    // type == true? v separate: h separate
-    ApvlvDoc *copy (bool type);
-
-    void vseperate ();
-    void hseperate ();
-
-    //
-    // type's meaning like 'j', 'k', 'l', 'm'
-    ApvlvDoc *getneighbor (const char *type);
+    ApvlvDoc *copy ();
 
     const char *filename () { return doc? filestr.c_str (): NULL; }
 
@@ -92,7 +81,7 @@ namespace apvlv
 
     bool reload () { savelastposition (); return loadfile (filestr, false); }
 
-    void setsize (int wid, int hei) { width = wid; height = hei; }
+    void setsize (int wid, int hei);
 
     void sizesmaller (int s = 1);
 
@@ -121,14 +110,6 @@ namespace apvlv
 
     void search (const char *str);
     void backsearch (const char *str);
-
-    ApvlvWindow *getWindow ();
-    void setWindow (ApvlvWindow *window);
-
-    // 
-    // for split window
-    // left & right and up & down can't show at once
-    ApvlvDoc *left, *right, *up, *down;
 
   private:
     PopplerPage *getpage (int p);
@@ -179,8 +160,6 @@ namespace apvlv
     // vbox and hbox for multiple windows
     // vbox will be the main widget
     GtkWidget *scrollwin, *image;
-
-    ApvlvWindow *m_window;
     };
 }
 

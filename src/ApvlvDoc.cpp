@@ -48,8 +48,6 @@ namespace apvlv
 {
   ApvlvDoc::ApvlvDoc (const char *zm)
     {
-      up = down = left = right = NULL;
-
       doc = NULL;
 
       pagedata = NULL;
@@ -81,7 +79,27 @@ namespace apvlv
           savelastposition ();
         }
       positions.clear ();
+
+      gtk_widget_destroy (scrollwin);
     }
+
+  void
+    ApvlvDoc::setsize (int w, int h)
+      {
+        width = w;
+        height = h;
+        gtk_widget_set_usize (widget (), width, height);
+      }
+
+  ApvlvDoc *
+    ApvlvDoc::copy ()
+      {
+        char rate[16];
+        snprintf (rate, sizeof rate, "%f", zoomrate);
+        ApvlvDoc *ndoc = new ApvlvDoc (rate);
+        ndoc->loadfile (filestr, false);
+        return ndoc;
+      }
 
   bool
     ApvlvDoc::savelastposition ()

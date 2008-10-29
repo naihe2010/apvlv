@@ -62,7 +62,8 @@ namespace apvlv
 
     GtkWidget *widget () { return mainwindow; }
 
-    ApvlvWindow *getWindow () { return window; }
+    ApvlvWindow *getWindow () { return m_curWindow; }
+    void setWindow (ApvlvWindow *win) { m_curWindow = win; }
 
     void promptsearch ();
     void promptbacksearch ();
@@ -73,7 +74,10 @@ namespace apvlv
     bool loadfile (string file) { return loadfile (file.c_str ()); }
     bool loadfile (const char *filename);
 
+    ApvlvDoc * hasloaded (const char *filename);
+
     void open ();
+    void close ();
 
     void quit () { apvlv_view_delete_cb (NULL, NULL, this); }
 
@@ -140,10 +144,9 @@ namespace apvlv
 
     static gint apvlv_view_statusbar_cb (GtkWidget * wid, GdkEvent * ev);
 
-    ApvlvWindow *window;
+    ApvlvWindow *m_rootWindow, *m_curWindow;
 
     map <string, ApvlvDoc *> m_Docs;
-    vector <ApvlvWindow *> m_Windows;
     };
 
   extern ApvlvView *gView;
