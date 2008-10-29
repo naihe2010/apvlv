@@ -290,7 +290,7 @@ end:
   ApvlvDoc *
     ApvlvWindow::loadDoc (const char *filename)
       {
-        if (m_Doc->filename () == NULL)
+        if (m_Doc->filename () == NULL || gView->hasloaded (m_Doc->filename ()) != m_Doc)
           {
             m_Doc->setsize (m_width, m_height);
             bool ret = m_Doc->loadfile (filename);
