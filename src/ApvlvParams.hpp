@@ -64,7 +64,7 @@ namespace apvlv
     const char *settingvalue (const char *key);
     
     //for debug
-    void debug ()
+    void show ()
       {
         map <string, string>::iterator it;
 

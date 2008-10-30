@@ -87,4 +87,20 @@ namespace apvlv
             ofs.close ();
           }
       }
+
+  void 
+    logv (const char *level, const char *file, int line, const char *func, const char *ms, ...)
+      {
+        char p[256], temp[256];
+        va_list vap;
+
+        va_start (vap, ms);
+        vsprintf (p, ms, vap);
+        snprintf (temp, sizeof temp, "[%s] %s: %d: %s(): %s",
+                  level, file, line, func,
+                  p);
+        va_end (vap);
+
+        cerr << temp << endl;
+      }
 }

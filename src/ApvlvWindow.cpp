@@ -32,6 +32,7 @@
  *  Blog:      http://naihe2010.cublog.cn
 ****************************************************************************/
 #include "ApvlvView.hpp"
+#include "ApvlvUtil.hpp"
 #include "ApvlvParams.hpp"
 #include "ApvlvWindow.hpp"
 
@@ -39,6 +40,8 @@
 
 namespace apvlv
 {
+  ApvlvWindow *ApvlvWindow::m_curWindow = NULL;
+
   ApvlvWindow::ApvlvWindow (ApvlvDoc *doc)
     {
       type = AW_DOC;
@@ -55,37 +58,79 @@ namespace apvlv
 
   ApvlvWindow::~ApvlvWindow ()
     {
-      if (type == AW_DOC && gView->hasloaded (m_Doc->filename ()) != m_Doc)
-        {
-          delete m_Doc;
-        }
+      ApvlvWindow *nwin, *cwin;
+
+      debug ("delete a window: %p", this);
 
       if (m_parent != NULL)
         {
-          if (m_parent->m_child == this)
-            {
-              m_parent->m_child = m_next;
-            }
-
           if (m_prev != NULL)
             {
               m_prev->m_next = m_next;
             }
+          else
+            {
+              m_parent->m_child = m_next;
+            }
+
           if (m_next != NULL)
             {
               m_next->m_prev = m_prev;
+              setcurrentWindow (m_next);
             }
+
         }
 
-      if (type != AW_DOC)
+      if (type == AW_SP || type == AW_VSP)
         {
-          ApvlvWindow *nwin;
-          while ((nwin = m_child) != NULL)
+          while (nwin = m_child)
             {
               delete nwin;
             }
         }
+
+      if (type == AW_DOC)
+        {
+          if (gView->hasloaded (m_Doc->filename ()) != m_Doc) 
+            {
+              delete m_Doc;
+            }
+          else 
+            {
+              g_object_ref (widget ());
+            }
+        }
+
+      GtkWidget *parent = gtk_widget_get_parent (widget ());
+      gtk_container_remove (GTK_CONTAINER (parent), widget ());
+
+      if (m_parent && m_parent->m_child && m_parent->m_child->m_next == NULL)
+        {
+          m_parent->unbirth ();
+          setcurrentWindow (m_parent);
+          return;
+        }
     }
+
+  void 
+    ApvlvWindow::runcommand (int times, const char *s, int argu)
+      {
+        debug ("get a %d length command: %s", strlen (s), s);
+        if (strcmp (s, "-") == 0)
+          {
+          }
+        else if (strcmp (s, "+") == 0)
+          {
+          }
+        else
+          {
+            ApvlvWindow *nwin = getneighbor (s);
+            if (nwin != NULL)
+              {
+                setcurrentWindow (nwin);
+              }
+          }
+      }
 
   ApvlvWindow *
     ApvlvWindow::getneighbor (const char *s)
@@ -109,6 +154,10 @@ namespace apvlv
         else if (strcmp (s, "l") == 0)
           {
             return gethl (1, true);
+          }
+        else
+          {
+            return NULL;
           }
       }
 
@@ -258,6 +307,22 @@ end:
       }
 
   ApvlvWindow *
+    ApvlvWindow::unbirth ()
+      {
+        GtkWidget *old = m_child->widget ();
+        g_object_ref (old);
+
+        GtkWidget *parent = gtk_widget_get_parent (m_box);
+
+        delete m_child;
+
+        gtk_container_remove (GTK_CONTAINER (parent), m_box);
+        gtk_container_add (GTK_CONTAINER (parent), old);
+
+        return this;
+      }
+
+  ApvlvWindow *
     ApvlvWindow::insertafter (ApvlvWindow *awin)
       {
         awin->m_prev = this;
@@ -293,6 +358,7 @@ end:
         if (m_parent != NULL && m_parent->type == ttype)
           {
             ApvlvWindow *nwin = m_parent->birth ();
+            debug ("create a new window: %p", nwin);
             insertafter (nwin);
             gtk_box_pack_start (GTK_BOX (m_parent->m_box), nwin->widget (), TRUE, TRUE, 0);
             gtk_widget_show_all (m_parent->m_box);
@@ -308,6 +374,8 @@ end:
         ApvlvWindow *nwindow2 = birth ();
         m_child->insertafter (nwindow2);
 
+        debug ("separate window: %p to 2 new windows: %p & %p", this, nwindow, nwindow2);
+
         type = windowType (ttype);
 
         m_box = type == AW_SP? gtk_vbox_new (TRUE, 2): gtk_hbox_new (TRUE, 2);
@@ -316,6 +384,8 @@ end:
         gtk_box_pack_start (GTK_BOX (m_box), nwindow->widget (), TRUE, TRUE, 0);
         gtk_box_pack_end (GTK_BOX (m_box), nwindow2->widget (), TRUE, TRUE, 0);
         gtk_widget_show_all (parent);
+
+        setcurrentWindow (nwindow);
 
         return nwindow;
       }

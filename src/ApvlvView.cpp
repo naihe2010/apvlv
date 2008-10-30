@@ -74,8 +74,9 @@ namespace apvlv
       GtkWidget *vbox = gtk_vbox_new (FALSE, 2);
       gtk_container_add (GTK_CONTAINER (mainwindow), vbox);
 
-      m_rootWindow = m_curWindow = new ApvlvWindow (NULL);
-      gtk_box_pack_start (GTK_BOX (vbox), m_curWindow->widget (), FALSE, FALSE, 0);
+      m_rootWindow = new ApvlvWindow (NULL);
+      m_rootWindow->setcurrentWindow (m_rootWindow);
+      gtk_box_pack_start (GTK_BOX (vbox), m_rootWindow->widget (), FALSE, FALSE, 0);
 
       statusbar = gtk_entry_new ();
       gtk_box_pack_end (GTK_BOX (vbox), statusbar, FALSE, FALSE, 0);
@@ -158,12 +159,12 @@ namespace apvlv
         ApvlvDoc *ndoc = hasloaded (abpath);
         if (ndoc != NULL)
           {
-            getWindow ()->setDoc (ndoc);
+            currentWindow ()->setDoc (ndoc);
             return true;
           }
         else
           {
-            ndoc = getWindow ()->loadDoc (filename);
+            ndoc = currentWindow ()->loadDoc (filename);
             if (ndoc)
               {
                 m_Docs[abpath] = ndoc;
@@ -266,24 +267,7 @@ namespace apvlv
   void
     ApvlvView::dowindow (const char *s)
       {
-        ApvlvWindow *nwin = NULL;
-        if (strcmp (s, "-") == 0)
-          {
-          }
-        else if (strcmp (s, "+") == 0)
-          {
-          }
-
-        else
-          {
-            nwin = getWindow ()->getneighbor (s);
-          }
-
-        if (nwin != NULL)
-          {
-            setWindow (nwin);
-          }
-
+        m_rootWindow->currentWindow ()->runcommand (1, s, 0);
         status_show ();
       }
 
@@ -354,13 +338,11 @@ namespace apvlv
               }
             else if (cmd == "sp")
               {
-                ApvlvWindow * nwin = getWindow ()->separate (false);
-                setWindow (nwin);
+                currentWindow ()->separate (false);
               }
             else if (cmd == "vsp")
               {
-                ApvlvWindow * nwin = getWindow ()->separate (true);
-                setWindow (nwin);
+                currentWindow ()->separate (true);
               }
             else if (cmd == "zoom" || cmd == "z")
               {
@@ -402,15 +384,14 @@ namespace apvlv
               }
             else if (cmd == "q" || cmd == "quit")
               {
-                ApvlvWindow *nwin = getWindow ()->getneighbor ("C-w");
+                ApvlvWindow *nwin = currentWindow ()->getneighbor ("C-w");
                 if (nwin == NULL)
                   {
                     quit ();
                   }
                 else
                   {
-                    delete getWindow ();
-                    setWindow (nwin);
+                    delete currentWindow ();
                   }
               }
 
@@ -424,7 +405,7 @@ namespace apvlv
                                       ApvlvView * view)
       {
         gtk_window_get_size (GTK_WINDOW (wid), &view->width, &view->height);
-        view->getWindow ()->setsize (view->width, view->height - 20);
+        view->currentWindow ()->setsize (view->width, view->height - 20);
         gtk_widget_set_usize (view->statusbar, view->width, 20);
       }
 

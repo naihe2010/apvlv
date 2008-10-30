@@ -52,5 +52,12 @@ namespace apvlv
 
   // Copy a file
   bool filecpy (const char *dst, const char *src);
+
+  // log system
+#define debug(...)      logv ("DEBUG", __FILE__, __LINE__, __func__, __VA_ARGS__)
+#define info(...)       logv ("INFO", __FILE__, __LINE__, __func__, __VA_ARGS__)
+#define warn(...)       logv ("WARNNING", __FILE__, __LINE__, __func__, __VA_ARGS__)
+#define err(...)        logv ("ERROR", __FILE__, __LINE__, __func__, __VA_ARGS__)
+  void logv (const char *, const char *, int, const char *, const char *, ...);
 }
 #endif

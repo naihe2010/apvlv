@@ -79,8 +79,6 @@ namespace apvlv
           savelastposition ();
         }
       positions.clear ();
-
-      gtk_widget_destroy (scrollwin);
     }
 
   void

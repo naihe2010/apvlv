@@ -57,9 +57,13 @@ namespace apvlv
 
       ApvlvWindow *birth (ApvlvDoc *doc = NULL);
 
+      ApvlvWindow *unbirth ();
+
       ApvlvWindow *insertafter (ApvlvWindow *bwin);
 
       ApvlvWindow *insertbefore (ApvlvWindow *awin);
+
+      void runcommand (int times, const char *, int argu);
 
       ApvlvWindow *getneighbor (const char *s);
 
@@ -78,6 +82,9 @@ namespace apvlv
       void smaller (int times = 1);
       void bigger (int times = 1);
 
+      static void setcurrentWindow (ApvlvWindow *win) { m_curWindow = win; }
+      static ApvlvWindow *currentWindow () { return m_curWindow; }
+
       enum windowType { AW_SP, AW_VSP, AW_DOC } type;
       GtkWidget *m_box;
       unsigned int m_children_num;
@@ -87,6 +94,8 @@ namespace apvlv
       inline ApvlvWindow *getkj (int num, bool next);
       inline ApvlvWindow *gethl (int num, bool next);
       inline ApvlvWindow *getnext (int num);
+
+      static ApvlvWindow *m_curWindow;
 
       bool defaultdoc;
       ApvlvDoc *m_Doc;

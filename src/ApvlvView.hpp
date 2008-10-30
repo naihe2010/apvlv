@@ -62,8 +62,7 @@ namespace apvlv
 
     GtkWidget *widget () { return mainwindow; }
 
-    ApvlvWindow *getWindow () { return m_curWindow; }
-    void setWindow (ApvlvWindow *win) { m_curWindow = win; }
+    ApvlvWindow *currentWindow () { return ApvlvWindow::currentWindow (); }
 
     void promptsearch ();
     void promptbacksearch ();
@@ -107,7 +106,7 @@ namespace apvlv
     void dowindow (const char *s);
 
   private:
-    ApvlvDoc *crtadoc () { return getWindow ()->getDoc (); }
+    ApvlvDoc *crtadoc () { return currentWindow ()->getDoc (); }
 
     void parse_cmd (GdkEventKey * gek);
 

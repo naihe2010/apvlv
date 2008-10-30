@@ -31,6 +31,7 @@
  *  AuthorRef: Alf <naihe2010@gmail.com>
  *  Blog:      http://naihe2010.cublog.cn
 ****************************************************************************/
+#include "ApvlvUtil.hpp"
 #include "ApvlvParams.hpp"
 
 #include <string.h>
@@ -66,7 +67,7 @@ namespace apvlv
 
       if (! os.is_open ())
         {
-          cerr << "Open configure file " << filename << " error." << endl;
+          err ("Open configure file %s error", filename);
           return false;
         }
 
@@ -113,7 +114,7 @@ namespace apvlv
                     }
                 }
 
-              cerr << "Syntax error: set: " << str << endl;
+              err ("Syntax error: set: %s", str.c_str ());
             }
           // like "map n next-page"
           else if (crap == "map")
@@ -125,12 +126,12 @@ namespace apvlv
                 }
               else
                 {
-                  cerr << "Syntax error: map: " << str << endl;
+                  err ("Syntax error: map: %s", str.c_str ());
                 }
             }
           else
             {
-              cerr << "Unknown rc cmd: " << crap << ": " << str << endl;
+              err ("Unknown rc command: %s: %s", crap.c_str (), str.c_str ());
             }
         }
     }
