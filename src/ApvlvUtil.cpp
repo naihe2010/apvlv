@@ -88,6 +88,32 @@ namespace apvlv
           }
       }
 
+  void
+    gtk_insert_widget_inbox (GtkWidget *prev, bool after, GtkWidget *n)
+      {
+        GtkWidget *parent = gtk_widget_get_parent (prev);
+        gtk_box_pack_start (GTK_BOX (parent), n, TRUE, TRUE, 0);
+
+        gint id = after? 1: 0;
+        GList *children = gtk_container_get_children (GTK_CONTAINER (parent));
+        for (GList *child = children; child != NULL; child = child->next)
+          {
+            if (child->data == prev) 
+              {
+                break;
+              }
+            else
+              {
+                id ++;
+              }
+          }
+        g_list_free (children);
+
+        gtk_box_reorder_child (GTK_BOX (parent), n, id);
+
+        gtk_widget_show_all (parent);
+      }
+
   void 
     logv (const char *level, const char *file, int line, const char *func, const char *ms, ...)
       {

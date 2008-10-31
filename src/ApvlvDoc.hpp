@@ -59,6 +59,7 @@ namespace apvlv
     {
   public:
     ApvlvDoc (const char *zm = "NORMAL");
+
     ~ApvlvDoc ();
 
     ApvlvDoc *copy ();

@@ -61,6 +61,14 @@ namespace apvlv
       ApvlvWindow *nwin, *cwin;
 
       debug ("delete a window: %p", this);
+      
+      if (type == AW_SP || type == AW_VSP)
+        {
+          while (nwin = m_child)
+            {
+              delete nwin;
+            }
+        }
 
       if (m_parent != NULL)
         {
@@ -68,7 +76,7 @@ namespace apvlv
             {
               m_prev->m_next = m_next;
             }
-          else
+          else      // if it has not a prev window, it must be the oldest brother of the parent
             {
               m_parent->m_child = m_next;
             }
@@ -79,36 +87,25 @@ namespace apvlv
               setcurrentWindow (m_next);
             }
 
-        }
-
-      if (type == AW_SP || type == AW_VSP)
-        {
-          while (nwin = m_child)
+          if (m_parent->m_child && m_parent->m_child->m_next == NULL)
             {
-              delete nwin;
+              m_parent->unbirth ();
+              setcurrentWindow (m_parent);
+              return;
             }
         }
 
-      if (type == AW_DOC)
+      if (type == AW_DOC
+          && m_Doc != gView->hasloaded (m_Doc->filename ())
+      )
         {
-          if (gView->hasloaded (m_Doc->filename ()) != m_Doc) 
-            {
-              delete m_Doc;
-            }
-          else 
-            {
-              g_object_ref (widget ());
-            }
+          delete m_Doc;
         }
-
-      GtkWidget *parent = gtk_widget_get_parent (widget ());
-      gtk_container_remove (GTK_CONTAINER (parent), widget ());
-
-      if (m_parent && m_parent->m_child && m_parent->m_child->m_next == NULL)
+      else
         {
-          m_parent->unbirth ();
-          setcurrentWindow (m_parent);
-          return;
+          g_object_ref (widget ());
+          GtkWidget *parent = gtk_widget_get_parent (widget ());
+          gtk_container_remove (GTK_CONTAINER (parent), widget ());
         }
     }
 
@@ -313,15 +310,42 @@ end:
   ApvlvWindow *
     ApvlvWindow::unbirth ()
       {
-        GtkWidget *old = m_child->widget ();
-        g_object_ref (old);
+        GtkWidget *wid;
+
+        ApvlvWindow *oldchild = m_child;
+        g_object_ref (oldchild->widget ());
+
+        type = m_child->type;
+        if (type == AW_SP || type == AW_VSP)
+          {
+            m_child = oldchild->m_child;
+            m_child->m_parent = this;
+            oldchild->m_child = NULL;
+            oldchild->m_parent = NULL;
+            wid = m_child->widget ();
+          }
+        else if (type == AW_DOC)
+          {
+            ApvlvDoc *odoc = oldchild->getDoc ();
+            if (odoc == gView->hasloaded (odoc->filename ()))
+              {
+                debug ("copy");
+                m_Doc = odoc;
+              }
+            else
+              {
+                debug ("new a copy");
+                m_Doc = oldchild->getDoc ()->copy ();
+              }
+            wid = m_Doc->widget ();
+          }
+
+        delete oldchild;
 
         GtkWidget *parent = gtk_widget_get_parent (m_box);
-
-        delete m_child;
-
         gtk_container_remove (GTK_CONTAINER (parent), m_box);
-        gtk_container_add (GTK_CONTAINER (parent), old);
+        gtk_container_add (GTK_CONTAINER (parent), wid);
+        gtk_widget_show_all (parent);
 
         return this;
       }
@@ -364,8 +388,7 @@ end:
             ApvlvWindow *nwin = m_parent->birth ();
             debug ("create a new window: %p", nwin);
             insertafter (nwin);
-            gtk_box_pack_start (GTK_BOX (m_parent->m_box), nwin->widget (), TRUE, TRUE, 0);
-            gtk_widget_show_all (m_parent->m_box);
+            gtk_insert_widget_inbox (widget (), true, nwin->widget ());
             return this;
           }
 
@@ -386,8 +409,7 @@ end:
         gtk_container_add (GTK_CONTAINER (parent), m_box);
 
         gtk_box_pack_start (GTK_BOX (m_box), nwindow->widget (), TRUE, TRUE, 0);
-        gtk_box_pack_end (GTK_BOX (m_box), nwindow2->widget (), TRUE, TRUE, 0);
-        gtk_widget_show_all (parent);
+        gtk_insert_widget_inbox (nwindow->widget (), true, nwindow2->widget ());
 
         setcurrentWindow (nwindow);
 

@@ -87,7 +87,6 @@ namespace apvlv
 
       enum windowType { AW_SP, AW_VSP, AW_DOC } type;
       GtkWidget *m_box;
-      unsigned int m_children_num;
       ApvlvWindow *m_prev, *m_next, *m_parent, *m_child;
 
   private:
@@ -97,7 +96,6 @@ namespace apvlv
 
       static ApvlvWindow *m_curWindow;
 
-      bool defaultdoc;
       ApvlvDoc *m_Doc;
 
       int m_width, m_height;

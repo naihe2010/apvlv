@@ -38,6 +38,8 @@
 # include "config.hpp"
 #endif
 
+#include <gtk/gtk.h>
+
 #include <iostream>
 using namespace std;
 
@@ -52,6 +54,9 @@ namespace apvlv
 
   // Copy a file
   bool filecpy (const char *dst, const char *src);
+
+  // insert a widget after or before a widget
+  void gtk_insert_widget_inbox (GtkWidget *prev, bool after, GtkWidget *n);
 
   // log system
 #define debug(...)      logv ("DEBUG", __FILE__, __LINE__, __func__, __VA_ARGS__)

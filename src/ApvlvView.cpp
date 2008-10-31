@@ -181,10 +181,10 @@ namespace apvlv
     ApvlvView::hasloaded (const char *filename)
       {
         char *abpath = absolutepath (filename);
-        ApvlvDoc *ndoc;
-        if ((ndoc = m_Docs[abpath]) != NULL)
+        if (m_Docs[abpath] != NULL)
           {
-            return ndoc;
+            debug ("has loaded: %p", m_Docs[abpath]);
+            return m_Docs[abpath];
           }
         return NULL;
       }
