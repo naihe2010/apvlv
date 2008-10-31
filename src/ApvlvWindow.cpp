@@ -170,7 +170,7 @@ namespace apvlv
         if (m_parent == NULL)
           return NULL;
 
-        for (w = this; w != NULL; bw = w, w = w->m_parent)
+        for (bw = NULL, w = this; w != NULL; bw = w, w = w->m_parent)
           {
             if (w->m_parent == NULL)
               {
@@ -197,7 +197,9 @@ namespace apvlv
             fw = nw->m_child;
             if (nw->type == AW_VSP)
               {
-                while (fw->m_next != NULL && bw != bw->m_parent->m_child)
+                while (fw->m_next != NULL
+                       && bw
+                       && bw != bw->m_parent->m_child)
                   {
                     fw = fw->m_next;
                     bw = bw->m_prev;
@@ -225,7 +227,7 @@ end:
         if (m_parent == NULL)
           return NULL;
 
-        for (w = this; w != NULL; bw = w, w = w->m_parent)
+        for (bw = NULL, w = this; w != NULL; bw = w, w = w->m_parent)
           {
             if (w->m_parent == NULL)
               {
@@ -251,7 +253,9 @@ end:
             fw = nw->m_child;
             if (nw->type == AW_SP)
               {
-                while (fw->m_next != NULL && bw != bw->m_parent->m_child)
+                while (fw->m_next != NULL
+                       && bw &&
+                       bw != bw->m_parent->m_child)
                   {
                     fw = fw->m_next;
                     bw = bw->m_prev;
