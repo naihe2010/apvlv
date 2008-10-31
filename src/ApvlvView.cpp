@@ -68,7 +68,7 @@ namespace apvlv
       gtk_widget_set_size_request (mainwindow, width, height);
 
       g_object_set_data (G_OBJECT (mainwindow), "view", this);
-      g_signal_connect (G_OBJECT (mainwindow), "event",
+      g_signal_connect (G_OBJECT (mainwindow), "key-press-event",
                         G_CALLBACK (apvlv_view_keypress_cb), this);
 
       GtkWidget *vbox = gtk_vbox_new (FALSE, 2);
@@ -409,13 +409,13 @@ namespace apvlv
         gtk_widget_set_usize (view->statusbar, view->width, 20);
       }
 
-  gint 
+  gint
     ApvlvView::apvlv_view_keypress_cb (GtkWidget * wid, GdkEvent * ev)
       {
         ApvlvView *view =
           (ApvlvView *) g_object_get_data (G_OBJECT (wid), "view");
 
-        if (view->cmd_has == FALSE && ev->type == GDK_KEY_PRESS)
+        if (view->cmd_has == FALSE)
           {
             view->parse_cmd ((GdkEventKey *) ev);
             if (view->cmd_has == false)

@@ -45,6 +45,20 @@ using namespace std;
 
 namespace apvlv
 {
+  class ApvlvEvent
+    {
+  public:
+      ApvlvEvent (const char *s);
+      ~ApvlvEvent ();
+
+      void send ();
+
+      ApvlvEvent *m_next;
+
+  private:
+      GdkEventKey *gev, *gev2;
+    };
+
   class ApvlvCmds
     {
   public:

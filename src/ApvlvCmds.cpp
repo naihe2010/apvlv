@@ -33,15 +33,126 @@
 ****************************************************************************/
 #include "ApvlvParams.hpp"
 #include "ApvlvView.hpp"
+#include "ApvlvUtil.hpp"
 #include "ApvlvCmds.hpp"
 
 #include <stdlib.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>
+#include <gdk/gdkx.h>
 
 namespace apvlv
 {
   ApvlvCmds *gCmds = NULL;
+
+  ApvlvEvent::ApvlvEvent (const char *s)
+    {
+      m_next = NULL;
+      gev = gev2 = NULL;
+
+      if (strlen (s) >= 5 && strncmp (s, "<C-", 3) == 0 && s[4] == '>')
+        {
+          /*
+          gev = (GdkEventKey *) g_malloc (sizeof (GdkEventKey));
+          gev->type = GDK_KEY_PRESS;
+          gev->window = gView->widget ()->window;
+          gev->send_event = TRUE;
+          gev->time = GDK_CURRENT_TIME;
+          gev->state = 0;
+          gev->keyval = gdk_unicode_to_keyval (GDK_Control_L);
+          gev->length = 0;
+          gev->string = strdup ("");
+          gev->hardware_keycode = XKeysymToKeycode (GDK_WINDOW_XDISPLAY (gev->window), gev->keyval);
+          gev->group = 0;
+          gev->is_modifier = 1;*/
+
+          gev2 = (GdkEventKey *) g_malloc (sizeof (GdkEventKey));
+          gev2->type = GDK_KEY_PRESS;
+          gev2->window = gView->widget ()->window;
+          gev2->send_event = TRUE;
+          gev2->time = GDK_CURRENT_TIME;
+          gev2->state = GDK_CONTROL_MASK;
+          gev2->keyval = gdk_unicode_to_keyval (s[3]);
+          gev2->length = 1;
+          gev2->string = strndup (s + 3, 1);
+          gev2->hardware_keycode = XKeysymToKeycode (GDK_WINDOW_XDISPLAY (gev2->window), gev2->keyval);
+          gev2->group = 0;
+          gev2->is_modifier = 0;
+
+          if (s[5] != '\0')
+            {
+              m_next = new ApvlvEvent (s + 5);
+            }
+        }
+      else
+        {
+          gev = (GdkEventKey *) g_malloc (sizeof (GdkEventKey));
+          gev->type = GDK_KEY_PRESS;
+          gev->window =  gView->widget ()->window;
+          gev->send_event = TRUE;
+          gev->time = GDK_CURRENT_TIME;
+          gev->state = 0;
+          gev->keyval = gdk_unicode_to_keyval (s[0]);
+          gev->length = 1;
+          gev->string = strndup (s, 1);
+          gev->hardware_keycode = XKeysymToKeycode (GDK_WINDOW_XDISPLAY (gev->window), gev->keyval);
+          gev->group = 0;
+          gev->is_modifier = 0;
+
+          if (s[1] != '\0')
+            {
+              m_next = new ApvlvEvent (s + 1);
+            }
+        }
+    }
+
+  ApvlvEvent::~ApvlvEvent ()
+    {
+      if (gev != NULL)
+        {
+          g_free (gev);
+        }
+
+      if (gev2 != NULL)
+        {
+          g_free (gev2);
+        }
+
+      for (ApvlvEvent *ae = m_next; ae; ae = ae->m_next)
+        {
+          delete ae;
+        }
+    }
+
+  void
+    ApvlvEvent::send ()
+      {
+        if (gev != NULL)
+          {
+            gdk_event_put ((GdkEvent *) gev);
+          }
+
+        if (gev2 != NULL)
+          {
+            gdk_event_put ((GdkEvent *) gev2);
+            gev2->type = GDK_KEY_RELEASE;
+            gev2->send_event = FALSE;
+            gdk_event_put ((GdkEvent *) gev2);
+          }
+
+        if (gev != NULL)
+          {
+            gev->type = GDK_KEY_RELEASE;
+            gev->send_event = FALSE;
+            gdk_event_put ((GdkEvent *) gev);
+          }
+
+        for (ApvlvEvent *ae = m_next; ae; ae = ae->m_next)
+          {
+            ae->send ();
+          }
+      }
 
   ApvlvCmds::ApvlvCmds () 
     { 
