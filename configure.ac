@@ -14,6 +14,10 @@ fi
 AC_SUBST(RELEASE)
 AC_DEFINE_UNQUOTED(RELEASE,["$RELEASE"],[The release number of package])
 
+AC_ARG_ENABLE(debug,
+              [  --enable-debug          enable apvlv debug features],
+              [apvlv_debug=yes])
+
 AM_CONFIG_HEADER(src/config.hpp)
 AC_CONFIG_AUX_DIR(scripts)
 AC_CANONICAL_SYSTEM
@@ -28,6 +32,11 @@ if test "$prefix" = "NONE"; then
 fi
 
 AC_DEFINE_UNQUOTED(PREFIX, ["$prefix"], [The prefix path])
+
+if test x$apvlv_debug = xyes; then 
+  AC_DEFINE(DEBUG, 1, 
+            [Define if you want to enable apvlv debug features. ]) 
+fi
 
 PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.4.0, CPPFLAGS="$CPPFLAGS $GTK_CFLAGS"; LIBS="$LIBS $GTK_LIBS")
 PKG_CHECK_MODULES(POPPLER, poppler-glib >= 0.5.4, CPPFLAGS="$CPPFLAGS $POPPLER_CFLAGS"; LIBS="$LIBS $POPPLER_LIBS")

@@ -58,8 +58,21 @@ namespace apvlv
   // insert a widget after or before a widget
   void gtk_insert_widget_inbox (GtkWidget *prev, bool after, GtkWidget *n);
 
+  // function return type
+  typedef enum
+    {
+      MATCH,
+      NEED_MORE,
+      NO_MATCH,
+      GET_ALL,
+    } returnType;
+
   // log system
+#ifdef DEBUG
 #define debug(...)      logv ("DEBUG", __FILE__, __LINE__, __func__, __VA_ARGS__)
+#else
+#define debug(...)
+#endif
 #define info(...)       logv ("INFO", __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define warn(...)       logv ("WARNNING", __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define err(...)        logv ("ERROR", __FILE__, __LINE__, __func__, __VA_ARGS__)

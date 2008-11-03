@@ -114,7 +114,7 @@ namespace apvlv
         gtk_widget_show_all (parent);
       }
 
-  void 
+  void
     logv (const char *level, const char *file, int line, const char *func, const char *ms, ...)
       {
         char p[256], temp[256];
