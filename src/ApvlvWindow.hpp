@@ -88,7 +88,6 @@ namespace apvlv
       static ApvlvWindow *currentWindow () { return m_curWindow; }
 
       enum windowType { AW_SP, AW_VSP, AW_DOC } type;
-      GtkWidget *m_box;
       ApvlvWindow *m_prev, *m_next, *m_parent, *m_child;
 
   private:
@@ -100,7 +99,7 @@ namespace apvlv
 
       ApvlvDoc *m_Doc;
 
-      GtkPaned *m_paned;
+      GtkWidget *m_paned;
 
       int m_width, m_height;
     };

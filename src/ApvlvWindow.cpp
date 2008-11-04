@@ -62,8 +62,6 @@ namespace apvlv
     {
       ApvlvWindow *nwin, *cwin;
 
-      debug ("delete a window: %p", this);
-      
       if (type == AW_SP || type == AW_VSP)
         {
           while (nwin = m_child)
@@ -114,7 +112,6 @@ namespace apvlv
   returnType
     ApvlvWindow::process (int ct, guint key, guint state)
       {
-        debug ("get a command: %d-%c-%d", ct, key, state);
         ApvlvWindow *nwin;
         if (state == GDK_CONTROL_MASK)
           {
@@ -353,12 +350,10 @@ end:
             ApvlvDoc *odoc = oldchild->getDoc ();
             if (odoc == gView->hasloaded (odoc->filename ()))
               {
-                debug ("copy");
                 m_Doc = odoc;
               }
             else
               {
-                debug ("new a copy");
                 m_Doc = oldchild->getDoc ()->copy ();
               }
             wid = m_Doc->widget ();
@@ -366,8 +361,8 @@ end:
 
         delete oldchild;
 
-        GtkWidget *parent = gtk_widget_get_parent (m_box);
-        gtk_container_remove (GTK_CONTAINER (parent), m_box);
+        GtkWidget *parent = gtk_widget_get_parent (m_paned);
+        gtk_container_remove (GTK_CONTAINER (parent), m_paned);
         gtk_container_add (GTK_CONTAINER (parent), wid);
         gtk_widget_show_all (parent);
 
@@ -409,37 +404,24 @@ end:
         int ttype = vsp == false? AW_SP: AW_VSP;
         GtkWidget *pan;
 
-        if (m_parent != NULL && m_parent->type == ttype)
-          {
-            nwindow = this;
-            nwindow2 = m_parent->birth ();
-            debug ("create a new window: %p", nwindow2);
-            insertafter (nwindow2);
-            gtk_insert_widget_inbox (nwindow->widget (), true, nwindow2->widget ());
-          }
-        else 
-          {
-            GtkWidget *old = widget ();
-            GtkWidget *parent = gtk_widget_get_parent (old);
-            g_object_ref (G_OBJECT (old));
-            gtk_container_remove (GTK_CONTAINER (parent), old);
+        GtkWidget *old = widget ();
+        GtkWidget *parent = gtk_widget_get_parent (old);
+        g_object_ref (G_OBJECT (old));
+        gtk_container_remove (GTK_CONTAINER (parent), old);
 
-            nwindow = birth (m_Doc);
-            nwindow2 = birth ();
-            m_child->insertafter (nwindow2);
+        nwindow = birth (m_Doc);
+        nwindow2 = birth ();
+        m_child->insertafter (nwindow2);
 
-            debug ("separate window: %p to 2 new windows: %p & %p", this, nwindow, nwindow2);
+        debug ("separate window: %p to 2 new windows: %p & %p", this, nwindow, nwindow2);
 
-            type = windowType (ttype);
+        type = windowType (ttype);
 
-            m_box = type == AW_SP? gtk_vbox_new (FALSE, 2): gtk_hbox_new (FALSE, 2);
-            gtk_container_add (GTK_CONTAINER (parent), m_box);
+        m_paned = type == AW_SP? gtk_vpaned_new (): gtk_hpaned_new ();
+        gtk_container_add (GTK_CONTAINER (parent), m_paned);
 
-            gtk_box_pack_start (GTK_BOX (m_box), nwindow->widget (), TRUE, TRUE, 0);
-            gtk_insert_widget_inbox (nwindow->widget (), true, nwindow2->widget ());
-
-            setcurrentWindow (nwindow);
-          }
+        gtk_paned_pack1 (GTK_PANED (m_paned), nwindow->widget (), TRUE, TRUE);
+        gtk_paned_pack2 (GTK_PANED (m_paned), nwindow2->widget (), TRUE, TRUE);
 
         if (ttype == AW_SP)
           {
@@ -451,6 +433,10 @@ end:
             nwindow->setsize (m_width / 2, m_height);
             nwindow2->setsize (m_width / 2, m_height);
           }
+
+        gtk_widget_show_all (m_paned);
+
+        setcurrentWindow (nwindow);
 
         return nwindow;
       }
@@ -466,7 +452,7 @@ end:
           }
         else
           {
-            gtk_widget_set_usize (m_box, m_width, m_height);
+            gtk_widget_set_usize (m_paned, m_width, m_height);
           }
       }
 
@@ -518,64 +504,22 @@ end:
   void 
     ApvlvWindow::smaller (int times)
       {
-        debug ("smaller %d", times);
         if (m_parent == NULL) return;
 
-        if (m_parent->type == AW_SP)
-          {
-            if (m_prev == NULL)
-              {
-              }
-            else
-              {
-              }
-          }
-        else
-          {
-            if (m_prev == NULL)
-              {
-              }
-            else
-              {
-              }
-          }
+        int val = gtk_paned_get_position (GTK_PANED (m_parent->m_paned));
+        int len = 20 * times;
+        m_parent->m_child == this? val -= len: val += len;
+        gtk_paned_set_position (GTK_PANED (m_parent->m_paned), val);
       }
 
   void 
     ApvlvWindow::bigger (int times)
       {
-        debug ("bigger %d", times);
         if (m_parent == NULL) return;
 
-        if (m_parent->type == AW_SP)
-          {
-            int len = m_parent->m_height / 50 * times;
-            gtk_widget_set_usize (widget (), m_width, m_height + len);
-            if (m_prev == NULL)
-              {
-                debug ("w: %d, h: %d\t\t\tbigger: %d", m_next->m_width, m_next->m_height, len);
-                gtk_widget_set_usize (m_next->widget (), m_next->m_width, m_next->m_height - len);
-              }
-            else
-              {
-                debug ("w: %d, h: %d\t\t\tbigger: %d", m_prev->m_width, m_prev->m_height, len);
-                gtk_widget_set_usize (m_prev->widget (), m_prev->m_width, m_prev->m_height - len);
-              }
-          }
-        else if (m_parent->type == AW_VSP)
-          {
-            int len = m_parent->m_width / 50 * times;
-            gtk_widget_set_usize (widget (), m_width + len, m_height);
-            if (m_prev == NULL)
-              {
-                debug ("w: %d, h: %d\t\t\tbigger: %d", m_next->m_width, m_next->m_height, len);
-                gtk_widget_set_usize (m_next->widget (), m_next->m_width - len, m_next->m_height);
-              }
-            else
-              {
-                debug ("w: %d, h: %d\t\t\tbigger: %d", m_prev->m_width, m_prev->m_height, len);
-                gtk_widget_set_usize (m_prev->widget (), m_prev->m_width - len, m_prev->m_height);
-              }
-          }
+        int val = gtk_paned_get_position (GTK_PANED (m_parent->m_paned));
+        int len = 20 * times;
+        m_parent->m_child == this? val += len: val -= len;
+        gtk_paned_set_position (GTK_PANED (m_parent->m_paned), val);
       }
 }

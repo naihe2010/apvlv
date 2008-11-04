@@ -1,10 +1,10 @@
 " some map
 
 " map n to C-f to goto next page
-"map n C-f
+"map n <C-f>
 
 " and p to prepage
-"map p C-b
+"map p <C-b>
 
 " map I to zi, and O to zo
 "map I zi

@@ -251,6 +251,7 @@ deft:
           {
           case CMD_OK:
             hasop = false;
+            count = 1;
           case GETTING_COUNT:
             ret = getcount ();
             if (ret)
@@ -304,7 +305,6 @@ deft:
         else
           {
             state = GETTING_CMD;
-            count = 1;
             return true;
           }
 
@@ -352,6 +352,7 @@ deft:
         if (ret == MATCH)
           {
             sendmapkey (mapcmd);
+            if (queue.empty ()) return false;
           }
         else if (ret == NEED_MORE)
           {
@@ -375,6 +376,8 @@ deft:
                   }
               }
           }
+
+        if (queue.empty ()) return false;
 
         cmd = gdk_unicode_to_keyval (queue[0]);
         cmdstate = 0;

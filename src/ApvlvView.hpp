@@ -80,28 +80,9 @@ namespace apvlv
 
     void fullscreen ();
 
-    void markposition (const char p) { crtadoc ()->markposition (p); }
-    void jump (const char p) { crtadoc ()->jump (p); }
-
-    bool reload () { return crtadoc ()->reload (); }
-
-    void showpage (int p) { crtadoc ()->showpage (p - 1); }
-    void nextpage (int times = 1) { crtadoc ()->nextpage (times); }
-    void prepage (int times = 1) { crtadoc ()->prepage (times); }
-    void halfnextpage (int times = 1) { crtadoc ()->halfnextpage (times); }
-    void halfprepage (int times = 1) { crtadoc ()->halfprepage (times); }
-
-    void scrollup (int times = 1) { crtadoc ()->scrollup (times); }
-    void scrolldown (int times = 1) { crtadoc ()->scrolldown (times); }
-    void scrollleft (int times = 1) { crtadoc ()->scrollleft (times); }
-    void scrollright (int times = 1) { crtadoc ()->scrollright (times); }
-
-    void setzoom (const char *s) { crtadoc ()->setzoom (s); }
-    void setzoom (double d) { crtadoc ()->setzoom (d); }
-    void zoomin () { crtadoc ()->zoomin (); }
-    void zoomout () { crtadoc ()->zoomout (); }
-
     returnType process (int times, guint keyval, guint state);
+   
+    returnType subprocess (int times, guint keyval, guint state);
    
     void cmd_show ();
 

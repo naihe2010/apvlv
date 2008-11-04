@@ -1,0 +1,24 @@
+    apvlv 0.0.3
+    ==============
+
+    News features
+
+        * Replace word which like 'C-a' to like '<C-a>' at every nessary place.
+
+        * Support 'H', 'M' and 'L' to scroll one PDF page.
+
+        * Support multiple window view and support below command to control them.
+                0. ':sp', ':vsp', 'q', 'quit'
+                1. '<C-w> <C-Q>', '<C-w> q
+                2. '<C-w> k'
+                3. '<C-w> j'
+                4. '<C-w> h'
+                5. '<C-w> l'
+                6. '<C-w> <C-w>'
+                7. '<C-w> -'
+                8. '<C-w> +'
+
+        * Support multiple PDF Doc to be opened at the memory.
+
+        * Support map command mode
+                like 'map a :vsp'

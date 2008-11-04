@@ -101,6 +101,8 @@ namespace apvlv
     void halfnextpage (int times = 1);
     void halfprepage (int times = 1);
 
+    void scrollto (double s);
+
     void scrollup (int times = 1);
     void scrolldown (int times = 1);
     void scrollleft (int times = 1);
@@ -122,7 +124,6 @@ namespace apvlv
     bool needsearch (const char *str);
     GList * searchpage (int num);
     void refresh ();
-    void scrollto (double s);
     bool savelastposition ();
     bool loadlastposition ();
 

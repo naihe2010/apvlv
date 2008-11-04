@@ -87,6 +87,8 @@ namespace apvlv
 
       gtk_widget_show_all (mainwindow);
 
+      pro_cmd = 0;
+
       cmd_has = FALSE;
 
       const char *fs = gParams->settingvalue ("fullscreen");
@@ -265,7 +267,7 @@ namespace apvlv
       }
 
   returnType 
-    ApvlvView::process (int ct, guint key, guint st)
+    ApvlvView::subprocess (int ct, guint key, guint st)
       {
         guint procmd = pro_cmd;
         if (pro_cmd != 0)
@@ -274,24 +276,41 @@ namespace apvlv
             switch (procmd)
               {
               case 'w':
-                return currentWindow ()->process (ct, key, st);
+                if (key == 'q'
+                    || key == 'Q' && st == GDK_CONTROL_MASK
+                )
+                  {
+                    ApvlvWindow *nwin = currentWindow ()->getneighbor (1, 'w', GDK_CONTROL_MASK);
+                    if (nwin == NULL)
+                      {
+                        quit ();
+                      }
+                    else
+                      {
+                        delete currentWindow ();
+                      }
+                  }
+                else
+                  {
+                    return currentWindow ()->process (ct, key, st);
+                  }
                 break;
 
               case 'm':
-                markposition (key);
+                crtadoc ()->markposition (key);
                 return MATCH;
                 break;
 
               case '\'':
-                jump (key);
+                crtadoc ()->jump (key);
                 return MATCH;
                 break;
 
               case 'z':
                 if (key == 'i')
-                  zoomin ();
+                  crtadoc ()->zoomin ();
                 else if (key == 'o')
-                  zoomout ();
+                  crtadoc ()->zoomout ();
                 return MATCH;
                 break;
 
@@ -301,28 +320,37 @@ namespace apvlv
 
             return MATCH;
           }
+      }
+
+  returnType 
+    ApvlvView::process (int ct, guint key, guint st)
+      {
+        if (pro_cmd != 0)
+          {
+            return subprocess (ct, key, st);
+          }
 
         if (st == GDK_CONTROL_MASK)
           {
             switch (key)
               {
               case 'f':
-                nextpage (ct);
+                crtadoc ()->nextpage (ct);
                 break;
               case 'b':
-                prepage (ct);
+                crtadoc ()->prepage (ct);
                 break;
               case 'd':
-                halfnextpage (ct);
+                crtadoc ()->halfnextpage (ct);
                 break;
               case 'u':
-                halfprepage (ct);
+                crtadoc ()->halfprepage (ct);
                 break;
               case 'p':
-                scrollup (ct);
+                crtadoc ()->scrollup (ct);
                 break;
               case 'n':
-                scrolldown (ct);
+                crtadoc ()->scrolldown (ct);
                 break;
               case 'w':
                 pro_cmd = 'w';
@@ -345,26 +373,36 @@ namespace apvlv
               case '?':
                 promptbacksearch ();
                 return NEED_MORE;
+              case 'H':
+                crtadoc ()->scrollto (0.0);
+                break;
+              case 'M':
+                crtadoc ()->scrollto (0.5);
+                break;
+              case 'L':
+                crtadoc ()->scrollto (1.0);
+                break;
               case 'k':
-                scrollup (ct);
+                crtadoc ()->scrollup (ct);
                 break;
               case 'j':
-                scrolldown (ct);
+                crtadoc ()->scrolldown (ct);
                 break;
               case 'h':
-                scrollleft (ct);
+                crtadoc ()->scrollleft (ct);
                 break;
               case 'l':
-                scrollright (ct);
+                crtadoc ()->scrollright (ct);
                 break;
               case 'R':
-                reload ();
+                crtadoc ()->reload ();
                 break;
               case 'o':
                 open ();
                 break;
               case 'g':
-                showpage (ct);
+                crtadoc ()->markposition ('\'');
+                crtadoc ()->showpage (ct - 1);
                 break;
               case 'm':
                 pro_cmd = 'm';
@@ -399,10 +437,12 @@ namespace apvlv
         switch (cmd_mode)
           {
           case SEARCH:
+            crtadoc ()->markposition ('\'');
             crtadoc ()->search (str);
             break;
 
           case BACKSEARCH:
+            crtadoc ()->markposition ('\'');
             crtadoc ()->backsearch (str);
             break;
 
@@ -447,37 +487,38 @@ namespace apvlv
               }
             else if (cmd == "zoom" || cmd == "z")
               {
-                setzoom (subcmd.c_str ());
+                crtadoc ()->setzoom (subcmd.c_str ());
               }
             else if (cmd == "forwardpage" || cmd == "fp")
               {
-                nextpage (atoi (subcmd.c_str ()));
+                crtadoc ()->nextpage (atoi (subcmd.c_str ()));
               }
             else if (cmd == "prewardpage" || cmd == "pp")
               {
-                prepage (atoi (subcmd.c_str ()));
+                crtadoc ()->prepage (atoi (subcmd.c_str ()));
               }
             else if (cmd == "goto" || cmd == "g")
               {
-                showpage (atoi (subcmd.c_str ()));
+                crtadoc ()->markposition ('\'');
+                crtadoc ()->showpage (atoi (subcmd.c_str ()) - 1);
               }
             else if ((cmd == "help" || cmd == "h")
                      && subcmd == "info")
               {
                 loadfile (helppdf);
-                showpage (2);
+                crtadoc ()->showpage (2);
               }
             else if ((cmd == "help" || cmd == "h")
                      && subcmd == "command")
               {
                 loadfile (helppdf);
-                showpage (4);
+                crtadoc ()->showpage (4);
               }
             else if ((cmd == "help" || cmd == "h")
                      && subcmd == "setting")
               {
-                loadfile (helppdf);
-                showpage (6);
+                crtadoc ()->loadfile (helppdf);
+                crtadoc ()->showpage (6);
               }
             else if (cmd == "help" || cmd == "h")
               {
@@ -515,17 +556,6 @@ namespace apvlv
       {
         ApvlvView *view =
           (ApvlvView *) g_object_get_data (G_OBJECT (wid), "view");
-
-#ifndef DEBUG
-        GdkEventKey *gek = (GdkEventKey *) ev;
-        debug ("ev: type=%d", gek->type);
-        debug ("ev: send_event=%d", gek->send_event);
-        debug ("ev: state=%d", gek->state);
-        debug ("ev: keyval=%d", gek->keyval);
-        debug ("ev: hardware_keycode=%d", gek->hardware_keycode);
-        debug ("ev: length=%d", gek->length);
-        debug ("ev: string=%s", gek->string);
-#endif
 
         if (view->cmd_has == false)
           {
