@@ -38,6 +38,8 @@
 # include "config.hpp"
 #endif
 
+#include "ApvlvUtil.hpp"
+
 #include <iostream>
 #include <map>
 
@@ -56,6 +58,8 @@ namespace apvlv
     bool mappush (string &cmd1, string &cmd2);
 
     const char *mapvalue (const char *key);
+
+    returnType getmap (const char *s, int n);
 
     const char *cmd (const char *key);
 

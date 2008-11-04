@@ -38,6 +38,8 @@
 # include "config.hpp"
 #endif
 
+#include "ApvlvUtil.hpp"
+
 #include <gtk/gtk.h>
 #include <glib/poppler.h>
 
@@ -112,6 +114,8 @@ namespace apvlv
     void search (const char *str);
     void backsearch (const char *str);
 
+    returnType process (int times, guint keyval, guint state);
+   
   private:
     PopplerPage *getpage (int p);
     void markselection ();

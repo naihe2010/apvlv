@@ -77,7 +77,7 @@ namespace apvlv
           stringstream is (str);
           // avoid commet line, continue next
           is >> crap;
-          if (*(crap.c_str ()) == '\"' || crap == "")
+          if (crap[0] == '\"' || crap == "")
             {
               continue;
             }
@@ -119,7 +119,10 @@ namespace apvlv
           // like "map n next-page"
           else if (crap == "map")
             {
-              is >> argu >> data;
+              is >> argu;
+              getline (is, data);
+              while (data[0] == ' ' || data[0] == '\t')
+                data.erase (0, 1);
               if (argu.length () > 0 && data.length () > 0)
                 {
                   mappush (argu, data);
@@ -160,6 +163,23 @@ namespace apvlv
             return (*it).second.c_str ();
           }
         return NULL;
+      }
+
+  returnType 
+    ApvlvParams::getmap (const char *s, int n)
+      {
+        map <string, string>::iterator it;
+        for (it = m_maps.begin (); it != m_maps.end (); ++ it)
+          {
+            if (strncmp (it->first.c_str (), s, n) == 0)
+              {
+                if (it->first.size () == n)
+                  return MATCH;
+                else 
+                  return NEED_MORE;
+              }
+          }
+        return NO_MATCH;
       }
 
   const char *

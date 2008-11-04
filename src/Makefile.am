@@ -1,4 +1,4 @@
-AM_CFLAGS = -Wall -D_GNU_SOURCE
+AM_CFLAGS = -Wall -D_GNU_SOURCE -DDEBUG
 
 HEAD = config.hpp \
        ApvlvUtil.hpp \

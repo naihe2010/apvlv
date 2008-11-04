@@ -41,24 +41,11 @@
 #include <gtk/gtk.h>
 
 #include <iostream>
+#include <vector>
 using namespace std;
 
 namespace apvlv
 {
-  class ApvlvEvent
-    {
-  public:
-      ApvlvEvent (const char *s);
-      ~ApvlvEvent ();
-
-      void send ();
-
-      ApvlvEvent *m_next;
-
-  private:
-      GdkEventKey *gev, *gev2;
-    };
-
   class ApvlvCmds
     {
   public:
@@ -66,27 +53,64 @@ namespace apvlv
 
     ~ApvlvCmds ();
 
-    void push (char c) { char t[2] = { 0 }; t[0] = c; queue.append (t); tryrun (); }
-
-    void push (const char *cmd) { queue.append (cmd); tryrun (); }
+    void append (GdkEventKey *gev);
 
   private:
-    bool tryrun ();
-    bool docmd (const char *s, int times = 1);
-    bool doargu (const char *s);
+    void translate (GdkEventKey *gev, string *s);
 
-    enum 
+    bool translate (string &s, GdkEventKey *gev);
+
+    bool run ();
+
+    bool getcount ();
+
+    bool getcmd ();
+
+    returnType getmap ();
+
+    void sendmapkey (const char *s);
+
+    enum cmdState
       {
+        GETTING_COUNT,
+        GETTING_CMD,
         CMD_OK,
-        NOT_MATCH,
-        NEED_ARGUMENT
       } state;
 
     static gboolean apvlv_cmds_timeout_cb (gpointer);
-    gint timer;
+    gint timeouttimer;
 
     string queue;
-    string argu;
+
+    bool hasop;
+    int count;
+
+    bool getall;
+
+    const char *mapcmd;
+
+    guint cmd;
+
+    guint cmdstate;
+
+    map <guint, const char *> KS;
+
+    /*
+    typedef pair <guint, const char *> keystritem;
+    vector <keystritem> KS2; */
+
+    bool buildevent (const char *p);
+
+    void destroyevent ();
+
+    void sendevent ();
+
+    int sendtimer;
+
+    static gboolean ae_send_next (void *);
+
+    vector <GdkEventKey> m_keys;
+
     };
 
   extern ApvlvCmds *gCmds;

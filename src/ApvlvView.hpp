@@ -40,8 +40,6 @@
 
 #include "ApvlvDoc.hpp"
 #include "ApvlvWindow.hpp"
-#include "ApvlvCmds.hpp"
-#include "ApvlvParams.hpp"
 
 #include <iostream>
 
@@ -103,18 +101,16 @@ namespace apvlv
     void zoomin () { crtadoc ()->zoomin (); }
     void zoomout () { crtadoc ()->zoomout (); }
 
-    void dowindow (const char *s);
+    returnType process (int times, guint keyval, guint state);
+   
+    void cmd_show ();
+
+    void status_show ();
 
   private:
     ApvlvDoc *crtadoc () { return currentWindow ()->getDoc (); }
 
-    void parse_cmd (GdkEventKey * gek);
-
     void refresh ();
-
-    void cmd_show ();
-
-    void status_show ();
 
     enum 
       {
@@ -128,6 +124,12 @@ namespace apvlv
     void runcmd (const char *cmd);
 
     gboolean cmd_has;
+
+    string prostr;
+
+    int pro_count;
+    guint pro_cmd;
+    guint pro_state;
 
     GtkWidget *statusbar;
     GtkWidget *mainwindow;

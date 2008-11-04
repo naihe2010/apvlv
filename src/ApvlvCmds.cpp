@@ -42,378 +42,374 @@
 #include <gdk/gdkkeysyms.h>
 #include <gdk/gdkx.h>
 
+#include <sstream>
+
 namespace apvlv
 {
   ApvlvCmds *gCmds = NULL;
 
-  ApvlvEvent::ApvlvEvent (const char *s)
-    {
-      m_next = NULL;
-      gev = gev2 = NULL;
+  bool
+    ApvlvCmds::buildevent (const char *p)
+      {
+      m_keys.clear ();
 
-      if (strlen (s) >= 5 && strncmp (s, "<C-", 3) == 0 && s[4] == '>')
+      string ss (p);
+      while (! ss.empty ())
         {
-          /*
-          gev = (GdkEventKey *) g_malloc (sizeof (GdkEventKey));
-          gev->type = GDK_KEY_PRESS;
-          gev->window = gView->widget ()->window;
-          gev->send_event = TRUE;
-          gev->time = GDK_CURRENT_TIME;
-          gev->state = 0;
-          gev->keyval = gdk_unicode_to_keyval (GDK_Control_L);
-          gev->length = 0;
-          gev->string = strdup ("");
-          gev->hardware_keycode = XKeysymToKeycode (GDK_WINDOW_XDISPLAY (gev->window), gev->keyval);
-          gev->group = 0;
-          gev->is_modifier = 1;*/
+          GdkEventKey gk;
 
-          gev2 = (GdkEventKey *) g_malloc (sizeof (GdkEventKey));
-          gev2->type = GDK_KEY_PRESS;
-          gev2->window = gView->widget ()->window;
-          gev2->send_event = TRUE;
-          gev2->time = GDK_CURRENT_TIME;
-          gev2->state = GDK_CONTROL_MASK;
-          gev2->keyval = gdk_unicode_to_keyval (s[3]);
-          gev2->length = 1;
-          gev2->string = strndup (s + 3, 1);
-          gev2->hardware_keycode = XKeysymToKeycode (GDK_WINDOW_XDISPLAY (gev2->window), gev2->keyval);
-          gev2->group = 0;
-          gev2->is_modifier = 0;
-
-          if (s[5] != '\0')
+          if (ss[0] == '<')
             {
-              m_next = new ApvlvEvent (s + 5);
+              int p = ss.find ('>');
+              if (p != string::npos)
+                {
+                  string ss2 (ss.c_str (), p + 1);
+                  bool r = translate (ss2, &gk);
+                  if (r == true)
+                    {
+                      ss.erase (0, p + 1);
+                      goto deft;
+                    }
+                }
             }
-        }
-      else
-        {
-          gev = (GdkEventKey *) g_malloc (sizeof (GdkEventKey));
-          gev->type = GDK_KEY_PRESS;
-          gev->window =  gView->widget ()->window;
-          gev->send_event = TRUE;
-          gev->time = GDK_CURRENT_TIME;
-          gev->state = 0;
-          gev->keyval = gdk_unicode_to_keyval (s[0]);
-          gev->length = 1;
-          gev->string = strndup (s, 1);
-          gev->hardware_keycode = XKeysymToKeycode (GDK_WINDOW_XDISPLAY (gev->window), gev->keyval);
-          gev->group = 0;
-          gev->is_modifier = 0;
 
-          if (s[1] != '\0')
-            {
-              m_next = new ApvlvEvent (s + 1);
-            }
-        }
-    }
+          gk.state = 0;
+          gk.keyval = gdk_unicode_to_keyval (ss[0]);
+          ss.erase (0, 1);
 
-  ApvlvEvent::~ApvlvEvent ()
-    {
-      if (gev != NULL)
-        {
-          g_free (gev);
-        }
+deft:
+          gk.type = GDK_KEY_PRESS;
+          gk.window = gView->widget ()->window;
+          gk.send_event = FALSE;
+          gk.time = GDK_CURRENT_TIME;
+          gk.length = 0;
+          gk.string = strndup ("", 0);
+          gk.hardware_keycode = XKeysymToKeycode (GDK_WINDOW_XDISPLAY (gk.window), gk.keyval);
+          gk.group = 0;
+          gk.is_modifier = 0;
 
-      if (gev2 != NULL)
-        {
-          g_free (gev2);
-        }
-
-      for (ApvlvEvent *ae = m_next; ae; ae = ae->m_next)
-        {
-          delete ae;
+          m_keys.push_back (gk);
         }
     }
 
   void
-    ApvlvEvent::send ()
+    ApvlvCmds::destroyevent ()
       {
-        if (gev != NULL)
+        if (sendtimer > 0)
+          gtk_timeout_remove (sendtimer); 
+        m_keys.clear ();
+      }
+
+  void
+    ApvlvCmds::sendevent ()
+      {
+        if (! m_keys.empty ())
           {
+            GdkEventKey *gev = (GdkEventKey *) &(m_keys[0]);
             gdk_event_put ((GdkEvent *) gev);
-          }
 
-        if (gev2 != NULL)
-          {
-            gdk_event_put ((GdkEvent *) gev2);
-            gev2->type = GDK_KEY_RELEASE;
-            gev2->send_event = FALSE;
-            gdk_event_put ((GdkEvent *) gev2);
-          }
-
-        if (gev != NULL)
-          {
             gev->type = GDK_KEY_RELEASE;
-            gev->send_event = FALSE;
             gdk_event_put ((GdkEvent *) gev);
+
+            vector <GdkEventKey>::iterator it = m_keys.begin ();
+            m_keys.erase (it);
           }
 
-        for (ApvlvEvent *ae = m_next; ae; ae = ae->m_next)
-          {
-            ae->send ();
-          }
+        if (! m_keys.empty ())
+          sendtimer = gtk_timeout_add (100, ae_send_next, this);
+      }
+
+  gboolean
+    ApvlvCmds::ae_send_next (void *data)
+      {
+        ApvlvCmds *ac = (ApvlvCmds *) data;
+        ac->sendevent ();
       }
 
   ApvlvCmds::ApvlvCmds () 
     { 
-      argu = "";
-      queue = ""; 
+      timeouttimer = -1;
+      queue = "";
+      state = CMD_OK;
 
-      timer = -1; 
+      hasop = false;
+
+      getall = false;
+
+      if (KS.empty ())
+        {
+          KS[GDK_BackSpace] = "<BS>";
+          KS[GDK_Tab] = "<Tab>";
+          KS[GDK_Return] = "<CR>";
+          KS[GDK_Escape] = "<Esc>";
+          KS[GDK_space] = "<Space>";
+          KS[GDK_less] = "<lt>";
+          KS[GDK_backslash] = "<Bslash>";
+          KS[GDK_bar] = "<Bar>";
+          KS[GDK_Delete] = "<Del>";
+          KS[GDK_Up] = "<Up>";
+          KS[GDK_Down] = "<Down>";
+          KS[GDK_Left] = "<Left>";
+          KS[GDK_Right] = "<Right>";
+          KS[GDK_Help] = "<Help>";
+          KS[GDK_Insert] = "<Insert>";
+          KS[GDK_Home] = "<Home>";
+          KS[GDK_End] = "<End>";
+          KS[GDK_Page_Up] = "<PageUp>";
+          KS[GDK_Page_Down] = "<PageDown>";
+        }
     }
 
   ApvlvCmds::~ApvlvCmds () 
     { 
-      if (timer > 0) 
+      if (timeouttimer > 0) 
         {
-          gtk_timeout_remove (timer); 
-          timer = -1;
+          gtk_timeout_remove (timeouttimer); 
+          timeouttimer = -1;
         }
+
+      destroyevent ();
     }
 
-  bool
-    ApvlvCmds::tryrun ()
+  void 
+    ApvlvCmds::append (GdkEventKey *gev)
       {
-        if (timer > 0) 
+        translate (gev, &queue);
+        bool ret = run ();
+        if (ret == true)
+          gView->status_show ();
+      }
+
+  void 
+    ApvlvCmds::translate (GdkEventKey *gev, string *s)
+      {
+        if (gev->state == GDK_CONTROL_MASK)
           {
-            gtk_timeout_remove (timer); 
-            timer = -1;
-          }
-
-        char *p = (char *) queue.c_str ();
-
-        bool hasop = false; 
-        char *op = p;
-        bool hastimes = false;
-        int times = 0;
-
-        while (*p != '\0')
-          {
-            if (*p == '-')
+            guint ret = gdk_keyval_to_unicode (gev->keyval);
+            if (isprint (ret))
               {
-                hasop = !hasop;
-                op = ++ p;
+                s->append ("<C-");
+                s->push_back (ret);
+                s->append (">");
               }
-
-            if (! isdigit (*p))
+          }
+        else
+          {
+            if (KS[gev->keyval] != NULL)
               {
-                if (hastimes)
-                  {
-                    if (hasop)
-                      {
-                        times = 0 - atoi (op);
-                      }
-                    else
-                      {
-                        times = atoi (op);
-                      }
-                  }
-                break;
+                s->append (KS[gev->keyval]);
               }
             else
               {
-                hastimes = true;
-                p ++;
+                guint ret = gdk_keyval_to_unicode (gev->keyval);
+                if (isprint (ret))
+                  {
+                    s->push_back (ret);
+                  }
+              }
+          }
+      }
+
+  bool
+    ApvlvCmds::translate (string &s, GdkEventKey *gev)
+      {
+        if (s.size () > 4
+            && s[1] == 'C'
+            && s[2] == '-'
+        )
+          {
+            gev->state = GDK_CONTROL_MASK;
+            gev->keyval = gdk_unicode_to_keyval (s[3]);
+            return true;
+          }
+
+        map <guint, const char *>::iterator it;
+        for (it = KS.begin (); it != KS.end (); ++ it)
+          {
+            if (it->second = s.c_str ())
+              {
+                gev->state = 0;
+                gev->keyval = it->first;
+                return true;
               }
           }
 
-        const char *s = gParams->mapvalue (p);
-        if (s != NULL)
+        return false;
+      }
+
+  bool
+    ApvlvCmds::run ()
+      {
+        if (timeouttimer > 0) 
           {
-            queue.replace (p - queue.c_str (), strlen (p), s);
-            return tryrun ();
+            gtk_timeout_remove (timeouttimer); 
+            timeouttimer = -1;
           }
 
         bool ret;
-        if (argu == "")
+        switch (state)
           {
-            if (hastimes)
+          case CMD_OK:
+            hasop = false;
+          case GETTING_COUNT:
+            ret = getcount ();
+            if (ret)
               {
-                ret = docmd (p, times);
+                return run ();
               }
-            else
-              {
-                ret = docmd (p);
-              }
-          }
-        else
-          {
-            ret = doargu (p);
-          }
-
-        if (state != NOT_MATCH)
-          {
-            queue = "";
-          }
-
-        if (state != CMD_OK)
-          {
-            int cmd_timeout = atoi (gParams->settingvalue ("commandtimeout"));
-            timer = gtk_timeout_add (cmd_timeout, apvlv_cmds_timeout_cb, this);
             return false;
+            break;
+          case GETTING_CMD:
+            ret = getcmd ();
+            if (ret)
+              {
+                returnType type = gView->process (count, gdk_keyval_to_unicode (cmd), cmdstate);
+                if (type == MATCH)
+                  {
+                    state = CMD_OK;
+                    return true;
+                  }
+                else if (type == NO_MATCH)
+                  {
+                    state = CMD_OK;
+                  }
+                else if (type == NEED_MORE)
+                  {
+                    state = GETTING_CMD;
+                  }
+                else if (type == GET_ALL)
+                  {
+                    getall = true;
+                  }
+              }
+            return false;
+            break;
+          default:
+            break;
           }
-
-        return true;
       }
 
-  bool 
-    ApvlvCmds::docmd (const char *s, int times)
+  bool
+    ApvlvCmds::getcount ()
       {
-        if (strcmp (s, "f") == 0)
+        if (queue[0] == '-'
+             || isdigit (queue[0])
+        )
           {
-            gView->fullscreen ();
-          }
-
-        else if (strcmp (s, "q") == 0)
-          {
-            gView->quit ();
-          }
-
-        else if (strcmp (s, "o") == 0)
-          {
-            gView->open ();
-          }
-
-        else if (strcmp (s, "m") == 0)
-          {
-            if (argu == "m")
-              {
-                doargu ("m");
-              }
-            else
-              {
-                argu = "m";
-                state = NEED_ARGUMENT;
-              }
-          }
-        else if (strcmp (s, "'") == 0)
-          {
-            if (argu == "'")
-              {
-                doargu ("\'");
-              }
-            else
-              {
-                argu = "'";
-                state = NEED_ARGUMENT;
-              }
-          }
-
-        else if (strcmp (s, "R") == 0)
-          {
-            gView->reload ();
-          }
-
-        else if (strcmp (s, "C-w") == 0)
-          {
-            if (argu == "C-w")
-              {
-                doargu ("C-w");
-              }
-            else
-              {
-                argu = "C-w";
-                state = NEED_ARGUMENT;
-              }
-          }
-
-        else if (strcmp (s, "g") == 0)
-          {
-            gView->markposition ('\'');
-            gView->showpage (times);
-          }
-        else if (strcmp (s, "C-d") == 0)
-          {
-            gView->halfnextpage (times);
-          }
-        else if (strcmp (s, "C-u") == 0)
-          {
-            gView->halfprepage (times);
-          }
-        else if (strcmp (s, "C-f") == 0)
-          {
-            gView->nextpage (times);
-          }
-        else if (strcmp (s, "C-b") == 0)
-          {
-            gView->prepage (times);
-          }
-
-        else if (strcmp (s, "k") == 0)
-          {
-            gView->scrollup (times);
-          }
-        else if (strcmp (s, "j") == 0)
-          {
-            gView->scrolldown (times);
-          }
-        else if (strcmp (s, "h") == 0)
-          {
-            gView->scrollleft (times);
-          }
-        else if (strcmp (s, "l") == 0)
-          {
-            gView->scrollright (times);
-          }
-
-        else if (strcmp (s, "zi") == 0)
-          {
-            gView->zoomin ();
-          }
-        else if (strcmp (s, "zo") == 0)
-          {
-            gView->zoomout ();
-          }
-
-        else if (strcmp (s, "/") == 0)
-          {
-            gView->markposition ('\'');
-            gView->promptsearch ();
-          }
-        else if (strcmp (s, "?") == 0)
-          {
-            gView->markposition ('\'');
-            gView->promptbacksearch ();
-          }
-        else if (strcmp (s, ":") == 0)
-          {
-            gView->promptcommand ();
+            // If the 1st is '-' or a number and only this, I can't get the right count.
+            // So, let's return.
+            if (queue.size () < 2)
+            return false;
           }
         else
           {
-            state = NOT_MATCH;
-            return false;
+            state = GETTING_CMD;
+            count = 1;
+            return true;
           }
 
-        state = CMD_OK;
+        bool found = false;
+        for (unsigned int i=1; i<queue.size (); ++i)
+          {
+            if (! isdigit (queue[i]))
+              {
+                found = true;
+                break;
+              }
+          }
+
+        // If can't find a nor number, return and get next time.
+        if (! found)
+          return false;
+
+        if (queue[0] == '-')
+          {
+            hasop = true;
+            queue.erase (0, 1);
+          }
+
+        istringstream is (queue);
+        is >> count;
+
+        if (hasop) count = 0 - count;
+
+        while (isdigit (queue[0]))
+          {
+            queue.erase (0, 1);
+          }
+
+        state = GETTING_CMD;
         return true;
       }
 
   bool
-    ApvlvCmds::doargu (const char *s)
+    ApvlvCmds::getcmd ()
       {
-        if (argu == "m")
+        if (queue.empty ())
+          return false;
+
+        returnType ret = getmap ();
+        if (ret == MATCH)
           {
-            if ('a' <= *s && *s <= 'z')
-              {
-                gView->markposition (*s);
-              }
+            sendmapkey (mapcmd);
           }
-        else if (argu == "'")
-          {
-            gView->jump (*s);
-          }
-        else if (argu == "C-w")
-          {
-            gView->dowindow (s);
-          }
-        else
+        else if (ret == NEED_MORE)
           {
             return false;
           }
 
-        argu = "";
+        if (queue[0] == '<')
+          {
+            int p = queue.find ('>');
+            if (p != string::npos)
+              {
+                string ss (queue.c_str (), p + 1);
+                GdkEventKey gk;
+                bool r = translate (ss, &gk);
+                if (r == true)
+                  {
+                    cmd = gk.keyval;
+                    cmdstate = gk.state;
+                    queue.erase (0, p + 1);
+                    return true;
+                  }
+              }
+          }
+
+        cmd = gdk_unicode_to_keyval (queue[0]);
+        cmdstate = 0;
+        queue.erase (0, 1);
         return true;
+      }
+
+  returnType 
+    ApvlvCmds::getmap ()
+      {
+        returnType ret;
+        for (unsigned int i=1; i<=queue.size (); ++i)
+          {
+            ret = gParams->getmap (queue.c_str (), i);
+            if (ret == MATCH)
+              {
+                string ss (queue.c_str (), i);
+                mapcmd = gParams->mapvalue (ss.c_str ());
+                queue.erase (0, i);
+                return MATCH;
+              }
+            else if (ret == NO_MATCH)
+              {
+                return NO_MATCH;
+              }
+          }
+
+        return ret;
+      }
+
+  void
+    ApvlvCmds::sendmapkey (const char *s)
+      {
+        bool ret = buildevent (s);
+        sendevent ();
       }
 
   gboolean 

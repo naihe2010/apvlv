@@ -38,6 +38,8 @@
 
 #include <gtk/gtk.h>
 
+#include <string.h>
+
 namespace apvlv
 {
   ApvlvWindow *ApvlvWindow::m_curWindow = NULL;
@@ -109,53 +111,75 @@ namespace apvlv
         }
     }
 
-  void 
-    ApvlvWindow::runcommand (int times, const char *s, int argu)
+  returnType
+    ApvlvWindow::process (int ct, guint key, guint state)
       {
-        debug ("get a %d length command: %s", strlen (s), s);
-        if (strcmp (s, "-") == 0)
+        debug ("get a command: %d-%c-%d", ct, key, state);
+        ApvlvWindow *nwin;
+        if (state == GDK_CONTROL_MASK)
           {
           }
-        else if (strcmp (s, "+") == 0)
+        else if (state == 0)
           {
-          }
-        else
-          {
-            ApvlvWindow *nwin = getneighbor (s);
-            if (nwin != NULL)
+            switch (key)
               {
-                setcurrentWindow (nwin);
+              case 'k':
+              case 'j':
+              case 'h':
+              case 'l':
+                nwin = getneighbor (ct, key, state);
+                if (nwin != NULL)
+                  {
+                    setcurrentWindow (nwin);
+                  }
+                break;
+
+              case '-':
+                smaller (ct);
+                break;
+
+              case '+':
+                bigger (ct);
+                break;
+
+              default:
+                break;
               }
           }
       }
 
   ApvlvWindow *
-    ApvlvWindow::getneighbor (const char *s)
+    ApvlvWindow::getneighbor (int ct, guint key, guint state)
       {
-        if (strcmp (s, "C-w") == 0)
+        if (state == GDK_CONTROL_MASK)
           {
-            return getnext (1);
+            switch (key)
+              {
+              case 'w':
+                return getnext (ct);
+                break;
+              default:
+                break;
+              }
           }
-        else if (strcmp (s, "k") == 0)
+        else if (state == 0)
           {
-            return getkj (1, false);
+            switch (key)
+              {
+              case 'k':
+                return getkj (1, false);
+              case 'j':
+                return getkj (1, true);
+              case 'h':
+                return gethl (1, false);
+              case 'l':
+                return gethl (1, true);
+              default:
+                break;
+              }
           }
-        else if (strcmp (s, "j") == 0)
-          {
-            return getkj (1, true);
-          }
-        else if (strcmp (s, "h") == 0)
-          {
-            return gethl (1, false);
-          }
-        else if (strcmp (s, "l") == 0)
-          {
-            return gethl (1, true);
-          }
-        else
-          {
-            return NULL;
-          }
+
+        return NULL;
       }
 
   inline ApvlvWindow *
@@ -381,37 +405,52 @@ end:
   ApvlvWindow *
     ApvlvWindow::separate (bool vsp)
       {
+        ApvlvWindow *nwindow, *nwindow2;
         int ttype = vsp == false? AW_SP: AW_VSP;
+        GtkWidget *pan;
 
         if (m_parent != NULL && m_parent->type == ttype)
           {
-            ApvlvWindow *nwin = m_parent->birth ();
-            debug ("create a new window: %p", nwin);
-            insertafter (nwin);
-            gtk_insert_widget_inbox (widget (), true, nwin->widget ());
-            return this;
+            nwindow = this;
+            nwindow2 = m_parent->birth ();
+            debug ("create a new window: %p", nwindow2);
+            insertafter (nwindow2);
+            gtk_insert_widget_inbox (nwindow->widget (), true, nwindow2->widget ());
+          }
+        else 
+          {
+            GtkWidget *old = widget ();
+            GtkWidget *parent = gtk_widget_get_parent (old);
+            g_object_ref (G_OBJECT (old));
+            gtk_container_remove (GTK_CONTAINER (parent), old);
+
+            nwindow = birth (m_Doc);
+            nwindow2 = birth ();
+            m_child->insertafter (nwindow2);
+
+            debug ("separate window: %p to 2 new windows: %p & %p", this, nwindow, nwindow2);
+
+            type = windowType (ttype);
+
+            m_box = type == AW_SP? gtk_vbox_new (FALSE, 2): gtk_hbox_new (FALSE, 2);
+            gtk_container_add (GTK_CONTAINER (parent), m_box);
+
+            gtk_box_pack_start (GTK_BOX (m_box), nwindow->widget (), TRUE, TRUE, 0);
+            gtk_insert_widget_inbox (nwindow->widget (), true, nwindow2->widget ());
+
+            setcurrentWindow (nwindow);
           }
 
-        GtkWidget *old = widget ();
-        GtkWidget *parent = gtk_widget_get_parent (old);
-        g_object_ref (G_OBJECT (old));
-        gtk_container_remove (GTK_CONTAINER (parent), old);
-
-        ApvlvWindow *nwindow = birth (m_Doc);
-        ApvlvWindow *nwindow2 = birth ();
-        m_child->insertafter (nwindow2);
-
-        debug ("separate window: %p to 2 new windows: %p & %p", this, nwindow, nwindow2);
-
-        type = windowType (ttype);
-
-        m_box = type == AW_SP? gtk_vbox_new (TRUE, 2): gtk_hbox_new (TRUE, 2);
-        gtk_container_add (GTK_CONTAINER (parent), m_box);
-
-        gtk_box_pack_start (GTK_BOX (m_box), nwindow->widget (), TRUE, TRUE, 0);
-        gtk_insert_widget_inbox (nwindow->widget (), true, nwindow2->widget ());
-
-        setcurrentWindow (nwindow);
+        if (ttype == AW_SP)
+          {
+            nwindow->setsize (m_width, m_height / 2);
+            nwindow2->setsize (m_width, m_height / 2);
+          }
+        else if (ttype == AW_VSP)
+          {
+            nwindow->setsize (m_width / 2, m_height);
+            nwindow2->setsize (m_width / 2, m_height);
+          }
 
         return nwindow;
       }
@@ -424,6 +463,10 @@ end:
         if (m_Doc)
           {
             m_Doc->setsize (m_width, m_height);
+          }
+        else
+          {
+            gtk_widget_set_usize (m_box, m_width, m_height);
           }
       }
 
@@ -475,10 +518,64 @@ end:
   void 
     ApvlvWindow::smaller (int times)
       {
+        debug ("smaller %d", times);
+        if (m_parent == NULL) return;
+
+        if (m_parent->type == AW_SP)
+          {
+            if (m_prev == NULL)
+              {
+              }
+            else
+              {
+              }
+          }
+        else
+          {
+            if (m_prev == NULL)
+              {
+              }
+            else
+              {
+              }
+          }
       }
 
   void 
     ApvlvWindow::bigger (int times)
       {
+        debug ("bigger %d", times);
+        if (m_parent == NULL) return;
+
+        if (m_parent->type == AW_SP)
+          {
+            int len = m_parent->m_height / 50 * times;
+            gtk_widget_set_usize (widget (), m_width, m_height + len);
+            if (m_prev == NULL)
+              {
+                debug ("w: %d, h: %d\t\t\tbigger: %d", m_next->m_width, m_next->m_height, len);
+                gtk_widget_set_usize (m_next->widget (), m_next->m_width, m_next->m_height - len);
+              }
+            else
+              {
+                debug ("w: %d, h: %d\t\t\tbigger: %d", m_prev->m_width, m_prev->m_height, len);
+                gtk_widget_set_usize (m_prev->widget (), m_prev->m_width, m_prev->m_height - len);
+              }
+          }
+        else if (m_parent->type == AW_VSP)
+          {
+            int len = m_parent->m_width / 50 * times;
+            gtk_widget_set_usize (widget (), m_width + len, m_height);
+            if (m_prev == NULL)
+              {
+                debug ("w: %d, h: %d\t\t\tbigger: %d", m_next->m_width, m_next->m_height, len);
+                gtk_widget_set_usize (m_next->widget (), m_next->m_width - len, m_next->m_height);
+              }
+            else
+              {
+                debug ("w: %d, h: %d\t\t\tbigger: %d", m_prev->m_width, m_prev->m_height, len);
+                gtk_widget_set_usize (m_prev->widget (), m_prev->m_width - len, m_prev->m_height);
+              }
+          }
       }
 }

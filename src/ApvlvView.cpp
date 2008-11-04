@@ -31,11 +31,8 @@
  *  AuthorRef: Alf <naihe2010@gmail.com>
  *  Blog:      http://naihe2010.cublog.cn
  ****************************************************************************/
-#include "ApvlvDoc.hpp"
 #include "ApvlvParams.hpp"
 #include "ApvlvCmds.hpp"
-#include "ApvlvWindow.hpp"
-#include "ApvlvUtil.hpp"
 #include "ApvlvView.hpp"
 
 #include <stdlib.h>
@@ -81,7 +78,7 @@ namespace apvlv
       statusbar = gtk_entry_new ();
       gtk_box_pack_end (GTK_BOX (vbox), statusbar, FALSE, FALSE, 0);
       g_object_set_data (G_OBJECT (statusbar), "view", this);
-      g_signal_connect (G_OBJECT (statusbar), "event", G_CALLBACK (apvlv_view_statusbar_cb), this);
+      g_signal_connect (G_OBJECT (statusbar), "key-press-event", G_CALLBACK (apvlv_view_statusbar_cb), this);
 
       g_signal_connect (G_OBJECT (mainwindow), "delete-event",
                         G_CALLBACK (apvlv_view_delete_cb), this);
@@ -192,6 +189,7 @@ namespace apvlv
   void 
     ApvlvView::promptsearch ()
       {
+        prostr = "";
         gtk_entry_set_text (GTK_ENTRY (statusbar), "/");
         cmd_mode = SEARCH;
         cmd_show ();
@@ -200,6 +198,7 @@ namespace apvlv
   void 
     ApvlvView::promptbacksearch ()
       {
+        prostr = "";
         gtk_entry_set_text (GTK_ENTRY (statusbar), "?");
         cmd_mode = BACKSEARCH;
         cmd_show ();
@@ -208,12 +207,13 @@ namespace apvlv
   void 
     ApvlvView::promptcommand ()
       {
+        prostr = "";
         gtk_entry_set_text (GTK_ENTRY (statusbar), ":");
         cmd_mode = COMMANDMODE;
         cmd_show ();
       }
 
-  void 
+  void
     ApvlvView::cmd_show ()
       {
         if (mainwindow == NULL)
@@ -264,33 +264,133 @@ namespace apvlv
           }
       }
 
-  void
-    ApvlvView::dowindow (const char *s)
+  returnType 
+    ApvlvView::process (int ct, guint key, guint st)
       {
-        m_rootWindow->currentWindow ()->runcommand (1, s, 0);
-        status_show ();
-      }
+        guint procmd = pro_cmd;
+        if (pro_cmd != 0)
+          {
+            pro_cmd = 0;
+            switch (procmd)
+              {
+              case 'w':
+                return currentWindow ()->process (ct, key, st);
+                break;
 
-  void
-    ApvlvView::parse_cmd (GdkEventKey * gek)
-      {
-        if (gek->keyval == GDK_Page_Up)
-          {
-            prepage ();
+              case 'm':
+                markposition (key);
+                return MATCH;
+                break;
+
+              case '\'':
+                jump (key);
+                return MATCH;
+                break;
+
+              case 'z':
+                if (key == 'i')
+                  zoomin ();
+                else if (key == 'o')
+                  zoomout ();
+                return MATCH;
+                break;
+
+              default:
+                break;
+              }
+
+            return MATCH;
           }
-        else if (gek->keyval == GDK_Page_Down)
+
+        if (st == GDK_CONTROL_MASK)
           {
-            nextpage ();
+            switch (key)
+              {
+              case 'f':
+                nextpage (ct);
+                break;
+              case 'b':
+                prepage (ct);
+                break;
+              case 'd':
+                halfnextpage (ct);
+                break;
+              case 'u':
+                halfprepage (ct);
+                break;
+              case 'p':
+                scrollup (ct);
+                break;
+              case 'n':
+                scrolldown (ct);
+                break;
+              case 'w':
+                pro_cmd = 'w';
+                return NEED_MORE;
+                break;
+              default:
+                break;
+              }
           }
-        else if (gek->state == GDK_CONTROL_MASK)
+        else if (!st)
           {
-            gCmds->push ("C-");
-            gCmds->push (gek->keyval);
+            switch (key)
+              {
+              case ':':
+                promptcommand ();
+                return NEED_MORE;
+              case '/':
+                promptsearch ();
+                return NEED_MORE;
+              case '?':
+                promptbacksearch ();
+                return NEED_MORE;
+              case 'k':
+                scrollup (ct);
+                break;
+              case 'j':
+                scrolldown (ct);
+                break;
+              case 'h':
+                scrollleft (ct);
+                break;
+              case 'l':
+                scrollright (ct);
+                break;
+              case 'R':
+                reload ();
+                break;
+              case 'o':
+                open ();
+                break;
+              case 'g':
+                showpage (ct);
+                break;
+              case 'm':
+                pro_cmd = 'm';
+                return NEED_MORE;
+                break;
+              case '\'':
+                pro_cmd = '\'';
+                return NEED_MORE;
+                break;
+              case 'q':
+                quit ();
+                break;
+              case 'f':
+                fullscreen ();
+                break;
+              case 'z':
+                pro_cmd = 'z';
+                return NEED_MORE;
+                break;
+              default:
+                return NO_MATCH;
+                break;
+              }
           }
-        else
-          {
-            gCmds->push (gek->string);
-          }
+
+        return MATCH;
       }
 
   void
@@ -307,6 +407,7 @@ namespace apvlv
             break;
 
           case COMMANDMODE:
+            debug ("run: [%s]", str);
             runcmd (str);
             break;
 
@@ -384,7 +485,7 @@ namespace apvlv
               }
             else if (cmd == "q" || cmd == "quit")
               {
-                ApvlvWindow *nwin = currentWindow ()->getneighbor ("C-w");
+                ApvlvWindow *nwin = currentWindow ()->getneighbor (1, 'w', GDK_CONTROL_MASK);
                 if (nwin == NULL)
                   {
                     quit ();
@@ -405,7 +506,7 @@ namespace apvlv
                                       ApvlvView * view)
       {
         gtk_window_get_size (GTK_WINDOW (wid), &view->width, &view->height);
-        view->currentWindow ()->setsize (view->width, view->height - 20);
+        view->m_rootWindow->setsize (view->width, view->height - 20);
         gtk_widget_set_usize (view->statusbar, view->width, 20);
       }
 
@@ -415,32 +516,39 @@ namespace apvlv
         ApvlvView *view =
           (ApvlvView *) g_object_get_data (G_OBJECT (wid), "view");
 
-        if (view->cmd_has == FALSE)
+#ifndef DEBUG
+        GdkEventKey *gek = (GdkEventKey *) ev;
+        debug ("ev: type=%d", gek->type);
+        debug ("ev: send_event=%d", gek->send_event);
+        debug ("ev: state=%d", gek->state);
+        debug ("ev: keyval=%d", gek->keyval);
+        debug ("ev: hardware_keycode=%d", gek->hardware_keycode);
+        debug ("ev: length=%d", gek->length);
+        debug ("ev: string=%s", gek->string);
+#endif
+
+        if (view->cmd_has == false)
           {
-            view->parse_cmd ((GdkEventKey *) ev);
-            if (view->cmd_has == false)
-              {
-                view->status_show ();
-              }
+            gCmds->append ((GdkEventKey *) ev);
             return TRUE;
           }
 
         return FALSE;
       }
 
-  gint 
+  gint
     ApvlvView::apvlv_view_statusbar_cb (GtkWidget * wid, GdkEvent * ev)
       {
         ApvlvView *view = (ApvlvView *) g_object_get_data (G_OBJECT (wid), "view");
 
-        if (view->cmd_has == TRUE && ev->type == GDK_KEY_PRESS)
+        if (view->cmd_has == TRUE)
           {
             GdkEventKey *gek = (GdkEventKey *) ev;
             if (gek->keyval == GDK_Return)
               {
                 gchar *str =
                   (gchar *) gtk_entry_get_text (GTK_ENTRY (view->statusbar));
-                if (str)
+                if (str && strlen (str) > 0)
                   {
                     view->run (str + 1);
                   }

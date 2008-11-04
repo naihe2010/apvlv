@@ -65,8 +65,6 @@ namespace apvlv
 
       void runcommand (int times, const char *, int argu);
 
-      ApvlvWindow *getneighbor (const char *s);
-
       GtkWidget *widget () { return m_Doc->widget (); }
 
       ApvlvDoc *loadDoc (const char *filename);
@@ -81,6 +79,10 @@ namespace apvlv
 
       void smaller (int times = 1);
       void bigger (int times = 1);
+
+      ApvlvWindow *getneighbor (int count, guint key, guint state);
+
+      returnType process (int times, guint keyval, guint state);
 
       static void setcurrentWindow (ApvlvWindow *win) { m_curWindow = win; }
       static ApvlvWindow *currentWindow () { return m_curWindow; }
@@ -97,6 +99,8 @@ namespace apvlv
       static ApvlvWindow *m_curWindow;
 
       ApvlvDoc *m_Doc;
+
+      GtkPaned *m_paned;
 
       int m_width, m_height;
     };
