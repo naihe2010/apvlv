@@ -91,8 +91,6 @@ namespace apvlv
 
     guint cmd;
 
-    guint cmdstate;
-
     map <guint, const char *> KS;
 
     /*

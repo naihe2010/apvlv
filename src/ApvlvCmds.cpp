@@ -64,8 +64,8 @@ namespace apvlv
               if (p != string::npos)
                 {
                   string ss2 (ss.c_str (), p + 1);
-                  bool r = translate (ss2, &gk);
-                  if (r == true)
+                  int r = translate (ss2, &gk);
+                  if (r > 0)
                     {
                       ss.erase (0, p + 1);
                       goto deft;
@@ -226,7 +226,8 @@ deft:
         map <guint, const char *>::iterator it;
         for (it = KS.begin (); it != KS.end (); ++ it)
           {
-            if (it->second = s.c_str ())
+            if (it->second == NULL) continue;
+            if (strcmp (it->second, s.c_str ()) == 0)
               {
                 gev->state = 0;
                 gev->keyval = it->first;
@@ -240,54 +241,62 @@ deft:
   bool
     ApvlvCmds::run ()
       {
-        if (timeouttimer > 0) 
+        bool bret = false;
+        while (! queue.empty ())
           {
-            gtk_timeout_remove (timeouttimer); 
-            timeouttimer = -1;
+            if (timeouttimer > 0) 
+              {
+                gtk_timeout_remove (timeouttimer); 
+                timeouttimer = -1;
+              }
+
+            bool ret;
+
+            switch (state)
+              {
+              case CMD_OK:
+                hasop = false;
+                count = 1;
+              case GETTING_COUNT:
+                ret = getcount ();
+                if (ret == false)
+                  {
+                    timeouttimer = gtk_timeout_add (3000, apvlv_cmds_timeout_cb, this);
+                    return false;
+                  }
+              case GETTING_CMD:
+                ret = getcmd ();
+                if (ret)
+                  {
+                    returnType type = gView->process (count, cmd);
+                    if (type == MATCH)
+                      {
+                        state = CMD_OK;
+                        bret = true;
+                      }
+                    else if (type == NO_MATCH)
+                      {
+                        state = CMD_OK;
+                        bret = false;
+                      }
+                    else if (type == NEED_MORE)
+                      {
+                        timeouttimer = gtk_timeout_add (3000, apvlv_cmds_timeout_cb, this);
+                        state = GETTING_CMD;
+                        bret = false;
+                      }
+                  }
+                else
+                  {
+                    return false;
+                  }
+                break;
+              default:
+                break;
+              }
           }
 
-        bool ret;
-        switch (state)
-          {
-          case CMD_OK:
-            hasop = false;
-            count = 1;
-          case GETTING_COUNT:
-            ret = getcount ();
-            if (ret)
-              {
-                return run ();
-              }
-            return false;
-            break;
-          case GETTING_CMD:
-            ret = getcmd ();
-            if (ret)
-              {
-                returnType type = gView->process (count, gdk_keyval_to_unicode (cmd), cmdstate);
-                if (type == MATCH)
-                  {
-                    state = CMD_OK;
-                    return true;
-                  }
-                else if (type == NO_MATCH)
-                  {
-                    state = CMD_OK;
-                  }
-                else if (type == NEED_MORE)
-                  {
-                    state = GETTING_CMD;
-                  }
-                else if (type == GET_ALL)
-                  {
-                    getall = true;
-                  }
-              }
-            return false;
-            break;
-          default:
-            break;
-          }
+        return bret;
       }
 
   bool
@@ -331,7 +340,10 @@ deft:
         istringstream is (queue);
         is >> count;
 
-        if (hasop) count = 0 - count;
+        if (hasop) 
+          {
+            count = 0 - count;
+          }
 
         while (isdigit (queue[0]))
           {
@@ -352,9 +364,13 @@ deft:
         if (ret == MATCH)
           {
             sendmapkey (mapcmd);
-            if (queue.empty ()) return false;
           }
         else if (ret == NEED_MORE)
+          {
+            return false;
+          }
+
+        if (queue.empty ()) 
           {
             return false;
           }
@@ -367,22 +383,24 @@ deft:
                 string ss (queue.c_str (), p + 1);
                 GdkEventKey gk;
                 bool r = translate (ss, &gk);
-                if (r == true)
+                if (r)
                   {
                     cmd = gk.keyval;
-                    cmdstate = gk.state;
+                    if (gk.state == GDK_CONTROL_MASK)
+                      {
+                        cmd = CTRL (cmd);
+                      }
                     queue.erase (0, p + 1);
                     return true;
                   }
               }
           }
-
-        if (queue.empty ()) return false;
-
-        cmd = gdk_unicode_to_keyval (queue[0]);
-        cmdstate = 0;
-        queue.erase (0, 1);
-        return true;
+        else
+          {
+            cmd = queue[0];
+            queue.erase (0, 1);
+            return true;
+          }
       }
 
   returnType 
@@ -420,6 +438,7 @@ deft:
       {
         ApvlvCmds *cmds = (ApvlvCmds *) data;
         cmds->queue = "";
+        cmds->state = CMD_OK;
         return FALSE;
       }
 }

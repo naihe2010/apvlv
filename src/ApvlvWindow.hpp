@@ -80,9 +80,9 @@ namespace apvlv
       void smaller (int times = 1);
       void bigger (int times = 1);
 
-      ApvlvWindow *getneighbor (int count, guint key, guint state);
+      ApvlvWindow *getneighbor (int count, guint key);
 
-      returnType process (int times, guint keyval, guint state);
+      returnType process (int times, guint keyval);
 
       static void setcurrentWindow (ApvlvWindow *win) { m_curWindow = win; }
       static ApvlvWindow *currentWindow () { return m_curWindow; }

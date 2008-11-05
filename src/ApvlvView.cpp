@@ -191,7 +191,6 @@ namespace apvlv
   void 
     ApvlvView::promptsearch ()
       {
-        prostr = "";
         gtk_entry_set_text (GTK_ENTRY (statusbar), "/");
         cmd_mode = SEARCH;
         cmd_show ();
@@ -200,7 +199,6 @@ namespace apvlv
   void 
     ApvlvView::promptbacksearch ()
       {
-        prostr = "";
         gtk_entry_set_text (GTK_ENTRY (statusbar), "?");
         cmd_mode = BACKSEARCH;
         cmd_show ();
@@ -209,7 +207,6 @@ namespace apvlv
   void 
     ApvlvView::promptcommand ()
       {
-        prostr = "";
         gtk_entry_set_text (GTK_ENTRY (statusbar), ":");
         cmd_mode = COMMANDMODE;
         cmd_show ();
@@ -267,165 +264,156 @@ namespace apvlv
       }
 
   returnType 
-    ApvlvView::subprocess (int ct, guint key, guint st)
+    ApvlvView::subprocess (int ct, guint key)
       {
         guint procmd = pro_cmd;
-        if (pro_cmd != 0)
+        pro_cmd = 0;
+        switch (procmd)
           {
-            pro_cmd = 0;
-            switch (procmd)
+          case CTRL ('w'):
+            if (key == 'q'
+                || key == CTRL ('Q')
+            )
               {
-              case 'w':
-                if (key == 'q'
-                    || key == 'Q' && st == GDK_CONTROL_MASK
-                )
+                ApvlvWindow *nwin = currentWindow ()->getneighbor (1, CTRL ('w'));
+                if (nwin == NULL)
                   {
-                    ApvlvWindow *nwin = currentWindow ()->getneighbor (1, 'w', GDK_CONTROL_MASK);
-                    if (nwin == NULL)
-                      {
-                        quit ();
-                      }
-                    else
-                      {
-                        delete currentWindow ();
-                      }
+                    quit ();
                   }
                 else
                   {
-                    return currentWindow ()->process (ct, key, st);
+                    delete currentWindow ();
                   }
-                break;
-
-              case 'm':
-                crtadoc ()->markposition (key);
-                return MATCH;
-                break;
-
-              case '\'':
-                crtadoc ()->jump (key);
-                return MATCH;
-                break;
-
-              case 'z':
-                if (key == 'i')
-                  crtadoc ()->zoomin ();
-                else if (key == 'o')
-                  crtadoc ()->zoomout ();
-                return MATCH;
-                break;
-
-              default:
-                break;
               }
+            else
+              {
+                return currentWindow ()->process (ct, key);
+              }
+            break;
 
-            return MATCH;
+          case 'm':
+            crtadoc ()->markposition (key);
+            break;
+
+          case '\'':
+            crtadoc ()->jump (key);
+            break;
+
+          case 'z':
+            if (key == 'i')
+              crtadoc ()->zoomin ();
+            else if (key == 'o')
+              crtadoc ()->zoomout ();
+            break;
+
+          default:
+            return NO_MATCH;
+            break;
           }
+
+        return MATCH;
       }
 
   returnType 
-    ApvlvView::process (int ct, guint key, guint st)
+    ApvlvView::process (int ct, guint key)
       {
         if (pro_cmd != 0)
           {
-            return subprocess (ct, key, st);
+            return subprocess (ct, key);
           }
 
-        if (st == GDK_CONTROL_MASK)
+        switch (key)
           {
-            switch (key)
-              {
-              case 'f':
-                crtadoc ()->nextpage (ct);
-                break;
-              case 'b':
-                crtadoc ()->prepage (ct);
-                break;
-              case 'd':
-                crtadoc ()->halfnextpage (ct);
-                break;
-              case 'u':
-                crtadoc ()->halfprepage (ct);
-                break;
-              case 'p':
-                crtadoc ()->scrollup (ct);
-                break;
-              case 'n':
-                crtadoc ()->scrolldown (ct);
-                break;
-              case 'w':
-                pro_cmd = 'w';
-                return NEED_MORE;
-                break;
-              default:
-                break;
-              }
-          }
-        else if (!st)
-          {
-            switch (key)
-              {
-              case ':':
-                promptcommand ();
-                return NEED_MORE;
-              case '/':
-                promptsearch ();
-                return NEED_MORE;
-              case '?':
-                promptbacksearch ();
-                return NEED_MORE;
-              case 'H':
-                crtadoc ()->scrollto (0.0);
-                break;
-              case 'M':
-                crtadoc ()->scrollto (0.5);
-                break;
-              case 'L':
-                crtadoc ()->scrollto (1.0);
-                break;
-              case 'k':
-                crtadoc ()->scrollup (ct);
-                break;
-              case 'j':
-                crtadoc ()->scrolldown (ct);
-                break;
-              case 'h':
-                crtadoc ()->scrollleft (ct);
-                break;
-              case 'l':
-                crtadoc ()->scrollright (ct);
-                break;
-              case 'R':
-                crtadoc ()->reload ();
-                break;
-              case 'o':
-                open ();
-                break;
-              case 'g':
-                crtadoc ()->markposition ('\'');
-                crtadoc ()->showpage (ct - 1);
-                break;
-              case 'm':
-                pro_cmd = 'm';
-                return NEED_MORE;
-                break;
-              case '\'':
-                pro_cmd = '\'';
-                return NEED_MORE;
-                break;
-              case 'q':
-                quit ();
-                break;
-              case 'f':
-                fullscreen ();
-                break;
-              case 'z':
-                pro_cmd = 'z';
-                return NEED_MORE;
-                break;
-              default:
-                return NO_MATCH;
-                break;
-              }
+          case GDK_Page_Down:
+          case CTRL ('f'):
+            crtadoc ()->nextpage (ct);
+            break;
+          case GDK_Page_Up:
+          case CTRL ('b'):
+            crtadoc ()->prepage (ct);
+            break;
+          case CTRL ('d'):
+            crtadoc ()->halfnextpage (ct);
+            break;
+          case CTRL ('u'):
+            crtadoc ()->halfprepage (ct);
+            break;
+          case CTRL ('w'):
+            pro_cmd = CTRL ('w');
+            return NEED_MORE;
+            break;
+          case ':':
+            promptcommand ();
+            return NEED_MORE;
+          case '/':
+            promptsearch ();
+            return NEED_MORE;
+          case '?':
+            promptbacksearch ();
+            return NEED_MORE;
+          case 'H':
+            crtadoc ()->scrollto (0.0);
+            break;
+          case 'M':
+            crtadoc ()->scrollto (0.5);
+            break;
+          case 'L':
+            crtadoc ()->scrollto (1.0);
+            break;
+          case CTRL ('p'):
+          case GDK_Up:
+          case 'k':
+            crtadoc ()->scrollup (ct);
+            break;
+          case CTRL ('n'):
+          case CTRL ('j'):
+          case GDK_Down:
+          case 'j':
+            crtadoc ()->scrolldown (ct);
+            break;
+          case GDK_BackSpace:
+          case GDK_Left:
+          case CTRL ('h'):
+          case 'h':
+            crtadoc ()->scrollleft (ct);
+            break;
+          case GDK_space:
+          case GDK_Right:
+          case CTRL ('l'):
+          case 'l':
+            crtadoc ()->scrollright (ct);
+            break;
+          case 'R':
+            crtadoc ()->reload ();
+            break;
+          case 'o':
+            open ();
+            break;
+          case 'g':
+            crtadoc ()->markposition ('\'');
+            crtadoc ()->showpage (ct - 1);
+            break;
+          case 'm':
+            pro_cmd = 'm';
+            return NEED_MORE;
+            break;
+          case '\'':
+            pro_cmd = '\'';
+            return NEED_MORE;
+            break;
+          case 'q':
+            quit ();
+            break;
+          case 'f':
+            fullscreen ();
+            break;
+          case 'z':
+            pro_cmd = 'z';
+            return NEED_MORE;
+            break;
+          default:
+            return NO_MATCH;
+            break;
           }
 
         return MATCH;
@@ -491,10 +479,16 @@ namespace apvlv
               }
             else if (cmd == "forwardpage" || cmd == "fp")
               {
+                if (subcmd == "")
+                crtadoc ()->nextpage (1);
+                else
                 crtadoc ()->nextpage (atoi (subcmd.c_str ()));
               }
-            else if (cmd == "prewardpage" || cmd == "pp")
+            else if (cmd == "prewardpage" || cmd == "bp")
               {
+                if (subcmd == "")
+                crtadoc ()->prepage (1);
+                else
                 crtadoc ()->prepage (atoi (subcmd.c_str ()));
               }
             else if (cmd == "goto" || cmd == "g")
@@ -518,13 +512,13 @@ namespace apvlv
                      && subcmd == "setting")
               {
                 crtadoc ()->loadfile (helppdf);
-                crtadoc ()->showpage (6);
+                crtadoc ()->showpage (7);
               }
             else if ((cmd == "help" || cmd == "h")
                      && subcmd == "prompt")
               {
                 crtadoc ()->loadfile (helppdf);
-                crtadoc ()->showpage (7);
+                crtadoc ()->showpage (8);
               }
             else if (cmd == "help" || cmd == "h")
               {
@@ -532,7 +526,7 @@ namespace apvlv
               }
             else if (cmd == "q" || cmd == "quit")
               {
-                ApvlvWindow *nwin = currentWindow ()->getneighbor (1, 'w', GDK_CONTROL_MASK);
+                ApvlvWindow *nwin = currentWindow ()->getneighbor (1, CTRL ('w'));
                 if (nwin == NULL)
                   {
                     quit ();

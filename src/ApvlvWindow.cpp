@@ -110,70 +110,54 @@ namespace apvlv
     }
 
   returnType
-    ApvlvWindow::process (int ct, guint key, guint state)
+    ApvlvWindow::process (int ct, guint key)
       {
         ApvlvWindow *nwin;
-        if (state == GDK_CONTROL_MASK)
+
+        switch (key)
           {
-          }
-        else if (state == 0)
-          {
-            switch (key)
+          case CTRL ('w'):
+          case 'k':
+          case 'j':
+          case 'h':
+          case 'l':
+            nwin = getneighbor (ct, key);
+            if (nwin != NULL)
               {
-              case 'k':
-              case 'j':
-              case 'h':
-              case 'l':
-                nwin = getneighbor (ct, key, state);
-                if (nwin != NULL)
-                  {
-                    setcurrentWindow (nwin);
-                  }
-                break;
-
-              case '-':
-                smaller (ct);
-                break;
-
-              case '+':
-                bigger (ct);
-                break;
-
-              default:
-                break;
+                setcurrentWindow (nwin);
               }
+            break;
+
+          case '-':
+            smaller (ct);
+            break;
+
+          case '+':
+            bigger (ct);
+            break;
+
+          default:
+            break;
           }
       }
 
   ApvlvWindow *
-    ApvlvWindow::getneighbor (int ct, guint key, guint state)
+    ApvlvWindow::getneighbor (int ct, guint key)
       {
-        if (state == GDK_CONTROL_MASK)
+        switch (key)
           {
-            switch (key)
-              {
-              case 'w':
-                return getnext (ct);
-                break;
-              default:
-                break;
-              }
-          }
-        else if (state == 0)
-          {
-            switch (key)
-              {
-              case 'k':
-                return getkj (1, false);
-              case 'j':
-                return getkj (1, true);
-              case 'h':
-                return gethl (1, false);
-              case 'l':
-                return gethl (1, true);
-              default:
-                break;
-              }
+          case CTRL ('w'):
+            return getnext (ct);
+          case 'k':
+            return getkj (1, false);
+          case 'j':
+            return getkj (1, true);
+          case 'h':
+            return gethl (1, false);
+          case 'l':
+            return gethl (1, true);
+          default:
+            break;
           }
 
         return NULL;

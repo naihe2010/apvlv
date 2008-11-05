@@ -84,25 +84,25 @@ reload the file which was be read.
 
 [count] page show
 
-\item C-f
+\item $<$PageDown$>$
+
+\item $<$C-f$>$
 
 [count] forward page 
 
-\item C-b
+\item $<$PageUp$>$
+
+\item $<$C-b$>$
 
 [count] preward page 
 
-\item C-d
+\item $<$C-d$>$
 
 [count] half forward page 
 
-\item C-u
+\item $<$C-u$>$
 
 [count] half previous page 
-
-\item k
-
-[count] page scroll up
 
 \item H
 
@@ -116,13 +116,35 @@ scroll to middle
 
 scroll to last
 
+\item $<$C-p$>$
+
+\item $<$Up$>$
+
+\item k
+
+[count] page scroll up
+
+\item $<$C-n$>$
+
+\item $<$Down$>$
+
+\item $<$C-j$>$
+
 \item j
 
 [count] page scroll down
 
+\item $<$BackSpace$>$
+
+\item $<$Left$>$
+
 \item h
 
 [count] page scroll left
+
+\item $<$Space$>$
+
+\item $<$C-l$>$
 
 \item l
 
@@ -192,10 +214,10 @@ make the current window bigger.
 And, all of the commands can be map to other keys.
 
 For examble, if you put 
-'map C-n o'
+'map $<$C-n$>$ o'
 in your .apvlvrc.
 
-Then, you type 'Ctrl-n' will run the 'o' command, that is, show a file chooser dialog to select a PDF file to open.
+Then, you type $<$Ctrl-n$>$ will run the 'o' command, that is, show a file chooser dialog to select a PDF file to open.
 
 Becareful, You Should not map a command to itself.
 
@@ -296,7 +318,7 @@ split the current window into two horizon windows.
 
 go forward some pages.
 
-\item :pp
+\item :bp
 
 \item :prewardpage
 

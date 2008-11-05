@@ -97,6 +97,7 @@ namespace apvlv
         snprintf (rate, sizeof rate, "%f", zoomrate);
         ApvlvDoc *ndoc = new ApvlvDoc (rate);
         ndoc->loadfile (filestr, false);
+        ndoc->showpage (pagenum, scrollrate ());
         return ndoc;
       }
 

@@ -80,9 +80,9 @@ namespace apvlv
 
     void fullscreen ();
 
-    returnType process (int times, guint keyval, guint state);
+    returnType process (int times, guint keyval);
    
-    returnType subprocess (int times, guint keyval, guint state);
+    returnType subprocess (int times, guint keyval);
    
     void cmd_show ();
 
@@ -106,11 +106,7 @@ namespace apvlv
 
     gboolean cmd_has;
 
-    string prostr;
-
-    int pro_count;
     guint pro_cmd;
-    guint pro_state;
 
     GtkWidget *statusbar;
     GtkWidget *mainwindow;
