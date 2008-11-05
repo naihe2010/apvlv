@@ -506,19 +506,25 @@ namespace apvlv
                      && subcmd == "info")
               {
                 loadfile (helppdf);
-                crtadoc ()->showpage (2);
+                crtadoc ()->showpage (1);
               }
             else if ((cmd == "help" || cmd == "h")
                      && subcmd == "command")
               {
                 loadfile (helppdf);
-                crtadoc ()->showpage (4);
+                crtadoc ()->showpage (3);
               }
             else if ((cmd == "help" || cmd == "h")
                      && subcmd == "setting")
               {
                 crtadoc ()->loadfile (helppdf);
                 crtadoc ()->showpage (6);
+              }
+            else if ((cmd == "help" || cmd == "h")
+                     && subcmd == "prompt")
+              {
+                crtadoc ()->loadfile (helppdf);
+                crtadoc ()->showpage (7);
               }
             else if (cmd == "help" || cmd == "h")
               {
