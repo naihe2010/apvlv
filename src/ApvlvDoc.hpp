@@ -46,6 +46,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <list>
 
 using namespace std;
 
@@ -55,6 +56,15 @@ namespace apvlv
     {
       int pagenum;
       double scrollrate;
+    };
+
+  struct ApvlvDocCache
+    {
+      int pagenum;
+      PopplerPage *page;
+      guchar *data;
+      GdkPixbuf *buf;
+      ApvlvDocCache *prev, *next;
     };
 
   class ApvlvDoc
@@ -119,6 +129,7 @@ namespace apvlv
     returnType process (int times, guint keyval, guint state);
    
   private:
+    int convertindex (int p);
     PopplerPage *getpage (int p);
     void markselection ();
     bool needsearch (const char *str);
@@ -143,9 +154,20 @@ namespace apvlv
     GList *results;
     string searchstr;
 
+#ifdef HAVE_PTHREAD
+    pthread_t tid;
+    pthread_mutex_t mutex;
+    static void *prepare_func (ApvlvDoc *);
+#endif
+    ApvlvDocCache *newcache (int p);
+    void deletecache (ApvlvDocCache *ac);
+    void insertcache (ApvlvDocCache *prev, ApvlvDocCache *next, ApvlvDocCache *n);
+    void removecache (ApvlvDocCache *c);
+    void clearcache ();
+    unsigned int mCacheBrother;
+    ApvlvDocCache *mCurrentCache;
+
     PopplerPage *page;
-    guchar *pagedata;
-    GdkPixbuf *pixbuf;
     int pagenum;
     double vrate, hrate;
     double pagex, pagey;
@@ -163,8 +185,6 @@ namespace apvlv
     int width, height;
     GtkAdjustment *vaj, *haj;
 
-    // vbox and hbox for multiple windows
-    // vbox will be the main widget
     GtkWidget *scrollwin, *image;
     };
 }

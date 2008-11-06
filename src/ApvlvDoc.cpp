@@ -37,6 +37,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef HAVE_PTHREAD
+#include <pthread.h>
+#endif
+
 #include <gtk/gtk.h>
 #include <glib/poppler.h>
 
@@ -48,10 +52,14 @@ namespace apvlv
 {
   ApvlvDoc::ApvlvDoc (const char *zm)
     {
+      mCurrentCache = NULL;
+      mCacheBrother = 2;
+#ifdef HAVE_PTHREAD
+      pthread_mutex_init (&mutex, NULL);
+#endif
+
       doc = NULL;
 
-      pagedata = NULL;
-      pixbuf = NULL;
       page = NULL;
 
       results = NULL;
@@ -185,6 +193,7 @@ namespace apvlv
 
         if (doc != NULL)
           {
+            clearcache ();
             zoominit = false;
             lines = 50;
             chars = 80;
@@ -240,20 +249,29 @@ namespace apvlv
   PopplerPage *
     ApvlvDoc::getpage (int p)
       {
+        int rp = convertindex (p);
+        if (rp < 0)
+          return NULL;
+
+        return poppler_document_get_page (doc, rp);
+      }
+
+  int
+    ApvlvDoc::convertindex (int p)
+      {
         if (doc != NULL)
           {
             int c = poppler_document_get_n_pages (doc);
             if (0 <= p && p < c)
               {
-                return poppler_document_get_page (doc, p);
+                return p;
               }
             else if (p < 0)
               {
-                return poppler_document_get_page (doc, c + p);
+                return c + p;
               }
           }
-
-        return NULL;
+        return -1;
       }
 
   void
@@ -282,6 +300,42 @@ namespace apvlv
   void 
     ApvlvDoc::showpage (int p, double s)
       {
+        int rp = convertindex (p);
+        if (rp < 0) 
+          return;
+
+#ifdef HAVE_PTHREAD
+        pthread_mutex_lock (&mutex);
+        bool hasCache = false;
+        if (mCurrentCache != NULL)
+          {
+            int nd = rp - pagenum;
+            if (0 <= nd && nd <= mCacheBrother)
+              {
+                for (int i=0; i<nd; ++i) 
+                  mCurrentCache = mCurrentCache->next;
+                hasCache = true;
+              }
+            else if (nd < 0 && nd > (0 - mCacheBrother))
+              {
+                for (int i=0; i<0-nd; ++i) 
+                  mCurrentCache = mCurrentCache->prev;
+                hasCache = true;
+              }
+          }
+
+        if (hasCache)
+          {
+            pagenum = rp;
+            gtk_image_set_from_pixbuf (GTK_IMAGE (image), mCurrentCache->buf);
+            pthread_mutex_unlock (&mutex);      /* Dangerous !!! */
+            scrollto (s);
+            pthread_create (&tid, NULL, (void *(*) (void *)) prepare_func, this);
+            return;
+          }
+        pthread_mutex_unlock (&mutex);
+#endif
+
         page = getpage (p);
         if (page != NULL)
           {
@@ -309,12 +363,154 @@ namespace apvlv
                 zoominit = true;
               }
 
+            pagenum = poppler_page_get_index (page);
+
             refresh ();
 
             scrollto (s);
-
-            pagenum = poppler_page_get_index (page);
           }
+      }
+
+#ifdef HAVE_PTHREAD
+  void *
+    ApvlvDoc::prepare_func (ApvlvDoc *adoc)
+      {
+        if (adoc->doc == NULL)
+          return NULL;
+
+        ApvlvDocCache *ac, *ac2;
+        int i;
+
+        pthread_mutex_lock (&adoc->mutex);
+        for (ac = adoc->mCurrentCache, i=0; i<adoc->mCacheBrother; ++i)
+          {
+            ac2 = ac->prev;
+            if (ac2 == NULL)
+              {
+                ac2 = adoc->newcache (adoc->pagenum - i - 1);
+                if (ac2 == NULL) break;
+                adoc->insertcache (NULL, ac, ac2);
+              }
+            ac = ac2;
+          }
+
+        while ((ac2 = ac->prev) != NULL)
+          {
+            adoc->removecache (ac2);
+            adoc->deletecache (ac2);
+          }
+
+        for (ac = adoc->mCurrentCache, i=0; i<adoc->mCacheBrother; ++i)
+          {
+            ac2 = ac->next;
+            if (ac2 == NULL)
+              {
+                ac2 = adoc->newcache (adoc->pagenum + i + 1);
+                if (ac2 == NULL) break;
+                adoc->insertcache (ac, NULL, ac2);
+              }
+            ac = ac2;
+          }
+
+        while ((ac2 = ac->next) != NULL)
+          {
+            adoc->removecache (ac2);
+            adoc->deletecache (ac2);
+          }
+        pthread_mutex_unlock (&adoc->mutex);
+      }
+#endif
+
+  ApvlvDocCache *
+    ApvlvDoc::newcache (int pn)
+      {
+        PopplerPage *tpage;
+        double tpagex, tpagey;
+
+        tpage = getpage (pn);
+        if (tpage == NULL)
+          {
+            debug ("no this page");
+            return NULL;
+          }
+        debug ("get page: %d:(%p)", pn, tpage);
+
+        poppler_page_get_size (tpage, &tpagex, &tpagey);
+
+        int ix = (int) (tpagex * zoomrate), iy = (int) (tpagey * zoomrate);
+
+        ApvlvDocCache *ac = new ApvlvDocCache;
+        ac->prev = ac->next = NULL;
+        ac->pagenum = pn;
+        ac->page = tpage;
+        ac->data = (guchar *) new char[ix * iy * 3];
+        ac->buf = gdk_pixbuf_new_from_data (ac->data, GDK_COLORSPACE_RGB,
+                                    FALSE,
+                                    8,
+                                    ix, iy,
+                                    3 * ix,
+                                    NULL, NULL);
+
+        poppler_page_render_to_pixbuf (tpage, 0, 0, ix, iy, zoomrate, 0, ac->buf);
+
+        return ac;
+      }
+
+  void
+    ApvlvDoc::deletecache (ApvlvDocCache *ac)
+      {
+        debug ("delete page: %d:(%p)", ac->pagenum, ac->page);
+        delete ac->data;
+        g_object_unref (ac->buf);
+      }
+
+  void
+    ApvlvDoc::insertcache (ApvlvDocCache *prev, ApvlvDocCache *next, ApvlvDocCache *n)
+      {
+        if (prev != NULL)
+          {
+            n->next = prev->next;
+            prev->next = n;
+            n->prev = prev;
+          }
+        else if (next != NULL)
+          {
+            n->prev = next->prev;
+            next->prev = n;
+            n->next = next;
+          }
+      }
+
+  void
+    ApvlvDoc::removecache (ApvlvDocCache *c)
+      {
+        if (c->prev != NULL)
+          c->prev->next = c->next;
+
+        if (c->next != NULL)
+          c->next->prev = c->prev;
+      }
+
+  void
+    ApvlvDoc::clearcache ()
+      {
+        ApvlvDocCache *ac, *ac2;
+        if (mCurrentCache == NULL)
+          return;
+
+        for (ac = mCurrentCache->prev; ac != NULL; ac = ac2)
+          {
+            ac2 = ac->prev;
+            deletecache (ac);
+          }
+        for (ac = mCurrentCache->next; ac != NULL; ac = ac2)
+          {
+            ac2 = ac->next;
+            deletecache (ac);
+          }
+
+        deletecache (mCurrentCache);
+        mCurrentCache = NULL;
       }
 
   void 
@@ -323,30 +519,12 @@ namespace apvlv
         if (doc == NULL)
           return;
 
-        int ix = (int) (pagex * zoomrate), iy = (int) (pagey * zoomrate);
-
-        if (pagedata != NULL)
-          {
-            delete []pagedata;
-          }
-        pagedata = (guchar *) new char[ix * iy * 3];
-
-        if (pixbuf)
-          {
-            g_object_unref (G_OBJECT (pixbuf));
-            pixbuf = NULL;
-          }
-        pixbuf =
-          gdk_pixbuf_new_from_data (pagedata, GDK_COLORSPACE_RGB,
-                                    FALSE,
-                                    8,
-                                    ix, iy,
-                                    3 * ix,
-                                    NULL, NULL);
-
-        poppler_page_render_to_pixbuf (page, 0, 0, ix, iy, zoomrate, 0, pixbuf);
-
-        gtk_image_set_from_pixbuf (GTK_IMAGE (image), pixbuf);
+        clearcache ();
+        mCurrentCache = newcache (pagenum);
+        gtk_image_set_from_pixbuf (GTK_IMAGE (image), mCurrentCache->buf);
+#ifdef HAVE_PTHREAD
+        pthread_create (&tid, NULL, (void *(*) (void *)) prepare_func, this);
+#endif
       }
 
   void
@@ -521,6 +699,8 @@ namespace apvlv
             gtk_adjustment_set_value (haj, haj->lower);
           }
 
+        guchar *pagedata = mCurrentCache->data;
+        GdkPixbuf *pixbuf = mCurrentCache->buf;
         // change the back color of the selection
         for (gint y = y1; y < y2; y ++)
           {

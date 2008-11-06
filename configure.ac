@@ -38,6 +38,13 @@ if test x$apvlv_debug = xyes; then
             [Define if you want to enable apvlv debug features. ]) 
 fi
 
+AC_CHECK_HEADER([pthread.h],[
+                 AC_CHECK_LIB(pthread, [pthread_create],
+                              AC_DEFINE([HAVE_PTHREAD], 1, [Define to 1 if you have pthread]) 
+                              LIBS="-lpthread $LIBS"
+                              , AC_MSG_WARN(pthread library was not found))
+                 ], )
+
 PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.4.0, CPPFLAGS="$CPPFLAGS $GTK_CFLAGS"; LIBS="$LIBS $GTK_LIBS")
 PKG_CHECK_MODULES(POPPLER, poppler-glib >= 0.5.4, CPPFLAGS="$CPPFLAGS $POPPLER_CFLAGS"; LIBS="$LIBS $POPPLER_LIBS")
 

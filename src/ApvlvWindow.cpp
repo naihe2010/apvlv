@@ -42,6 +42,7 @@
 
 namespace apvlv
 {
+  int ApvlvWindow::times = 0;
   ApvlvWindow *ApvlvWindow::m_curWindow = NULL;
 
   ApvlvWindow::ApvlvWindow (ApvlvDoc *doc)
@@ -124,6 +125,7 @@ namespace apvlv
             nwin = getneighbor (ct, key);
             if (nwin != NULL)
               {
+                debug ("here");
                 setcurrentWindow (nwin);
               }
             break;

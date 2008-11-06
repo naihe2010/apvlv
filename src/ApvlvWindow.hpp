@@ -84,7 +84,7 @@ namespace apvlv
 
       returnType process (int times, guint keyval);
 
-      static void setcurrentWindow (ApvlvWindow *win) { m_curWindow = win; }
+      static void setcurrentWindow (ApvlvWindow *win) { m_curWindow = win; debug ("set %d times", times ++); }
       static ApvlvWindow *currentWindow () { return m_curWindow; }
 
       enum windowType { AW_SP, AW_VSP, AW_DOC } type;
@@ -96,6 +96,7 @@ namespace apvlv
       inline ApvlvWindow *getnext (int num);
 
       static ApvlvWindow *m_curWindow;
+      static int times;
 
       ApvlvDoc *m_Doc;
 
