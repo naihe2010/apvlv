@@ -55,7 +55,8 @@ namespace apvlv
       mCurrentCache = NULL;
       mCacheBrother = 2;
 #ifdef HAVE_PTHREAD
-      pthread_mutex_init (&mutex, NULL);
+      pthread_mutex_init (&mutexn, NULL);
+      pthread_mutex_init (&mutexp, NULL);
 #endif
 
       doc = NULL;
@@ -305,35 +306,41 @@ namespace apvlv
           return;
 
 #ifdef HAVE_PTHREAD
-        pthread_mutex_lock (&mutex);
+        ApvlvDocCache *ac = mCurrentCache;
         bool hasCache = false;
         if (mCurrentCache != NULL)
           {
             int nd = rp - pagenum;
             if (0 <= nd && nd <= mCacheBrother)
               {
-                for (int i=0; i<nd; ++i) 
-                  mCurrentCache = mCurrentCache->next;
-                hasCache = true;
+                pthread_mutex_lock (&mutexn);
+                for (int i=0; i<nd; ++i)
+                  ac = ac->next;
+                if (ac != NULL)
+                  hasCache = true;
+                pthread_mutex_unlock (&mutexn);
               }
             else if (nd < 0 && nd > (0 - mCacheBrother))
               {
-                for (int i=0; i<0-nd; ++i) 
-                  mCurrentCache = mCurrentCache->prev;
-                hasCache = true;
+                nd = 0 - nd;
+                pthread_mutex_lock (&mutexp);
+                for (int i=0; i<nd; ++i) 
+                  ac = ac->prev;
+                if (ac != NULL)
+                  hasCache = true;
+                pthread_mutex_unlock (&mutexp);
               }
           }
 
         if (hasCache)
           {
             pagenum = rp;
-            gtk_image_set_from_pixbuf (GTK_IMAGE (image), mCurrentCache->buf);
-            pthread_mutex_unlock (&mutex);      /* Dangerous !!! */
+            gtk_image_set_from_pixbuf (GTK_IMAGE (image), ac->buf);
             scrollto (s);
+            mCurrentCache = ac;
             pthread_create (&tid, NULL, (void *(*) (void *)) prepare_func, this);
             return;
           }
-        pthread_mutex_unlock (&mutex);
 #endif
 
         page = getpage (p);
@@ -379,45 +386,63 @@ namespace apvlv
           return NULL;
 
         ApvlvDocCache *ac, *ac2;
-        int i;
+        int i, ret;
 
-        pthread_mutex_lock (&adoc->mutex);
-        for (ac = adoc->mCurrentCache, i=0; i<adoc->mCacheBrother; ++i)
+        pthread_t t;
+        t = pthread_self ();
+        debug ("enter thread %d", t);
+
+        int pnum = adoc->pagenum;
+
+        ret = pthread_mutex_trylock (&adoc->mutexn);
+        if (ret == 0)
           {
-            ac2 = ac->prev;
-            if (ac2 == NULL)
+            for (ac = adoc->mCurrentCache, i=1; i<=adoc->mCacheBrother; ++i)
               {
-                ac2 = adoc->newcache (adoc->pagenum - i - 1);
-                if (ac2 == NULL) break;
-                adoc->insertcache (NULL, ac, ac2);
+                ac2 = ac->next;
+                if (ac2 == NULL)
+                  {
+                    ac2 = adoc->newcache (pnum + i);
+                    if (ac2 == NULL) break;
+                    adoc->insertcache (ac, NULL, ac2);
+                  }
+                ac = ac2;
               }
-            ac = ac2;
-          }
 
-        while ((ac2 = ac->prev) != NULL)
-          {
-            adoc->removecache (ac2);
-            adoc->deletecache (ac2);
-          }
-
-        for (ac = adoc->mCurrentCache, i=0; i<adoc->mCacheBrother; ++i)
-          {
-            ac2 = ac->next;
-            if (ac2 == NULL)
+            while ((ac2 = ac->next) != NULL)
               {
-                ac2 = adoc->newcache (adoc->pagenum + i + 1);
-                if (ac2 == NULL) break;
-                adoc->insertcache (ac, NULL, ac2);
+                adoc->removecache (ac2);
+                adoc->deletecache (ac2);
               }
-            ac = ac2;
+
+            pthread_mutex_unlock (&adoc->mutexn);
           }
 
-        while ((ac2 = ac->next) != NULL)
+        ret = pthread_mutex_lock (&adoc->mutexp);
+        if (ret == 0)
           {
-            adoc->removecache (ac2);
-            adoc->deletecache (ac2);
+            for (ac = adoc->mCurrentCache, i=1; i<=adoc->mCacheBrother; ++i)
+              {
+                ac2 = ac->prev;
+                if (ac2 == NULL)
+                  {
+                    ac2 = adoc->newcache (pnum - i);
+                    if (ac2 == NULL) break;
+                    adoc->insertcache (NULL, ac, ac2);
+                  }
+                ac = ac2;
+              }
+
+            while ((ac2 = ac->prev) != NULL)
+              {
+                adoc->removecache (ac2);
+                adoc->deletecache (ac2);
+              }
+
+            pthread_mutex_unlock (&adoc->mutexp);
           }
-        pthread_mutex_unlock (&adoc->mutex);
+
+        debug ("level thread %d", t);
       }
 #endif
 
@@ -498,16 +523,23 @@ namespace apvlv
         if (mCurrentCache == NULL)
           return;
 
-        for (ac = mCurrentCache->prev; ac != NULL; ac = ac2)
-          {
-            ac2 = ac->prev;
-            deletecache (ac);
-          }
+#ifdef HAVE_PTHREAD
+        pthread_mutex_lock (&mutexn);
         for (ac = mCurrentCache->next; ac != NULL; ac = ac2)
           {
             ac2 = ac->next;
             deletecache (ac);
           }
+        pthread_mutex_unlock (&mutexn);
+
+        pthread_mutex_lock (&mutexp);
+        for (ac = mCurrentCache->prev; ac != NULL; ac = ac2)
+          {
+            ac2 = ac->prev;
+            deletecache (ac);
+          }
+        pthread_mutex_unlock (&mutexp);
+#endif
 
         deletecache (mCurrentCache);
         mCurrentCache = NULL;

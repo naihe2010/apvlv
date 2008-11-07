@@ -156,7 +156,7 @@ namespace apvlv
 
 #ifdef HAVE_PTHREAD
     pthread_t tid;
-    pthread_mutex_t mutex;
+    pthread_mutex_t mutexn, mutexp;
     static void *prepare_func (ApvlvDoc *);
 #endif
     ApvlvDocCache *newcache (int p);
