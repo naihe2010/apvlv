@@ -263,9 +263,9 @@ namespace apvlv
         if (doc != NULL)
           {
             int c = poppler_document_get_n_pages (doc);
-            if (0 <= p && p < c)
+            if (p >= 0)
               {
-                return p;
+                return p % c;
               }
             else if (p < 0)
               {
