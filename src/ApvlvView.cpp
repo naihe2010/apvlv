@@ -107,11 +107,11 @@ namespace apvlv
       delete m_rootWindow;
 
       map <string, ApvlvDoc *>::iterator it;
-      for (it = m_Docs.begin (); it != m_Docs.end (); ++ it)
+      for (it = mDocs.begin (); it != mDocs.end (); ++ it)
         {
           delete it->second;
         }
-      m_Docs.clear ();
+      mDocs.clear ();
     }
 
   void
@@ -166,7 +166,7 @@ namespace apvlv
             ndoc = currentWindow ()->loadDoc (filename);
             if (ndoc)
               {
-                m_Docs[abpath] = ndoc;
+                mDocs[abpath] = ndoc;
                 return true;
               }
             else
@@ -180,10 +180,10 @@ namespace apvlv
     ApvlvView::hasloaded (const char *filename)
       {
         char *abpath = absolutepath (filename);
-        if (m_Docs[abpath] != NULL)
+        if (mDocs[abpath] != NULL)
           {
-            debug ("has loaded: %p", m_Docs[abpath]);
-            return m_Docs[abpath];
+            debug ("has loaded: %p", mDocs[abpath]);
+            return mDocs[abpath];
           }
         return NULL;
       }

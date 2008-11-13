@@ -47,6 +47,22 @@ namespace apvlv
 {
   extern string helppdf;
 
+  struct eqint
+    {
+      bool operator() (int a, int b) const
+        {
+          return a == b;
+        }
+    };
+
+  struct eqstr
+    {
+      bool operator() (const char *sa, const char *sb) const
+        {
+          return strcmp (sa, sb) == 0;
+        }
+    };
+
   // Converts the path given to a absolute path.
   // Warning: The string is returned in a statically allocated buffer,  which  subse-
   // quent calls will overwrite.

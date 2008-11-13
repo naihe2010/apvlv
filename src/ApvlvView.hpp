@@ -124,7 +124,7 @@ namespace apvlv
 
     ApvlvWindow *m_rootWindow, *m_curWindow;
 
-    map <string, ApvlvDoc *> m_Docs;
+    map <string, ApvlvDoc *> mDocs;
     };
 
   extern ApvlvView *gView;

@@ -58,13 +58,26 @@ namespace apvlv
       double scrollrate;
     };
 
-  struct ApvlvDocCache
+  class ApvlvDocCache
     {
-      int pagenum;
-      PopplerPage *page;
-      guchar *data;
-      GdkPixbuf *buf;
-      ApvlvDocCache *prev, *next;
+  public:
+    ApvlvDocCache (int p, guchar *dat, GdkPixbuf *bu);
+    ~ApvlvDocCache ();
+    inline int getpagenum ();
+    inline int getacount ();
+    inline time_t getctime ();
+    inline time_t lastaccess ();
+    inline void refresh ();
+    inline guchar *getdata ();
+    inline GdkPixbuf *getbuf ();
+
+  private:
+    int pagenum;
+    int acount;
+    time_t ctime;
+    time_t atime;
+    guchar *data;
+    GdkPixbuf *buf;
     };
 
   class ApvlvDoc
@@ -118,6 +131,8 @@ namespace apvlv
     void scrollleft (int times = 1);
     void scrollright (int times = 1);
 
+    void setcache (const char *s) { return setcache (atoi (s)); }
+    void setcache (int d);
     void setzoom (const char *s);
     void setzoom (double d);
     void zoomin () { zoomrate *= 1.1; refresh (); }
@@ -125,6 +140,8 @@ namespace apvlv
 
     void search (const char *str);
     void backsearch (const char *str);
+
+    void setactive (bool active) { mActive = active; }
 
     returnType process (int times, guint keyval, guint state);
    
@@ -142,9 +159,6 @@ namespace apvlv
 
     static gboolean apvlv_doc_first_copy_cb (gpointer);
 
-    ApvlvDoc *parent;
-    vector <ApvlvDoc *> hchildren, vchildren;
-
     string filestr;
     PopplerDocument *doc;
 
@@ -155,22 +169,24 @@ namespace apvlv
     string searchstr;
 
 #ifdef HAVE_PTHREAD
+    map <guint, ApvlvDocCache *> mCaches;
+    guint mCacheSize;
+    bool thread_running;
     pthread_t tid;
-    pthread_mutex_t mutexn, mutexp;
+    pthread_mutex_t mutex;
+    guint mutexing;
     static void *prepare_func (ApvlvDoc *);
+    void shiftcache ();
+    void savecache (ApvlvDocCache *ac);
 #endif
-    ApvlvDocCache *newcache (int p);
-    void deletecache (ApvlvDocCache *ac);
-    void insertcache (ApvlvDocCache *prev, ApvlvDocCache *next, ApvlvDocCache *n);
-    void removecache (ApvlvDocCache *c);
-    void clearcache ();
-    unsigned int mCacheBrother;
     ApvlvDocCache *mCurrentCache;
+    ApvlvDocCache *newcache (int pagenum);
+    void deletecache (ApvlvDocCache *ac);
 
     PopplerPage *page;
     int pagenum;
-    double vrate, hrate;
     double pagex, pagey;
+    double vrate, hrate;
 
     enum
       {
@@ -186,6 +202,8 @@ namespace apvlv
     GtkAdjustment *vaj, *haj;
 
     GtkWidget *scrollwin, *image;
+
+    bool mActive;
     };
 }
 
