@@ -146,10 +146,16 @@ namespace apvlv
       }
 
   bool
-    ApvlvParams::settingpush (const char *ch, const char *str)
+    ApvlvParams::settingpush (const char *c, const char *s)
       {
-        string sch (ch), sstr (str);
-        m_settings[sch] = sstr;
+        string cs (c), ss (s);
+        m_settings[cs] = ss;
+      }
+
+  bool
+    ApvlvParams::settingpush (string &ch, string &str)
+      {
+        m_settings[ch] = str;
       }
 
   const char *

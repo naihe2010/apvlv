@@ -460,9 +460,19 @@ namespace apvlv
 
             if (cmd == "set")
               {
+                gParams->settingpush (subcmd, argu);
               }
             else if (cmd == "map")
               {
+                gParams->mappush (subcmd, argu);
+              }
+            else if (cmd == "TOtext")
+              {
+                crtadoc ()->totext (subcmd.c_str ());
+              }
+            else if (cmd == "pr" || cmd == "print")
+              {
+                crtadoc ()->print (atoi (subcmd.c_str ()));
               }
             else if (cmd == "sp")
               {

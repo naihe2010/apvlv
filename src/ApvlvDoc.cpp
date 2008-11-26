@@ -32,6 +32,7 @@
  *  Blog:      http://naihe2010.cublog.cn
 ****************************************************************************/
 #include "ApvlvUtil.hpp"
+#include "ApvlvView.hpp"
 #include "ApvlvDoc.hpp"
 
 #include <stdlib.h>
@@ -51,6 +52,7 @@
 namespace apvlv
 {
   static pthread_mutex_t rendermutex = PTHREAD_MUTEX_INITIALIZER;
+  static GtkPrintSettings *settings = NULL;
 
   ApvlvDoc::ApvlvDoc (const char *zm)
     {
@@ -254,6 +256,17 @@ namespace apvlv
           }
 
         refresh ();
+
+#ifdef HAVE_PTHREAD
+        if (mNextCache != NULL)
+          {
+            mNextCache->set (mNextCache->getpagenum ());
+          }
+        if (mLastCache != NULL)
+          {
+            mLastCache->set (mLastCache->getpagenum ());
+          }
+#endif
       }
 
   void
@@ -373,7 +386,7 @@ namespace apvlv
         if (doc == NULL)
           return;
 
-        mCurrentCache->set (pagenum);
+        mCurrentCache->set (pagenum, false);
         gtk_image_set_from_pixbuf (GTK_IMAGE (image), mCurrentCache->getbuf (true));
       }
 
@@ -555,6 +568,17 @@ namespace apvlv
       {
         PopplerRectangle *rect = (PopplerRectangle *) results->data;
 
+        gchar *txt = poppler_page_get_text (mCurrentCache->getpage (), POPPLER_SELECTION_GLYPH, rect);
+        if (txt != NULL)
+          {
+            debug ("from [%f, %f, %f, %f] search a result: \n[%s]\n", 
+                   rect->x1,
+                   rect->y1,
+                   rect->x2,
+                   rect->y2,
+                   txt);
+          }
+
         // Caculate the correct position
         gint x1 = (gint) ((rect->x1) * zoomrate);
         gint y1 = (gint) ((pagey - rect->y2) * zoomrate);
@@ -692,6 +716,52 @@ namespace apvlv
           }
       }
 
+  bool
+    ApvlvDoc::totext (const char *file)
+      {
+        debug ("get text");
+        if (doc == NULL)
+          return false;
+
+        PopplerPage *page = mCurrentCache->getpage ();
+
+        double x, y;
+        poppler_page_get_size (page, &x, &y);
+        debug ("x: %f, y: %f", x, y);
+        PopplerRectangle rect = { 0, 0, x, y };
+        char *txt = poppler_page_get_text (page, POPPLER_SELECTION_GLYPH, &rect);
+        if (txt != NULL)
+          {
+            debug ("get text: \n[%s]\n", txt);
+            g_free (txt);
+          }
+      }
+
+  bool
+    ApvlvDoc::print (int ct)
+      {
+        bool ret = false;
+        GtkPrintOperation *print = gtk_print_operation_new ();
+        if (settings != NULL)
+          {
+            gtk_print_operation_set_print_settings (print, settings);
+          }
+        //g_signal_connect (G_OBJECT (print), "begin_print", G_CALLBACK (begin_print), NULL);
+        //g_signal_connect (G_OBJECT (print), "draw_page", G_CALLBACK (draw_page), NULL);
+        int r = gtk_print_operation_run (print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG, GTK_WINDOW (gView->widget ()), NULL);
+        if (r == GTK_PRINT_OPERATION_RESULT_APPLY)
+          {
+            if (settings != NULL)
+              {
+                g_object_unref (settings);
+              }
+            settings = gtk_print_operation_get_print_settings (print);
+            ret = true;
+          }
+        g_object_unref (print);
+        return ret;
+      }
+
   gboolean 
     ApvlvDoc::apvlv_doc_first_scroll_cb (gpointer data)
       {
@@ -722,7 +792,7 @@ namespace apvlv
     }
 
   void
-    ApvlvDocCache::set (guint p)
+    ApvlvDocCache::set (guint p, bool delay)
       {
 #ifdef HAVE_PTHREAD
         if (thread_running)
@@ -743,11 +813,27 @@ namespace apvlv
           }
 #ifdef HAVE_PTHREAD
         pthread_cond_init (&cond, NULL);
-        pthread_create (&tid, NULL, (void *(*) (void *)) load, this);
+        
+        if (delay == true)
+          {
+            timer = gtk_timeout_add (50, (gboolean (*) (void *)) delayload, this);
+          }
+        else
+          {
+            pthread_create (&tid, NULL, (void *(*) (void *)) load, this);
+          }
 #else
         load (this);
 #endif
       }
+
+#ifdef HAVE_PTHREAD
+  gboolean
+    ApvlvDocCache::delayload (ApvlvDocCache *ac)
+      {
+        pthread_create (&ac->tid, NULL, (void *(*) (void *)) load, ac);
+      }
+#endif
 
   void
     ApvlvDocCache::load (ApvlvDocCache *ac)
@@ -782,6 +868,7 @@ namespace apvlv
         poppler_page_render_to_pixbuf (tpage, 0, 0, ix, iy, ac->doc->zoomvalue (), 0, bu);
         pthread_mutex_unlock (&rendermutex);
 
+        ac->page = tpage;
         ac->data = dat;
         ac->buf = bu;
 
@@ -804,6 +891,12 @@ namespace apvlv
       pthread_cond_destroy (&cond);
 #endif
     }
+
+  PopplerPage *
+    ApvlvDocCache::getpage ()
+      {
+        return page;
+      }
 
   int 
     ApvlvDocCache::getpagenum ()

@@ -86,7 +86,6 @@ main (int argc, char *argv[])
     {
       gView->loadfile (helppdf.c_str ());
     }
-  
 
   gView->show ();
 

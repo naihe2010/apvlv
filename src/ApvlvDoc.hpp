@@ -63,9 +63,11 @@ namespace apvlv
     {
   public:
     ApvlvDocCache (ApvlvDoc *);
-    void set (guint p);
+    void set (guint p, bool delay = true);
     static void load (ApvlvDocCache *);
+    static gboolean delayload (ApvlvDocCache *);
     ~ApvlvDocCache ();
+    PopplerPage *getpage ();
     int getpagenum ();
     guchar *getdata (bool wait);
     GdkPixbuf *getbuf (bool wait);
@@ -73,12 +75,14 @@ namespace apvlv
   private:
 #ifdef HAVE_PTHREAD
     bool thread_running;
+    int timer;
     pthread_t tid;
     pthread_cond_t cond;
     pthread_mutex_t mutex;
 #endif
 
     ApvlvDoc *doc;
+    PopplerPage *page;
     int pagenum;
     guchar *data;
     GdkPixbuf *buf;
@@ -112,6 +116,10 @@ namespace apvlv
     bool loadfile (const char *src, bool check = true);
 
     bool reload () { savelastposition (); return loadfile (filestr, false); }
+
+    bool print (int ct);
+
+    bool totext (const char *name);
 
     void setsize (int wid, int hei);
 

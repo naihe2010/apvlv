@@ -63,7 +63,9 @@ namespace apvlv
 
     const char *cmd (const char *key);
 
-    bool settingpush (const char *ch, const char *str);
+    bool settingpush (string &ch, string &str);
+
+    bool settingpush (const char *c, const char *s);
 
     const char *settingvalue (const char *key);
     
