@@ -62,9 +62,9 @@ namespace apvlv
       mNextCache = NULL;
 #endif
 
-      doc = NULL;
+      rotatevalue = 0;
 
-      page = NULL;
+      doc = NULL;
 
       results = NULL;
       searchstr = "";
@@ -256,17 +256,6 @@ namespace apvlv
           }
 
         refresh ();
-
-#ifdef HAVE_PTHREAD
-        if (mNextCache != NULL)
-          {
-            mNextCache->set (mNextCache->getpagenum ());
-          }
-        if (mLastCache != NULL)
-          {
-            mLastCache->set (mLastCache->getpagenum ());
-          }
-#endif
       }
 
   void
@@ -345,10 +334,10 @@ namespace apvlv
             return;
           }
 #endif
-        page = poppler_document_get_page (doc, rp);
+        PopplerPage *page = poppler_document_get_page (doc, rp);
         if (page != NULL)
           {
-            poppler_page_get_size (page, &pagex, &pagey);
+            getpagesize (page, &pagex, &pagey);
 
             if (zoominit == false)
               {
@@ -388,6 +377,17 @@ namespace apvlv
 
         mCurrentCache->set (pagenum, false);
         gtk_image_set_from_pixbuf (GTK_IMAGE (image), mCurrentCache->getbuf (true));
+
+#ifdef HAVE_PTHREAD
+        if (mNextCache != NULL)
+          {
+            mNextCache->set (mNextCache->getpagenum ());
+          }
+        if (mLastCache != NULL)
+          {
+            mLastCache->set (mLastCache->getpagenum ());
+          }
+#endif
       }
 
 #ifdef HAVE_PTHREAD
@@ -716,6 +716,20 @@ namespace apvlv
           }
       }
 
+  void
+    ApvlvDoc::getpagesize (PopplerPage *p, double *x, double *y)
+      {
+        if (rotatevalue == 90 
+            || rotatevalue == 270)
+          {
+            poppler_page_get_size (p, y, x);
+          }
+        else
+          {
+            poppler_page_get_size (p, x, y);
+          }
+      }
+
   bool
     ApvlvDoc::totext (const char *file)
       {
@@ -726,7 +740,7 @@ namespace apvlv
         PopplerPage *page = mCurrentCache->getpage ();
 
         double x, y;
-        poppler_page_get_size (page, &x, &y);
+        getpagesize (page, &x, &y);
         debug ("x: %f, y: %f", x, y);
         PopplerRectangle rect = { 0, 0, x, y };
         char *txt = poppler_page_get_text (page, POPPLER_SELECTION_GLYPH, &rect);
@@ -735,6 +749,24 @@ namespace apvlv
             debug ("get text: \n[%s]\n", txt);
             g_free (txt);
           }
+      }
+
+  bool
+    ApvlvDoc::rotate (int ct)
+      {
+        if (ct % 90 != 0)
+          {
+            warn ("Not a 90 times value, ignore.");
+            return false;
+          }
+
+        rotatevalue += ct;
+        while (rotatevalue < 0)
+          {
+            rotatevalue += 360;
+          }
+        refresh ();
+        return true;
       }
 
   bool
@@ -838,20 +870,23 @@ namespace apvlv
   void
     ApvlvDocCache::load (ApvlvDocCache *ac)
       {
+        int c = poppler_document_get_n_pages (ac->doc->getdoc ());
+        if (ac->pagenum < 0
+            || ac->pagenum >= c)
+          {
+            debug ("no this page: %d", ac->pagenum);
+            return;
+          }
+
 #ifdef HAVE_PTHREAD
         ac->thread_running = true;
 #endif
 
         PopplerPage *tpage = poppler_document_get_page (ac->doc->getdoc (), ac->pagenum);
-        if (tpage == NULL)
-          {
-            debug ("no this page");
-            return;
-          }
         debug ("get page: %d:", ac->pagenum + 1);
 
         double tpagex, tpagey;
-        poppler_page_get_size (tpage, &tpagex, &tpagey);
+        ac->doc->getpagesize (tpage, &tpagex, &tpagey);
 
         int ix = (int) (tpagex * ac->doc->zoomvalue ()), iy = (int) (tpagey * ac->doc->zoomvalue ());
 
@@ -865,7 +900,7 @@ namespace apvlv
                                     NULL, NULL);
 
         pthread_mutex_lock (&rendermutex);
-        poppler_page_render_to_pixbuf (tpage, 0, 0, ix, iy, ac->doc->zoomvalue (), 0, bu);
+        poppler_page_render_to_pixbuf (tpage, 0, 0, ix, iy, ac->doc->zoomvalue (), ac->doc->getrotate (), bu);
         pthread_mutex_unlock (&rendermutex);
 
         ac->page = tpage;

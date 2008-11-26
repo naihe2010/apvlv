@@ -101,7 +101,11 @@ namespace apvlv
 
     PopplerDocument *getdoc () { return doc; }
 
+    void getpagesize (PopplerPage *p, double *x, double *y);
+
     int pagenumber () { return pagenum + 1; }
+
+    int getrotate () { return rotatevalue; }
 
     int pagesum () { return doc? poppler_document_get_n_pages (doc): 0; }
 
@@ -120,6 +124,8 @@ namespace apvlv
     bool print (int ct);
 
     bool totext (const char *name);
+
+    bool rotate (int ct);
 
     void setsize (int wid, int hei);
 
@@ -189,7 +195,7 @@ namespace apvlv
     ApvlvDocCache *newcache (int pagenum);
     void deletecache (ApvlvDocCache *ac);
 
-    PopplerPage *page;
+    int rotatevalue;
     int pagenum;
     double pagex, pagey;
     double vrate, hrate;

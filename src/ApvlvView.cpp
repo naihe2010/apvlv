@@ -388,6 +388,9 @@ namespace apvlv
           case 'o':
             open ();
             break;
+          case 'r':
+            crtadoc ()->rotate (ct);
+            break;
           case 'g':
             crtadoc ()->markposition ('\'');
             crtadoc ()->showpage (ct - 1);

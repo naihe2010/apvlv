@@ -1,3 +1,20 @@
+    apvlv 0.0.4
+    =============
+
+    News features
+
+        * add cache module to make the display faster.
+
+        * add 'r' command to rotate page.
+
+        * add ':TOtext' to translate pdf doc page to a text file.
+
+        * add ':pr[int]' to print the document.
+
+    Bug Fix
+   
+        * fix the absolutepath () bug.
+
     apvlv 0.0.3
     ==============
 
