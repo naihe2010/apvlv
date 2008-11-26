@@ -55,12 +55,11 @@ main (int argc, char *argv[])
   ApvlvCmds sCmds;
   gCmds = &sCmds;
 
-  const char *path = absolutepath ("~/.apvlvrc");
+  char *path = absolutepath ("~/.apvlvrc");
   bool exist = g_file_test (path, G_FILE_TEST_IS_REGULAR);
   if (!exist)
     {
-      string file = "";
-      file += PREFIX;
+      string file = PREFIX;
       file += "/share/doc/apvlv/apvlvrc.example";
       filecpy (path, file.c_str ());
     }
@@ -68,7 +67,7 @@ main (int argc, char *argv[])
     {
       gParams->loadfile (path);
     }
-  //  param.debug ();
+  g_free (path);
 
   ApvlvView sView (argc, argv);
   gView = &sView;
@@ -77,13 +76,17 @@ main (int argc, char *argv[])
   helppdf = string (PREFIX);
   helppdf += "/share/doc/apvlv/Startup.pdf";
 
-  path = helppdf.c_str ();
   if (argc > 1)
     {
       path = absolutepath (argv[1]);
+      gView->loadfile (path);
+      g_free (path);
+    }
+  else
+    {
+      gView->loadfile (helppdf.c_str ());
     }
   
-  gView->loadfile (path);
 
   gView->show ();
 

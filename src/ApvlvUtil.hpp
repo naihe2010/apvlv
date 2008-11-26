@@ -63,15 +63,10 @@ namespace apvlv
         }
     };
 
-  // Converts the path given to a absolute path.
-  // Warning: The string is returned in a statically allocated buffer,  which  subse-
-  // quent calls will overwrite.
   char *absolutepath (const char *path);
 
-  // Copy a file
   bool filecpy (const char *dst, const char *src);
 
-  // insert a widget after or before a widget
   void gtk_insert_widget_inbox (GtkWidget *prev, bool after, GtkWidget *n);
 
   // function return type

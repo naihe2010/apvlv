@@ -50,14 +50,14 @@
 
 namespace apvlv
 {
+  static pthread_mutex_t rendermutex = PTHREAD_MUTEX_INITIALIZER;
+
   ApvlvDoc::ApvlvDoc (const char *zm)
     {
       mCurrentCache = NULL;
 #ifdef HAVE_PTHREAD
-      mCacheSize = 3;
-      pthread_mutex_init (&mutex, NULL);
-      thread_running = false;
-      mutexing = -1;
+      mLastCache = NULL;
+      mNextCache = NULL;
 #endif
 
       doc = NULL;
@@ -84,11 +84,13 @@ namespace apvlv
 
   ApvlvDoc::~ApvlvDoc ()
     {
+    if (mCurrentCache)
+      delete mCurrentCache;
 #ifdef HAVE_PTHREAD
-      if (thread_running)
-        {
-          pthread_cancel (tid);
-        }
+    if (mLastCache)
+      delete mLastCache;
+    if (mNextCache)
+      delete mNextCache;
 #endif
 
       if (filestr != helppdf)
@@ -206,16 +208,21 @@ namespace apvlv
             lines = 50;
             chars = 80;
             filestr = filename;
-            loadlastposition ();
             mActive = true;
-#ifdef HAVE_PTHREAD
-            if (thread_running)
-              {
-                pthread_cancel (tid);
-              }
 
-            pthread_create (&tid, NULL, (void *(*) (void *)) prepare_func, this);
+#ifdef HAVE_PTHREAD
+            if (mLastCache != NULL)
+              delete mLastCache;
+            if (mNextCache != NULL)
+              delete mNextCache;
+            mLastCache = new ApvlvDocCache (this);
+            mNextCache = new ApvlvDocCache (this);
 #endif
+            if (mCurrentCache != NULL)
+              delete mCurrentCache;
+            mCurrentCache = new ApvlvDocCache (this);
+
+            loadlastposition ();
           }
 
         return doc == NULL? false: true;
@@ -261,16 +268,6 @@ namespace apvlv
     ApvlvDoc::widget ()
       {
         return scrollwin;
-      }
-
-  PopplerPage *
-    ApvlvDoc::getpage (int p)
-      {
-        int rp = convertindex (p);
-        if (rp < 0)
-          return NULL;
-
-        return poppler_document_get_page (doc, rp);
       }
 
   int
@@ -322,30 +319,20 @@ namespace apvlv
           return;
 
 #ifdef HAVE_PTHREAD
-        ApvlvDocCache *ac;
-
-        if (rp == mutexing)
+        ApvlvDocCache *ac = fetchcache (rp);
+        if (ac != NULL)
           {
-            pthread_mutex_lock (&mutex);
-            pthread_mutex_unlock (&mutex);
-          }
-
-        map <guint, ApvlvDocCache *>::iterator it;
-        it = mCaches.find (rp);
-        
-        if (it != mCaches.end ())
-          {
-            ac = it->second;
-            ac->refresh ();
-            gtk_image_set_from_pixbuf (GTK_IMAGE (image), ac->getbuf ());
-            pagenum = ac->getpagenum ();
+            GdkPixbuf *buf = ac->getbuf (true);
+            gtk_image_set_from_pixbuf (GTK_IMAGE (image), buf);
             scrollto (s);
+
+            pagenum = rp;
+
             mCurrentCache = ac;
             return;
           }
-
 #endif
-        page = getpage (p);
+        page = poppler_document_get_page (doc, rp);
         if (page != NULL)
           {
             poppler_page_get_size (page, &pagex, &pagey);
@@ -380,141 +367,55 @@ namespace apvlv
           }
       }
 
-#ifdef HAVE_PTHREAD
-  void *
-    ApvlvDoc::prepare_func (ApvlvDoc *adoc)
-      {
-        if (adoc->doc == NULL)
-          return NULL;
-
-        while (1)
-          {
-            int i, ret;
-
-            ApvlvDocCache *ac;
-            int pnum = adoc->pagenum + 1;
-
-            map <guint, ApvlvDocCache *>::iterator it;
-            it = adoc->mCaches.find (pnum);
-
-            if (it != adoc->mCaches.end ()
-                || pnum == adoc->mutexing)
-              {
-                sleep (2);
-                continue;
-              }
-
-            pthread_mutex_lock (&adoc->mutex);
-            it = adoc->mCaches.find (pnum);
-            if (it != adoc->mCaches.end ())
-              {
-                sleep (2);
-              }
-            else
-              {
-                adoc->mutexing = pnum;
-                ac = adoc->newcache (pnum);
-                adoc->mutexing = -1;
-                if (ac != NULL)
-                  {
-                    adoc->savecache (ac);
-                  }
-              }
-            pthread_mutex_unlock (&adoc->mutex);
-          }
-      }
-
-  void
-    ApvlvDoc::savecache (ApvlvDocCache *ac)
-      {
-        mCaches.insert (pair <guint, ApvlvDocCache *> (ac->getpagenum (), ac));
-
-        if (mCaches.size () == mCacheSize)
-          {
-            shiftcache ();
-          }
-      }
-
-  void
-    ApvlvDoc::shiftcache ()
-      {
-        map <guint, ApvlvDocCache *>::iterator it, ealiest;
-
-        ealiest = mCaches.begin ();
-        for (it = mCaches.begin (); it != mCaches.end (); ++ it)
-          {
-            if (it->second != NULL 
-                && it->second->getctime () < ealiest->second->getctime ())
-              {
-                ealiest = it;
-              }
-          }
-        mCaches.erase (ealiest);
-        deletecache (ealiest->second);
-      }
-#endif
-
-  ApvlvDocCache *
-    ApvlvDoc::newcache (int pn)
-      {
-        PopplerPage *tpage;
-        double tpagex, tpagey;
-
-        tpage = getpage (pn);
-        if (tpage == NULL)
-          {
-            debug ("no this page");
-            return NULL;
-          }
-        debug ("get page: %d:", pn);
-
-        poppler_page_get_size (tpage, &tpagex, &tpagey);
-
-        int ix = (int) (tpagex * zoomrate), iy = (int) (tpagey * zoomrate);
-
-        guchar *data = (guchar *) new char[ix * iy * 3];
-        GdkPixbuf *buf = gdk_pixbuf_new_from_data (data, GDK_COLORSPACE_RGB,
-                                    FALSE,
-                                    8,
-                                    ix, iy,
-                                    3 * ix,
-                                    NULL, NULL);
-
-        poppler_page_render_to_pixbuf (tpage, 0, 0, ix, iy, zoomrate, 0, buf);
-
-        ApvlvDocCache *ac = new ApvlvDocCache (pn, data, buf);
-
-        return ac;
-      }
-
-  void
-    ApvlvDoc::deletecache (ApvlvDocCache *ac)
-      {
-        debug ("delete a page: %d", ac->getpagenum ());
-        delete ac;
-      }
-
   void 
     ApvlvDoc::refresh ()
       {
         if (doc == NULL)
           return;
 
-        ApvlvDocCache *ac;
-#ifdef HAVE_PTHREAD
-        pthread_mutex_lock (&mutex);
-        mutexing = pagenum;
-#endif
-        ac = newcache (pagenum);
-        mCurrentCache = ac;
-        gtk_image_set_from_pixbuf (GTK_IMAGE (image), mCurrentCache->getbuf ());
-#ifdef HAVE_PTHREAD
-        ac->refresh ();
-        savecache (ac);
-        mutexing = -1;
-        pthread_mutex_unlock (&mutex);
-#endif
+        mCurrentCache->set (pagenum);
+        gtk_image_set_from_pixbuf (GTK_IMAGE (image), mCurrentCache->getbuf (true));
       }
+
+#ifdef HAVE_PTHREAD
+  ApvlvDocCache *
+    ApvlvDoc::fetchcache (guint pn)
+      {
+        ApvlvDocCache *ac = NULL;
+
+        if (mNextCache->getpagenum () == pn)
+          {
+            ac = mNextCache;
+            mNextCache = mLastCache;
+            mLastCache = mCurrentCache;
+            mNextCache->set (convertindex (pn + 1)); 
+          }
+
+        else if (mLastCache->getpagenum () == pn)
+          {
+            ac = mLastCache;
+            if (mCurrentCache->getpagenum () == convertindex (pn + 1))
+              {
+                mLastCache = mNextCache;
+                mLastCache->set (convertindex (pn - 1));
+                mNextCache = mCurrentCache;
+              }
+            else
+              {
+                mLastCache = mCurrentCache;
+                mLastCache->set (convertindex (pn - 1));
+                mNextCache->set (convertindex (pn + 1));
+              }
+          }
+
+        else
+          {
+            mNextCache->set (convertindex (pn + 1));
+          }
+
+        return ac;
+      }
+#endif
 
   void
     ApvlvDoc::halfnextpage (int times)
@@ -688,8 +589,8 @@ namespace apvlv
             gtk_adjustment_set_value (haj, haj->lower);
           }
 
-        guchar *pagedata = mCurrentCache->getdata ();
-        GdkPixbuf *pixbuf = mCurrentCache->getbuf ();
+        guchar *pagedata = mCurrentCache->getdata (true);
+        GdkPixbuf *pixbuf = mCurrentCache->getbuf (true);
         // change the back color of the selection
         for (gint y = y1; y < y2; y ++)
           {
@@ -807,56 +708,162 @@ namespace apvlv
         return FALSE;
       }
 
-  ApvlvDocCache::ApvlvDocCache (int p, guchar *dat, GdkPixbuf *bu): \
-    pagenum (p), data (dat), buf (bu)
-  {
-    acount = 0;
-    ctime = time (NULL);
-    atime = INT_MAX;
-  }
+  ApvlvDocCache::ApvlvDocCache (ApvlvDoc *dc)
+    {
+      doc = dc;
+      pagenum = -1;
+      data = NULL;
+      buf = NULL;
+#ifdef HAVE_PTHREAD
+      thread_running = false;
+      pthread_cond_init (&cond, NULL);
+      pthread_mutex_init (&mutex, NULL);
+#endif
+    }
 
-    ApvlvDocCache::~ApvlvDocCache ()
+  void
+    ApvlvDocCache::set (guint p)
       {
+#ifdef HAVE_PTHREAD
+        if (thread_running)
+          {
+            pthread_cancel (tid);
+          }
+#endif
+        pagenum = p;
+        if (data != NULL)
+          {
+            delete []data;
+            data = NULL;
+          }
+        if (buf != NULL)
+          {
+            g_object_unref (buf);
+            buf = NULL;
+          }
+#ifdef HAVE_PTHREAD
+        pthread_cond_init (&cond, NULL);
+        pthread_create (&tid, NULL, (void *(*) (void *)) load, this);
+#else
+        load (this);
+#endif
       }
 
-    int 
-      ApvlvDocCache::getpagenum ()
-        {
-          return pagenum;
-        }
-
-    int 
-      ApvlvDocCache::getacount ()
-        {
-          return acount;
-        }
-
-    time_t 
-      ApvlvDocCache::getctime ()
-        {
-          return ctime;
-        }
-
-    time_t 
-      ApvlvDocCache::lastaccess ()
-        {
-          return atime;
-        }
-
-    void 
-      ApvlvDocCache::refresh ()
-        {
-          acount ++;
-          atime = time (NULL);
-        }
-
-    guchar *ApvlvDocCache::getdata ()
+  void
+    ApvlvDocCache::load (ApvlvDocCache *ac)
       {
-        return data;
+#ifdef HAVE_PTHREAD
+        ac->thread_running = true;
+#endif
+
+        PopplerPage *tpage = poppler_document_get_page (ac->doc->getdoc (), ac->pagenum);
+        if (tpage == NULL)
+          {
+            debug ("no this page");
+            return;
+          }
+        debug ("get page: %d:", ac->pagenum + 1);
+
+        double tpagex, tpagey;
+        poppler_page_get_size (tpage, &tpagex, &tpagey);
+
+        int ix = (int) (tpagex * ac->doc->zoomvalue ()), iy = (int) (tpagey * ac->doc->zoomvalue ());
+
+        guchar *dat = new guchar[ix * iy * 3];
+
+        GdkPixbuf *bu = gdk_pixbuf_new_from_data (dat, GDK_COLORSPACE_RGB,
+                                    FALSE,
+                                    8,
+                                    ix, iy,
+                                    3 * ix,
+                                    NULL, NULL);
+
+        pthread_mutex_lock (&rendermutex);
+        poppler_page_render_to_pixbuf (tpage, 0, 0, ix, iy, ac->doc->zoomvalue (), 0, bu);
+        pthread_mutex_unlock (&rendermutex);
+
+        ac->data = dat;
+        ac->buf = bu;
+
+#ifdef HAVE_PTHREAD
+        debug ("signal the cond: %p", &ac->cond);
+        pthread_cond_signal (&ac->cond);
+
+        ac->thread_running = false;
+#endif
       }
 
-    GdkPixbuf *ApvlvDocCache::getbuf ()
+  ApvlvDocCache::~ApvlvDocCache ()
+    {
+#ifdef HAVE_PTHREAD
+      if (thread_running)
+        {
+          pthread_cancel (tid);
+        }
+      pthread_mutex_destroy (&mutex);
+      pthread_cond_destroy (&cond);
+#endif
+    }
+
+  int 
+    ApvlvDocCache::getpagenum ()
       {
-        return buf;
+        return pagenum;
       }
+
+  /* 
+   * get the cache data
+   * @param: wait, if not wait, not wait the buffer be prepared
+   * @return: the buffer
+   * */
+  guchar *ApvlvDocCache::getdata (bool wait)
+    {
+#ifndef HAVE_PTHREAD
+      return data;
+#else
+      if (!wait)
+        {
+          return data;
+        }
+
+      guchar *dat = data;
+      if (dat == NULL)
+        {
+          pthread_mutex_lock (&mutex);
+          debug ("wait cond: %p", &cond);
+          pthread_cond_wait (&cond, &mutex);
+          dat = data;
+          pthread_mutex_unlock (&mutex);
+        }
+      return dat;
+#endif
+    }
+
+  /* 
+   * get the cache GdkPixbuf
+   * @param: wait, if not wait, not wait the pixbuf be prepared
+   * @return: the buffer
+   * */
+  GdkPixbuf *ApvlvDocCache::getbuf (bool wait)
+    {
+#ifndef HAVE_PTHREAD
+      return buf;
+#else
+      if (!wait)
+        {
+          return buf;
+        }
+
+      GdkPixbuf *bu = buf;
+      if (bu == NULL)
+        {
+          pthread_mutex_lock (&mutex);
+          debug ("wait cond: %p", &cond);
+          pthread_cond_wait (&cond, &mutex);
+          bu = buf;
+          pthread_mutex_unlock (&mutex);
+        }
+      return bu;
+#endif
+    }
 }

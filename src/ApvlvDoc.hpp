@@ -58,24 +58,28 @@ namespace apvlv
       double scrollrate;
     };
 
+  class ApvlvDoc;
   class ApvlvDocCache
     {
   public:
-    ApvlvDocCache (int p, guchar *dat, GdkPixbuf *bu);
+    ApvlvDocCache (ApvlvDoc *);
+    void set (guint p);
+    static void load (ApvlvDocCache *);
     ~ApvlvDocCache ();
-    inline int getpagenum ();
-    inline int getacount ();
-    inline time_t getctime ();
-    inline time_t lastaccess ();
-    inline void refresh ();
-    inline guchar *getdata ();
-    inline GdkPixbuf *getbuf ();
+    int getpagenum ();
+    guchar *getdata (bool wait);
+    GdkPixbuf *getbuf (bool wait);
 
   private:
+#ifdef HAVE_PTHREAD
+    bool thread_running;
+    pthread_t tid;
+    pthread_cond_t cond;
+    pthread_mutex_t mutex;
+#endif
+
+    ApvlvDoc *doc;
     int pagenum;
-    int acount;
-    time_t ctime;
-    time_t atime;
     guchar *data;
     GdkPixbuf *buf;
     };
@@ -90,6 +94,8 @@ namespace apvlv
     ApvlvDoc *copy ();
 
     const char *filename () { return doc? filestr.c_str (): NULL; }
+
+    PopplerDocument *getdoc () { return doc; }
 
     int pagenumber () { return pagenum + 1; }
 
@@ -147,7 +153,6 @@ namespace apvlv
    
   private:
     int convertindex (int p);
-    PopplerPage *getpage (int p);
     void markselection ();
     bool needsearch (const char *str);
     GList * searchpage (int num);
@@ -169,15 +174,8 @@ namespace apvlv
     string searchstr;
 
 #ifdef HAVE_PTHREAD
-    map <guint, ApvlvDocCache *> mCaches;
-    guint mCacheSize;
-    bool thread_running;
-    pthread_t tid;
-    pthread_mutex_t mutex;
-    guint mutexing;
-    static void *prepare_func (ApvlvDoc *);
-    void shiftcache ();
-    void savecache (ApvlvDocCache *ac);
+    ApvlvDocCache *fetchcache (guint);
+    ApvlvDocCache *mLastCache, *mNextCache;
 #endif
     ApvlvDocCache *mCurrentCache;
     ApvlvDocCache *newcache (int pagenum);
@@ -205,6 +203,7 @@ namespace apvlv
 
     bool mActive;
     };
+
 }
 
 #endif

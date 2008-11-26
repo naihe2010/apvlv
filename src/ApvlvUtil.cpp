@@ -45,14 +45,16 @@ namespace apvlv
 
   string helppdf;
 
+  // Converts the path given to a absolute path.
+  // Warning: The string is returned a new allocated buffer, NEED TO BE g_free
   char *
     absolutepath (const char *path)
       {
-        static char abpath[512];
+        char abpath[512];
 
         if (g_path_is_absolute (path))
           {
-            return (char *) path;
+            return g_strdup (path);
           }
 
         if (*path == '~')
@@ -66,14 +68,15 @@ namespace apvlv
             realpath (path, abpath);
           }
 
-        return abpath;
+        return g_strdup (abpath);
       }
 
+  // Copy a file
   bool 
     filecpy (const char *dst, const char *src)
       {
-        ifstream ifs (absolutepath (src));
-        ofstream ofs (absolutepath (dst));
+        ifstream ifs (src);
+        ofstream ofs (dst);
         if (ifs.is_open () && ofs.is_open ())
           {
             while (ifs.eof () == false)
@@ -88,6 +91,7 @@ namespace apvlv
           }
       }
 
+  // insert a widget after or before a widget
   void
     gtk_insert_widget_inbox (GtkWidget *prev, bool after, GtkWidget *n)
       {

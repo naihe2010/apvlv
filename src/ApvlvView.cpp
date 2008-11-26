@@ -154,12 +154,13 @@ namespace apvlv
   bool
     ApvlvView::loadfile (const char *filename)
       {
-        const char *abpath = absolutepath (filename);
+        bool ret = false;
+        char *abpath = absolutepath (filename);
         ApvlvDoc *ndoc = hasloaded (abpath);
         if (ndoc != NULL)
           {
             currentWindow ()->setDoc (ndoc);
-            return true;
+            ret = true;
           }
         else
           {
@@ -167,19 +168,17 @@ namespace apvlv
             if (ndoc)
               {
                 mDocs[abpath] = ndoc;
-                return true;
-              }
-            else
-              {
-                return false;
+                ret = true;
               }
           }
+
+        g_free (abpath);
+        return ret;
       }
 
   ApvlvDoc *
-    ApvlvView::hasloaded (const char *filename)
+    ApvlvView::hasloaded (const char *abpath)
       {
-        char *abpath = absolutepath (filename);
         if (mDocs[abpath] != NULL)
           {
             debug ("has loaded: %p", mDocs[abpath]);
