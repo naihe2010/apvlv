@@ -37,12 +37,14 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
 #endif
 
 #include <gtk/gtk.h>
+#include <gtk/gtkprintoperation.h>
 #include <glib/poppler.h>
 
 #include <iostream>
@@ -89,10 +91,10 @@ namespace apvlv
     if (mCurrentCache)
       delete mCurrentCache;
 #ifdef HAVE_PTHREAD
-    if (mLastCache)
-      delete mLastCache;
     if (mNextCache)
       delete mNextCache;
+    if (mLastCache)
+      delete mLastCache;
 #endif
 
       if (filestr != helppdf)
@@ -774,12 +776,22 @@ namespace apvlv
       {
         bool ret = false;
         GtkPrintOperation *print = gtk_print_operation_new ();
+
+        gtk_print_operation_set_allow_async (print, TRUE);
+        gtk_print_operation_set_show_progress (print, TRUE);
+
+        PrintData *data = new PrintData;
+        data->doc = doc;
+        data->frmpn = pagenum;
+        data->endpn = pagenum;
+
+        g_signal_connect (G_OBJECT (print), "begin-print", G_CALLBACK (begin_print), data);
+        g_signal_connect (G_OBJECT (print), "draw-page", G_CALLBACK (draw_page), data);
+        g_signal_connect (G_OBJECT (print), "end-print", G_CALLBACK (end_print), data);
         if (settings != NULL)
           {
             gtk_print_operation_set_print_settings (print, settings);
           }
-        //g_signal_connect (G_OBJECT (print), "begin_print", G_CALLBACK (begin_print), NULL);
-        //g_signal_connect (G_OBJECT (print), "draw_page", G_CALLBACK (draw_page), NULL);
         int r = gtk_print_operation_run (print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG, GTK_WINDOW (gView->widget ()), NULL);
         if (r == GTK_PRINT_OPERATION_RESULT_APPLY)
           {
@@ -922,8 +934,6 @@ namespace apvlv
         {
           pthread_cancel (tid);
         }
-      pthread_mutex_destroy (&mutex);
-      pthread_cond_destroy (&cond);
 #endif
     }
 
@@ -994,4 +1004,39 @@ namespace apvlv
       return bu;
 #endif
     }
+
+  void
+    ApvlvDoc::begin_print (GtkPrintOperation *operation, 
+                           GtkPrintContext   *context,
+                           gpointer           user_data)
+      {
+        PrintData *data = (PrintData *)user_data;
+        gtk_print_operation_set_n_pages (operation, data->endpn - data->frmpn + 1);
+      }
+
+  void
+    ApvlvDoc::draw_page (GtkPrintOperation *operation,
+                         GtkPrintContext   *context,
+                         gint               page_nr,
+                         gpointer           user_data)
+      {
+        PrintData *data = (PrintData *)user_data;
+
+        cairo_t *cr = gtk_print_context_get_cairo_context (context);
+        PopplerPage *page = poppler_document_get_page (data->doc, data->frmpn + page_nr);
+        poppler_page_render_for_printing (page, cr);
+
+        PangoLayout *layout = gtk_print_context_create_pango_layout (context);
+        pango_cairo_show_layout (cr, layout);
+        g_object_unref (layout);
+      }
+
+  void
+    ApvlvDoc::end_print (GtkPrintOperation *operation, 
+                         GtkPrintContext   *context,
+                         gpointer           user_data)
+      {
+        PrintData *data = (PrintData *)user_data;
+        delete data;
+      }
 }

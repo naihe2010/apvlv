@@ -52,6 +52,15 @@ using namespace std;
 
 namespace apvlv
 {
+#define HEADER_HEIGHT (10*72/25.4)
+#define HEADER_GAP (3*72/25.4)
+
+  struct PrintData
+    {
+      PopplerDocument *doc;
+      guint frmpn, endpn;
+    };
+
   struct ApvlvDocPosition
     {
       int pagenum;
@@ -178,6 +187,16 @@ namespace apvlv
 
     static gboolean apvlv_doc_first_copy_cb (gpointer);
 
+    static void begin_print (GtkPrintOperation *operation, 
+                             GtkPrintContext   *context,
+                             gpointer           user_data);
+    static void draw_page (GtkPrintOperation *operation,
+                           GtkPrintContext   *context,
+                           gint               page_nr,
+                           gpointer           user_data);
+    static void end_print (GtkPrintOperation *operation, 
+                           GtkPrintContext   *context,
+                           gpointer           user_data);
     string filestr;
     PopplerDocument *doc;
 
