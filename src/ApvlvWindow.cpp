@@ -439,18 +439,11 @@ end:
           {
             m_Doc->setsize (m_width, m_height);
           }
-#if 0
-        else if (type == AW_SP)
+        else if (type == AW_SP
+                 || type == AW_VSP)
           {
-            m_child->setsize (m_width, m_height / 2);
-            m_child->m_next->setsize (m_width, m_height / 2);
+            gtk_timeout_add (50, apvlv_window_resize_children_cb, this);
           }
-        else if (type == AW_VSP)
-          {
-            m_child->setsize (m_width / 2, m_height);
-            m_child->m_next->setsize (m_width / 2, m_height);
-          }
-#endif
       }
 
   ApvlvDoc *
@@ -508,7 +501,7 @@ end:
         m_parent->m_child == this? val -= len: val += len;
         gtk_paned_set_position (GTK_PANED (m_parent->m_paned), val);
 
-        apvlv_window_paned_resized_cb (m_parent->m_paned, NULL, m_parent);
+        m_parent->resize_children ();
       }
 
   void 
@@ -521,7 +514,7 @@ end:
         m_parent->m_child == this? val += len: val -= len;
         gtk_paned_set_position (GTK_PANED (m_parent->m_paned), val);
 
-        apvlv_window_paned_resized_cb (m_parent->m_paned, NULL, m_parent);
+        m_parent->resize_children ();
       }
 
   gboolean
@@ -529,29 +522,42 @@ end:
                                                 GdkEventButton *but,
                                                 ApvlvWindow *win)
       {
-        int mw1 = win->m_width, mw2 = win->m_width, mh1 = win->m_height, mh2 = win->m_height;
-        int mi = GTK_PANED (wid)->min_position;
-        int ma = GTK_PANED (wid)->max_position;
-        int mv = gtk_paned_get_position (GTK_PANED (wid));
+        win->resize_children ();
+        return FALSE;
+      }
 
-        if (win->type == AW_SP)
+  void
+    ApvlvWindow::resize_children ()
+      {
+        int mw1 = m_width, mw2 = m_width, mh1 = m_height, mh2 = m_height;
+        int mi = GTK_PANED (m_paned)->min_position;
+        int ma = GTK_PANED (m_paned)->max_position;
+        int mv = gtk_paned_get_position (GTK_PANED (m_paned));
+
+        if (type == AW_SP)
           {
-            mh1 = (win->m_height * (mv - mi)) / (ma - mi);
-            mh2 = win->m_height - mh1;
+            mh1 = (m_height * (mv - mi)) / (ma - mi);
+            mh2 = m_height - mh1;
           }
-        else if (win->type == AW_VSP)
+        else if (type == AW_VSP)
           {
-            mw1 = (win->m_width * (mv - mi)) / (ma - mi);
-            mw2 = win->m_width - mh1;
+            mw1 = (m_width * (mv - mi)) / (ma - mi);
+            mw2 = m_width - mh1;
           }
 
         debug ("paned changed, modify: win1: %p-%d-%d, win2: %p-%d-%d",
-               win->m_child, mw1, mh1,
-               win->m_child->m_next, mw2, mh2);
+               m_child, mw1, mh1,
+               m_child->m_next, mw2, mh2);
 
-        win->m_child->setsize (mw1, mh1);
-        win->m_child->m_next->setsize (mw2, mh2);
+        m_child->setsize (mw1, mh1);
+        m_child->m_next->setsize (mw2, mh2);
+      }
 
+  gboolean 
+    ApvlvWindow::apvlv_window_resize_children_cb (gpointer data)
+      {
+        ApvlvWindow *win = (ApvlvWindow *) data;
+        win->resize_children ();
         return FALSE;
       }
 }
