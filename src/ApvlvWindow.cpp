@@ -404,6 +404,7 @@ end:
         type = windowType (ttype);
 
         m_paned = type == AW_SP? gtk_vpaned_new (): gtk_hpaned_new ();
+        g_signal_connect (G_OBJECT (m_paned), "button-release-event", G_CALLBACK (apvlv_window_paned_resized_cb), this);
         gtk_container_add (GTK_CONTAINER (parent), m_paned);
 
         gtk_paned_pack1 (GTK_PANED (m_paned), nwindow->widget (), TRUE, TRUE);
@@ -430,16 +431,26 @@ end:
   void
     ApvlvWindow::setsize (int width, int height)
       {
+        debug ("window: %p set size [%d, %d]", this, width, height);
         m_width = width;
         m_height = height;
-        if (m_Doc)
+
+        if (type == AW_DOC)
           {
             m_Doc->setsize (m_width, m_height);
           }
-        else
+#if 0
+        else if (type == AW_SP)
           {
-            gtk_widget_set_usize (m_paned, m_width, m_height);
+            m_child->setsize (m_width, m_height / 2);
+            m_child->m_next->setsize (m_width, m_height / 2);
           }
+        else if (type == AW_VSP)
+          {
+            m_child->setsize (m_width / 2, m_height);
+            m_child->m_next->setsize (m_width / 2, m_height);
+          }
+#endif
       }
 
   ApvlvDoc *
@@ -496,6 +507,8 @@ end:
         int len = 20 * times;
         m_parent->m_child == this? val -= len: val += len;
         gtk_paned_set_position (GTK_PANED (m_parent->m_paned), val);
+
+        apvlv_window_paned_resized_cb (m_parent->m_paned, NULL, m_parent);
       }
 
   void 
@@ -507,5 +520,38 @@ end:
         int len = 20 * times;
         m_parent->m_child == this? val += len: val -= len;
         gtk_paned_set_position (GTK_PANED (m_parent->m_paned), val);
+
+        apvlv_window_paned_resized_cb (m_parent->m_paned, NULL, m_parent);
+      }
+
+  gboolean
+    ApvlvWindow::apvlv_window_paned_resized_cb (GtkWidget   *wid, 
+                                                GdkEventButton *but,
+                                                ApvlvWindow *win)
+      {
+        int mw1 = win->m_width, mw2 = win->m_width, mh1 = win->m_height, mh2 = win->m_height;
+        int mi = GTK_PANED (wid)->min_position;
+        int ma = GTK_PANED (wid)->max_position;
+        int mv = gtk_paned_get_position (GTK_PANED (wid));
+
+        if (win->type == AW_SP)
+          {
+            mh1 = (win->m_height * (mv - mi)) / (ma - mi);
+            mh2 = win->m_height - mh1;
+          }
+        else if (win->type == AW_VSP)
+          {
+            mw1 = (win->m_width * (mv - mi)) / (ma - mi);
+            mw2 = win->m_width - mh1;
+          }
+
+        debug ("paned changed, modify: win1: %p-%d-%d, win2: %p-%d-%d",
+               win->m_child, mw1, mh1,
+               win->m_child->m_next, mw2, mh2);
+
+        win->m_child->setsize (mw1, mh1);
+        win->m_child->m_next->setsize (mw2, mh2);
+
+        return FALSE;
       }
 }

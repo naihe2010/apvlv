@@ -71,6 +71,8 @@ namespace apvlv
       results = NULL;
       searchstr = "";
 
+      vbox = gtk_vbox_new (FALSE, 0);
+
       scrollwin = gtk_scrolled_window_new (NULL, NULL);
 
       image = gtk_image_new ();
@@ -82,6 +84,11 @@ namespace apvlv
 
       vaj = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (scrollwin));
       haj = gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (scrollwin));
+
+      status = gtk_label_new ("");
+
+      gtk_box_pack_start (GTK_BOX (vbox), scrollwin, FALSE, FALSE, 0);
+      gtk_box_pack_end (GTK_BOX (vbox), status, FALSE, FALSE, 0);
 
       setzoom (zm);
     }
@@ -102,8 +109,25 @@ namespace apvlv
           savelastposition ();
         }
       positions.clear ();
-      gtk_widget_destroy (scrollwin);
+      gtk_widget_destroy (vbox);
     }
+
+  bool
+    ApvlvDoc::status_show ()
+      {
+        if (filename ())
+          {
+            char temp[256];
+            snprintf (temp, sizeof temp, "\"%s\"\t%d/%d\t\t%d\%\t\t\t\t%d\%",
+                      filename (),
+                      pagenumber (),
+                      pagesum (),
+                      (int) (zoomvalue () * 100),
+                      (int) (scrollrate () * 100)
+            );
+            gtk_label_set_text (GTK_LABEL (status), temp);
+          }
+      }
 
   void
     ApvlvDoc::setsize (int w, int h)
@@ -111,6 +135,8 @@ namespace apvlv
         width = w;
         height = h;
         gtk_widget_set_usize (widget (), width, height);
+        gtk_widget_set_usize (scrollwin, width, height - 20);
+        gtk_widget_set_usize (status, width, 20);
       }
 
   ApvlvDoc *
@@ -227,6 +253,8 @@ namespace apvlv
             mCurrentCache = new ApvlvDocCache (this);
 
             loadlastposition ();
+
+            status_show ();
           }
 
         return doc == NULL? false: true;
@@ -271,7 +299,7 @@ namespace apvlv
   GtkWidget *
     ApvlvDoc::widget ()
       {
-        return scrollwin;
+        return vbox;
       }
 
   int
@@ -380,6 +408,8 @@ namespace apvlv
         mCurrentCache->set (pagenum, false);
         gtk_image_set_from_pixbuf (GTK_IMAGE (image), mCurrentCache->getbuf (true));
 
+        status_show ();
+
 #ifdef HAVE_PTHREAD
         if (mNextCache != NULL)
           {
@@ -483,6 +513,7 @@ namespace apvlv
         double maxv = vaj->upper - vaj->lower - vaj->page_size;
         double val = maxv * s;
         gtk_adjustment_set_value (vaj, val);
+        status_show ();
       }
 
   void
@@ -505,6 +536,8 @@ namespace apvlv
           {
             showpage (pagenum - 1, 1.00);
           }
+
+        status_show ();
       }
 
   void
@@ -527,6 +560,8 @@ namespace apvlv
           {
             showpage (pagenum + 1, 0.00);
           }
+
+        status_show ();
       }
 
   void
@@ -1008,9 +1043,8 @@ namespace apvlv
   void
     ApvlvDoc::begin_print (GtkPrintOperation *operation, 
                            GtkPrintContext   *context,
-                           gpointer           user_data)
+                           PrintData         *data)
       {
-        PrintData *data = (PrintData *)user_data;
         gtk_print_operation_set_n_pages (operation, data->endpn - data->frmpn + 1);
       }
 
@@ -1018,10 +1052,8 @@ namespace apvlv
     ApvlvDoc::draw_page (GtkPrintOperation *operation,
                          GtkPrintContext   *context,
                          gint               page_nr,
-                         gpointer           user_data)
+                         PrintData         *data)
       {
-        PrintData *data = (PrintData *)user_data;
-
         cairo_t *cr = gtk_print_context_get_cairo_context (context);
         PopplerPage *page = poppler_document_get_page (data->doc, data->frmpn + page_nr);
         poppler_page_render_for_printing (page, cr);
@@ -1034,9 +1066,8 @@ namespace apvlv
   void
     ApvlvDoc::end_print (GtkPrintOperation *operation, 
                          GtkPrintContext   *context,
-                         gpointer           user_data)
+                         PrintData         *data)
       {
-        PrintData *data = (PrintData *)user_data;
         delete data;
       }
 }

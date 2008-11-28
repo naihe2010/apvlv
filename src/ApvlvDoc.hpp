@@ -175,6 +175,8 @@ namespace apvlv
     returnType process (int times, guint keyval, guint state);
    
   private:
+    bool status_show ();
+
     int convertindex (int p);
     void markselection ();
     bool needsearch (const char *str);
@@ -189,14 +191,14 @@ namespace apvlv
 
     static void begin_print (GtkPrintOperation *operation, 
                              GtkPrintContext   *context,
-                             gpointer           user_data);
+                             PrintData         *data);
     static void draw_page (GtkPrintOperation *operation,
                            GtkPrintContext   *context,
                            gint               page_nr,
-                           gpointer           user_data);
+                           PrintData         *data);
     static void end_print (GtkPrintOperation *operation, 
                            GtkPrintContext   *context,
-                           gpointer           user_data);
+                           PrintData         *data);
     string filestr;
     PopplerDocument *doc;
 
@@ -232,7 +234,7 @@ namespace apvlv
     int width, height;
     GtkAdjustment *vaj, *haj;
 
-    GtkWidget *scrollwin, *image;
+    GtkWidget *vbox, *scrollwin, *status, *image;
 
     bool mActive;
     };

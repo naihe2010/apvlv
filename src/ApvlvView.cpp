@@ -61,7 +61,6 @@ namespace apvlv
       width = atoi (gParams->settingvalue ("width"));
       height = atoi (gParams->settingvalue ("height"));
 
-      full_has = FALSE;
       gtk_widget_set_size_request (mainwindow, width, height);
 
       g_object_set_data (G_OBJECT (mainwindow), "view", this);
@@ -89,7 +88,7 @@ namespace apvlv
 
       pro_cmd = 0;
 
-      cmd_has = FALSE;
+      full_has = FALSE;
 
       const char *fs = gParams->settingvalue ("fullscreen");
       if (strcmp (fs, "yes") == 0)
@@ -100,6 +99,8 @@ namespace apvlv
         {
           gtk_widget_set_usize (mainwindow, width, height);
         }
+
+      cmd_hide ();
     }
 
   ApvlvView::~ApvlvView ()
@@ -217,33 +218,24 @@ namespace apvlv
         if (mainwindow == NULL)
           return;
 
+        m_rootWindow->setsize (width, height - 20);
+        gtk_widget_set_usize (statusbar, width, 20);
+
         gtk_widget_grab_focus (statusbar);
         gtk_entry_set_position (GTK_ENTRY (statusbar), 1);
         cmd_has = TRUE;
       }
 
-  void 
-    ApvlvView::status_show ()
+  void
+    ApvlvView::cmd_hide ()
       {
         if (mainwindow == NULL)
           return;
 
-        char temp[256];
+        m_rootWindow->setsize (width, height);
+        gtk_widget_set_usize (statusbar, width, 0);
 
-        if (crtadoc () != NULL && crtadoc ()->filename ())
-          {
-            snprintf (temp, sizeof temp, "\"%s\"\t%d/%d\t\t%d\%\t\t\t\t%d\%",
-                      crtadoc ()->filename (),
-                      crtadoc ()->pagenumber (),
-                      crtadoc ()->pagesum (),
-                      (int) (crtadoc ()->zoomvalue () * 100),
-                      (int) (crtadoc ()->scrollrate () * 100)
-            );
-          }
-
-        gtk_entry_set_text (GTK_ENTRY (statusbar), temp);
-
-        gtk_widget_grab_focus (crtadoc ()->widget ());
+        gtk_widget_grab_focus (mainwindow);
         cmd_has = FALSE;
       }
 
@@ -444,8 +436,6 @@ namespace apvlv
           default:
             break;
           }
-
-        status_show ();
       }
 
   void 
@@ -548,9 +538,6 @@ namespace apvlv
                     delete currentWindow ();
                   }
               }
-
-            // After processed the command, return to status mode
-            status_show ();
           }
       }
 
@@ -559,8 +546,16 @@ namespace apvlv
                                       ApvlvView * view)
       {
         gtk_window_get_size (GTK_WINDOW (wid), &view->width, &view->height);
-        view->m_rootWindow->setsize (view->width, view->height - 20);
-        gtk_widget_set_usize (view->statusbar, view->width, 20);
+        if (view->cmd_has)
+          {
+            view->m_rootWindow->setsize (view->width, view->height - 20);
+            gtk_widget_set_usize (view->statusbar, view->width, 20);
+          }
+        else
+          {
+            view->m_rootWindow->setsize (view->width, view->height);
+            gtk_widget_set_usize (view->statusbar, view->width, 1);
+          }
       }
 
   gint
@@ -569,7 +564,7 @@ namespace apvlv
         ApvlvView *view =
           (ApvlvView *) g_object_get_data (G_OBJECT (wid), "view");
 
-        if (view->cmd_has == false)
+        if (view->cmd_has == FALSE)
           {
             gCmds->append ((GdkEventKey *) ev);
             return TRUE;
@@ -594,11 +589,12 @@ namespace apvlv
                   {
                     view->run (str + 1);
                   }
+                view->cmd_hide ();
                 return TRUE;
               }
             else if (gek->keyval == GDK_Escape)
               {
-                view->status_show ();
+                view->cmd_hide ();
                 return TRUE;
               }
 

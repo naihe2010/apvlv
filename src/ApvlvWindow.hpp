@@ -95,6 +95,10 @@ namespace apvlv
       inline ApvlvWindow *gethl (int num, bool next);
       inline ApvlvWindow *getnext (int num);
 
+      static gboolean apvlv_window_paned_resized_cb (GtkWidget      *wid, 
+                                                     GdkEventButton *event,
+                                                     ApvlvWindow    *win);
+
       static ApvlvWindow *m_curWindow;
       static int times;
 

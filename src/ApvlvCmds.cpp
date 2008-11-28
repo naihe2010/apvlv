@@ -176,8 +176,6 @@ deft:
       {
         translate (gev, &queue);
         bool ret = run ();
-        if (ret == true)
-          gView->status_show ();
       }
 
   void 

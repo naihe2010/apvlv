@@ -86,7 +86,7 @@ namespace apvlv
    
     void cmd_show ();
 
-    void status_show ();
+    void cmd_hide ();
 
   private:
     ApvlvDoc *crtadoc () { return currentWindow ()->getDoc (); }
