@@ -85,10 +85,10 @@ namespace apvlv
       vaj = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (scrollwin));
       haj = gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (scrollwin));
 
-      status = gtk_label_new ("");
+      status = new ApvlvDocStatus (this);
 
       gtk_box_pack_start (GTK_BOX (vbox), scrollwin, FALSE, FALSE, 0);
-      gtk_box_pack_end (GTK_BOX (vbox), status, FALSE, FALSE, 0);
+      gtk_box_pack_end (GTK_BOX (vbox), status->widget (), FALSE, FALSE, 0);
 
       setzoom (zm);
     }
@@ -112,31 +112,14 @@ namespace apvlv
       gtk_widget_destroy (vbox);
     }
 
-  bool
-    ApvlvDoc::status_show ()
-      {
-        if (filename ())
-          {
-            char temp[256];
-            snprintf (temp, sizeof temp, "\"%s\"\t%d/%d\t\t%d\%\t\t\t\t%d\%",
-                      filename (),
-                      pagenumber (),
-                      pagesum (),
-                      (int) (zoomvalue () * 100),
-                      (int) (scrollrate () * 100)
-            );
-            gtk_label_set_text (GTK_LABEL (status), temp);
-          }
-      }
-
   void
     ApvlvDoc::setsize (int w, int h)
       {
+        gtk_widget_set_usize (widget (), w, h);
+        gtk_widget_set_usize (scrollwin, w, h - 20);
+        status->setsize (w, 20);
         width = w;
         height = h;
-        gtk_widget_set_usize (widget (), width, height);
-        gtk_widget_set_usize (scrollwin, width, height - 20);
-        gtk_widget_set_usize (status, width, 20);
       }
 
   ApvlvDoc *
@@ -253,7 +236,7 @@ namespace apvlv
 
             loadlastposition ();
 
-            status_show ();
+            status->show ();
 
             setactive (true);
           }
@@ -409,7 +392,7 @@ namespace apvlv
         mCurrentCache->set (pagenum, false);
         gtk_image_set_from_pixbuf (GTK_IMAGE (image), mCurrentCache->getbuf (true));
 
-        status_show ();
+        status->show ();
 
 #ifdef HAVE_PTHREAD
         if (mNextCache != NULL)
@@ -514,7 +497,7 @@ namespace apvlv
         double maxv = vaj->upper - vaj->lower - vaj->page_size;
         double val = maxv * s;
         gtk_adjustment_set_value (vaj, val);
-        status_show ();
+        status->show ();
       }
 
   void
@@ -538,7 +521,7 @@ namespace apvlv
             showpage (pagenum - 1, 1.00);
           }
 
-        status_show ();
+        status->show ();
       }
 
   void
@@ -562,7 +545,7 @@ namespace apvlv
             showpage (pagenum + 1, 0.00);
           }
 
-        status_show ();
+        status->show ();
       }
 
   void
@@ -790,28 +773,17 @@ namespace apvlv
       }
 
   void 
-    ApvlvDoc::setactive (bool active)
+    ApvlvDoc::setactive (bool act)
       { 
-        GdkColor c;
-        if (active)
-          {
-            c.red = 300;
-            c.green = 300;
-            c.blue = 300;
-          }
-        else
-          {
-            c.red = 30000;
-            c.green = 30000;
-            c.blue = 30000;
-          }
-        gtk_widget_modify_fg (status, GTK_STATE_NORMAL, &c);
-        mActive = active; 
+        status->active (act);
+        mActive = act;
       }
 
   bool
     ApvlvDoc::rotate (int ct)
       {
+        if (ct == 1) ct = 90;
+
         if (ct % 90 != 0)
           {
             warn ("Not a 90 times value, ignore.");
@@ -876,6 +848,37 @@ namespace apvlv
         ApvlvDoc *doc = (ApvlvDoc *) data;
         doc->loadfile (doc->filestr, false);
         return FALSE;
+      }
+
+  void
+    ApvlvDoc::begin_print (GtkPrintOperation *operation, 
+                           GtkPrintContext   *context,
+                           PrintData         *data)
+      {
+        gtk_print_operation_set_n_pages (operation, data->endpn - data->frmpn + 1);
+      }
+
+  void
+    ApvlvDoc::draw_page (GtkPrintOperation *operation,
+                         GtkPrintContext   *context,
+                         gint               page_nr,
+                         PrintData         *data)
+      {
+        cairo_t *cr = gtk_print_context_get_cairo_context (context);
+        PopplerPage *page = poppler_document_get_page (data->doc, data->frmpn + page_nr);
+        poppler_page_render_for_printing (page, cr);
+
+        PangoLayout *layout = gtk_print_context_create_pango_layout (context);
+        pango_cairo_show_layout (cr, layout);
+        g_object_unref (layout);
+      }
+
+  void
+    ApvlvDoc::end_print (GtkPrintOperation *operation, 
+                         GtkPrintContext   *context,
+                         PrintData         *data)
+      {
+        delete data;
       }
 
   ApvlvDocCache::ApvlvDocCache (ApvlvDoc *dc)
@@ -1061,34 +1064,74 @@ namespace apvlv
 #endif
     }
 
+  ApvlvDocStatus::ApvlvDocStatus (ApvlvDoc *dc)
+    {
+      doc = dc;
+      vbox = gtk_hbox_new (FALSE, 0);
+      for (int i=0; i<4; ++i)
+        {
+          stlab[i] = gtk_label_new ("");
+          gtk_box_pack_start (GTK_BOX (vbox), stlab[i], FALSE, FALSE, 0);
+        }
+    }
+
+  ApvlvDocStatus::~ApvlvDocStatus ()
+    {
+    }
+
   void
-    ApvlvDoc::begin_print (GtkPrintOperation *operation, 
-                           GtkPrintContext   *context,
-                           PrintData         *data)
+    ApvlvDocStatus::active (bool act)
       {
-        gtk_print_operation_set_n_pages (operation, data->endpn - data->frmpn + 1);
+        GdkColor c;
+
+        if (act)
+          {
+            c.red = 300;
+            c.green = 300;
+            c.blue = 300;
+          }
+        else
+          {
+            c.red = 30000;
+            c.green = 30000;
+            c.blue = 30000;
+          }
+
+        for (unsigned int i=0; i<AD_STATUS_SIZE; ++i)
+          {
+            gtk_widget_modify_fg (stlab[i], GTK_STATE_NORMAL, &c);
+          }
       }
 
-  void
-    ApvlvDoc::draw_page (GtkPrintOperation *operation,
-                         GtkPrintContext   *context,
-                         gint               page_nr,
-                         PrintData         *data)
+  void 
+    ApvlvDocStatus::setsize (int w, int h)
       {
-        cairo_t *cr = gtk_print_context_get_cairo_context (context);
-        PopplerPage *page = poppler_document_get_page (data->doc, data->frmpn + page_nr);
-        poppler_page_render_for_printing (page, cr);
-
-        PangoLayout *layout = gtk_print_context_create_pango_layout (context);
-        pango_cairo_show_layout (cr, layout);
-        g_object_unref (layout);
+        int sw[4];
+        sw[0] = w >> 1;
+        sw[1] = sw[0] >> 1;
+        sw[2] = sw[1] >> 1;
+        sw[3] = sw[1] >> 1;
+        debug ("status lenght: %d-%d-%d-%d", sw[0], sw[1], sw[2], sw[3]);
+        for (unsigned int i=0; i<4; ++i)
+          {
+            gtk_widget_set_usize (stlab[i], sw[i], h);
+          }
       }
 
-  void
-    ApvlvDoc::end_print (GtkPrintOperation *operation, 
-                         GtkPrintContext   *context,
-                         PrintData         *data)
+  void 
+    ApvlvDocStatus::show ()
       {
-        delete data;
+        if (doc->filename ())
+          {
+            char temp[4][256];
+            snprintf (temp[0], sizeof temp, "%s", basename (doc->filename ()));
+            snprintf (temp[1], sizeof temp, "%d/%d", doc->pagenumber (), doc->pagesum ());
+            snprintf (temp[2], sizeof temp, "%d%%", (int) (doc->zoomvalue () * 100));
+            snprintf (temp[3], sizeof temp, "%d%%", (int) (doc->scrollrate () * 100));
+            for (unsigned int i=0; i<4; ++i)
+              {
+                gtk_label_set_text (GTK_LABEL (stlab[i]), temp[i]);
+              }
+          }
       }
 }

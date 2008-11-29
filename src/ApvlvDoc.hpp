@@ -97,6 +97,23 @@ namespace apvlv
     GdkPixbuf *buf;
     };
 
+  class ApvlvDocStatus
+    {
+  public:
+    ApvlvDocStatus (ApvlvDoc *doc);
+    ~ApvlvDocStatus ();
+    GtkWidget *widget () { return vbox; }
+    void active (bool act);
+    void setsize (int w, int h);
+    void show ();
+
+  private:
+#define AD_STATUS_SIZE   4
+    ApvlvDoc  *doc;
+    GtkWidget *vbox;
+    GtkWidget *stlab[AD_STATUS_SIZE];
+    };
+
   class ApvlvDoc
     {
   public:
@@ -234,7 +251,11 @@ namespace apvlv
     int width, height;
     GtkAdjustment *vaj, *haj;
 
-    GtkWidget *vbox, *scrollwin, *status, *image;
+    GtkWidget *vbox; // the main widget
+    GtkWidget *scrollwin; // the document scrolled window
+    GtkWidget *image; // the image
+
+    ApvlvDocStatus *status;
 
     bool mActive;
     };

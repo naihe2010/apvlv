@@ -550,15 +550,18 @@ end:
         int ma = GTK_PANED (m_paned)->max_position;
         int mv = gtk_paned_get_position (GTK_PANED (m_paned));
 
+        debug ("paned value: %d:%d:%d", mi, ma, mv);
         if (type == AW_SP)
           {
             mh1 = (m_height * (mv - mi)) / (ma - mi);
             mh2 = m_height - mh1;
+            debug ("height %d:%d:%d", m_height, mh1, mh2);
           }
         else if (type == AW_VSP)
           {
             mw1 = (m_width * (mv - mi)) / (ma - mi);
-            mw2 = m_width - mh1;
+            mw2 = m_width - mw1;
+            debug ("width %d:%d:%d", m_width, mw1, mw2);
           }
 
         debug ("paned changed, modify: win1: %p-%d-%d, win2: %p-%d-%d",
