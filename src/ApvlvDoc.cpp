@@ -752,23 +752,30 @@ namespace apvlv
       }
 
   bool
+    ApvlvDoc::getpagetext (PopplerPage *page, char **text)
+      {
+        double x, y;
+        getpagesize (page, &x, &y);
+        PopplerRectangle rect = { 0, 0, x, y };
+        *text = poppler_page_get_text (page, POPPLER_SELECTION_WORD, &rect);
+        if (*text != NULL)
+          {
+            debug ("get text: \n[%s]\n", *text);
+          }
+      }
+
+  bool
     ApvlvDoc::totext (const char *file)
       {
-        debug ("get text");
         if (doc == NULL)
           return false;
 
         PopplerPage *page = mCurrentCache->getpage ();
-
-        double x, y;
-        getpagesize (page, &x, &y);
-        debug ("x: %f, y: %f", x, y);
-        PopplerRectangle rect = { 0, 0, x, y };
-        char *txt = poppler_page_get_text (page, POPPLER_SELECTION_GLYPH, &rect);
-        if (txt != NULL)
+        char *txt;
+        bool ret = getpagetext (page, &txt);
+        if (ret == true)
           {
-            debug ("get text: \n[%s]\n", txt);
-            g_free (txt);
+            g_file_set_contents (file, txt, -1, NULL);
           }
       }
 

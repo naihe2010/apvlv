@@ -88,6 +88,8 @@ namespace apvlv
 
     void cmd_hide ();
 
+    void cmd_auto (const char *);
+
   private:
     ApvlvDoc *crtadoc () { return currentWindow ()->getDoc (); }
 

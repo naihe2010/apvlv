@@ -241,6 +241,21 @@ namespace apvlv
         cmd_has = FALSE;
       }
 
+  void
+    ApvlvView::cmd_auto (const char *ps)
+      {
+        stringstream ss (ps);
+        string cmd, np;
+        ss >> cmd >> np;
+        if (cmd == "o"
+            || cmd == "open")
+          {
+          }
+        else if (cmd, "buf")
+          {
+          }
+      }
+
   void 
     ApvlvView::fullscreen () 
       { 
@@ -563,7 +578,7 @@ namespace apvlv
               {
         debug ("here");
                 view->m_rootWindow->setsize (w, h);
-                gtk_widget_set_usize (view->statusbar, w, 0);
+                gtk_widget_set_usize (view->statusbar, w, 1);
               }
 
             view->width = w;
@@ -603,6 +618,17 @@ namespace apvlv
                     view->run (str + 1);
                   }
                 view->cmd_hide ();
+                return TRUE;
+              }
+            else if (gek->keyval == GDK_Tab)
+              {
+                debug ("get a tab, need auto complete");
+                gchar *str =
+                  (gchar *) gtk_entry_get_text (GTK_ENTRY (view->statusbar));
+                if (str && strlen (str) > 0)
+                  {
+                    view->cmd_auto (str);
+                  }
                 return TRUE;
               }
             else if (gek->keyval == GDK_Escape)

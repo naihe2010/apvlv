@@ -121,16 +121,16 @@ namespace apvlv
   void
     logv (const char *level, const char *file, int line, const char *func, const char *ms, ...)
       {
-        char p[256], temp[256];
+        char p[0x1000], temp[0x100];
         va_list vap;
 
+        snprintf (temp, sizeof temp, "[%s] %s: %d: %s(): ",
+                  level, file, line, func);
+
         va_start (vap, ms);
-        vsprintf (p, ms, vap);
-        snprintf (temp, sizeof temp, "[%s] %s: %d: %s(): %s",
-                  level, file, line, func,
-                  p);
+        vsnprintf (p, sizeof p, ms, vap);
         va_end (vap);
 
-        cerr << temp << endl;
+        cerr << temp << p << endl;
       }
 }

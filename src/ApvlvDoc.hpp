@@ -129,6 +129,8 @@ namespace apvlv
 
     void getpagesize (PopplerPage *p, double *x, double *y);
 
+    bool getpagetext (PopplerPage *p, char **contents);
+
     int pagenumber () { return pagenum + 1; }
 
     int getrotate () { return rotatevalue; }
