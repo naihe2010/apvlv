@@ -1068,7 +1068,7 @@ namespace apvlv
     {
       doc = dc;
       vbox = gtk_hbox_new (FALSE, 0);
-      for (int i=0; i<4; ++i)
+      for (int i=0; i<AD_STATUS_SIZE; ++i)
         {
           stlab[i] = gtk_label_new ("");
           gtk_box_pack_start (GTK_BOX (vbox), stlab[i], FALSE, FALSE, 0);
@@ -1106,13 +1106,13 @@ namespace apvlv
   void 
     ApvlvDocStatus::setsize (int w, int h)
       {
-        int sw[4];
+        int sw[AD_STATUS_SIZE];
         sw[0] = w >> 1;
         sw[1] = sw[0] >> 1;
         sw[2] = sw[1] >> 1;
         sw[3] = sw[1] >> 1;
         debug ("status lenght: %d-%d-%d-%d", sw[0], sw[1], sw[2], sw[3]);
-        for (unsigned int i=0; i<4; ++i)
+        for (unsigned int i=0; i<AD_STATUS_SIZE; ++i)
           {
             gtk_widget_set_usize (stlab[i], sw[i], h);
           }
@@ -1123,12 +1123,12 @@ namespace apvlv
       {
         if (doc->filename ())
           {
-            char temp[4][256];
+            char temp[AD_STATUS_SIZE][256];
             snprintf (temp[0], sizeof temp, "%s", basename (doc->filename ()));
             snprintf (temp[1], sizeof temp, "%d/%d", doc->pagenumber (), doc->pagesum ());
             snprintf (temp[2], sizeof temp, "%d%%", (int) (doc->zoomvalue () * 100));
             snprintf (temp[3], sizeof temp, "%d%%", (int) (doc->scrollrate () * 100));
-            for (unsigned int i=0; i<4; ++i)
+            for (unsigned int i=0; i<AD_STATUS_SIZE; ++i)
               {
                 gtk_label_set_text (GTK_LABEL (stlab[i]), temp[i]);
               }
