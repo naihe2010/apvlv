@@ -58,10 +58,10 @@ namespace apvlv
       g_signal_connect (G_OBJECT (mainwindow), "size-allocate",
                         G_CALLBACK (apvlv_view_resized_cb), this);
 
-      width = atoi (gParams->settingvalue ("width"));
-      height = atoi (gParams->settingvalue ("height"));
+      int w = atoi (gParams->settingvalue ("width"));
+      int h = atoi (gParams->settingvalue ("height"));
 
-      gtk_widget_set_size_request (mainwindow, width, height);
+      gtk_widget_set_size_request (mainwindow, w, h);
 
       g_object_set_data (G_OBJECT (mainwindow), "view", this);
       g_signal_connect (G_OBJECT (mainwindow), "key-press-event",
@@ -71,7 +71,7 @@ namespace apvlv
       gtk_container_add (GTK_CONTAINER (mainwindow), vbox);
 
       m_rootWindow = new ApvlvWindow (NULL);
-      m_rootWindow->setcurrentWindow (m_rootWindow);
+      m_rootWindow->setcurrentWindow (NULL, m_rootWindow);
       gtk_box_pack_start (GTK_BOX (vbox), m_rootWindow->widget (), FALSE, FALSE, 0);
 
       statusbar = gtk_entry_new ();
@@ -218,6 +218,7 @@ namespace apvlv
         if (mainwindow == NULL)
           return;
 
+        debug ("cmd show");
         m_rootWindow->setsize (width, height - 20);
         gtk_widget_set_usize (statusbar, width, 20);
 
@@ -232,8 +233,9 @@ namespace apvlv
         if (mainwindow == NULL)
           return;
 
+        debug ("cmd hide");
         m_rootWindow->setsize (width, height);
-        gtk_widget_set_usize (statusbar, width, 0);
+        gtk_widget_set_usize (statusbar, width, 1);
 
         gtk_widget_grab_focus (mainwindow);
         cmd_has = FALSE;
@@ -545,16 +547,27 @@ namespace apvlv
     ApvlvView::apvlv_view_resized_cb (GtkWidget * wid, GtkAllocation * al,
                                       ApvlvView * view)
       {
-        gtk_window_get_size (GTK_WINDOW (wid), &view->width, &view->height);
-        if (view->cmd_has)
+        int w, h;
+
+        gtk_window_get_size (GTK_WINDOW (wid), &w, &h);
+        if (w != view->width 
+            || h != view->height)
           {
-            view->m_rootWindow->setsize (view->width, view->height - 20);
-            gtk_widget_set_usize (view->statusbar, view->width, 20);
-          }
-        else
-          {
-            view->m_rootWindow->setsize (view->width, view->height);
-            gtk_widget_set_usize (view->statusbar, view->width, 1);
+            if (view->cmd_has)
+              {
+        debug ("here");
+                view->m_rootWindow->setsize (w, h - 20);
+                gtk_widget_set_usize (view->statusbar, w, 20);
+              }
+            else
+              {
+        debug ("here");
+                view->m_rootWindow->setsize (w, h);
+                gtk_widget_set_usize (view->statusbar, w, 0);
+              }
+
+            view->width = w;
+            view->height = h;
           }
       }
 

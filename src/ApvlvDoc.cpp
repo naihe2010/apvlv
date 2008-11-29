@@ -238,7 +238,6 @@ namespace apvlv
             lines = 50;
             chars = 80;
             filestr = filename;
-            mActive = true;
 
 #ifdef HAVE_PTHREAD
             if (mLastCache != NULL)
@@ -255,6 +254,8 @@ namespace apvlv
             loadlastposition ();
 
             status_show ();
+
+            setactive (true);
           }
 
         return doc == NULL? false: true;
@@ -786,6 +787,26 @@ namespace apvlv
             debug ("get text: \n[%s]\n", txt);
             g_free (txt);
           }
+      }
+
+  void 
+    ApvlvDoc::setactive (bool active)
+      { 
+        GdkColor c;
+        if (active)
+          {
+            c.red = 300;
+            c.green = 300;
+            c.blue = 300;
+          }
+        else
+          {
+            c.red = 30000;
+            c.green = 30000;
+            c.blue = 30000;
+          }
+        gtk_widget_modify_fg (status, GTK_STATE_NORMAL, &c);
+        mActive = active; 
       }
 
   bool

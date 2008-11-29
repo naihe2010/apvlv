@@ -84,10 +84,12 @@ namespace apvlv
 
       returnType process (int times, guint keyval);
 
-      static void setcurrentWindow (ApvlvWindow *win) { m_curWindow = win; debug ("set %d times", times ++); }
+      static void setcurrentWindow (ApvlvWindow *pre, ApvlvWindow *win);
+
       static ApvlvWindow *currentWindow () { return m_curWindow; }
 
       enum windowType { AW_SP, AW_VSP, AW_DOC } type;
+
       ApvlvWindow *m_prev, *m_next, *m_parent, *m_child;
 
   private:

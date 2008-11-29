@@ -134,7 +134,7 @@ namespace apvlv
 
     bool totext (const char *name);
 
-    bool rotate (int ct);
+    bool rotate (int ct = 90);
 
     void setsize (int wid, int hei);
 
@@ -170,7 +170,7 @@ namespace apvlv
     void search (const char *str);
     void backsearch (const char *str);
 
-    void setactive (bool active) { mActive = active; }
+    void setactive (bool active);
 
     returnType process (int times, guint keyval, guint state);
    

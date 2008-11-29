@@ -85,13 +85,13 @@ namespace apvlv
           if (m_next != NULL)
             {
               m_next->m_prev = m_prev;
-              setcurrentWindow (m_next);
+              setcurrentWindow (NULL, m_next);
             }
 
           if (m_parent->m_child && m_parent->m_child->m_next == NULL)
             {
               m_parent->unbirth ();
-              setcurrentWindow (m_parent);
+              setcurrentWindow (NULL, m_parent);
               return;
             }
         }
@@ -110,6 +110,22 @@ namespace apvlv
         }
     }
 
+  void 
+    ApvlvWindow::setcurrentWindow (ApvlvWindow *pre, ApvlvWindow *win)
+      {
+        if (pre != NULL && pre->type == AW_DOC)
+          {
+            pre->m_Doc->setactive (false);
+          }
+
+        if (win->type == AW_DOC)
+          {
+            win->m_Doc->setactive (true);
+          }
+
+        m_curWindow = win;
+      }
+
   returnType
     ApvlvWindow::process (int ct, guint key)
       {
@@ -126,7 +142,7 @@ namespace apvlv
             if (nwin != NULL)
               {
                 debug ("here");
-                setcurrentWindow (nwin);
+                setcurrentWindow (this, nwin);
               }
             break;
 
@@ -423,7 +439,7 @@ end:
 
         gtk_widget_show_all (m_paned);
 
-        setcurrentWindow (nwindow);
+        setcurrentWindow (nwindow2, nwindow);
 
         return nwindow;
       }
@@ -442,7 +458,7 @@ end:
         else if (type == AW_SP
                  || type == AW_VSP)
           {
-            gtk_timeout_add (50, apvlv_window_resize_children_cb, this);
+            gtk_timeout_add (100, apvlv_window_resize_children_cb, this);
           }
       }
 
