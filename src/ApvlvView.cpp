@@ -306,6 +306,11 @@ namespace apvlv
         string cmd, np;
         ss >> cmd >> np;
 
+        if (cmd == "" || np == "")
+          {
+            return;
+          }
+
         debug ("cmd: %s, np: %s", cmd.c_str (), np.c_str ());
         if (cmd == "o"
             || cmd == "open"
