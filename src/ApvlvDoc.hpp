@@ -42,6 +42,7 @@
 
 #include <gtk/gtk.h>
 #include <glib/poppler.h>
+#include <stdlib.h>
 
 #include <iostream>
 #include <vector>
