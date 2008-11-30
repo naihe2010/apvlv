@@ -308,7 +308,8 @@ namespace apvlv
 
         debug ("cmd: %s, np: %s", cmd.c_str (), np.c_str ());
         if (cmd == "o"
-            || cmd == "open")
+            || cmd == "open"
+            || cmd == "TOtext")
           {
             gcomp = filecompleteinit (np.c_str ());
           }
@@ -338,7 +339,10 @@ namespace apvlv
             gtk_editable_set_position (GTK_EDITABLE (statusbar), -1);
           }
 
-        g_completion_free (gcomp);
+        if (gcomp != NULL)
+          {
+            g_completion_free (gcomp);
+          }
       }
 
   void 
