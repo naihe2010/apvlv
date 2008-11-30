@@ -37,7 +37,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <libgen.h>
 
+#include <glib.h>
+#include <glib/gprintf.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <gdk/gdkkeysyms.h>
@@ -188,6 +191,61 @@ namespace apvlv
         return NULL;
       }
 
+  GCompletion *
+    ApvlvView::filecompleteinit (const char *path)
+      {
+        GCompletion *gcomp = g_completion_new (NULL);
+        GList *list = g_list_alloc ();
+        char *ds, *bs, *dname, *bname;
+        const gchar *fname;
+
+        ds = g_strdup (path);
+        bs = g_strdup (path);
+        dname = dirname (ds);
+        if (dname != NULL)
+          {
+            GDir *dir = g_dir_open ((const char *) dname, 0, NULL);
+            if (dir != NULL)
+              {
+                bname = basename (bs);
+                unsigned int len = strlen (bname);
+                while ((fname = g_dir_read_name (dir)) != NULL)
+                  {
+                    debug ("fname:%s, bname:%s, bnamelen:%d", fname, bname, len);
+                    if (strncmp (fname, bname, len) != 0)
+                      continue;
+
+                    if (strcmp (dname, ".") == 0)
+                      {
+                        list->data = g_strdup (fname);
+                        debug ("completion add item: %s", list->data);
+                      }
+                    else
+                      {
+                        if (dname[strlen(dname) - 1] == '/')
+                          {
+                            list->data = g_strjoin ("", dname, fname, NULL);
+                          }
+                        else
+                          {
+                            list->data = g_strjoin ("/", dname, fname, NULL);
+                          }
+                        debug ("completion add item: %s", list->data);
+                      }
+
+                    g_completion_add_items (gcomp, list);
+                  }
+                g_dir_close (dir);
+              }
+          }
+
+        g_free (bs);
+        g_free (ds);
+        g_list_free (list);
+
+        return gcomp;
+      }
+
   void 
     ApvlvView::promptsearch ()
       {
@@ -218,7 +276,6 @@ namespace apvlv
         if (mainwindow == NULL)
           return;
 
-        debug ("cmd show");
         m_rootWindow->setsize (width, height - 20);
         gtk_widget_set_usize (statusbar, width, 20);
 
@@ -233,7 +290,6 @@ namespace apvlv
         if (mainwindow == NULL)
           return;
 
-        debug ("cmd hide");
         m_rootWindow->setsize (width, height);
         gtk_widget_set_usize (statusbar, width, 1);
 
@@ -244,16 +300,45 @@ namespace apvlv
   void
     ApvlvView::cmd_auto (const char *ps)
       {
+        GCompletion *gcomp;
+
         stringstream ss (ps);
         string cmd, np;
         ss >> cmd >> np;
+
+        debug ("cmd: %s, np: %s", cmd.c_str (), np.c_str ());
         if (cmd == "o"
             || cmd == "open")
           {
+            gcomp = filecompleteinit (np.c_str ());
           }
-        else if (cmd, "buf")
+        else if (cmd == "doc")
           {
+            gcomp = g_completion_new (NULL);
+            GList *list = g_list_alloc ();
+            map <string, ApvlvDoc *>::iterator it;
+            for (it=mDocs.begin (); it!=mDocs.end (); ++it)
+              {
+                list->data = g_strdup (it->first.c_str ());
+                g_completion_add_items (gcomp, list);
+                debug ("completion add item: %s", list->data);
+              }
+            g_list_free (list);
           }
+
+        char *comtext = NULL;
+        g_completion_complete (gcomp, np.c_str (), &comtext);
+        if (comtext != NULL)
+          {
+            debug ("completion get item: %s", comtext);
+            char text[0x100];
+            snprintf (text, sizeof text, ":%s %s", cmd.c_str (), comtext);
+            g_free (comtext);
+            gtk_entry_set_text (GTK_ENTRY (statusbar), text);
+            gtk_editable_set_position (GTK_EDITABLE (statusbar), -1);
+          }
+
+        g_completion_free (gcomp);
       }
 
   void 
@@ -476,6 +561,20 @@ namespace apvlv
               {
                 gParams->mappush (subcmd, argu);
               }
+            else if (cmd == "o"
+                     || cmd == "open"
+                     || cmd == "doc")
+              {
+                ApvlvDoc *dc = hasloaded (subcmd.c_str ());
+                if (dc != NULL)
+                  {
+                    currentWindow ()->setDoc (dc);
+                  }
+                else
+                  {
+                    currentWindow ()->loadDoc (subcmd.c_str ());
+                  }
+              }
             else if (cmd == "TOtext")
               {
                 crtadoc ()->totext (subcmd.c_str ());
@@ -627,7 +726,7 @@ namespace apvlv
                   (gchar *) gtk_entry_get_text (GTK_ENTRY (view->statusbar));
                 if (str && strlen (str) > 0)
                   {
-                    view->cmd_auto (str);
+                    view->cmd_auto (str + 1);
                   }
                 return TRUE;
               }

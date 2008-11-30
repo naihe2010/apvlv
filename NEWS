@@ -3,6 +3,10 @@
 
     News features
 
+        * remove the status bar from the bottom, and add it to every window.
+
+        * make the active window healight the status bar.
+
         * add cache module to make the display faster.
 
         * add 'r' command to rotate page.
@@ -11,9 +15,16 @@
 
         * add ':pr[int]' to print the document.
 
+        * add ':open file' to open a PDF document.
+
+        * add ':doc file' to set the doc to current window.
+
+        * support open multiple PDF files once, and load them in cache. can be set by ':doc file'.
+
     Bug Fix
    
         * fix the absolutepath () bug.
+
 
     apvlv 0.0.3
     ==============

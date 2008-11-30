@@ -104,6 +104,8 @@ namespace apvlv
 
     bool destroy;
 
+    GCompletion *filecompleteinit (const char *s);
+
     void runcmd (const char *cmd);
 
     gboolean cmd_has;

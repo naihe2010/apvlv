@@ -78,9 +78,12 @@ main (int argc, char *argv[])
 
   if (argc > 1)
     {
-      path = absolutepath (argv[1]);
-      gView->loadfile (path);
-      g_free (path);
+      for (unsigned int i=argc-1; i>0; --i)
+        {
+          path = absolutepath (argv[i]);
+          gView->loadfile (path);
+          g_free (path);
+        }
     }
   else
     {
