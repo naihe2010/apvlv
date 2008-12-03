@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "apvlv", "apvlv.vcproj", "{7E7A2721-146E-4637-8781-60D7A842755B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5B02BD7C-33B7-4FA5-AAD3-06EC5F7D393B} = {5B02BD7C-33B7-4FA5-AAD3-06EC5F7D393B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpoppler", "libpoppler.vcproj", "{5B02BD7C-33B7-4FA5-AAD3-06EC5F7D393B}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "apvlv-setup", "apvlv-setup\apvlv-setup.vdproj", "{CCE17CAE-759C-4B32-AB72-756769B6026F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7E7A2721-146E-4637-8781-60D7A842755B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7E7A2721-146E-4637-8781-60D7A842755B}.Debug|Win32.Build.0 = Debug|Win32
+		{7E7A2721-146E-4637-8781-60D7A842755B}.Release|Win32.ActiveCfg = Release|Win32
+		{5B02BD7C-33B7-4FA5-AAD3-06EC5F7D393B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5B02BD7C-33B7-4FA5-AAD3-06EC5F7D393B}.Debug|Win32.Build.0 = Debug|Win32
+		{5B02BD7C-33B7-4FA5-AAD3-06EC5F7D393B}.Release|Win32.ActiveCfg = Release|Win32
+		{CCE17CAE-759C-4B32-AB72-756769B6026F}.Debug|Win32.ActiveCfg = Debug
+		{CCE17CAE-759C-4B32-AB72-756769B6026F}.Debug|Win32.Build.0 = Debug
+		{CCE17CAE-759C-4B32-AB72-756769B6026F}.Release|Win32.ActiveCfg = Release
+		{CCE17CAE-759C-4B32-AB72-756769B6026F}.Release|Win32.Build.0 = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

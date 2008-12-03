@@ -1,6 +1,6 @@
 " some map
 
-" map n to C-f to goto next page
+" map n to <C-f> to goto next page
 "map n <C-f>
 
 " and p to prepage
@@ -29,4 +29,4 @@
 "set commandtimeout=1000
 
 " set default dir
-"set defaultdir=/tmp
+"set defaultdir=C:\
