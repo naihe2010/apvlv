@@ -1131,10 +1131,10 @@ namespace apvlv
         if (doc->filename ())
           {
             char temp[AD_STATUS_SIZE][256];
-            snprintf (temp[0], sizeof temp, "%s", basename (doc->filename ()));
-            snprintf (temp[1], sizeof temp, "%d/%d", doc->pagenumber (), doc->pagesum ());
-            snprintf (temp[2], sizeof temp, "%d%%", (int) (doc->zoomvalue () * 100));
-            snprintf (temp[3], sizeof temp, "%d%%", (int) (doc->scrollrate () * 100));
+            snprintf (temp[0], sizeof temp[0], "%s", basename (doc->filename ()));
+            snprintf (temp[1], sizeof temp[1], "%d/%d", doc->pagenumber (), doc->pagesum ());
+            snprintf (temp[2], sizeof temp[2], "%d%%", (int) (doc->zoomvalue () * 100));
+            snprintf (temp[3], sizeof temp[3], "%d%%", (int) (doc->scrollrate () * 100));
             for (unsigned int i=0; i<AD_STATUS_SIZE; ++i)
               {
                 gtk_label_set_text (GTK_LABEL (stlab[i]), temp[i]);

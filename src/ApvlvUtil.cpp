@@ -50,7 +50,7 @@ namespace apvlv
   char *
     absolutepath (const char *path)
       {
-        char abpath[512];
+        char abpath[PATH_MAX];
 
         if (g_path_is_absolute (path))
           {
