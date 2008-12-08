@@ -37,7 +37,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <libgen.h>
 
 #include <glib.h>
 #include <glib/gprintf.h>
@@ -48,6 +47,10 @@
 
 #include <iostream>
 #include <sstream>
+
+#ifdef WIN32
+#define snprintf _snprintf
+#endif
 
 namespace apvlv
 {
@@ -196,51 +199,59 @@ namespace apvlv
       {
         GCompletion *gcomp = g_completion_new (NULL);
         GList *list = g_list_alloc ();
-        char *ds, *bs, *dname, *bname;
-        const gchar *fname;
+        gchar *dname, *bname;
+        const gchar *name;
 
-        ds = g_strdup (path);
-        bs = g_strdup (path);
-        dname = dirname (ds);
-        if (dname != NULL)
+        dname = g_path_get_dirname (path);
+        GDir *dir = g_dir_open ((const char *) dname, 0, NULL);
+        if (dir != NULL)
           {
-            GDir *dir = g_dir_open ((const char *) dname, 0, NULL);
-            if (dir != NULL)
+            bname = g_path_get_basename (path);
+            size_t len = strlen (bname);
+            while ((name = g_dir_read_name (dir)) != NULL)
               {
-                bname = basename (bs);
-                unsigned int len = strlen (bname);
-                while ((fname = g_dir_read_name (dir)) != NULL)
+#ifdef WIN32
+                gchar *fname = g_win32_locale_filename_from_utf8 (name);
+#else
+                gchar *fname = (gchar *) name;
+#endif
+                debug ("fname:%s, bname:%s, bnamelen:%d", fname, bname, len);
+                if (strcmp (bname, PATH_SEP_S) != 0)
                   {
-                    debug ("fname:%s, bname:%s, bnamelen:%d", fname, bname, len);
                     if (strncmp (fname, bname, len) != 0)
                       continue;
+                  }
 
-                    if (strcmp (dname, ".") == 0)
+                if (strcmp (dname, ".") == 0)
+                  {
+                    list->data = g_strdup (fname);
+                    debug ("completion add item: %s", list->data);
+                  }
+                else
+                  {
+                    if (dname[strlen(dname) - 1] == PATH_SEP_C)
                       {
-                        list->data = g_strdup (fname);
-                        debug ("completion add item: %s", list->data);
+                        list->data = g_strjoin ("", dname, fname, NULL);
                       }
                     else
                       {
-                        if (dname[strlen(dname) - 1] == '/')
-                          {
-                            list->data = g_strjoin ("", dname, fname, NULL);
-                          }
-                        else
-                          {
-                            list->data = g_strjoin ("/", dname, fname, NULL);
-                          }
-                        debug ("completion add item: %s", list->data);
+                        list->data = g_strjoin (PATH_SEP_S, dname, fname, NULL);
                       }
-
-                    g_completion_add_items (gcomp, list);
+                    char *p = (char *) list->data;
+                    debug ("completion add item: %s", list->data);
                   }
-                g_dir_close (dir);
-              }
-          }
 
-        g_free (bs);
-        g_free (ds);
+#ifdef WIN32
+                g_free (fname);
+#endif
+                g_completion_add_items (gcomp, list);
+                g_free (list->data);
+              }
+            g_free (bname);
+            g_dir_close (dir);
+          }
+        g_free (dname);
+
         g_list_free (list);
 
         return gcomp;
@@ -714,7 +725,7 @@ namespace apvlv
       {
         ApvlvView *view = (ApvlvView *) g_object_get_data (G_OBJECT (wid), "view");
 
-        if (view->cmd_has == TRUE)
+        if (view->cmd_has == true)
           {
             GdkEventKey *gek = (GdkEventKey *) ev;
             if (gek->keyval == GDK_Return)

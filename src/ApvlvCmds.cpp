@@ -40,7 +40,9 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
+#ifndef WIN32
 #include <gdk/gdkx.h>
+#endif
 
 #include <sstream>
 
@@ -60,7 +62,7 @@ namespace apvlv
 
           if (ss[0] == '<')
             {
-              int p = ss.find ('>');
+              size_t p = ss.find ('>');
               if (p != string::npos)
                 {
                   string ss2 (ss.c_str (), p + 1);
@@ -83,13 +85,16 @@ deft:
           gk.send_event = FALSE;
           gk.time = GDK_CURRENT_TIME;
           gk.length = 0;
-          gk.string = strndup ("", 0);
+          gk.string = "";
+#ifndef WIN32
           gk.hardware_keycode = XKeysymToKeycode (GDK_WINDOW_XDISPLAY (gk.window), gk.keyval);
+#endif
           gk.group = 0;
           gk.is_modifier = 0;
 
           m_keys.push_back (gk);
         }
+      return true;
     }
 
   void
@@ -124,6 +129,7 @@ deft:
       {
         ApvlvCmds *ac = (ApvlvCmds *) data;
         ac->sendevent ();
+        return TRUE;
       }
 
   ApvlvCmds::ApvlvCmds () 
@@ -375,7 +381,7 @@ deft:
 
         if (queue[0] == '<')
           {
-            int p = queue.find ('>');
+            size_t p = queue.find ('>');
             if (p != string::npos)
               {
                 string ss (queue.c_str (), p + 1);
@@ -399,6 +405,7 @@ deft:
             queue.erase (0, 1);
             return true;
           }
+        return false;
       }
 
   returnType 

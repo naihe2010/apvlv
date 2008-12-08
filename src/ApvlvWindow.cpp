@@ -61,7 +61,7 @@ namespace apvlv
 
   ApvlvWindow::~ApvlvWindow ()
     {
-      ApvlvWindow *nwin, *cwin;
+      ApvlvWindow *nwin;
 
       if (type == AW_SP || type == AW_VSP)
         {
@@ -157,6 +157,7 @@ namespace apvlv
           default:
             break;
           }
+        return MATCH;
       }
 
   ApvlvWindow *
@@ -185,7 +186,6 @@ namespace apvlv
     ApvlvWindow::getkj (int num, bool down)
       {
         ApvlvWindow *bw, *w, *nw, *fw;
-        int id;
 
         if (m_parent == NULL)
           return NULL;
@@ -242,7 +242,6 @@ end:
     ApvlvWindow::gethl (int num, bool right)
       {
         ApvlvWindow *bw, *w, *nw, *fw;
-        int id;
 
         if (m_parent == NULL)
           return NULL;
@@ -381,6 +380,7 @@ end:
             m_next->m_prev = awin;
           }
         m_next = awin;
+        return this;
       }
 
   ApvlvWindow *
@@ -397,6 +397,7 @@ end:
           {
             m_parent->m_child = bwin;
           }
+        return this;
       }
 
   ApvlvWindow *
@@ -404,7 +405,6 @@ end:
       {
         ApvlvWindow *nwindow, *nwindow2;
         int ttype = vsp == false? AW_SP: AW_VSP;
-        GtkWidget *pan;
 
         GtkWidget *old = widget ();
         GtkWidget *parent = gtk_widget_get_parent (old);

@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <sys/stat.h>
 
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
@@ -51,9 +52,15 @@
 #include <fstream>
 #include <sstream>
 
+#ifdef WIN32
+#define snprintf _snprintf
+#endif
+
 namespace apvlv
 {
+#ifdef HAVE_PTHREAD
   static pthread_mutex_t rendermutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
   static GtkPrintSettings *settings = NULL;
 
   ApvlvDoc::ApvlvDoc (const char *zm)
@@ -66,6 +73,7 @@ namespace apvlv
 
       rotatevalue = 0;
 
+      rawdata = NULL;
       doc = NULL;
 
       results = NULL;
@@ -109,6 +117,12 @@ namespace apvlv
           savelastposition ();
         }
       positions.clear ();
+
+      if (rawdata != NULL)
+        delete []rawdata;
+
+      delete status;
+
       gtk_widget_destroy (vbox);
     }
 
@@ -136,9 +150,9 @@ namespace apvlv
   bool
     ApvlvDoc::savelastposition ()
       {
-        char *path = absolutepath ("~/.apvlvinfo");
-
+        gchar *path = absolutepath (sessionfile.c_str ());
         ofstream os (path, ios::app);
+        g_free (path);
 
         if (os.is_open ())
           {
@@ -148,21 +162,24 @@ namespace apvlv
             os << scrollrate ();
             os << "\n";
             os.close ();
+            return true;
           }
+        return false;
       }
 
   bool
     ApvlvDoc::loadlastposition ()
       {
-        char *path = absolutepath ("~/.apvlvinfo");
+        bool ret = false;
+        int pagen = 0;
+        double scrollr = 0.00;
+        char *path = absolutepath (sessionfile.c_str ());
 
         ifstream os (path, ios::in);
 
         if (os.is_open ())
           {
             string line;
-            int pagen = 0;
-            double scrollr = 0.00;
 
             while ((getline (os, line)) != NULL)
               {
@@ -178,20 +195,22 @@ namespace apvlv
                     if (files == filestr)
                       {
                         ss >> pagen >> scrollr;
+                        ret = true;
                       }
                   }
               }
-
-            scrollvalue = scrollr;
-            showpage (pagen);
-
-            // Warning
-            // I can't think a better way to scroll correctly when 
-            // the page is not be displayed correctly
-            gtk_timeout_add (50, apvlv_doc_first_scroll_cb, this);
-
             os.close ();
           }
+
+        scrollvalue = scrollr;
+        showpage (pagen);
+
+        // Warning
+        // I can't think a better way to scroll correctly when 
+        // the page is not be displayed correctly
+        gtk_timeout_add (50, apvlv_doc_first_scroll_cb, this);
+
+        return ret;
       }
 
   bool
@@ -205,15 +224,46 @@ namespace apvlv
               }
           }
 
-        gchar *uri = g_filename_to_uri (filename, NULL, NULL);
-        if (uri == NULL)
+#ifdef WIN32
+        gchar *wfilename = g_win32_locale_filename_from_utf8 (filename);
+#else
+        gchar *wfilename = (gchar *) filename;
+#endif
+        size_t filelen;
+        struct stat sbuf;
+        int rt = stat (wfilename, &sbuf);
+        if (rt < 0)
           {
-            err ("Can't convert %s to a valid uri", filename);;
+            err ("Can't stat the PDF file: %s.", wfilename);
             return false;
           }
+        filelen = sbuf.st_size;
+ 
+        if (rawdata != NULL
+            && rawdatasize < filelen)
+          {
+            delete []rawdata;
+            rawdata = NULL;
+          }
 
-        doc = poppler_document_new_from_file (uri, NULL, NULL);
-        g_free (uri);
+        if (rawdata == NULL)
+          {
+            rawdata = new char[filelen];
+            rawdatasize = filelen;
+          }
+
+        ifstream ifs (wfilename, ios::binary);
+        if (ifs.is_open ())
+        {
+          ifs.read (rawdata, filelen);
+          ifs.close ();
+        }
+
+#ifdef WIN32
+        g_free (wfilename);
+#endif
+
+        doc = poppler_document_new_from_data (rawdata, filelen, NULL, NULL);
 
         if (doc != NULL)
           {
@@ -761,7 +811,9 @@ namespace apvlv
         if (*text != NULL)
           {
             debug ("get text: \n[%s]\n", *text);
+            return true;
           }
+        return false;
       }
 
   bool
@@ -776,7 +828,9 @@ namespace apvlv
         if (ret == true)
           {
             g_file_set_contents (file, txt, -1, NULL);
+            return true;
           }
+        return false;
       }
 
   void 
@@ -809,6 +863,9 @@ namespace apvlv
   bool
     ApvlvDoc::print (int ct)
       {
+#ifdef WIN32
+        return false;
+#else
         bool ret = false;
         GtkPrintOperation *print = gtk_print_operation_new ();
 
@@ -839,6 +896,7 @@ namespace apvlv
           }
         g_object_unref (print);
         return ret;
+#endif
       }
 
   gboolean 
@@ -857,6 +915,7 @@ namespace apvlv
         return FALSE;
       }
 
+#ifndef WIN32
   void
     ApvlvDoc::begin_print (GtkPrintOperation *operation, 
                            GtkPrintContext   *context,
@@ -887,6 +946,7 @@ namespace apvlv
       {
         delete data;
       }
+#endif
 
   ApvlvDocCache::ApvlvDocCache (ApvlvDoc *dc)
     {
@@ -895,6 +955,7 @@ namespace apvlv
       data = NULL;
       buf = NULL;
 #ifdef HAVE_PTHREAD
+      timer = -1;
       thread_running = false;
       pthread_cond_init (&cond, NULL);
       pthread_mutex_init (&mutex, NULL);
@@ -942,6 +1003,8 @@ namespace apvlv
     ApvlvDocCache::delayload (ApvlvDocCache *ac)
       {
         pthread_create (&ac->tid, NULL, (void *(*) (void *)) load, ac);
+        ac->timer = -1;       
+        return FALSE;
       }
 #endif
 
@@ -977,9 +1040,13 @@ namespace apvlv
                                     3 * ix,
                                     NULL, NULL);
 
+#ifdef HAVE_PTHREAD
         pthread_mutex_lock (&rendermutex);
+#endif
         poppler_page_render_to_pixbuf (tpage, 0, 0, ix, iy, ac->doc->zoomvalue (), ac->doc->getrotate (), bu);
+#ifdef HAVE_PTHREAD      
         pthread_mutex_unlock (&rendermutex);
+#endif
 
         ac->page = tpage;
         ac->data = dat;
@@ -996,11 +1063,19 @@ namespace apvlv
   ApvlvDocCache::~ApvlvDocCache ()
     {
 #ifdef HAVE_PTHREAD
+      if (timer > 0)
+        {
+          gtk_timeout_remove (timer);
+        }
       if (thread_running)
         {
           pthread_cancel (tid);
         }
 #endif
+      if (data != NULL)
+        delete []data;
+      if (buf != NULL)
+        g_object_unref (buf);
     }
 
   PopplerPage *
@@ -1131,7 +1206,9 @@ namespace apvlv
         if (doc->filename ())
           {
             char temp[AD_STATUS_SIZE][256];
-            snprintf (temp[0], sizeof temp[0], "%s", basename (doc->filename ()));
+            gchar *bn;
+            bn = g_path_get_basename (doc->filename ());
+            snprintf (temp[0], sizeof temp[0], "%s", bn);
             snprintf (temp[1], sizeof temp[1], "%d/%d", doc->pagenumber (), doc->pagesum ());
             snprintf (temp[2], sizeof temp[2], "%d%%", (int) (doc->zoomvalue () * 100));
             snprintf (temp[3], sizeof temp[3], "%d%%", (int) (doc->scrollrate () * 100));
@@ -1139,6 +1216,7 @@ namespace apvlv
               {
                 gtk_label_set_text (GTK_LABEL (stlab[i]), temp[i]);
               }
+            g_free (bn);
           }
       }
 }

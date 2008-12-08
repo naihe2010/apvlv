@@ -108,7 +108,7 @@ namespace apvlv
 
     void runcmd (const char *cmd);
 
-    gboolean cmd_has;
+    bool cmd_has;
 
     guint pro_cmd;
 

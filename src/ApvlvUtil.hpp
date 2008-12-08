@@ -47,6 +47,17 @@ using namespace std;
 namespace apvlv
 {
   extern string helppdf;
+  extern string iniexam;
+  extern string inifile;
+  extern string sessionfile;
+
+#ifdef WIN32
+#define PATH_SEP_C  '\\'
+#define PATH_SEP_S  "\\"
+#else
+#define PATH_SEP_C  '/'
+#define PATH_SEP_S  "/"
+#endif
 
   struct eqint
     {
@@ -79,10 +90,18 @@ namespace apvlv
     } returnType;
 
   // log system
+#ifdef WIN32
+#define __func__ ""
+#endif
+
 #ifdef DEBUG
 #define debug(...)      logv ("DEBUG", __FILE__, __LINE__, __func__, __VA_ARGS__)
 #else
+#ifdef _DEBUG
+#define debug(...)      logv ("DEBUG", __FILE__, __LINE__, __func__, __VA_ARGS__)
+#else
 #define debug(...)
+#endif
 #endif
 #define info(...)       logv ("INFO", __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define warn(...)       logv ("WARNNING", __FILE__, __LINE__, __func__, __VA_ARGS__)

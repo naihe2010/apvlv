@@ -36,21 +36,44 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
 
+#ifdef WIN32
+# include <windows.h>
+#endif
+
+#include <string>
 #include <iostream>
 #include <fstream>
 using namespace std;
 
+#ifdef WIN32
+#define snprintf _snprintf
+#endif
+
 namespace apvlv
 {
 
-  string helppdf;
+#ifdef WIN32
+  string helppdf = "~\\Startup.pdf";
+  string iniexam = "~\\apvlvrc.example";
+  string inifile = "~\\_apvlvrc";
+  string sessionfile = "~\\_apvlvinfo";
+#else
+  string helppdf = string (PREFIX) + "/share/doc/apvlv/Startup.pdf";
+  string iniexam = string (PREFIX) + "/share/doc/apvlv/apvlvrc.example";
+  string inifile = "~/.apvlvrc";
+  string sessionfile = "~/.apvlvinfo";
+#endif
 
   // Converts the path given to a absolute path.
   // Warning: The string is returned a new allocated buffer, NEED TO BE g_free
   char *
     absolutepath (const char *path)
       {
+#ifdef WIN32
+#define PATH_MAX 4096
+#endif
         char abpath[PATH_MAX];
+
 
         if (g_path_is_absolute (path))
           {
@@ -59,36 +82,50 @@ namespace apvlv
 
         if (*path == '~')
           {
+#ifdef WIN32
+            gchar *home = g_win32_get_package_installation_directory_of_module (NULL);
+#else
+            char *home = getenv ("HOME");
+#endif
             snprintf (abpath, sizeof abpath, "%s%s", 
-                      getenv ("HOME"), 
+                      home,
                       ++ path);
           }
         else
           {
+#ifdef WIN32
+            GetCurrentDirectoryA (sizeof abpath, abpath);
+            strcat (abpath, "\\");
+            strcat (abpath, path);
+#else
             realpath (path, abpath);
+#endif
           }
 
         return g_strdup (abpath);
       }
 
   // Copy a file
-  bool 
+  bool
     filecpy (const char *dst, const char *src)
       {
-        ifstream ifs (src);
-        ofstream ofs (dst);
-        if (ifs.is_open () && ofs.is_open ())
-          {
-            while (ifs.eof () == false)
-              {
-                string s;
-                getline (ifs, s);
-                ofs << s << endl;
-              }
+        gchar *content;
+        gchar *s = absolutepath (src);
+        gchar *d = absolutepath (dst);
+        bool ok = false;
 
-            ifs.close ();
-            ofs.close ();
+        gboolean ret = g_file_get_contents (s, &content, NULL, NULL);
+        if (ret == TRUE)
+          {
+            ret = g_file_set_contents (d, content, -1, NULL);
+            g_free (content);       
+            ok = ret;
           }
+
+        g_free (s);
+        g_free (d);
+
+        return ok;
       }
 
   // insert a widget after or before a widget

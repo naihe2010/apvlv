@@ -40,6 +40,11 @@
 
 #include "ApvlvUtil.hpp"
 
+
+#ifdef HAVE_PTHREAD
+#include <pthread.h>
+#endif
+
 #include <gtk/gtk.h>
 #include <glib/poppler.h>
 #include <stdlib.h>
@@ -85,7 +90,7 @@ namespace apvlv
   private:
 #ifdef HAVE_PTHREAD
     bool thread_running;
-    int timer;
+    gint timer;
     pthread_t tid;
     pthread_cond_t cond;
     pthread_mutex_t mutex;
@@ -144,7 +149,7 @@ namespace apvlv
 
     GtkWidget *widget ();
 
-    bool loadfile (string & filename, bool check = true) { loadfile (filename.c_str (), check); }
+    bool loadfile (string & filename, bool check = true) { return loadfile (filename.c_str (), check); }
 
     bool loadfile (const char *src, bool check = true);
 
@@ -220,6 +225,8 @@ namespace apvlv
                            GtkPrintContext   *context,
                            PrintData         *data);
     string filestr;
+    char *rawdata;
+    size_t rawdatasize;
     PopplerDocument *doc;
 
     double scrollvalue;

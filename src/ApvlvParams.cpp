@@ -51,8 +51,12 @@ namespace apvlv
       settingpush ("width", "800");
       settingpush ("height", "600");
       settingpush ("commandtimeout", "1000");
+#ifdef WIN32
+      settingpush ("defaultdir", "C:\\");
+#else
       settingpush ("defaultdir", "/tmp");
-    }
+#endif
+  }
 
   ApvlvParams::~ApvlvParams ()
     {
@@ -85,7 +89,7 @@ namespace apvlv
           else if (crap == "set")
             {
               is >> argu;
-              int off = argu.find ('=');
+              size_t off = argu.find ('=');
               if (off == string::npos) 
                 {
                   is >> crap >> data;
@@ -137,12 +141,14 @@ namespace apvlv
               err ("Unknown rc command: %s: %s", crap.c_str (), str.c_str ());
             }
         }
+      return true;
     }
 
   bool
     ApvlvParams::mappush (string &ch, string &str)
       {
         m_maps[ch] = str;
+        return true;
       }
 
   bool
@@ -150,12 +156,14 @@ namespace apvlv
       {
         string cs (c), ss (s);
         m_settings[cs] = ss;
+        return true;
       }
 
   bool
     ApvlvParams::settingpush (string &ch, string &str)
       {
         m_settings[ch] = str;
+        return true;
       }
 
   const char *
