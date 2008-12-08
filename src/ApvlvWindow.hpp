@@ -65,7 +65,7 @@ namespace apvlv
 
       void runcommand (int times, const char *, int argu);
 
-      GtkWidget *widget () { return m_Doc->widget (); }
+      GtkWidget *widget ();
 
       ApvlvDoc *loadDoc (const char *filename);
 

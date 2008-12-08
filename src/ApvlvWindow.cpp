@@ -110,6 +110,24 @@ namespace apvlv
         }
     }
 
+  GtkWidget *
+    ApvlvWindow::widget () 
+      { 
+        if (type == AW_DOC)
+          {
+            return m_Doc->widget (); 
+          }
+        else if (type == AW_SP || type == AW_VSP)
+          {
+            return m_paned;
+          }
+        else
+          {
+            err ("type error: %d", type);
+            return NULL;
+          }
+      }
+
   void 
     ApvlvWindow::setcurrentWindow (ApvlvWindow *pre, ApvlvWindow *win)
       {
