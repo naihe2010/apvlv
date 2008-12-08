@@ -15,13 +15,31 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_0336572482A24DD00D7B735E78103F9A"
+        "MsmKey" = "8:_08C1DE4D5D1D7ED6933DC7DE92525CA4"
         "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_11E03646D3CA4A7182148969E7F78612"
+        "MsmKey" = "8:_130CF9D324BF5926F28861A146061177"
+        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_161D2E372CF26E04CB2A90B16BE4E0E1"
+        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_1C2808948F6E4E7E85757D1133EB9FF1"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_1CF9FE4D16CC4B189FA3C4DF3C19ECA3"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -33,19 +51,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_1FF1F92593534D339A922C90C31EF9A3"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_259BCBC51ECB48678DD577854DB3DB8C"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_25B9CBCE737B475696619A7CB547CA9A"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -57,26 +63,26 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_37256D91C92A9067E34DA4989D1236C8"
+        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_5090EFD0126645A8A81C7B662DD46491"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_5E691C1F75B8FAF7E325091CBDA70274"
-        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
+        "MsmKey" = "8:_5FF8F99E55814CE5BC7C37DF773D23BD"
+        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_60EA87C9F5E143A9AAE6FB36002909DE"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_64AD6630B6E4DCDCBDCE029E811069F0"
-        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -93,20 +99,26 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_6EA10F011BA342618220B7C6FD4A73E0"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_73E35D4E30CD49089199F694089BB52D"
-        "OwnerKey" = "8:_UNDEFINED"
+        "MsmKey" = "8:_78019D14842ED9BC9780B2967DAE5694"
+        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_7F50DE06F5C2439CAD11C6B479EC7374"
-        "OwnerKey" = "8:_UNDEFINED"
+        "MsmKey" = "8:_839A7F6D8E94D178CBB2F48B0B7A1A96"
+        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -117,43 +129,31 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_9F6435C188A043A5981F39B1ACE71414"
+        "MsmKey" = "8:_8B59DD06DDD746EC9A106611AA325134"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_AAD630FD409A4A0BAC65B0BF8213BE9F"
+        "MsmKey" = "8:_A162AE46145944688F72399C31D3E3AC"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_B041789C864C075EF462DCCD38CAD747"
-        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_B2162FB507FE82E199FF02DAC704778E"
-        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_C279845BBFD94654BD87668C83409F82"
+        "MsmKey" = "8:_A1B13994D3C74A0885689EB643836F3B"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_C687020A65115081FE5E074D2CD610B6"
-        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
+        "MsmKey" = "8:_BFE59AE304754476B4FD6F3F0DD81400"
+        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_D6FF512538C845F9BFC6BAEAE5DA3947"
+        "MsmKey" = "8:_DDDACD43179848D2BE8F1CD6A9F42DA8"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -165,7 +165,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_EB1744CF95D144A19A5A7B604EB5074E"
+        "MsmKey" = "8:_E6AC4EC972B8CDD75868AAC571620A72"
+        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_F94436E862DD4E4FBFEBA4996186D29D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -260,10 +266,10 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0336572482A24DD00D7B735E78103F9A"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_08C1DE4D5D1D7ED6933DC7DE92525CA4"
             {
-            "SourcePath" = "8:libgobject-2.0-0.dll"
-            "TargetName" = "8:libgobject-2.0-0.dll"
+            "SourcePath" = "8:libgdk_pixbuf-2.0-0.dll"
+            "TargetName" = "8:libgdk_pixbuf-2.0-0.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
@@ -280,10 +286,70 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_11E03646D3CA4A7182148969E7F78612"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_130CF9D324BF5926F28861A146061177"
             {
-            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\SDK\\gtk+\\bin\\libpangocairo-1.0-0.dll"
+            "SourcePath" = "8:libgtk-win32-2.0-0.dll"
+            "TargetName" = "8:libgtk-win32-2.0-0.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_161D2E372CF26E04CB2A90B16BE4E0E1"
+            {
+            "SourcePath" = "8:pthreadVC2.dll"
+            "TargetName" = "8:pthreadVC2.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1C2808948F6E4E7E85757D1133EB9FF1"
+            {
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libpangocairo-1.0-0.dll"
             "TargetName" = "8:libpangocairo-1.0-0.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1CF9FE4D16CC4B189FA3C4DF3C19ECA3"
+            {
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libgmodule-2.0-0.dll"
+            "TargetName" = "8:libgmodule-2.0-0.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
@@ -320,50 +386,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1FF1F92593534D339A922C90C31EF9A3"
-            {
-            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\SDK\\gtk+\\bin\\libcairo-2.dll"
-            "TargetName" = "8:libcairo-2.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_259BCBC51ECB48678DD577854DB3DB8C"
             {
             "SourcePath" = "8:..\\..\\NEWS"
             "TargetName" = "8:NEWS"
-            "Tag" = "8:"
-            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_25B9CBCE737B475696619A7CB547CA9A"
-            {
-            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\SDK\\gtk+\\bin\\libatk-1.0-0.dll"
-            "TargetName" = "8:libatk-1.0-0.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
@@ -400,6 +426,26 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_37256D91C92A9067E34DA4989D1236C8"
+            {
+            "SourcePath" = "8:libgobject-2.0-0.dll"
+            "TargetName" = "8:libgobject-2.0-0.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5090EFD0126645A8A81C7B662DD46491"
             {
             "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\VC\\redist\\Debug_NonRedist\\x86\\Microsoft.VC80.DebugCRT\\Microsoft.VC80.DebugCRT.manifest"
@@ -420,10 +466,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5E691C1F75B8FAF7E325091CBDA70274"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5FF8F99E55814CE5BC7C37DF773D23BD"
             {
-            "SourcePath" = "8:libglib-2.0-0.dll"
-            "TargetName" = "8:libglib-2.0-0.dll"
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libtiff3.dll"
+            "TargetName" = "8:libtiff3.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
@@ -437,7 +483,7 @@
             "PackageAs" = "3:1"
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
+            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_60EA87C9F5E143A9AAE6FB36002909DE"
@@ -458,26 +504,6 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_64AD6630B6E4DCDCBDCE029E811069F0"
-            {
-            "SourcePath" = "8:libgdk-win32-2.0-0.dll"
-            "TargetName" = "8:libgdk-win32-2.0-0.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6C3A11CA7892422CB443606AB72C6303"
@@ -520,10 +546,10 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_73E35D4E30CD49089199F694089BB52D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6EA10F011BA342618220B7C6FD4A73E0"
             {
-            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\SDK\\gtk+\\bin\\zlib1.dll"
-            "TargetName" = "8:zlib1.dll"
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libpango-1.0-0.dll"
+            "TargetName" = "8:libpango-1.0-0.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
@@ -540,10 +566,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7F50DE06F5C2439CAD11C6B479EC7374"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_78019D14842ED9BC9780B2967DAE5694"
             {
-            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\SDK\\gtk+\\bin\\libgio-2.0-0.dll"
-            "TargetName" = "8:libgio-2.0-0.dll"
+            "SourcePath" = "8:jpeg62.dll"
+            "TargetName" = "8:jpeg62.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
@@ -557,7 +583,27 @@
             "PackageAs" = "3:1"
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_839A7F6D8E94D178CBB2F48B0B7A1A96"
+            {
+            "SourcePath" = "8:libgdk-win32-2.0-0.dll"
+            "TargetName" = "8:libgdk-win32-2.0-0.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_84FB7E030739419FAB4E7A4D3E4E79D8"
@@ -580,10 +626,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9F6435C188A043A5981F39B1ACE71414"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8B59DD06DDD746EC9A106611AA325134"
             {
-            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\SDK\\gtk+\\bin\\libpango-1.0-0.dll"
-            "TargetName" = "8:libpango-1.0-0.dll"
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libcairo-2.dll"
+            "TargetName" = "8:libcairo-2.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
@@ -600,9 +646,29 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_AAD630FD409A4A0BAC65B0BF8213BE9F"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A162AE46145944688F72399C31D3E3AC"
             {
-            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\SDK\\gtk+\\bin\\libpangowin32-1.0-0.dll"
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libgio-2.0-0.dll"
+            "TargetName" = "8:libgio-2.0-0.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A1B13994D3C74A0885689EB643836F3B"
+            {
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libpangowin32-1.0-0.dll"
             "TargetName" = "8:libpangowin32-1.0-0.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
@@ -620,50 +686,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B041789C864C075EF462DCCD38CAD747"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BFE59AE304754476B4FD6F3F0DD81400"
             {
-            "SourcePath" = "8:libgtk-win32-2.0-0.dll"
-            "TargetName" = "8:libgtk-win32-2.0-0.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B2162FB507FE82E199FF02DAC704778E"
-            {
-            "SourcePath" = "8:jpeg62.dll"
-            "TargetName" = "8:jpeg62.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C279845BBFD94654BD87668C83409F82"
-            {
-            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\SDK\\gtk+\\bin\\libpng12-0.dll"
-            "TargetName" = "8:libpng12-0.dll"
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libatk-1.0-0.dll"
+            "TargetName" = "8:libatk-1.0-0.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
@@ -680,30 +706,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C687020A65115081FE5E074D2CD610B6"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DDDACD43179848D2BE8F1CD6A9F42DA8"
             {
-            "SourcePath" = "8:libgdk_pixbuf-2.0-0.dll"
-            "TargetName" = "8:libgdk_pixbuf-2.0-0.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D6FF512538C845F9BFC6BAEAE5DA3947"
-            {
-            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\SDK\\gtk+\\bin\\libtiff3.dll"
-            "TargetName" = "8:libtiff3.dll"
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\zlib1.dll"
+            "TargetName" = "8:zlib1.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
@@ -740,10 +746,30 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EB1744CF95D144A19A5A7B604EB5074E"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E6AC4EC972B8CDD75868AAC571620A72"
             {
-            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\SDK\\gtk+\\bin\\libgmodule-2.0-0.dll"
-            "TargetName" = "8:libgmodule-2.0-0.dll"
+            "SourcePath" = "8:libglib-2.0-0.dll"
+            "TargetName" = "8:libglib-2.0-0.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F94436E862DD4E4FBFEBA4996186D29D"
+            {
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libpng12-0.dll"
+            "TargetName" = "8:libpng12-0.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
@@ -836,7 +862,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:apvlv"
         "ProductCode" = "8:{C706BF94-CDD3-445A-8821-B95744836B0C}"
-        "PackageCode" = "8:{3356D642-700E-408E-9B29-1954874D9701}"
+        "PackageCode" = "8:{CEDB4B7B-B1DB-451C-AEEA-C19902BD78C8}"
         "UpgradeCode" = "8:{76BD4EC1-37A0-4C00-8E09-B513FE3D9B38}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"

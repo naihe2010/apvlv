@@ -64,7 +64,7 @@
 			<Tool
 				Name="VCLibrarianTool"
 				AdditionalDependencies="gtk-win32-2.0.lib glib-2.0.lib gobject-2.0.lib gio-2.0.lib gdk-win32-2.0.lib freetype231mt.lib jpeg.lib"
-				AdditionalLibraryDirectories="freetype231;&quot;C:\Program Files\Microsoft Visual Studio 8\SDK\gtk+\lib&quot;"
+				AdditionalLibraryDirectories="freetype231"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -107,6 +107,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="msvc;msvc\poppler;&quot;poppler-0.10.0&quot;;&quot;poppler-0.10.0\goo&quot;;&quot;poppler-0.10.0\poppler&quot;;freetype231\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -404,11 +405,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\msvc\poppler\poppler-config.h"
+				RelativePath=".\poppler-0.10.0\poppler\poppler-config.h"
 				>
 			</File>
 			<File
-				RelativePath=".\poppler-0.10.0\poppler\poppler-config.h"
+				RelativePath=".\msvc\poppler\poppler-config.h"
 				>
 			</File>
 			<File
