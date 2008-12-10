@@ -44,6 +44,11 @@
 
 using namespace apvlv;
 
+#if defined WIN32 && defined NDEBUG
+#pragma comment (linker, "/subsystem:windows")
+#pragma comment (linker, "/ENTRY:mainCRTStartup")
+#endif
+
 int
 main (int argc, char *argv[])
 {

@@ -186,10 +186,12 @@ namespace apvlv
   ApvlvDoc *
     ApvlvView::hasloaded (const char *abpath)
       {
-        if (mDocs[abpath] != NULL)
+        map <string, ApvlvDoc *>::iterator it;
+        it = mDocs.find (abpath);
+        if (it != mDocs.end ())
           {
             debug ("has loaded: %p", mDocs[abpath]);
-            return mDocs[abpath];
+            return it->second;
           }
         return NULL;
       }

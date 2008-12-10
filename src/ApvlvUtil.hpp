@@ -94,14 +94,10 @@ namespace apvlv
 #define __func__ ""
 #endif
 
-#ifdef DEBUG
-#define debug(...)      logv ("DEBUG", __FILE__, __LINE__, __func__, __VA_ARGS__)
-#else
-#ifdef _DEBUG
+#if defined DEBUG || defined _DEBUG
 #define debug(...)      logv ("DEBUG", __FILE__, __LINE__, __func__, __VA_ARGS__)
 #else
 #define debug(...)
-#endif
 #endif
 #define info(...)       logv ("INFO", __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define warn(...)       logv ("WARNNING", __FILE__, __LINE__, __func__, __VA_ARGS__)

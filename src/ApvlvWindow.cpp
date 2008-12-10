@@ -96,11 +96,13 @@ namespace apvlv
             }
         }
 
-      if (type == AW_DOC
-          && m_Doc != gView->hasloaded (m_Doc->filename ())
-      )
+      if (type == AW_DOC)
         {
-          delete m_Doc;
+          const char *fdoc = m_Doc->filename ();
+          if (fdoc != NULL && m_Doc != gView->hasloaded (fdoc))
+            {
+              delete m_Doc;
+            }
         }
       else
         {
