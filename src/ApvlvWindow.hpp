@@ -55,8 +55,6 @@ namespace apvlv
       ApvlvWindow (ApvlvDoc *doc);
       ~ApvlvWindow ();
 
-      ApvlvWindow *remove (ApvlvWindow *);
-
       /* WE operate the AW_DOC window
        * Any AW_SP, AW_VSP are a virtual window, just for contain the AW_DOC window
        * So, ANY user interface function can only get the AW_DOC window

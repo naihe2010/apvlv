@@ -83,20 +83,6 @@ namespace apvlv
         }
     }
 
-  ApvlvWindow *
-    ApvlvWindow::remove (ApvlvWindow *win)
-      {
-        asst (win->type == AW_DOC);
-        if (win->m_parent == NULL)
-          {
-            delete win;
-            return NULL;
-          }
-
-        ApvlvWindow *nwin = win == m_parent->m_son? m_parent->m_daughter: m_parent->m_son;
-        return win->m_parent->unbirth (nwin);
-      }
-
   GtkWidget *
     ApvlvWindow::widget ()
       {
@@ -136,8 +122,10 @@ namespace apvlv
   void
     ApvlvWindow::delcurrentWindow ()
       {
-        ApvlvWindow *nwin = currentWindow ()->getnext (1);
-        ApvlvWindow *cwin = nwin->remove (currentWindow ());
+        asst (currentWindow ()->istop () == false);
+        ApvlvWindow *pwin = currentWindow ()->m_parent;
+        ApvlvWindow *win = currentWindow () == pwin->m_son? pwin->m_daughter: pwin->m_son;
+        ApvlvWindow *cwin = pwin->unbirth (win);
         setcurrentWindow (NULL, cwin);
       }
 
