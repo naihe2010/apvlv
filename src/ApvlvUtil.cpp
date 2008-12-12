@@ -1,29 +1,29 @@
 /****************************************************************************
- * Copyright (c) 1998-2005,2006 Free Software Foundation, Inc.              
- *                                                                          
- * Permission is hereby granted, free of charge, to any person obtaining a  
- * copy of this software and associated documentation files (the            
- * "Software"), to deal in the Software without restriction, including      
- * without limitation the rights to use, copy, modify, merge, publish,      
- * distribute, distribute with modifications, sublicense, and/or sell       
- * copies of the Software, and to permit persons to whom the Software is    
- * furnished to do so, subject to the following conditions:                 
- *                                                                          
- * The above copyright notice and this permission notice shall be included  
- * in all copies or substantial portions of the Software.                   
- *                                                                          
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   
- * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    
- * THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               
- *                                                                          
- * Except as contained in this notice, the name(s) of the above copyright   
- * holders shall not be used in advertising or otherwise to promote the     
- * sale, use or other dealings in this Software without prior written       
- * authorization.                                                           
+ * Copyright (c) 1998-2005,2006 Free Software Foundation, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, distribute with modifications, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+ * THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name(s) of the above copyright
+ * holders shall not be used in advertising or otherwise to promote the
+ * sale, use or other dealings in this Software without prior written
+ * authorization.
 ****************************************************************************/
 
 /****************************************************************************
@@ -69,7 +69,7 @@ namespace apvlv
   char *
     absolutepath (const char *path)
       {
-#ifdef WIN32
+#ifndef PATH_MAX
 #define PATH_MAX 4096
 #endif
         char abpath[PATH_MAX];
@@ -87,7 +87,7 @@ namespace apvlv
 #else
             char *home = getenv ("HOME");
 #endif
-            snprintf (abpath, sizeof abpath, "%s%s", 
+            snprintf (abpath, sizeof abpath, "%s%s",
                       home,
                       ++ path);
           }
@@ -118,7 +118,7 @@ namespace apvlv
         if (ret == TRUE)
           {
             ret = g_file_set_contents (d, content, -1, NULL);
-            g_free (content);       
+            g_free (content);
             ok = ret;
           }
 
@@ -128,31 +128,28 @@ namespace apvlv
         return ok;
       }
 
-  // insert a widget after or before a widget
-  void
-    gtk_insert_widget_inbox (GtkWidget *prev, bool after, GtkWidget *n)
+  // remove a widget from its parent
+  // return the parent widget
+  GtkWidget *
+    remove_widget (GtkWidget *wid, bool remove)
       {
-        GtkWidget *parent = gtk_widget_get_parent (prev);
-        gtk_box_pack_start (GTK_BOX (parent), n, TRUE, TRUE, 0);
-
-        gint id = after? 1: 0;
-        GList *children = gtk_container_get_children (GTK_CONTAINER (parent));
-        for (GList *child = children; child != NULL; child = child->next)
+        if (remove == false)
           {
-            if (child->data == prev) 
-              {
-                break;
-              }
-            else
-              {
-                id ++;
-              }
+            g_object_ref (G_OBJECT (wid));
           }
-        g_list_free (children);
+        GtkWidget *parent = gtk_widget_get_parent (wid);
+        gtk_container_remove (GTK_CONTAINER (parent), wid);
+        return parent;
+      }
 
-        gtk_box_reorder_child (GTK_BOX (parent), n, id);
-
-        gtk_widget_show_all (parent);
+  // replace a widget with a new widget
+  // return the parent widget
+  GtkWidget *
+    replace_widget (GtkWidget *owid, GtkWidget *nwid, bool remove)
+      {
+        GtkWidget *parent = remove_widget (owid, remove);
+        gtk_container_add (GTK_CONTAINER (parent), nwid);
+        return parent;
       }
 
   void

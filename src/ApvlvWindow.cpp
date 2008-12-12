@@ -1,29 +1,29 @@
 /****************************************************************************
- * Copyright (c) 1998-2005,2006 Free Software Foundation, Inc.              
- *                                                                          
- * Permission is hereby granted, free of charge, to any person obtaining a  
- * copy of this software and associated documentation files (the            
- * "Software"), to deal in the Software without restriction, including      
- * without limitation the rights to use, copy, modify, merge, publish,      
- * distribute, distribute with modifications, sublicense, and/or sell       
- * copies of the Software, and to permit persons to whom the Software is    
- * furnished to do so, subject to the following conditions:                 
- *                                                                          
- * The above copyright notice and this permission notice shall be included  
- * in all copies or substantial portions of the Software.                   
- *                                                                          
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   
- * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    
- * THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               
- *                                                                          
- * Except as contained in this notice, the name(s) of the above copyright   
- * holders shall not be used in advertising or otherwise to promote the     
- * sale, use or other dealings in this Software without prior written       
- * authorization.                                                           
+ * Copyright (c) 1998-2005,2006 Free Software Foundation, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, distribute with modifications, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+ * THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name(s) of the above copyright
+ * holders shall not be used in advertising or otherwise to promote the
+ * sale, use or other dealings in this Software without prior written
+ * authorization.
 ****************************************************************************/
 
 /****************************************************************************
@@ -42,7 +42,6 @@
 
 namespace apvlv
 {
-  int ApvlvWindow::times = 0;
   ApvlvWindow *ApvlvWindow::m_curWindow = NULL;
 
   ApvlvWindow::ApvlvWindow (ApvlvDoc *doc)
@@ -56,72 +55,58 @@ namespace apvlv
         {
           m_Doc = doc;
         }
-      m_prev = m_next = m_parent = m_child = NULL;
+      m_son = m_daughter = m_parent = NULL;
     }
 
   ApvlvWindow::~ApvlvWindow ()
     {
-      ApvlvWindow *nwin;
-
-      if (type == AW_SP || type == AW_VSP)
-        {
-          while (nwin = m_child)
-            {
-              delete nwin;
-            }
-        }
-
-      if (m_parent != NULL)
-        {
-          if (m_prev != NULL)
-            {
-              m_prev->m_next = m_next;
-            }
-          else      // if it has not a prev window, it must be the oldest brother of the parent
-            {
-              m_parent->m_child = m_next;
-            }
-
-          if (m_next != NULL)
-            {
-              m_next->m_prev = m_prev;
-              setcurrentWindow (NULL, m_next);
-            }
-
-          if (m_parent->m_child && m_parent->m_child->m_next == NULL)
-            {
-              m_parent->unbirth ();
-              setcurrentWindow (NULL, m_parent);
-              return;
-            }
-        }
-
       if (type == AW_DOC)
         {
-          const char *fdoc = m_Doc->filename ();
-          if (fdoc != NULL && m_Doc != gView->hasloaded (fdoc))
+          if (m_Doc != NULL)
             {
-              delete m_Doc;
+              const char *fdoc = m_Doc->filename ();
+              if (fdoc != NULL && m_Doc != gView->hasloaded (fdoc))
+                {
+                  delete m_Doc;
+                }
             }
+        }
+      else if (type == AW_SP || type == AW_VSP)
+        {
+          delete m_son;
+          delete m_daughter;
+          gtk_widget_destroy (m_Paned);
         }
       else
         {
-          g_object_ref (widget ());
-          GtkWidget *parent = gtk_widget_get_parent (widget ());
-          gtk_container_remove (GTK_CONTAINER (parent), widget ());
+          debug ("type error: %d", type);
         }
     }
 
+  ApvlvWindow *
+    ApvlvWindow::remove (ApvlvWindow *win)
+      {
+        asst (win->type == AW_DOC);
+        if (win->m_parent == NULL)
+          {
+            delete win;
+            return NULL;
+          }
+
+        ApvlvWindow *nwin = win == m_parent->m_son? m_parent->m_daughter: m_parent->m_son;
+        return win->m_parent->unbirth (nwin);
+      }
+
   GtkWidget *
-    ApvlvWindow::widget () 
-      { 
+    ApvlvWindow::widget ()
+      {
         if (type == AW_DOC)
           {
-            return m_Doc->widget (); 
+            return m_Doc->widget ();
           }
         else if (type == AW_SP || type == AW_VSP)
           {
-            return m_paned;
+            return m_Paned;
           }
         else
           {
@@ -130,9 +115,11 @@ namespace apvlv
           }
       }
 
-  void 
+  void
     ApvlvWindow::setcurrentWindow (ApvlvWindow *pre, ApvlvWindow *win)
       {
+        if (pre) asst (pre->type == AW_DOC);
+        asst (win->type == AW_DOC);
         if (pre != NULL && pre->type == AW_DOC)
           {
             pre->m_Doc->setactive (false);
@@ -144,6 +131,20 @@ namespace apvlv
           }
 
         m_curWindow = win;
+      }
+
+  void
+    ApvlvWindow::delcurrentWindow ()
+      {
+        ApvlvWindow *nwin = currentWindow ()->getnext (1);
+        ApvlvWindow *cwin = nwin->remove (currentWindow ());
+        setcurrentWindow (NULL, cwin);
+      }
+
+  ApvlvWindow *
+    ApvlvWindow::currentWindow ()
+      {
+        return m_curWindow;
       }
 
   returnType
@@ -161,7 +162,6 @@ namespace apvlv
             nwin = getneighbor (ct, key);
             if (nwin != NULL)
               {
-                debug ("here");
                 setcurrentWindow (this, nwin);
               }
             break;
@@ -205,115 +205,82 @@ namespace apvlv
   inline ApvlvWindow *
     ApvlvWindow::getkj (int num, bool down)
       {
-        ApvlvWindow *bw, *w, *nw, *fw;
+        ApvlvWindow *w, *nw, *fw;
 
-        if (m_parent == NULL)
-          return NULL;
-
-        for (bw = NULL, w = this; w != NULL; bw = w, w = w->m_parent)
+        for (fw = NULL, w = this; w != NULL; w = w->m_parent)
           {
-            if (w->m_parent == NULL)
+            if (w->type == AW_SP)
               {
-                fw = nw;
-                goto end;
-              }
-
-            if (down)
-              nw = w->m_next;
-            else
-              nw = w->m_prev;
-
-            if (w->m_parent->type == AW_SP && nw != NULL) break;
-          }
-
-        for (;;)
-          {
-            if (nw->type == AW_DOC)
-              {
-                fw = nw;
+                fw = down?  w->m_daughter: w->m_son;
                 break;
               }
-
-            fw = nw->m_child;
-            if (nw->type == AW_VSP)
-              {
-                while (fw->m_next != NULL
-                       && bw
-                       && bw != bw->m_parent->m_child)
-                  {
-                    fw = fw->m_next;
-                    bw = bw->m_prev;
-                  }
-              }
-
-            if (nw->type == AW_SP && !down)
-              {
-                while (fw->m_next != NULL)
-                  fw = fw->m_next;
-              }
-            nw = fw;
           }
 
-end:
-        return fw;
+        for (nw = fw, w = fw; w != NULL; )
+          {
+            if (w->type == AW_DOC)
+              {
+                nw = w;
+                break;
+              }
+            else if (w->type == AW_SP)
+              {
+                w = down? w->m_son: w->m_daughter;
+              }
+            else if (w->type == AW_VSP)
+              {
+                w = w->m_son;
+              }
+            else
+              {
+                debug ("error type: %d", w->type);
+                return NULL;
+              }
+          }
+
+        return nw;
       }
 
   inline ApvlvWindow *
     ApvlvWindow::gethl (int num, bool right)
       {
-        ApvlvWindow *bw, *w, *nw, *fw;
+        ApvlvWindow *w, *nw, *fw;
 
-        if (m_parent == NULL)
-          return NULL;
-
-        for (bw = NULL, w = this; w != NULL; bw = w, w = w->m_parent)
+        for (fw = NULL, w = this; w != NULL; w = w->m_parent)
           {
-            if (w->m_parent == NULL)
+            if (w->type == AW_VSP)
               {
-                fw = nw;
-                goto end;
-              }
-
-            if (right)
-              nw = w->m_next;
-            else
-              nw = w->m_prev;
-            if (w->m_parent->type == AW_VSP && nw != NULL) break;
-          }
-
-        for (;;)
-          {
-            if (nw->type == AW_DOC)
-              {
-                fw = nw;
+                fw = right?  w->m_daughter: w->m_son;
                 break;
               }
-
-            fw = nw->m_child;
-            if (nw->type == AW_SP)
-              {
-                while (fw->m_next != NULL
-                       && bw &&
-                       bw != bw->m_parent->m_child)
-                  {
-                    fw = fw->m_next;
-                    bw = bw->m_prev;
-                  }
-              }
-
-            if (nw->type == AW_VSP && !right)
-              {
-                while (fw->m_next != NULL)
-                  fw = fw->m_next;
-              }
-            nw = fw;
           }
 
-end:
-        return fw;
+        for (nw = fw, w = fw; w != NULL; )
+          {
+            if (w->type == AW_DOC)
+              {
+                nw = w;
+                break;
+              }
+            else if (w->type == AW_SP)
+              {
+                w = w->m_son;
+              }
+            else if (w->type == AW_VSP)
+              {
+                w = right? w->m_son: w->m_daughter;
+              }
+            else
+              {
+                debug ("error type: %d", w->type);
+                return NULL;
+              }
+          }
+
+        return nw;
       }
 
-  inline ApvlvWindow *
+  ApvlvWindow *
     ApvlvWindow::getnext (int num)
       {
         ApvlvWindow *n = getkj (num, true);
@@ -330,144 +297,97 @@ end:
         return n;
       }
 
+  // birth a new AW_DOC window, and the new window beyond the input doc
+  // this made a AW_DOC window to AW_SP|AW_VSP
   ApvlvWindow *
-    ApvlvWindow::birth (ApvlvDoc *doc)
+    ApvlvWindow::birth (bool vsp, ApvlvDoc *doc)
       {
+        asst (type == AW_DOC);
+
+        if (doc == m_Doc)
+          {
+            debug ("can't birth with orign doc, copy it");
+            doc = NULL;
+          }
+
         if (doc == NULL)
           {
             doc = m_Doc->copy ();
           }
-        ApvlvWindow *nwindow = new ApvlvWindow (doc);
-        
+
+        ApvlvWindow *nwindow = new ApvlvWindow (m_Doc);
         nwindow->m_parent = this;
+        m_son = nwindow;
 
-        if (m_child == NULL)
-          {
-            m_child = nwindow;
-          }
+        ApvlvWindow *nwindow2 = new ApvlvWindow (doc);
+        nwindow2->m_parent = this;
+        m_daughter = nwindow2;
 
-        return nwindow;
-      }
+        m_Paned = vsp == false? gtk_vpaned_new (): gtk_hpaned_new ();
+        g_signal_connect (G_OBJECT (m_Paned), "button-release-event", G_CALLBACK (apvlv_window_paned_resized_cb), this);
 
-  ApvlvWindow *
-    ApvlvWindow::unbirth ()
-      {
-        GtkWidget *wid;
+        replace_widget (widget (), m_Paned, false);
 
-        ApvlvWindow *oldchild = m_child;
-        g_object_ref (oldchild->widget ());
+        gtk_paned_pack1 (GTK_PANED (m_Paned), nwindow->widget (), TRUE, TRUE);
+        gtk_paned_pack2 (GTK_PANED (m_Paned), nwindow2->widget (), TRUE, TRUE);
 
-        type = m_child->type;
-        if (type == AW_SP || type == AW_VSP)
-          {
-            m_child = oldchild->m_child;
-            m_child->m_parent = this;
-            oldchild->m_child = NULL;
-            oldchild->m_parent = NULL;
-            wid = m_child->widget ();
-          }
-        else if (type == AW_DOC)
-          {
-            ApvlvDoc *odoc = oldchild->getDoc ();
-            if (odoc == gView->hasloaded (odoc->filename ()))
-              {
-                m_Doc = odoc;
-              }
-            else
-              {
-                m_Doc = oldchild->getDoc ()->copy ();
-              }
-            wid = m_Doc->widget ();
-          }
-
-        delete oldchild;
-
-        GtkWidget *parent = gtk_widget_get_parent (m_paned);
-        gtk_container_remove (GTK_CONTAINER (parent), m_paned);
-        gtk_container_add (GTK_CONTAINER (parent), wid);
-        gtk_widget_show_all (parent);
-
-        return this;
-      }
-
-  ApvlvWindow *
-    ApvlvWindow::insertafter (ApvlvWindow *awin)
-      {
-        awin->m_prev = this;
-        awin->m_next = m_next;
-        if (m_next != NULL)
-          {
-            m_next->m_prev = awin;
-          }
-        m_next = awin;
-        return this;
-      }
-
-  ApvlvWindow *
-    ApvlvWindow::insertbefore (ApvlvWindow *bwin)
-      {
-        if (m_prev != NULL)
-          {
-            m_prev->m_next = bwin;
-            bwin->m_prev = m_prev;
-          }
-        bwin->m_next = this;
-        m_prev = bwin;
-        if (m_parent && m_parent->m_child == this)
-          {
-            m_parent->m_child = bwin;
-          }
-        return this;
-      }
-
-  ApvlvWindow *
-    ApvlvWindow::separate (bool vsp)
-      {
-        ApvlvWindow *nwindow, *nwindow2;
-        int ttype = vsp == false? AW_SP: AW_VSP;
-
-        GtkWidget *old = widget ();
-        GtkWidget *parent = gtk_widget_get_parent (old);
-        g_object_ref (G_OBJECT (old));
-        gtk_container_remove (GTK_CONTAINER (parent), old);
-
-        nwindow = birth (m_Doc);
-        nwindow2 = birth ();
-        m_child->insertafter (nwindow2);
-
-        debug ("separate window: %p to 2 new windows: %p & %p", this, nwindow, nwindow2);
-
-        type = windowType (ttype);
-
-        m_paned = type == AW_SP? gtk_vpaned_new (): gtk_hpaned_new ();
-        g_signal_connect (G_OBJECT (m_paned), "button-release-event", G_CALLBACK (apvlv_window_paned_resized_cb), this);
-        gtk_container_add (GTK_CONTAINER (parent), m_paned);
-
-        gtk_paned_pack1 (GTK_PANED (m_paned), nwindow->widget (), TRUE, TRUE);
-        gtk_paned_pack2 (GTK_PANED (m_paned), nwindow2->widget (), TRUE, TRUE);
-
-        if (ttype == AW_SP)
+        type = vsp == false? AW_SP: AW_VSP;
+        if (type == AW_SP)
           {
             nwindow->setsize (m_width, m_height / 2);
             nwindow2->setsize (m_width, m_height / 2);
           }
-        else if (ttype == AW_VSP)
+        else if (type == AW_VSP)
           {
             nwindow->setsize (m_width / 2, m_height);
             nwindow2->setsize (m_width / 2, m_height);
           }
 
-        gtk_widget_show_all (m_paned);
+        gtk_widget_show_all (m_Paned);
 
         setcurrentWindow (nwindow2, nwindow);
-
         return nwindow;
+      }
+
+  ApvlvWindow *
+    ApvlvWindow::unbirth (ApvlvWindow *child)
+      {
+        asst (type == AW_SP || type == AW_VSP);
+
+        ApvlvWindow *owin = child == child->m_parent->m_son?
+          child->m_parent->m_daughter:
+          child->m_parent->m_son;
+
+        delete owin;
+
+        if (child->type == AW_DOC)
+          {
+            ApvlvDoc *doc = child->getDoc (true);
+            replace_widget (widget (), doc->widget (), false);
+            m_Doc = doc;
+          }
+        else if (child->type == AW_SP || child->type == AW_VSP)
+          {
+            replace_widget (widget (), child->widget (), false);
+            m_Paned = child->widget ();
+          }
+
+        gtk_widget_show_all (widget ());
+        type = AW_DOC;
+        delete child;
+
+        return this;
+      }
+
+  bool
+    ApvlvWindow::istop ()
+      {
+        return m_parent == NULL? true: false;
       }
 
   void
     ApvlvWindow::setsize (int width, int height)
       {
-        debug ("window: %p set size [%d, %d]", this, width, height);
         m_width = width;
         m_height = height;
 
@@ -478,13 +398,14 @@ end:
         else if (type == AW_SP
                  || type == AW_VSP)
           {
-            gtk_timeout_add (100, apvlv_window_resize_children_cb, this);
+            g_timeout_add (50, apvlv_window_resize_children_cb, this);
           }
       }
 
   ApvlvDoc *
     ApvlvWindow::loadDoc (const char *filename)
       {
+        asst (type == AW_DOC);
         if (m_Doc->filename () == NULL || gView->hasloaded (m_Doc->filename ()) != m_Doc)
           {
             m_Doc->setsize (m_width, m_height);
@@ -497,13 +418,9 @@ end:
         bool ret = ndoc->loadfile (filename);
         if (ret)
           {
-            GtkWidget *parent = gtk_widget_get_parent (widget ());
-            g_object_ref (G_OBJECT (widget ()));
-            gtk_container_remove (GTK_CONTAINER (parent), widget ());
-
+            replace_widget (widget (), ndoc->widget (), false);
             m_Doc = ndoc;
-            gtk_container_add (GTK_CONTAINER (parent), ndoc->widget ());
-            gtk_widget_show_all (parent);
+            gtk_widget_show_all (widget ());
             return ndoc;
           }
         else
@@ -516,45 +433,54 @@ end:
   void
     ApvlvWindow::setDoc (ApvlvDoc *doc)
       {
-        GtkWidget *parent = gtk_widget_get_parent (widget ());
-        g_object_ref (G_OBJECT (widget ()));
-        gtk_container_remove (GTK_CONTAINER (parent), widget ());
-
-        doc->setsize (m_width, m_height);
+        asst (type == AW_DOC);
+        replace_widget (widget (), doc->widget (), false);
         m_Doc = doc;
-
-        gtk_container_add (GTK_CONTAINER (parent), doc->widget ());
-        gtk_widget_show_all (parent);
       }
 
-  void 
+  ApvlvDoc *
+    ApvlvWindow::getDoc (bool remove)
+      {
+        asst (type == AW_DOC);
+        ApvlvDoc *rdoc = m_Doc;
+
+        if (remove)
+          {
+            remove_widget (widget (), false);
+            m_Doc = NULL;
+          }
+
+        return rdoc;
+      }
+
+  void
     ApvlvWindow::smaller (int times)
       {
         if (m_parent == NULL) return;
 
-        int val = gtk_paned_get_position (GTK_PANED (m_parent->m_paned));
+        int val = gtk_paned_get_position (GTK_PANED (m_parent->m_Paned));
         int len = 20 * times;
-        m_parent->m_child == this? val -= len: val += len;
-        gtk_paned_set_position (GTK_PANED (m_parent->m_paned), val);
+        m_parent->m_son == this? val -= len: val += len;
+        gtk_paned_set_position (GTK_PANED (m_parent->m_Paned), val);
 
         m_parent->resize_children ();
       }
 
-  void 
+  void
     ApvlvWindow::bigger (int times)
       {
         if (m_parent == NULL) return;
 
-        int val = gtk_paned_get_position (GTK_PANED (m_parent->m_paned));
+        int val = gtk_paned_get_position (GTK_PANED (m_parent->m_Paned));
         int len = 20 * times;
-        m_parent->m_child == this? val += len: val -= len;
-        gtk_paned_set_position (GTK_PANED (m_parent->m_paned), val);
+        m_parent->m_son == this? val += len: val -= len;
+        gtk_paned_set_position (GTK_PANED (m_parent->m_Paned), val);
 
         m_parent->resize_children ();
       }
 
   gboolean
-    ApvlvWindow::apvlv_window_paned_resized_cb (GtkWidget   *wid, 
+    ApvlvWindow::apvlv_window_paned_resized_cb (GtkWidget   *wid,
                                                 GdkEventButton *but,
                                                 ApvlvWindow *win)
       {
@@ -562,41 +488,43 @@ end:
         return FALSE;
       }
 
-  void
+  gboolean
     ApvlvWindow::resize_children ()
       {
         int mw1 = m_width, mw2 = m_width, mh1 = m_height, mh2 = m_height;
-        int mi = GTK_PANED (m_paned)->min_position;
-        int ma = GTK_PANED (m_paned)->max_position;
-        int mv = gtk_paned_get_position (GTK_PANED (m_paned));
+        int mi = GTK_PANED (m_Paned)->min_position;
+        int ma = GTK_PANED (m_Paned)->max_position;
+        int mv = gtk_paned_get_position (GTK_PANED (m_Paned));
 
-        debug ("paned value: %d:%d:%d", mi, ma, mv);
-        if (type == AW_SP)
+        int ms = ma - mi;
+        if (ms != 0)
           {
-            mh1 = (m_height * (mv - mi)) / (ma - mi);
-            mh2 = m_height - mh1;
-            debug ("height %d:%d:%d", m_height, mh1, mh2);
+            if (type == AW_SP)
+              {
+                mh1 = (m_height * (mv - mi)) / ms;
+                mh2 = m_height - mh1;
+              }
+            else if (type == AW_VSP)
+              {
+                mw1 = (m_width * (mv - mi)) / ms;
+                mw2 = m_width - mw1;
+              }
+
+            m_son->setsize (mw1, mh1);
+            m_daughter->setsize (mw2, mh2);
+
+            return TRUE;
           }
-        else if (type == AW_VSP)
+        else
           {
-            mw1 = (m_width * (mv - mi)) / (ma - mi);
-            mw2 = m_width - mw1;
-            debug ("width %d:%d:%d", m_width, mw1, mw2);
+            return FALSE;
           }
-
-        debug ("paned changed, modify: win1: %p-%d-%d, win2: %p-%d-%d",
-               m_child, mw1, mh1,
-               m_child->m_next, mw2, mh2);
-
-        m_child->setsize (mw1, mh1);
-        m_child->m_next->setsize (mw2, mh2);
       }
 
-  gboolean 
+  gboolean
     ApvlvWindow::apvlv_window_resize_children_cb (gpointer data)
       {
         ApvlvWindow *win = (ApvlvWindow *) data;
-        win->resize_children ();
-        return FALSE;
+        return win->resize_children () == TRUE? FALSE: FALSE;
       }
 }

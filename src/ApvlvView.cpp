@@ -1,29 +1,29 @@
 /****************************************************************************
- * Copyright (c) 1998-2005,2006 Free Software Foundation, Inc.              
- *                                                                          
- * Permission is hereby granted, free of charge, to any person obtaining a  
- * copy of this software and associated documentation files (the            
- * "Software"), to deal in the Software without restriction, including      
- * without limitation the rights to use, copy, modify, merge, publish,      
- * distribute, distribute with modifications, sublicense, and/or sell       
- * copies of the Software, and to permit persons to whom the Software is    
- * furnished to do so, subject to the following conditions:                 
- *                                                                          
- * The above copyright notice and this permission notice shall be included  
- * in all copies or substantial portions of the Software.                   
- *                                                                          
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   
- * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    
- * THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               
- *                                                                          
- * Except as contained in this notice, the name(s) of the above copyright   
- * holders shall not be used in advertising or otherwise to promote the     
- * sale, use or other dealings in this Software without prior written       
- * authorization.                                                           
+ * Copyright (c) 1998-2005,2006 Free Software Foundation, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, distribute with modifications, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+ * THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name(s) of the above copyright
+ * holders shall not be used in advertising or otherwise to promote the
+ * sale, use or other dealings in this Software without prior written
+ * authorization.
  ****************************************************************************/
 
 /****************************************************************************
@@ -127,7 +127,7 @@ namespace apvlv
         gtk_main ();
       }
 
-  void 
+  void
     ApvlvView::open ()
       {
         GtkWidget *dia = gtk_file_chooser_dialog_new ("",
@@ -190,7 +190,6 @@ namespace apvlv
         it = mDocs.find (abpath);
         if (it != mDocs.end ())
           {
-            debug ("has loaded: %p", mDocs[abpath]);
             return it->second;
           }
         return NULL;
@@ -217,7 +216,6 @@ namespace apvlv
 #else
                 gchar *fname = (gchar *) name;
 #endif
-                debug ("fname:%s, bname:%s, bnamelen:%d", fname, bname, len);
                 if (strcmp (bname, PATH_SEP_S) != 0)
                   {
                     if (strncmp (fname, bname, len) != 0)
@@ -227,7 +225,6 @@ namespace apvlv
                 if (strcmp (dname, ".") == 0)
                   {
                     list->data = g_strdup (fname);
-                    debug ("completion add item: %s", list->data);
                   }
                 else
                   {
@@ -239,8 +236,6 @@ namespace apvlv
                       {
                         list->data = g_strjoin (PATH_SEP_S, dname, fname, NULL);
                       }
-                    char *p = (char *) list->data;
-                    debug ("completion add item: %s", list->data);
                   }
 
 #ifdef WIN32
@@ -259,7 +254,7 @@ namespace apvlv
         return gcomp;
       }
 
-  void 
+  void
     ApvlvView::promptsearch ()
       {
         gtk_entry_set_text (GTK_ENTRY (statusbar), "/");
@@ -267,7 +262,7 @@ namespace apvlv
         cmd_show ();
       }
 
-  void 
+  void
     ApvlvView::promptbacksearch ()
       {
         gtk_entry_set_text (GTK_ENTRY (statusbar), "?");
@@ -275,7 +270,7 @@ namespace apvlv
         cmd_show ();
       }
 
-  void 
+  void
     ApvlvView::promptcommand ()
       {
         gtk_entry_set_text (GTK_ENTRY (statusbar), ":");
@@ -313,7 +308,7 @@ namespace apvlv
   void
     ApvlvView::cmd_auto (const char *ps)
       {
-        GCompletion *gcomp;
+        GCompletion *gcomp = NULL;
 
         stringstream ss (ps);
         string cmd, np;
@@ -324,7 +319,6 @@ namespace apvlv
             return;
           }
 
-        debug ("cmd: %s, np: %s", cmd.c_str (), np.c_str ());
         if (cmd == "o"
             || cmd == "open"
             || cmd == "TOtext")
@@ -340,45 +334,43 @@ namespace apvlv
               {
                 list->data = g_strdup (it->first.c_str ());
                 g_completion_add_items (gcomp, list);
-                debug ("completion add item: %s", list->data);
               }
             g_list_free (list);
           }
 
-        char *comtext = NULL;
-        g_completion_complete (gcomp, np.c_str (), &comtext);
-        if (comtext != NULL)
-          {
-            debug ("completion get item: %s", comtext);
-            char text[0x100];
-            snprintf (text, sizeof text, ":%s %s", cmd.c_str (), comtext);
-            g_free (comtext);
-            gtk_entry_set_text (GTK_ENTRY (statusbar), text);
-            gtk_editable_set_position (GTK_EDITABLE (statusbar), -1);
-          }
-
         if (gcomp != NULL)
           {
+            char *comtext = NULL;
+            g_completion_complete (gcomp, np.c_str (), &comtext);
+            if (comtext != NULL)
+              {
+                char text[0x100];
+                snprintf (text, sizeof text, ":%s %s", cmd.c_str (), comtext);
+                g_free (comtext);
+                gtk_entry_set_text (GTK_ENTRY (statusbar), text);
+                gtk_editable_set_position (GTK_EDITABLE (statusbar), -1);
+              }
+
             g_completion_free (gcomp);
           }
       }
 
-  void 
-    ApvlvView::fullscreen () 
-      { 
+  void
+    ApvlvView::fullscreen ()
+      {
         if (full_has == false)
           {
-            gtk_window_maximize (GTK_WINDOW (mainwindow)); 
-            full_has = true; 
+            gtk_window_maximize (GTK_WINDOW (mainwindow));
+            full_has = true;
           }
         else
           {
-            gtk_window_unmaximize (GTK_WINDOW (mainwindow)); 
+            gtk_window_unmaximize (GTK_WINDOW (mainwindow));
             full_has = false;
           }
       }
 
-  returnType 
+  returnType
     ApvlvView::subprocess (int ct, guint key)
       {
         guint procmd = pro_cmd;
@@ -390,14 +382,13 @@ namespace apvlv
                 || key == CTRL ('Q')
             )
               {
-                ApvlvWindow *nwin = currentWindow ()->getneighbor (1, CTRL ('w'));
-                if (nwin == NULL)
+                if (currentWindow ()->istop ())
                   {
                     quit ();
                   }
                 else
                   {
-                    delete currentWindow ();
+                    delcurrentWindow ();
                   }
               }
             else
@@ -429,7 +420,7 @@ namespace apvlv
         return MATCH;
       }
 
-  returnType 
+  returnType
     ApvlvView::process (int ct, guint key)
       {
         if (pro_cmd != 0)
@@ -553,7 +544,6 @@ namespace apvlv
             break;
 
           case COMMANDMODE:
-            debug ("run: [%s]", str);
             runcmd (str);
             break;
 
@@ -562,7 +552,7 @@ namespace apvlv
           }
       }
 
-  void 
+  void
     ApvlvView::runcmd (const char *str)
       {
         if (*str == '!')
@@ -607,11 +597,11 @@ namespace apvlv
               }
             else if (cmd == "sp")
               {
-                currentWindow ()->separate (false);
+                currentWindow ()->birth (false);
               }
             else if (cmd == "vsp")
               {
-                currentWindow ()->separate (true);
+                currentWindow ()->birth (true);
               }
             else if (cmd == "zoom" || cmd == "z")
               {
@@ -666,14 +656,13 @@ namespace apvlv
               }
             else if (cmd == "q" || cmd == "quit")
               {
-                ApvlvWindow *nwin = currentWindow ()->getneighbor (1, CTRL ('w'));
-                if (nwin == NULL)
+                if (currentWindow ()->istop ())
                   {
                     quit ();
                   }
                 else
                   {
-                    delete currentWindow ();
+                    delcurrentWindow ();
                   }
               }
           }
@@ -686,18 +675,16 @@ namespace apvlv
         int w, h;
 
         gtk_window_get_size (GTK_WINDOW (wid), &w, &h);
-        if (w != view->width 
+        if (w != view->width
             || h != view->height)
           {
             if (view->cmd_has)
               {
-        debug ("here");
                 view->m_rootWindow->setsize (w, h - 20);
                 gtk_widget_set_usize (view->statusbar, w, 20);
               }
             else
               {
-        debug ("here");
                 view->m_rootWindow->setsize (w, h);
                 gtk_widget_set_usize (view->statusbar, w, 1);
               }
@@ -743,7 +730,6 @@ namespace apvlv
               }
             else if (gek->keyval == GDK_Tab)
               {
-                debug ("get a tab, need auto complete");
                 gchar *str =
                   (gchar *) gtk_entry_get_text (GTK_ENTRY (view->statusbar));
                 if (str && strlen (str) > 0)

@@ -1,29 +1,29 @@
 /****************************************************************************
- * Copyright (c) 1998-2005,2006 Free Software Foundation, Inc.              
- *                                                                          
- * Permission is hereby granted, free of charge, to any person obtaining a  
- * copy of this software and associated documentation files (the            
- * "Software"), to deal in the Software without restriction, including      
- * without limitation the rights to use, copy, modify, merge, publish,      
- * distribute, distribute with modifications, sublicense, and/or sell       
- * copies of the Software, and to permit persons to whom the Software is    
- * furnished to do so, subject to the following conditions:                 
- *                                                                          
- * The above copyright notice and this permission notice shall be included  
- * in all copies or substantial portions of the Software.                   
- *                                                                          
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   
- * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    
- * THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               
- *                                                                          
- * Except as contained in this notice, the name(s) of the above copyright   
- * holders shall not be used in advertising or otherwise to promote the     
- * sale, use or other dealings in this Software without prior written       
- * authorization.                                                           
+ * Copyright (c) 1998-2005,2006 Free Software Foundation, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, distribute with modifications, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+ * THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Except as contained in this notice, the name(s) of the above copyright
+ * holders shall not be used in advertising or otherwise to promote the
+ * sale, use or other dealings in this Software without prior written
+ * authorization.
 ****************************************************************************/
 
 /****************************************************************************
@@ -173,9 +173,10 @@ namespace apvlv
         bool ret = false;
         int pagen = 0;
         double scrollr = 0.00;
-        char *path = absolutepath (sessionfile.c_str ());
 
+        char *path = absolutepath (sessionfile.c_str ());
         ifstream os (path, ios::in);
+        g_free (path);
 
         if (os.is_open ())
           {
@@ -206,9 +207,9 @@ namespace apvlv
         showpage (pagen);
 
         // Warning
-        // I can't think a better way to scroll correctly when 
+        // I can't think a better way to scroll correctly when
         // the page is not be displayed correctly
-        gtk_timeout_add (50, apvlv_doc_first_scroll_cb, this);
+        g_timeout_add (50, apvlv_doc_first_scroll_cb, this);
 
         return ret;
       }
@@ -238,7 +239,7 @@ namespace apvlv
             return false;
           }
         filelen = sbuf.st_size;
- 
+
         if (rawdata != NULL
             && rawdatasize < filelen)
           {
@@ -361,7 +362,7 @@ namespace apvlv
         positions[s] = adp;
       }
 
-  void 
+  void
     ApvlvDoc::jump (const char s)
       {
         map <char, ApvlvDocPosition>::iterator it;
@@ -377,11 +378,11 @@ namespace apvlv
           }
       }
 
-  void 
+  void
     ApvlvDoc::showpage (int p, double s)
       {
         int rp = convertindex (p);
-        if (rp < 0) 
+        if (rp < 0)
           return;
 
 #ifdef HAVE_PTHREAD
@@ -433,7 +434,7 @@ namespace apvlv
           }
       }
 
-  void 
+  void
     ApvlvDoc::refresh ()
       {
         if (doc == NULL)
@@ -467,13 +468,13 @@ namespace apvlv
             ac = mNextCache;
             mNextCache = mLastCache;
             mLastCache = mCurrentCache;
-            mNextCache->set (convertindex (pn + 1)); 
+            mNextCache->set (convertindex (pn + 1));
           }
 
         else if (mLastCache->getpagenum () == pn)
           {
             ac = mLastCache;
-            if (mCurrentCache->getpagenum () == convertindex (pn + 1))
+            if ((int) mCurrentCache->getpagenum () == convertindex (pn + 1))
               {
                 mLastCache = mNextCache;
                 mLastCache->set (convertindex (pn - 1));
@@ -541,13 +542,22 @@ namespace apvlv
           }
       }
 
-  void
+  gboolean
     ApvlvDoc::scrollto (double s)
       {
-        double maxv = vaj->upper - vaj->lower - vaj->page_size;
-        double val = maxv * s;
-        gtk_adjustment_set_value (vaj, val);
-        status->show ();
+        if (vaj->upper != vaj->lower)
+          {
+            double maxv = vaj->upper - vaj->lower - vaj->page_size;
+            double val = maxv * s;
+            gtk_adjustment_set_value (vaj, val);
+            status->show ();
+            return TRUE;
+          }
+        else
+          {
+            debug ("fatal a timer error, try again!");
+            return FALSE;
+          }
       }
 
   void
@@ -566,7 +576,7 @@ namespace apvlv
           {
             gtk_adjustment_set_value (vaj, vaj->lower);
           }
-        else if (pagenum > 0) 
+        else if (pagenum > 0)
           {
             showpage (pagenum - 1, 1.00);
           }
@@ -640,14 +650,10 @@ namespace apvlv
         PopplerRectangle *rect = (PopplerRectangle *) results->data;
 
         gchar *txt = poppler_page_get_text (mCurrentCache->getpage (), POPPLER_SELECTION_GLYPH, rect);
-        if (txt != NULL)
+        if (txt == NULL)
           {
-            debug ("from [%f, %f, %f, %f] search a result: \n[%s]\n", 
-                   rect->x1,
-                   rect->y1,
-                   rect->x2,
-                   rect->y2,
-                   txt);
+            debug ("no search result");
+            return;
           }
 
         // Caculate the correct position
@@ -717,7 +723,7 @@ namespace apvlv
         return ret;
       }
 
-  bool 
+  bool
     ApvlvDoc::needsearch (const char *str)
       {
         if (doc == NULL)
@@ -746,7 +752,7 @@ namespace apvlv
           }
       }
 
-  void 
+  void
     ApvlvDoc::search (const char *str)
       {
         if (needsearch (str))
@@ -767,12 +773,12 @@ namespace apvlv
           }
       }
 
-  void 
+  void
     ApvlvDoc::backsearch (const char *str)
       {
         if (needsearch (str))
           {
-            int num = poppler_document_get_n_pages (doc);
+            poppler_document_get_n_pages (doc);
             int i = strlen (str) > 0? pagenum + 1: pagenum;
             while (i -- > 0)
               {
@@ -790,7 +796,7 @@ namespace apvlv
   void
     ApvlvDoc::getpagesize (PopplerPage *p, double *x, double *y)
       {
-        if (rotatevalue == 90 
+        if (rotatevalue == 90
             || rotatevalue == 270)
           {
             poppler_page_get_size (p, y, x);
@@ -810,7 +816,6 @@ namespace apvlv
         *text = poppler_page_get_text (page, POPPLER_SELECTION_WORD, &rect);
         if (*text != NULL)
           {
-            debug ("get text: \n[%s]\n", *text);
             return true;
           }
         return false;
@@ -833,9 +838,9 @@ namespace apvlv
         return false;
       }
 
-  void 
+  void
     ApvlvDoc::setactive (bool act)
-      { 
+      {
         status->active (act);
         mActive = act;
       }
@@ -899,15 +904,14 @@ namespace apvlv
 #endif
       }
 
-  gboolean 
+  gboolean
     ApvlvDoc::apvlv_doc_first_scroll_cb (gpointer data)
       {
         ApvlvDoc *doc = (ApvlvDoc *) data;
-        doc->scrollto (doc->scrollvalue);
-        return FALSE;
+        return doc->scrollto (doc->scrollvalue) == TRUE? FALSE: TRUE;
       }
 
-  gboolean 
+  gboolean
     ApvlvDoc::apvlv_doc_first_copy_cb (gpointer data)
       {
         ApvlvDoc *doc = (ApvlvDoc *) data;
@@ -917,7 +921,7 @@ namespace apvlv
 
 #ifndef WIN32
   void
-    ApvlvDoc::begin_print (GtkPrintOperation *operation, 
+    ApvlvDoc::begin_print (GtkPrintOperation *operation,
                            GtkPrintContext   *context,
                            PrintData         *data)
       {
@@ -940,7 +944,7 @@ namespace apvlv
       }
 
   void
-    ApvlvDoc::end_print (GtkPrintOperation *operation, 
+    ApvlvDoc::end_print (GtkPrintOperation *operation,
                          GtkPrintContext   *context,
                          PrintData         *data)
       {
@@ -984,10 +988,10 @@ namespace apvlv
           }
 #ifdef HAVE_PTHREAD
         pthread_cond_init (&cond, NULL);
-        
+
         if (delay == true)
           {
-            timer = gtk_timeout_add (50, (gboolean (*) (void *)) delayload, this);
+            timer = g_timeout_add (50, (gboolean (*) (void *)) delayload, this);
           }
         else
           {
@@ -1003,7 +1007,7 @@ namespace apvlv
     ApvlvDocCache::delayload (ApvlvDocCache *ac)
       {
         pthread_create (&ac->tid, NULL, (void *(*) (void *)) load, ac);
-        ac->timer = -1;       
+        ac->timer = -1;
         return FALSE;
       }
 #endif
@@ -1024,7 +1028,6 @@ namespace apvlv
 #endif
 
         PopplerPage *tpage = poppler_document_get_page (ac->doc->getdoc (), ac->pagenum);
-        debug ("get page: %d:", ac->pagenum + 1);
 
         double tpagex, tpagey;
         ac->doc->getpagesize (tpage, &tpagex, &tpagey);
@@ -1044,7 +1047,7 @@ namespace apvlv
         pthread_mutex_lock (&rendermutex);
 #endif
         poppler_page_render_to_pixbuf (tpage, 0, 0, ix, iy, ac->doc->zoomvalue (), ac->doc->getrotate (), bu);
-#ifdef HAVE_PTHREAD      
+#ifdef HAVE_PTHREAD
         pthread_mutex_unlock (&rendermutex);
 #endif
 
@@ -1053,7 +1056,6 @@ namespace apvlv
         ac->buf = bu;
 
 #ifdef HAVE_PTHREAD
-        debug ("signal the cond: %p", &ac->cond);
         pthread_cond_signal (&ac->cond);
 
         ac->thread_running = false;
@@ -1065,7 +1067,7 @@ namespace apvlv
 #ifdef HAVE_PTHREAD
       if (timer > 0)
         {
-          gtk_timeout_remove (timer);
+          g_source_remove (timer);
         }
       if (thread_running)
         {
@@ -1084,13 +1086,13 @@ namespace apvlv
         return page;
       }
 
-  int 
+  guint
     ApvlvDocCache::getpagenum ()
       {
         return pagenum;
       }
 
-  /* 
+  /*
    * get the cache data
    * @param: wait, if not wait, not wait the buffer be prepared
    * @return: the buffer
@@ -1109,7 +1111,6 @@ namespace apvlv
       if (dat == NULL)
         {
           pthread_mutex_lock (&mutex);
-          debug ("wait cond: %p", &cond);
           pthread_cond_wait (&cond, &mutex);
           dat = data;
           pthread_mutex_unlock (&mutex);
@@ -1118,7 +1119,7 @@ namespace apvlv
 #endif
     }
 
-  /* 
+  /*
    * get the cache GdkPixbuf
    * @param: wait, if not wait, not wait the pixbuf be prepared
    * @return: the buffer
@@ -1137,7 +1138,6 @@ namespace apvlv
       if (bu == NULL)
         {
           pthread_mutex_lock (&mutex);
-          debug ("wait cond: %p", &cond);
           pthread_cond_wait (&cond, &mutex);
           bu = buf;
           pthread_mutex_unlock (&mutex);
@@ -1185,7 +1185,7 @@ namespace apvlv
           }
       }
 
-  void 
+  void
     ApvlvDocStatus::setsize (int w, int h)
       {
         int sw[AD_STATUS_SIZE];
@@ -1193,14 +1193,13 @@ namespace apvlv
         sw[1] = sw[0] >> 1;
         sw[2] = sw[1] >> 1;
         sw[3] = sw[1] >> 1;
-        debug ("status lenght: %d-%d-%d-%d", sw[0], sw[1], sw[2], sw[3]);
         for (unsigned int i=0; i<AD_STATUS_SIZE; ++i)
           {
             gtk_widget_set_usize (stlab[i], sw[i], h);
           }
       }
 
-  void 
+  void
     ApvlvDocStatus::show ()
       {
         if (doc->filename ())
