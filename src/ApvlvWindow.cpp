@@ -205,18 +205,39 @@ namespace apvlv
   inline ApvlvWindow *
     ApvlvWindow::getkj (int num, bool down)
       {
-        ApvlvWindow *w, *nw, *fw;
+        ApvlvWindow *cw, *w, *nw, *fw;
+        bool right = false;
 
-        for (fw = NULL, w = this; w != NULL; w = w->m_parent)
+        asst (this && type == AW_DOC);
+        for (cw = fw = NULL, w = this; w != NULL; cw = w, w = w->m_parent)
           {
             if (w->type == AW_SP)
               {
-                fw = down?  w->m_daughter: w->m_son;
-                break;
+                if (cw == w->m_daughter && down == true
+                    || cw == w->m_son && down == false)
+                  {
+                    continue;
+                  }
+                else
+                  {
+                    fw = down? w->m_daughter: w->m_son;
+                    break;
+                  }
+              }
+            else if (w->type == AW_VSP)
+              {
+                if (cw != NULL && cw == w->m_daughter)
+                  {
+                    right = true;
+                  }
+                else
+                  {
+                    right = false;
+                  }
               }
           }
 
-        for (nw = fw, w = fw; w != NULL; )
+        for ( nw = w = fw; w != NULL; )
           {
             if (w->type == AW_DOC)
               {
@@ -229,7 +250,7 @@ namespace apvlv
               }
             else if (w->type == AW_VSP)
               {
-                w = w->m_son;
+                w = right? w->m_daughter: w->m_son;
               }
             else
               {
@@ -244,31 +265,52 @@ namespace apvlv
   inline ApvlvWindow *
     ApvlvWindow::gethl (int num, bool right)
       {
-        ApvlvWindow *w, *nw, *fw;
+        ApvlvWindow *cw, *w, *nw, *fw;
+        bool down = false;
 
-        for (fw = NULL, w = this; w != NULL; w = w->m_parent)
+        asst (this && type == AW_DOC);
+        for (cw = fw = NULL, w = this; w != NULL; cw = w, w = w->m_parent)
           {
             if (w->type == AW_VSP)
               {
-                fw = right?  w->m_daughter: w->m_son;
-                break;
+                if (cw == w->m_daughter && right == true
+                    || cw == w->m_son && right == false)
+                  {
+                    continue;
+                  }
+                else
+                  {
+                    fw = right? w->m_daughter: w->m_son;
+                    break;
+                  }
+              }
+            else if (w->type == AW_SP)
+              {
+                if (cw != NULL && cw == w->m_daughter)
+                  {
+                    down = true;
+                  }
+                else
+                  {
+                    down = false;
+                  }
               }
           }
 
-        for (nw = fw, w = fw; w != NULL; )
+        for ( nw = w = fw; w != NULL; )
           {
             if (w->type == AW_DOC)
               {
                 nw = w;
                 break;
               }
-            else if (w->type == AW_SP)
-              {
-                w = w->m_son;
-              }
             else if (w->type == AW_VSP)
               {
                 w = right? w->m_son: w->m_daughter;
+              }
+            else if (w->type == AW_SP)
+              {
+                w = down? w->m_daughter: w->m_son;
               }
             else
               {
