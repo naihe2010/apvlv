@@ -3,7 +3,7 @@
 *
 * Copyright (C) 2008 Alf.
 *
-* Contact: YuPengda <naihe2010@gmail.com>
+* Contact: Alf <naihe2010@gmail.com>
 *
 * This library is free software; you can redistribute it and/or
 * modify it under the terms of the GNU Lesser General Public License
