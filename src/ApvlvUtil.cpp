@@ -1,36 +1,32 @@
-/****************************************************************************
- * Copyright (c) 1998-2005,2006 Free Software Foundation, Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, distribute with modifications, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
- * THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * Except as contained in this notice, the name(s) of the above copyright
- * holders shall not be used in advertising or otherwise to promote the
- * sale, use or other dealings in this Software without prior written
- * authorization.
-****************************************************************************/
+/*
+* This file is part of the apvlv package
+*
+* Copyright (C) 2008 Alf.
+*
+* Contact: YuPengda <naihe2010@gmail.com>
+*
+* This library is free software; you can redistribute it and/or
+* modify it under the terms of the GNU Lesser General Public License
+* as published by the Free Software Foundation; either version 2.1 of
+* the License, or (at your option) any later version.
+*
+* This library is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+* Lesser General Public License for more details.
+*
+* You should have received a copy of the GNU Lesser General Public
+* License along with this library; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+* 02110-1301 USA
+*
+*/
+/* @CFILE ApvlvUtil.cpp
+*
+*  Author: Alf <naihe2010@gmail.com>
+*/
+/* @date Created: 2008/09/30 00:00:00 Alf */
 
-/****************************************************************************
- *  Author:    YuPengda
- *  AuthorRef: Alf <naihe2010@gmail.com>
- *  Blog:      http://naihe2010.cublog.cn
-****************************************************************************/
 #include "ApvlvUtil.hpp"
 
 #include <stdlib.h>
@@ -44,6 +40,7 @@
 #include <iostream>
 #include <fstream>
 using namespace std;
+
 
 #ifdef WIN32
 #define snprintf _snprintf
@@ -131,12 +128,24 @@ namespace apvlv
   // remove a widget from its parent
   // return the parent widget
   GtkWidget *
-    remove_widget (GtkWidget *wid, bool remove)
+    remove_widget (GtkWidget *wid, widremoveType remove)
       {
-        if (remove == false)
+        if (remove == WR_REF)
           {
             g_object_ref (G_OBJECT (wid));
           }
+        else if (remove == WR_REF_CHILDREN)
+          {
+            GList *children = gtk_container_get_children (GTK_CONTAINER (wid));
+            GList *child = children;
+            while (child != NULL)
+              {
+                g_object_ref (G_OBJECT (child->data));
+                child = g_list_next (child);
+              }
+            g_list_free (children);
+          }
+
         GtkWidget *parent = gtk_widget_get_parent (wid);
         gtk_container_remove (GTK_CONTAINER (parent), wid);
         return parent;
@@ -145,7 +154,7 @@ namespace apvlv
   // replace a widget with a new widget
   // return the parent widget
   GtkWidget *
-    replace_widget (GtkWidget *owid, GtkWidget *nwid, bool remove)
+    replace_widget (GtkWidget *owid, GtkWidget *nwid, widremoveType remove)
       {
         GtkWidget *parent = remove_widget (owid, remove);
         gtk_container_add (GTK_CONTAINER (parent), nwid);

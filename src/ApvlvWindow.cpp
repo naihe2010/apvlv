@@ -1,36 +1,32 @@
-/****************************************************************************
- * Copyright (c) 1998-2005,2006 Free Software Foundation, Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, distribute with modifications, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
- * THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * Except as contained in this notice, the name(s) of the above copyright
- * holders shall not be used in advertising or otherwise to promote the
- * sale, use or other dealings in this Software without prior written
- * authorization.
-****************************************************************************/
+/*
+* This file is part of the apvlv package
+*
+* Copyright (C) 2008 Alf.
+*
+* Contact: YuPengda <naihe2010@gmail.com>
+*
+* This library is free software; you can redistribute it and/or
+* modify it under the terms of the GNU Lesser General Public License
+* as published by the Free Software Foundation; either version 2.1 of
+* the License, or (at your option) any later version.
+*
+* This library is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+* Lesser General Public License for more details.
+*
+* You should have received a copy of the GNU Lesser General Public
+* License along with this library; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+* 02110-1301 USA
+*
+*/
+/* @CPPFILE ApvlvWindow.cpp
+*
+*  Author: Alf <naihe2010@gmail.com>
+*/
+/* @date Created: 2008/09/30 00:00:00 Alf */
 
-/****************************************************************************
- *  Author:    YuPengda
- *  AuthorRef: Alf <naihe2010@gmail.com>
- *  Blog:      http://naihe2010.cublog.cn
-****************************************************************************/
 #include "ApvlvView.hpp"
 #include "ApvlvUtil.hpp"
 #include "ApvlvParams.hpp"
@@ -356,7 +352,7 @@ namespace apvlv
         m_Paned = vsp == false? gtk_vpaned_new (): gtk_hpaned_new ();
         g_signal_connect (G_OBJECT (m_Paned), "button-release-event", G_CALLBACK (apvlv_window_paned_resized_cb), this);
 
-        replace_widget (widget (), m_Paned, false);
+        replace_widget (widget (), m_Paned, WR_REF);
 
         gtk_paned_pack1 (GTK_PANED (m_Paned), nwindow->widget (), TRUE, TRUE);
         gtk_paned_pack2 (GTK_PANED (m_Paned), nwindow2->widget (), TRUE, TRUE);
@@ -393,12 +389,12 @@ namespace apvlv
         if (child->type == AW_DOC)
           {
             ApvlvDoc *doc = child->getDoc (true);
-            replace_widget (widget (), doc->widget (), false);
+            replace_widget (widget (), doc->widget (), WR_REF);
             m_Doc = doc;
           }
         else if (child->type == AW_SP || child->type == AW_VSP)
           {
-            replace_widget (widget (), child->widget (), false);
+            replace_widget (widget (), child->widget (), WR_REF_CHILDREN);
             m_Paned = child->widget ();
           }
 
@@ -448,7 +444,7 @@ namespace apvlv
         bool ret = ndoc->loadfile (filename);
         if (ret)
           {
-            replace_widget (widget (), ndoc->widget (), false);
+            replace_widget (widget (), ndoc->widget (), WR_REF);
             m_Doc = ndoc;
             gtk_widget_show_all (widget ());
             return ndoc;
@@ -464,7 +460,7 @@ namespace apvlv
     ApvlvWindow::setDoc (ApvlvDoc *doc)
       {
         asst (type == AW_DOC);
-        replace_widget (widget (), doc->widget (), false);
+        replace_widget (widget (), doc->widget (), WR_REF);
         m_Doc = doc;
       }
 
@@ -476,7 +472,7 @@ namespace apvlv
 
         if (remove)
           {
-            remove_widget (widget (), false);
+            remove_widget (widget (), WR_REF);
             m_Doc = NULL;
           }
 
