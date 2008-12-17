@@ -1,3 +1,12 @@
-1. directory view
+0.      Bug fix.
 
-2. regex search
+1.      Regex search, multiple search.
+
+2.      Directory view.
+2.1     Content view. Implemante it with directory toghter?
+
+3.      Word moving, put a curcor in the document. and 'k','j' ... moves it.
+3.1     Press 'v' to select a text area, and then TOtext them or copy them to clipboard.
+
+4.      Other document type, like .gv?????
+5.      Edit file????????
