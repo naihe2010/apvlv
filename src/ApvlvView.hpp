@@ -43,6 +43,13 @@
 
 namespace apvlv
 {
+  typedef enum
+    {
+      SEARCH = '/',
+      BACKSEARCH = '?',
+      COMMANDMODE = ':'
+    } cmd_mode_type;
+
   class ApvlvDoc;
   class ApvlvWindow;
 
@@ -64,7 +71,7 @@ namespace apvlv
     void promptbacksearch ();
     void promptcommand ();
 
-    void run (const char *str);
+    void run (cmd_mode_type cmd, const char *str);
 
     bool loadfile (string file) { return loadfile (file.c_str ()); }
     bool loadfile (const char *filename);
@@ -93,18 +100,13 @@ namespace apvlv
 
     void refresh ();
 
-    enum
-      {
-        SEARCH,
-        BACKSEARCH,
-        COMMANDMODE
-      } cmd_mode;
-
     bool destroy;
 
     GCompletion *filecompleteinit (const char *s);
 
     void runcmd (const char *cmd);
+
+    cmd_mode_type cmd_mode;
 
     bool cmd_has;
 

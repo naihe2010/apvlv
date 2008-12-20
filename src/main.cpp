@@ -49,11 +49,11 @@ main (int argc, char *argv[])
 {
   setlocale (LC_ALL, "");
 
-  ApvlvParams sParams;
-  gParams = &sParams;
-
   ApvlvCmds sCmds;
   gCmds = &sCmds;
+
+  ApvlvParams sParams;
+  gParams = &sParams;
 
   gchar *ini = absolutepath (inifile.c_str ());
   if (ini != NULL)

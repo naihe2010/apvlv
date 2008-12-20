@@ -28,6 +28,7 @@
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
 #include "ApvlvUtil.hpp"
+#include "ApvlvCmds.hpp"
 #include "ApvlvParams.hpp"
 
 #include <string.h>
@@ -137,6 +138,7 @@ namespace apvlv
               err ("Unknown rc command: %s: %s", crap.c_str (), str.c_str ());
             }
         }
+
       return true;
     }
 
@@ -144,6 +146,7 @@ namespace apvlv
     ApvlvParams::mappush (string &ch, string &str)
       {
         m_maps[ch] = str;
+        gCmds->buildmap (ch.c_str (), str.c_str ());
         return true;
       }
 

@@ -38,12 +38,131 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
 using namespace std;
 
 namespace apvlv
 {
+  const guint CmdSize = 6;
+  const guint CmdStrLen = 16;
+
+  typedef enum 
+    {
+      CT_CMD,
+      CT_STRING,
+      CT_STRING_RETURN
+    } cmdType;
+
+  typedef map <guint, const char *> KeyStringMap;
+  typedef map <const char *, guint> StringKeyMap;
+
+  class ApvlvCmd;
+  typedef vector <guint> ApvlvCmdKeyv;
+  typedef map <ApvlvCmdKeyv, ApvlvCmd *> ApvlvCmdMap;
+
+  class ApvlvCmd
+    {
+  public:
+    ApvlvCmd ();
+
+    ApvlvCmd (ApvlvCmd &cmd);
+
+    ~ApvlvCmd ();
+
+    void push (const char *s, cmdType type = CT_CMD);
+
+    void append (GdkEventKey *key);
+
+    const char *append (const char *s);
+
+    bool cmp (ApvlvCmd &cmd);
+
+    void type (cmdType type);
+
+    cmdType type ();
+
+    void bemap (bool bemap);
+
+    bool bemap ();
+
+    void canmap (bool canmap);
+
+    bool canmap ();
+
+    void hascount (bool hascount);
+
+    bool hascount ();
+
+    const char *c_str ();
+
+    ApvlvCmdKeyv *keyvalv_p ();
+
+    ApvlvCmdKeyv keyvalv ();
+
+    void precount (gint precount);
+
+    gint precount ();
+
+    guint keyval (guint id);
+
+    ApvlvCmd *next ();
+
+    void origin (ApvlvCmd *cmd);
+
+    ApvlvCmd *origin ();
+
+  private:
+    
+    // command type
+    cmdType mType;
+
+    // if cmd is be mapped
+    bool mBeMap;
+
+    // if cmd can be mapped
+    bool mCanMap;
+
+    // if has count
+    bool mHasPreCount;
+
+    // how to descripe this command in .apvlvrc
+    // like <C-d><C-w>, <S-b>s, or :run, :vsp, ...
+    string mStrCommand;
+
+    // key's value list
+    ApvlvCmdKeyv mKeyVals;
+
+    // cmd's pre count
+    gint mPreCount;
+
+    // next command
+    ApvlvCmd *mNext;
+
+    // when a key is map to other, this is the origin key.
+    // after a maped key was processed, return to this cmds
+    ApvlvCmd *mOrigin;
+    };
+
   class ApvlvCmds
     {
+      // New module
+  public:
+    bool buildmap (const char *os, const char *ms);
+
+  private:
+    ApvlvCmd *process (ApvlvCmd *cmd);
+
+    returnType ismap (ApvlvCmdKeyv *ack);
+
+    ApvlvCmd *getmap (const char *os);
+
+    ApvlvCmd *getmap (ApvlvCmd *cmd);
+
+    ApvlvCmdMap mMaps;
+
+    ApvlvCmd *mCmdHead;
+    // End New
+
   public:
     ApvlvCmds ();
 
@@ -52,6 +171,7 @@ namespace apvlv
     void append (GdkEventKey *gev);
 
   private:
+
     void translate (GdkEventKey *gev, string *s);
 
     bool translate (string &s, GdkEventKey *gev);
@@ -76,22 +196,9 @@ namespace apvlv
     static gboolean apvlv_cmds_timeout_cb (gpointer);
     gint timeouttimer;
 
-    string queue;
-
     bool hasop;
-    int count;
-
-    bool getall;
-
-    const char *mapcmd;
-
-    guint cmd;
-
-    map <guint, const char *> KS;
-
-    /*
-    typedef pair <guint, const char *> keystritem;
-    vector <keystritem> KS2; */
+    string count;
+    KeyStringMap KS;
 
     bool buildevent (const char *p);
 

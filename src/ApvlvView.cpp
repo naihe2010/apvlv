@@ -419,6 +419,7 @@ namespace apvlv
   returnType
     ApvlvView::process (int ct, guint key)
       {
+        debug ("run %c[%d] of %d times", key, key, ct); 
         if (pro_cmd != 0)
           {
             return subprocess (ct, key);
@@ -525,9 +526,9 @@ namespace apvlv
       }
 
   void
-    ApvlvView::run (const char *str)
+    ApvlvView::run (cmd_mode_type cmd, const char *str)
       {
-        switch (cmd_mode)
+        switch (cmd)
           {
           case SEARCH:
             crtadoc ()->markposition ('\'');
@@ -719,7 +720,7 @@ namespace apvlv
                   (gchar *) gtk_entry_get_text (GTK_ENTRY (view->statusbar));
                 if (str && strlen (str) > 0)
                   {
-                    view->run (str + 1);
+                    view->run (view->cmd_mode, str + 1);
                   }
                 view->cmd_hide ();
                 return TRUE;

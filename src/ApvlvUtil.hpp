@@ -105,6 +105,8 @@ namespace apvlv
 
   // char macro
   // because every unsigned char is < 256, so use this marco to standrd for Ctrl-c
-#define CTRL(c)         ((c) + 256)
+#define CTRL(c)                 ((c) + 256)
+#define SHIFT(c)                (CTRL(c) + 256)
+
 }
 #endif
