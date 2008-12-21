@@ -54,9 +54,6 @@ using namespace std;
 
 namespace apvlv
 {
-#define HEADER_HEIGHT (10*72/25.4)
-#define HEADER_GAP (3*72/25.4)
-
   struct PrintData
     {
       PopplerDocument *doc;
@@ -69,51 +66,68 @@ namespace apvlv
       double scrollrate;
     };
 
+  typedef map <char, ApvlvDocPosition> ApvlvDocPositionMap;
+
   class ApvlvDoc;
   class ApvlvDocCache
     {
   public:
     ApvlvDocCache (ApvlvDoc *);
-    void set (guint p, bool delay = true);
-    static void load (ApvlvDocCache *);
-    static gboolean delayload (ApvlvDocCache *);
+
     ~ApvlvDocCache ();
+
+    void set (guint p, bool delay = true);
+
+    static void load (ApvlvDocCache *);
+
+    static gboolean delayload (ApvlvDocCache *);
+
     PopplerPage *getpage ();
+
     guint getpagenum ();
+
     guchar *getdata (bool wait);
+
     GdkPixbuf *getbuf (bool wait);
 
   private:
 #ifdef HAVE_PTHREAD
-    bool thread_running;
-    gint timer;
-    pthread_t tid;
-    pthread_cond_t cond;
-    pthread_mutex_t mutex;
+    bool mThreadRunning;
+    gint mTimer;
+    pthread_t mTid;
+    pthread_cond_t mCond;
+    pthread_mutex_t mMutex;
 #endif
 
-    ApvlvDoc *doc;
-    PopplerPage *page;
-    int pagenum;
-    guchar *data;
-    GdkPixbuf *buf;
+    ApvlvDoc *mDoc;
+    PopplerPage *mPage;
+    int mPagenum;
+    guchar *mData;
+    GdkPixbuf *mBuf;
     };
 
   class ApvlvDocStatus
     {
   public:
     ApvlvDocStatus (ApvlvDoc *doc);
+
     ~ApvlvDocStatus ();
-    GtkWidget *widget () { return vbox; }
+
+    GtkWidget *widget () { return mVbox; }
+
     void active (bool act);
+
     void setsize (int w, int h);
+
     void show ();
 
   private:
 #define AD_STATUS_SIZE   4
-    ApvlvDoc  *doc;
-    GtkWidget *vbox;
-    GtkWidget *stlab[AD_STATUS_SIZE];
+    ApvlvDoc  *mDoc;
+
+    GtkWidget *mVbox;
+
+    GtkWidget *mStlab[AD_STATUS_SIZE];
     };
 
   class ApvlvDoc
@@ -125,31 +139,31 @@ namespace apvlv
 
     ApvlvDoc *copy ();
 
-    const char *filename () { return doc? filestr.c_str (): NULL; }
+    const char *filename ();
 
-    PopplerDocument *getdoc () { return doc; }
+    PopplerDocument *getdoc ();
 
     void getpagesize (PopplerPage *p, double *x, double *y);
 
     bool getpagetext (PopplerPage *p, char **contents);
 
-    int pagenumber () { return pagenum + 1; }
+    int pagenumber ();
 
-    int getrotate () { return rotatevalue; }
+    int getrotate ();
 
-    int pagesum () { return doc? poppler_document_get_n_pages (doc): 0; }
+    int pagesum ();
 
     double scrollrate ();
 
-    double zoomvalue () { return zoomrate; }
+    double zoomvalue ();
 
     GtkWidget *widget ();
 
-    bool loadfile (string & filename, bool check = true) { return loadfile (filename.c_str (), check); }
+    bool loadfile (string & filename, bool check = true);
 
     bool loadfile (const char *src, bool check = true);
 
-    bool reload () { savelastposition (); return loadfile (filestr, false); }
+    bool reload ();
 
     bool print (int ct);
 
@@ -169,9 +183,12 @@ namespace apvlv
 
     void showpage (int p, double s = 0.00);
 
-    void nextpage (int times = 1) { showpage (pagenum + times); }
-    void prepage (int times = 1) { showpage (pagenum - times); }
+    void nextpage (int times = 1);
+
+    void prepage (int times = 1);
+
     void halfnextpage (int times = 1);
+
     void halfprepage (int times = 1);
 
     gboolean scrollto (double s);
@@ -181,12 +198,10 @@ namespace apvlv
     void scrollleft (int times = 1);
     void scrollright (int times = 1);
 
-    void setcache (const char *s) { return setcache (atoi (s)); }
-    void setcache (int d);
     void setzoom (const char *s);
     void setzoom (double d);
-    void zoomin () { zoomrate *= 1.1; refresh (); }
-    void zoomout () { zoomrate /= 1.1; refresh (); }
+    void zoomin ();
+    void zoomout ();
 
     void search (const char *str);
     void backsearch (const char *str);
@@ -199,11 +214,17 @@ namespace apvlv
     bool status_show ();
 
     int convertindex (int p);
+
     void markselection ();
+
     bool needsearch (const char *str);
+
     GList * searchpage (int num);
+
     void refresh ();
+
     bool savelastposition ();
+
     bool loadlastposition ();
 
     static gboolean apvlv_doc_first_scroll_cb (gpointer);
@@ -220,16 +241,20 @@ namespace apvlv
     static void end_print (GtkPrintOperation *operation,
                            GtkPrintContext   *context,
                            PrintData         *data);
-    string filestr;
-    char *rawdata;
-    size_t rawdatasize;
-    PopplerDocument *doc;
+    string mFilestr;
 
-    double scrollvalue;
-    map <char, ApvlvDocPosition> positions;
+    char *mRawdata;
 
-    GList *results;
-    string searchstr;
+    size_t mRawdatasize;
+
+    PopplerDocument *mDoc;
+
+    double mScrollvalue;
+
+    ApvlvDocPositionMap mPositions;
+
+    GList *mResults;
+    string mSearchstr;
 
 #ifdef HAVE_PTHREAD
     ApvlvDocCache *fetchcache (guint);
@@ -239,10 +264,13 @@ namespace apvlv
     ApvlvDocCache *newcache (int pagenum);
     void deletecache (ApvlvDocCache *ac);
 
-    int rotatevalue;
-    int pagenum;
-    double pagex, pagey;
-    double vrate, hrate;
+    int mRotatevalue;
+
+    int mPagenum;
+
+    double mPagex, mPagey;
+
+    double mVrate, mHrate;
 
     enum
       {
@@ -250,18 +278,29 @@ namespace apvlv
         FITWIDTH,
         FITHEIGHT,
         CUSTOM
-      } zoommode;
-    double zoomrate;
-    bool zoominit;
-    int lines, chars;
-    int width, height;
-    GtkAdjustment *vaj, *haj;
+      } mZoommode;
 
-    GtkWidget *vbox; // the main widget
-    GtkWidget *scrollwin; // the document scrolled window
-    GtkWidget *image; // the image
+    double mZoomrate;
 
-    ApvlvDocStatus *status;
+    bool mZoominit;
+
+    int mLines, mChars;
+
+    int mWidth, mHeight;
+
+    GtkAdjustment *mVaj, *mHaj;
+
+    // the main widget
+    GtkWidget *mVbox; 
+    
+    // the document scrolled window
+    GtkWidget *mScrollwin;
+
+    // image viewer
+    GtkWidget *mImage;
+
+    // status bar
+    ApvlvDocStatus *mStatus;
 
     bool mActive;
     };

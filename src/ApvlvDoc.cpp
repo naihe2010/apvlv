@@ -48,10 +48,6 @@
 #include <fstream>
 #include <sstream>
 
-#ifdef WIN32
-#define snprintf _snprintf
-#endif
-
 namespace apvlv
 {
 #ifdef HAVE_PTHREAD
@@ -67,32 +63,32 @@ namespace apvlv
       mNextCache = NULL;
 #endif
 
-      rotatevalue = 0;
+      mRotatevalue = 0;
 
-      rawdata = NULL;
-      doc = NULL;
+      mRawdata = NULL;
+      mDoc = NULL;
 
-      results = NULL;
-      searchstr = "";
+      mResults = NULL;
+      mSearchstr = "";
 
-      vbox = gtk_vbox_new (FALSE, 0);
+      mVbox = gtk_vbox_new (FALSE, 0);
 
-      scrollwin = gtk_scrolled_window_new (NULL, NULL);
+      mScrollwin = gtk_scrolled_window_new (NULL, NULL);
 
-      image = gtk_image_new ();
-      gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (scrollwin),
-                                             image);
-      gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrollwin),
+      mImage = gtk_image_new ();
+      gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mScrollwin),
+                                             mImage);
+      gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin),
                                       GTK_POLICY_AUTOMATIC,
                                       GTK_POLICY_AUTOMATIC);
 
-      vaj = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (scrollwin));
-      haj = gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (scrollwin));
+      mVaj = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
+      mHaj = gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
 
-      status = new ApvlvDocStatus (this);
+      mStatus = new ApvlvDocStatus (this);
 
-      gtk_box_pack_start (GTK_BOX (vbox), scrollwin, FALSE, FALSE, 0);
-      gtk_box_pack_end (GTK_BOX (vbox), status->widget (), FALSE, FALSE, 0);
+      gtk_box_pack_start (GTK_BOX (mVbox), mScrollwin, FALSE, FALSE, 0);
+      gtk_box_pack_end (GTK_BOX (mVbox), mStatus->widget (), FALSE, FALSE, 0);
 
       setzoom (zm);
     }
@@ -108,39 +104,49 @@ namespace apvlv
       delete mLastCache;
 #endif
 
-      if (filestr != helppdf)
+      if (mFilestr != helppdf)
         {
           savelastposition ();
         }
-      positions.clear ();
+      mPositions.clear ();
 
-      if (rawdata != NULL)
-        delete []rawdata;
+      if (mRawdata != NULL)
+        delete []mRawdata;
 
-      delete status;
-
-      gtk_widget_destroy (vbox);
+      delete mStatus;
     }
 
   void
     ApvlvDoc::setsize (int w, int h)
       {
         gtk_widget_set_usize (widget (), w, h);
-        gtk_widget_set_usize (scrollwin, w, h - 20);
-        status->setsize (w, 20);
-        width = w;
-        height = h;
+        gtk_widget_set_usize (mScrollwin, w, h - 20);
+        mStatus->setsize (w, 20);
+        mWidth = w;
+        mHeight = h;
       }
 
   ApvlvDoc *
     ApvlvDoc::copy ()
       {
         char rate[16];
-        snprintf (rate, sizeof rate, "%f", zoomrate);
+        snprintf (rate, sizeof rate, "%f", mZoomrate);
         ApvlvDoc *ndoc = new ApvlvDoc (rate);
-        ndoc->loadfile (filestr, false);
-        ndoc->showpage (pagenum, scrollrate ());
+        ndoc->loadfile (mFilestr, false);
+        ndoc->showpage (mPagenum, scrollrate ());
         return ndoc;
+      }
+
+  const char *
+    ApvlvDoc::filename () 
+      { 
+        return mDoc? mFilestr.c_str (): NULL; 
+      }
+
+  PopplerDocument *
+    ApvlvDoc::getdoc () 
+      { 
+        return mDoc; 
       }
 
   bool
@@ -154,7 +160,7 @@ namespace apvlv
           {
             os << ">";
             os << filename () << "\t";
-            os << pagenum << "\t";
+            os << mPagenum << "\t";
             os << scrollrate ();
             os << "\n";
             os.close ();
@@ -189,7 +195,7 @@ namespace apvlv
                     string files;
                     ss >> files;
 
-                    if (files == filestr)
+                    if (files == mFilestr)
                       {
                         ss >> pagen >> scrollr;
                         ret = true;
@@ -199,7 +205,7 @@ namespace apvlv
             os.close ();
           }
 
-        scrollvalue = scrollr;
+        mScrollvalue = scrollr;
         showpage (pagen);
 
         // Warning
@@ -210,12 +216,39 @@ namespace apvlv
         return ret;
       }
 
+  void 
+    ApvlvDoc::zoomin () 
+      { 
+        mZoomrate *= 1.1; 
+        refresh (); 
+      }
+
+  void 
+    ApvlvDoc::zoomout () 
+      { 
+        mZoomrate /= 1.1; 
+        refresh (); 
+      }
+
+  bool 
+    ApvlvDoc::reload () 
+      { 
+        savelastposition (); 
+        return loadfile (mFilestr, false); 
+      }
+
+  bool 
+    ApvlvDoc::loadfile (string & filename, bool check) 
+      { 
+        return loadfile (filename.c_str (), check); 
+      }
+
   bool
     ApvlvDoc::loadfile (const char *filename, bool check)
       {
         if (check)
           {
-            if (strcmp (filename, filestr.c_str ()) == 0)
+            if (strcmp (filename, mFilestr.c_str ()) == 0)
               {
                 return false;
               }
@@ -236,23 +269,23 @@ namespace apvlv
           }
         filelen = sbuf.st_size;
 
-        if (rawdata != NULL
-            && rawdatasize < filelen)
+        if (mRawdata != NULL
+            && mRawdatasize < filelen)
           {
-            delete []rawdata;
-            rawdata = NULL;
+            delete []mRawdata;
+            mRawdata = NULL;
           }
 
-        if (rawdata == NULL)
+        if (mRawdata == NULL)
           {
-            rawdata = new char[filelen];
-            rawdatasize = filelen;
+            mRawdata = new char[filelen];
+            mRawdatasize = filelen;
           }
 
         ifstream ifs (wfilename, ios::binary);
         if (ifs.is_open ())
         {
-          ifs.read (rawdata, filelen);
+          ifs.read (mRawdata, filelen);
           ifs.close ();
         }
 
@@ -260,14 +293,14 @@ namespace apvlv
         g_free (wfilename);
 #endif
 
-        doc = poppler_document_new_from_data (rawdata, filelen, NULL, NULL);
+        mDoc = poppler_document_new_from_data (mRawdata, filelen, NULL, NULL);
 
-        if (doc != NULL)
+        if (mDoc != NULL)
           {
-            zoominit = false;
-            lines = 50;
-            chars = 80;
-            filestr = filename;
+            mZoominit = false;
+            mLines = 50;
+            mChars = 80;
+            mFilestr = filename;
 
 #ifdef HAVE_PTHREAD
             if (mLastCache != NULL)
@@ -283,12 +316,12 @@ namespace apvlv
 
             loadlastposition ();
 
-            status->show ();
+            mStatus->show ();
 
             setactive (true);
           }
 
-        return doc == NULL? false: true;
+        return mDoc == NULL? false: true;
       }
 
   void
@@ -296,23 +329,23 @@ namespace apvlv
       {
         if (strcmp (z, "normal") == 0)
           {
-            zoommode = NORMAL;
+            mZoommode = NORMAL;
           }
         if (strcmp (z, "fitwidth") == 0)
           {
-            zoommode = FITWIDTH;
+            mZoommode = FITWIDTH;
           }
         if (strcmp (z, "fitheight") == 0)
           {
-            zoommode = FITHEIGHT;
+            mZoommode = FITHEIGHT;
           }
         else
           {
             double d = atof (z);
             if (d > 0)
               {
-                zoommode = CUSTOM;
-                zoomrate = d;
+                mZoommode = CUSTOM;
+                mZoomrate = d;
               }
           }
 
@@ -322,23 +355,47 @@ namespace apvlv
   void
     ApvlvDoc::setzoom (double d)
       {
-        zoommode = CUSTOM;
-        zoomrate = d;
+        mZoommode = CUSTOM;
+        mZoomrate = d;
         refresh ();
+      }
+
+  int 
+    ApvlvDoc::pagenumber ()
+      { 
+        return mPagenum + 1; 
+      }
+
+  int 
+    ApvlvDoc::getrotate () 
+      { 
+        return mRotatevalue; 
+      }
+
+  int 
+    ApvlvDoc::pagesum () 
+      { 
+        return mDoc? poppler_document_get_n_pages (mDoc): 0; 
+      }
+
+  double 
+    ApvlvDoc::zoomvalue () 
+      { 
+        return mZoomrate; 
       }
 
   GtkWidget *
     ApvlvDoc::widget ()
       {
-        return vbox;
+        return mVbox;
       }
 
   int
     ApvlvDoc::convertindex (int p)
       {
-        if (doc != NULL)
+        if (mDoc != NULL)
           {
-            int c = poppler_document_get_n_pages (doc);
+            int c = poppler_document_get_n_pages (mDoc);
             if (p >= 0)
               {
                 return p % c;
@@ -354,15 +411,15 @@ namespace apvlv
   void
     ApvlvDoc::markposition (const char s)
       {
-        ApvlvDocPosition adp = { pagenum, scrollrate () };
-        positions[s] = adp;
+        ApvlvDocPosition adp = { mPagenum, scrollrate () };
+        mPositions[s] = adp;
       }
 
   void
     ApvlvDoc::jump (const char s)
       {
-        map <char, ApvlvDocPosition>::iterator it;
-        for (it = positions.begin (); it != positions.end (); ++ it)
+        ApvlvDocPositionMap::iterator it;
+        for (it = mPositions.begin (); it != mPositions.end (); ++ it)
           {
             if ((*it).first == s)
               {
@@ -386,32 +443,32 @@ namespace apvlv
         if (ac != NULL)
           {
             GdkPixbuf *buf = ac->getbuf (true);
-            gtk_image_set_from_pixbuf (GTK_IMAGE (image), buf);
+            gtk_image_set_from_pixbuf (GTK_IMAGE (mImage), buf);
             scrollto (s);
 
-            pagenum = rp;
+            mPagenum = rp;
 
             mCurrentCache = ac;
             return;
           }
 #endif
-        PopplerPage *page = poppler_document_get_page (doc, rp);
-        if (page != NULL)
+        PopplerPage *mPage = poppler_document_get_page (mDoc, rp);
+        if (mPage != NULL)
           {
-            getpagesize (page, &pagex, &pagey);
+            getpagesize (mPage, &mPagex, &mPagey);
 
-            if (zoominit == false)
+            if (mZoominit == false)
               {
-                switch (zoommode)
+                switch (mZoommode)
                   {
                   case NORMAL:
-                    zoomrate = 1.2;
+                    mZoomrate = 1.2;
                     break;
                   case FITWIDTH:
-                    zoomrate = ((double) (width - 26)) / pagex;
+                    mZoomrate = ((double) (mWidth - 26)) / mPagex;
                     break;
                   case FITHEIGHT:
-                    zoomrate = ((double) (height - 26)) / pagey;
+                    mZoomrate = ((double) (mHeight - 26)) / mPagey;
                     break;
                   case CUSTOM:
                     break;
@@ -419,10 +476,10 @@ namespace apvlv
                     break;
                   }
 
-                zoominit = true;
+                mZoominit = true;
               }
 
-            pagenum = poppler_page_get_index (page);
+            mPagenum = poppler_page_get_index (mPage);
 
             refresh ();
 
@@ -430,16 +487,28 @@ namespace apvlv
           }
       }
 
+  void 
+    ApvlvDoc::nextpage (int times)
+      { 
+        showpage (mPagenum + times); 
+      }
+
+  void 
+    ApvlvDoc::prepage (int times) 
+      { 
+        showpage (mPagenum - times); 
+      }
+
   void
     ApvlvDoc::refresh ()
       {
-        if (doc == NULL)
+        if (mDoc == NULL)
           return;
 
-        mCurrentCache->set (pagenum, false);
-        gtk_image_set_from_pixbuf (GTK_IMAGE (image), mCurrentCache->getbuf (true));
+        mCurrentCache->set (mPagenum, false);
+        gtk_image_set_from_pixbuf (GTK_IMAGE (mImage), mCurrentCache->getbuf (true));
 
-        status->show ();
+        mStatus->show ();
 
 #ifdef HAVE_PTHREAD
         if (mNextCache != NULL)
@@ -499,10 +568,10 @@ namespace apvlv
         double sr = scrollrate ();
         int rtimes = times / 2;
 
-        showpage (pagenum + rtimes, sr);
+        showpage (mPagenum + rtimes, sr);
         if (times % 2 != 0)
           {
-            scrolldown (lines / 2);
+            scrolldown (mLines / 2);
           }
       }
 
@@ -512,18 +581,18 @@ namespace apvlv
         double sr = scrollrate ();
         int rtimes = times / 2;
 
-        showpage (pagenum - rtimes, sr);
+        showpage (mPagenum - rtimes, sr);
         if (times % 2 != 0)
           {
-            scrollup (lines / 2);
+            scrollup (mLines / 2);
           }
       }
 
   double
     ApvlvDoc::scrollrate ()
       {
-        double maxv = vaj->upper - vaj->lower - vaj->page_size;
-        double val =  vaj->value / maxv;
+        double maxv = mVaj->upper - mVaj->lower - mVaj->page_size;
+        double val =  mVaj->value / maxv;
         if (val > 1.0)
           {
             return 1.00;
@@ -541,12 +610,12 @@ namespace apvlv
   gboolean
     ApvlvDoc::scrollto (double s)
       {
-        if (vaj->upper != vaj->lower)
+        if (mVaj->upper != mVaj->lower)
           {
-            double maxv = vaj->upper - vaj->lower - vaj->page_size;
+            double maxv = mVaj->upper - mVaj->lower - mVaj->page_size;
             double val = maxv * s;
-            gtk_adjustment_set_value (vaj, val);
-            status->show ();
+            gtk_adjustment_set_value (mVaj, val);
+            mStatus->show ();
             return TRUE;
           }
         else
@@ -559,91 +628,91 @@ namespace apvlv
   void
     ApvlvDoc::scrollup (int times)
       {
-        if (doc == NULL)
+        if (mDoc == NULL)
           return;
 
-        gdouble val = gtk_adjustment_get_value (vaj);
-        vrate = (vaj->upper - vaj->lower) / lines;
-        if (val - vrate * times > vaj->lower)
+        gdouble val = gtk_adjustment_get_value (mVaj);
+        mVrate = (mVaj->upper - mVaj->lower) / mLines;
+        if (val - mVrate * times > mVaj->lower)
           {
-            gtk_adjustment_set_value (vaj, val - vrate * times);
+            gtk_adjustment_set_value (mVaj, val - mVrate * times);
           }
-        else if (val > vaj->lower)
+        else if (val > mVaj->lower)
           {
-            gtk_adjustment_set_value (vaj, vaj->lower);
+            gtk_adjustment_set_value (mVaj, mVaj->lower);
           }
-        else if (pagenum > 0)
+        else if (mPagenum > 0)
           {
-            showpage (pagenum - 1, 1.00);
+            showpage (mPagenum - 1, 1.00);
           }
 
-        status->show ();
+        mStatus->show ();
       }
 
   void
     ApvlvDoc::scrolldown (int times)
       {
-        if (doc == NULL)
+        if (mDoc == NULL)
           return;
 
-        gdouble val = gtk_adjustment_get_value (vaj);
-        vrate = (vaj->upper - vaj->lower) / lines;
-        if (val + vrate * times + vaj->page_size < vaj->upper)
+        gdouble val = gtk_adjustment_get_value (mVaj);
+        mVrate = (mVaj->upper - mVaj->lower) / mLines;
+        if (val + mVrate * times + mVaj->page_size < mVaj->upper)
           {
-            gtk_adjustment_set_value (vaj, val + vrate * times);
+            gtk_adjustment_set_value (mVaj, val + mVrate * times);
           }
-        else if (val + vaj->page_size < vaj->upper)
+        else if (val + mVaj->page_size < mVaj->upper)
           {
-            gtk_adjustment_set_value (vaj, vaj->upper - vaj->page_size);
+            gtk_adjustment_set_value (mVaj, mVaj->upper - mVaj->page_size);
           }
-        else if (pagenum < poppler_document_get_n_pages (doc) - 1)
+        else if (mPagenum < poppler_document_get_n_pages (mDoc) - 1)
           {
-            showpage (pagenum + 1, 0.00);
+            showpage (mPagenum + 1, 0.00);
           }
 
-        status->show ();
+        mStatus->show ();
       }
 
   void
     ApvlvDoc::scrollleft (int times)
       {
-        if (doc == NULL)
+        if (mDoc == NULL)
           return;
 
-        hrate = (haj->upper - haj->lower) / chars;
-        gdouble val = haj->value - hrate * times;
-        if (val > vaj->lower)
+        mHrate = (mHaj->upper - mHaj->lower) / mChars;
+        gdouble val = mHaj->value - mHrate * times;
+        if (val > mVaj->lower)
           {
-            gtk_adjustment_set_value (haj, val);
+            gtk_adjustment_set_value (mHaj, val);
           }
         else
           {
-            gtk_adjustment_set_value (haj, haj->lower);
+            gtk_adjustment_set_value (mHaj, mHaj->lower);
           }
       }
 
   void
     ApvlvDoc::scrollright (int times)
       {
-        if (doc == NULL)
+        if (mDoc == NULL)
           return;
 
-        hrate = (haj->upper - haj->lower) / chars;
-        gdouble val = haj->value + hrate * times;
-        if (val + haj->page_size < haj->upper)
+        mHrate = (mHaj->upper - mHaj->lower) / mChars;
+        gdouble val = mHaj->value + mHrate * times;
+        if (val + mHaj->page_size < mHaj->upper)
           {
-            gtk_adjustment_set_value (haj, val);
+            gtk_adjustment_set_value (mHaj, val);
           }
         else
           {
-            gtk_adjustment_set_value (haj, haj->upper - haj->page_size);
+            gtk_adjustment_set_value (mHaj, mHaj->upper - mHaj->page_size);
           }
       }
 
   void
     ApvlvDoc::markselection ()
       {
-        PopplerRectangle *rect = (PopplerRectangle *) results->data;
+        PopplerRectangle *rect = (PopplerRectangle *) mResults->data;
 
         gchar *txt = poppler_page_get_text (mCurrentCache->getpage (), POPPLER_SELECTION_GLYPH, rect);
         if (txt == NULL)
@@ -653,37 +722,37 @@ namespace apvlv
           }
 
         // Caculate the correct position
-        gint x1 = (gint) ((rect->x1) * zoomrate);
-        gint y1 = (gint) ((pagey - rect->y2) * zoomrate);
-        gint x2 = (gint) ((rect->x2) * zoomrate);
-        gint y2 = (gint) ((pagey - rect->y1) * zoomrate);
+        gint x1 = (gint) ((rect->x1) * mZoomrate);
+        gint y1 = (gint) ((mPagey - rect->y2) * mZoomrate);
+        gint x2 = (gint) ((rect->x2) * mZoomrate);
+        gint y2 = (gint) ((mPagey - rect->y1) * mZoomrate);
 
         // make the selection at the page center
-        gdouble val = ((y1 + y2) - vaj->page_size) / 2;
-        if (val + vaj->page_size > vaj->upper)
+        gdouble val = ((y1 + y2) - mVaj->page_size) / 2;
+        if (val + mVaj->page_size > mVaj->upper)
           {
-            gtk_adjustment_set_value (vaj, vaj->upper);
+            gtk_adjustment_set_value (mVaj, mVaj->upper);
           }
         else if (val > 0)
           {
-            gtk_adjustment_set_value (vaj, val);
+            gtk_adjustment_set_value (mVaj, val);
           }
         else
           {
-            gtk_adjustment_set_value (vaj, vaj->lower);
+            gtk_adjustment_set_value (mVaj, mVaj->lower);
           }
-        val = ((x1 + x2) - haj->page_size) / 2;
-        if (val + haj->page_size > haj->upper)
+        val = ((x1 + x2) - mHaj->page_size) / 2;
+        if (val + mHaj->page_size > mHaj->upper)
           {
-            gtk_adjustment_set_value (haj, haj->upper);
+            gtk_adjustment_set_value (mHaj, mHaj->upper);
           }
         else if (val > 0)
           {
-            gtk_adjustment_set_value (haj, val);
+            gtk_adjustment_set_value (mHaj, val);
           }
         else
           {
-            gtk_adjustment_set_value (haj, haj->lower);
+            gtk_adjustment_set_value (mHaj, mHaj->lower);
           }
 
         guchar *pagedata = mCurrentCache->getdata (true);
@@ -693,28 +762,28 @@ namespace apvlv
           {
             for (gint x = x1; x < x2; x ++)
               {
-                gint p = (gint) (y * 3 * pagex * zoomrate + (x * 3));
+                gint p = (gint) (y * 3 * mPagex * mZoomrate + (x * 3));
                 pagedata[p + 0] = 0xFF - pagedata[p + 0];
                 pagedata[p + 1] = 0xFF - pagedata[p + 0];
                 pagedata[p + 2] = 0xFF - pagedata[p + 0];
               }
           }
 
-        gtk_image_set_from_pixbuf (GTK_IMAGE (image), pixbuf);
+        gtk_image_set_from_pixbuf (GTK_IMAGE (mImage), pixbuf);
 
         g_free (rect);
-        results = g_list_remove (results, rect);
+        mResults = g_list_remove (mResults, rect);
       }
 
   GList *
     ApvlvDoc::searchpage (int num)
       {
-        if (doc == NULL)
+        if (mDoc == NULL)
           return NULL;
 
-        PopplerPage *page = poppler_document_get_page (doc, num);
+        PopplerPage *page = poppler_document_get_page (mDoc, num);
 
-        GList *ret = poppler_page_find_text (page, searchstr.c_str ());
+        GList *ret = poppler_page_find_text (page, mSearchstr.c_str ());
 
         return ret;
       }
@@ -722,21 +791,21 @@ namespace apvlv
   bool
     ApvlvDoc::needsearch (const char *str)
       {
-        if (doc == NULL)
+        if (mDoc == NULL)
           return false;
 
         if (strlen (str) > 0)
           {
-            g_list_free (results);
-            results = NULL;
+            g_list_free (mResults);
+            mResults = NULL;
 
-            searchstr = str;
+            mSearchstr = str;
 
             return true;
           }
         else
           {
-            if (results != NULL)
+            if (mResults != NULL)
               {
                 markselection ();
                 return false;
@@ -753,12 +822,12 @@ namespace apvlv
       {
         if (needsearch (str))
           {
-            int num = poppler_document_get_n_pages (doc);
-            int i = strlen (str) > 0? pagenum - 1: pagenum;
+            int num = poppler_document_get_n_pages (mDoc);
+            int i = strlen (str) > 0? mPagenum - 1: mPagenum;
             while (i ++ < num - 1)
               {
-                results = searchpage (i);
-                if (results != NULL)
+                mResults = searchpage (i);
+                if (mResults != NULL)
                   {
                     showpage (i);
                     markselection ();
@@ -774,12 +843,12 @@ namespace apvlv
       {
         if (needsearch (str))
           {
-            poppler_document_get_n_pages (doc);
-            int i = strlen (str) > 0? pagenum + 1: pagenum;
+            poppler_document_get_n_pages (mDoc);
+            int i = strlen (str) > 0? mPagenum + 1: mPagenum;
             while (i -- > 0)
               {
-                results = g_list_reverse (searchpage (i));
-                if (results != NULL)
+                mResults = g_list_reverse (searchpage (i));
+                if (mResults != NULL)
                   {
                     showpage (i);
                     markselection ();
@@ -792,8 +861,8 @@ namespace apvlv
   void
     ApvlvDoc::getpagesize (PopplerPage *p, double *x, double *y)
       {
-        if (rotatevalue == 90
-            || rotatevalue == 270)
+        if (mRotatevalue == 90
+            || mRotatevalue == 270)
           {
             poppler_page_get_size (p, y, x);
           }
@@ -820,7 +889,7 @@ namespace apvlv
   bool
     ApvlvDoc::totext (const char *file)
       {
-        if (doc == NULL)
+        if (mDoc == NULL)
           return false;
 
         PopplerPage *page = mCurrentCache->getpage ();
@@ -837,13 +906,14 @@ namespace apvlv
   void
     ApvlvDoc::setactive (bool act)
       {
-        status->active (act);
+        mStatus->active (act);
         mActive = act;
       }
 
   bool
     ApvlvDoc::rotate (int ct)
       {
+        // just hack
         if (ct == 1) ct = 90;
 
         if (ct % 90 != 0)
@@ -852,10 +922,10 @@ namespace apvlv
             return false;
           }
 
-        rotatevalue += ct;
-        while (rotatevalue < 0)
+        mRotatevalue += ct;
+        while (mRotatevalue < 0)
           {
-            rotatevalue += 360;
+            mRotatevalue += 360;
           }
         refresh ();
         return true;
@@ -874,9 +944,9 @@ namespace apvlv
         gtk_print_operation_set_show_progress (print, TRUE);
 
         PrintData *data = new PrintData;
-        data->doc = doc;
-        data->frmpn = pagenum;
-        data->endpn = pagenum;
+        data->doc = mDoc;
+        data->frmpn = mPagenum;
+        data->endpn = mPagenum;
 
         g_signal_connect (G_OBJECT (print), "begin-print", G_CALLBACK (begin_print), data);
         g_signal_connect (G_OBJECT (print), "draw-page", G_CALLBACK (draw_page), data);
@@ -904,14 +974,14 @@ namespace apvlv
     ApvlvDoc::apvlv_doc_first_scroll_cb (gpointer data)
       {
         ApvlvDoc *doc = (ApvlvDoc *) data;
-        return doc->scrollto (doc->scrollvalue) == TRUE? FALSE: TRUE;
+        return doc->scrollto (doc->mScrollvalue) == TRUE? FALSE: TRUE;
       }
 
   gboolean
     ApvlvDoc::apvlv_doc_first_copy_cb (gpointer data)
       {
         ApvlvDoc *doc = (ApvlvDoc *) data;
-        doc->loadfile (doc->filestr, false);
+        doc->loadfile (doc->mFilestr, false);
         return FALSE;
       }
 
@@ -950,15 +1020,15 @@ namespace apvlv
 
   ApvlvDocCache::ApvlvDocCache (ApvlvDoc *dc)
     {
-      doc = dc;
-      pagenum = -1;
-      data = NULL;
-      buf = NULL;
+      mDoc = dc;
+      mPagenum = -1;
+      mData = NULL;
+      mBuf = NULL;
 #ifdef HAVE_PTHREAD
-      timer = -1;
-      thread_running = false;
-      pthread_cond_init (&cond, NULL);
-      pthread_mutex_init (&mutex, NULL);
+      mTimer = -1;
+      mThreadRunning = false;
+      pthread_cond_init (&mCond, NULL);
+      pthread_mutex_init (&mMutex, NULL);
 #endif
     }
 
@@ -966,32 +1036,32 @@ namespace apvlv
     ApvlvDocCache::set (guint p, bool delay)
       {
 #ifdef HAVE_PTHREAD
-        if (thread_running)
+        if (mThreadRunning)
           {
-            pthread_cancel (tid);
+            pthread_cancel (mTid);
           }
 #endif
-        pagenum = p;
-        if (data != NULL)
+        mPagenum = p;
+        if (mData != NULL)
           {
-            delete []data;
-            data = NULL;
+            delete []mData;
+            mData = NULL;
           }
-        if (buf != NULL)
+        if (mBuf != NULL)
           {
-            g_object_unref (buf);
-            buf = NULL;
+            g_object_unref (mBuf);
+            mBuf = NULL;
           }
 #ifdef HAVE_PTHREAD
-        pthread_cond_init (&cond, NULL);
+        pthread_cond_init (&mCond, NULL);
 
         if (delay == true)
           {
-            timer = g_timeout_add (50, (gboolean (*) (void *)) delayload, this);
+            mTimer = g_timeout_add (50, (gboolean (*) (void *)) delayload, this);
           }
         else
           {
-            pthread_create (&tid, NULL, (void *(*) (void *)) load, this);
+            pthread_create (&mTid, NULL, (void *(*) (void *)) load, this);
           }
 #else
         load (this);
@@ -1002,8 +1072,8 @@ namespace apvlv
   gboolean
     ApvlvDocCache::delayload (ApvlvDocCache *ac)
       {
-        pthread_create (&ac->tid, NULL, (void *(*) (void *)) load, ac);
-        ac->timer = -1;
+        pthread_create (&ac->mTid, NULL, (void *(*) (void *)) load, ac);
+        ac->mTimer = -1;
         return FALSE;
       }
 #endif
@@ -1011,24 +1081,24 @@ namespace apvlv
   void
     ApvlvDocCache::load (ApvlvDocCache *ac)
       {
-        int c = poppler_document_get_n_pages (ac->doc->getdoc ());
-        if (ac->pagenum < 0
-            || ac->pagenum >= c)
+        int c = poppler_document_get_n_pages (ac->mDoc->getdoc ());
+        if (ac->mPagenum < 0
+            || ac->mPagenum >= c)
           {
-            debug ("no this page: %d", ac->pagenum);
+            debug ("no this page: %d", ac->mPagenum);
             return;
           }
 
 #ifdef HAVE_PTHREAD
-        ac->thread_running = true;
+        ac->mThreadRunning = true;
 #endif
 
-        PopplerPage *tpage = poppler_document_get_page (ac->doc->getdoc (), ac->pagenum);
+        PopplerPage *tpage = poppler_document_get_page (ac->mDoc->getdoc (), ac->mPagenum);
 
         double tpagex, tpagey;
-        ac->doc->getpagesize (tpage, &tpagex, &tpagey);
+        ac->mDoc->getpagesize (tpage, &tpagex, &tpagey);
 
-        int ix = (int) (tpagex * ac->doc->zoomvalue ()), iy = (int) (tpagey * ac->doc->zoomvalue ());
+        int ix = (int) (tpagex * ac->mDoc->zoomvalue ()), iy = (int) (tpagey * ac->mDoc->zoomvalue ());
 
         guchar *dat = new guchar[ix * iy * 3];
 
@@ -1042,50 +1112,50 @@ namespace apvlv
 #ifdef HAVE_PTHREAD
         pthread_mutex_lock (&rendermutex);
 #endif
-        poppler_page_render_to_pixbuf (tpage, 0, 0, ix, iy, ac->doc->zoomvalue (), ac->doc->getrotate (), bu);
+        poppler_page_render_to_pixbuf (tpage, 0, 0, ix, iy, ac->mDoc->zoomvalue (), ac->mDoc->getrotate (), bu);
 #ifdef HAVE_PTHREAD
         pthread_mutex_unlock (&rendermutex);
 #endif
 
-        ac->page = tpage;
-        ac->data = dat;
-        ac->buf = bu;
+        ac->mPage = tpage;
+        ac->mData = dat;
+        ac->mBuf = bu;
 
 #ifdef HAVE_PTHREAD
-        pthread_cond_signal (&ac->cond);
+        pthread_cond_signal (&ac->mCond);
 
-        ac->thread_running = false;
+        ac->mThreadRunning = false;
 #endif
       }
 
   ApvlvDocCache::~ApvlvDocCache ()
     {
 #ifdef HAVE_PTHREAD
-      if (timer > 0)
+      if (mTimer > 0)
         {
-          g_source_remove (timer);
+          g_source_remove (mTimer);
         }
-      if (thread_running)
+      if (mThreadRunning)
         {
-          pthread_cancel (tid);
+          pthread_cancel (mTid);
         }
 #endif
-      if (data != NULL)
-        delete []data;
-      if (buf != NULL)
-        g_object_unref (buf);
+      if (mData != NULL)
+        delete []mData;
+      if (mBuf != NULL)
+        g_object_unref (mBuf);
     }
 
   PopplerPage *
     ApvlvDocCache::getpage ()
       {
-        return page;
+        return mPage;
       }
 
   guint
     ApvlvDocCache::getpagenum ()
       {
-        return pagenum;
+        return mPagenum;
       }
 
   /*
@@ -1096,20 +1166,20 @@ namespace apvlv
   guchar *ApvlvDocCache::getdata (bool wait)
     {
 #ifndef HAVE_PTHREAD
-      return data;
+      return mData;
 #else
       if (!wait)
         {
-          return data;
+          return mData;
         }
 
-      guchar *dat = data;
+      guchar *dat = mData;
       if (dat == NULL)
         {
-          pthread_mutex_lock (&mutex);
-          pthread_cond_wait (&cond, &mutex);
-          dat = data;
-          pthread_mutex_unlock (&mutex);
+          pthread_mutex_lock (&mMutex);
+          pthread_cond_wait (&mCond, &mMutex);
+          dat = mData;
+          pthread_mutex_unlock (&mMutex);
         }
       return dat;
 #endif
@@ -1123,20 +1193,20 @@ namespace apvlv
   GdkPixbuf *ApvlvDocCache::getbuf (bool wait)
     {
 #ifndef HAVE_PTHREAD
-      return buf;
+      return mBuf;
 #else
       if (!wait)
         {
-          return buf;
+          return mBuf;
         }
 
-      GdkPixbuf *bu = buf;
+      GdkPixbuf *bu = mBuf;
       if (bu == NULL)
         {
-          pthread_mutex_lock (&mutex);
-          pthread_cond_wait (&cond, &mutex);
-          bu = buf;
-          pthread_mutex_unlock (&mutex);
+          pthread_mutex_lock (&mMutex);
+          pthread_cond_wait (&mCond, &mMutex);
+          bu = mBuf;
+          pthread_mutex_unlock (&mMutex);
         }
       return bu;
 #endif
@@ -1144,12 +1214,12 @@ namespace apvlv
 
   ApvlvDocStatus::ApvlvDocStatus (ApvlvDoc *dc)
     {
-      doc = dc;
-      vbox = gtk_hbox_new (FALSE, 0);
+      mDoc = dc;
+      mVbox = gtk_hbox_new (FALSE, 0);
       for (int i=0; i<AD_STATUS_SIZE; ++i)
         {
-          stlab[i] = gtk_label_new ("");
-          gtk_box_pack_start (GTK_BOX (vbox), stlab[i], FALSE, FALSE, 0);
+          mStlab[i] = gtk_label_new ("");
+          gtk_box_pack_start (GTK_BOX (mVbox), mStlab[i], FALSE, FALSE, 0);
         }
     }
 
@@ -1177,7 +1247,7 @@ namespace apvlv
 
         for (unsigned int i=0; i<AD_STATUS_SIZE; ++i)
           {
-            gtk_widget_modify_fg (stlab[i], GTK_STATE_NORMAL, &c);
+            gtk_widget_modify_fg (mStlab[i], GTK_STATE_NORMAL, &c);
           }
       }
 
@@ -1191,25 +1261,25 @@ namespace apvlv
         sw[3] = sw[1] >> 1;
         for (unsigned int i=0; i<AD_STATUS_SIZE; ++i)
           {
-            gtk_widget_set_usize (stlab[i], sw[i], h);
+            gtk_widget_set_usize (mStlab[i], sw[i], h);
           }
       }
 
   void
     ApvlvDocStatus::show ()
       {
-        if (doc->filename ())
+        if (mDoc->filename ())
           {
             char temp[AD_STATUS_SIZE][256];
             gchar *bn;
-            bn = g_path_get_basename (doc->filename ());
+            bn = g_path_get_basename (mDoc->filename ());
             snprintf (temp[0], sizeof temp[0], "%s", bn);
-            snprintf (temp[1], sizeof temp[1], "%d/%d", doc->pagenumber (), doc->pagesum ());
-            snprintf (temp[2], sizeof temp[2], "%d%%", (int) (doc->zoomvalue () * 100));
-            snprintf (temp[3], sizeof temp[3], "%d%%", (int) (doc->scrollrate () * 100));
+            snprintf (temp[1], sizeof temp[1], "%d/%d", mDoc->pagenumber (), mDoc->pagesum ());
+            snprintf (temp[2], sizeof temp[2], "%d%%", (int) (mDoc->zoomvalue () * 100));
+            snprintf (temp[3], sizeof temp[3], "%d%%", (int) (mDoc->scrollrate () * 100));
             for (unsigned int i=0; i<AD_STATUS_SIZE; ++i)
               {
-                gtk_label_set_text (GTK_LABEL (stlab[i]), temp[i]);
+                gtk_label_set_text (GTK_LABEL (mStlab[i]), temp[i]);
               }
             g_free (bn);
           }

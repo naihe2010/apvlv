@@ -45,11 +45,11 @@ namespace apvlv
       type = AW_DOC;
       if (doc == NULL)
         {
-          m_Doc = new ApvlvDoc (gParams->settingvalue ("zoom"));
+          mDoc = new ApvlvDoc (gParams->value ("zoom"));
         }
       else
         {
-          m_Doc = doc;
+          mDoc = doc;
         }
       m_son = m_daughter = m_parent = NULL;
     }
@@ -58,12 +58,12 @@ namespace apvlv
     {
       if (type == AW_DOC)
         {
-          if (m_Doc != NULL)
+          if (mDoc != NULL)
             {
-              const char *fdoc = m_Doc->filename ();
-              if (fdoc != NULL && m_Doc != gView->hasloaded (fdoc))
+              const char *fdoc = mDoc->filename ();
+              if (fdoc != NULL && mDoc != gView->hasloaded (fdoc))
                 {
-                  delete m_Doc;
+                  delete mDoc;
                 }
             }
         }
@@ -71,11 +71,7 @@ namespace apvlv
         {
           delete m_son;
           delete m_daughter;
-          gtk_widget_destroy (m_Paned);
-        }
-      else
-        {
-          debug ("type error: %d", type);
+          gtk_widget_destroy (mPaned);
         }
     }
 
@@ -84,11 +80,11 @@ namespace apvlv
       {
         if (type == AW_DOC)
           {
-            return m_Doc->widget ();
+            return mDoc->widget ();
           }
         else if (type == AW_SP || type == AW_VSP)
           {
-            return m_Paned;
+            return mPaned;
           }
         else
           {
@@ -104,12 +100,12 @@ namespace apvlv
         asst (win->type == AW_DOC);
         if (pre != NULL && pre->type == AW_DOC)
           {
-            pre->m_Doc->setactive (false);
+            pre->mDoc->setactive (false);
           }
 
         if (win->type == AW_DOC)
           {
-            win->m_Doc->setactive (true);
+            win->mDoc->setactive (true);
           }
 
         m_curWindow = win;
@@ -119,9 +115,10 @@ namespace apvlv
     ApvlvWindow::delcurrentWindow ()
       {
         asst (currentWindow ()->istop () == false);
-        ApvlvWindow *pwin = currentWindow ()->m_parent;
-        ApvlvWindow *win = currentWindow () == pwin->m_son? pwin->m_daughter: pwin->m_son;
-        ApvlvWindow *cwin = pwin->unbirth (win);
+        ApvlvWindow *crwin = currentWindow ();
+        ApvlvWindow *pwin = crwin->m_parent;
+        ApvlvWindow *child = crwin == pwin->m_son? pwin->m_daughter: pwin->m_son;
+        ApvlvWindow *cwin = pwin->unbirth (crwin, child);
         setcurrentWindow (NULL, cwin);
       }
 
@@ -330,7 +327,7 @@ namespace apvlv
       {
         asst (type == AW_DOC);
 
-        if (doc == m_Doc)
+        if (doc == mDoc)
           {
             debug ("can't birth with orign doc, copy it");
             doc = NULL;
@@ -338,10 +335,10 @@ namespace apvlv
 
         if (doc == NULL)
           {
-            doc = m_Doc->copy ();
+            doc = mDoc->copy ();
           }
 
-        ApvlvWindow *nwindow = new ApvlvWindow (m_Doc);
+        ApvlvWindow *nwindow = new ApvlvWindow (mDoc);
         nwindow->m_parent = this;
         m_son = nwindow;
 
@@ -349,60 +346,71 @@ namespace apvlv
         nwindow2->m_parent = this;
         m_daughter = nwindow2;
 
-        m_Paned = vsp == false? gtk_vpaned_new (): gtk_hpaned_new ();
-        g_signal_connect (G_OBJECT (m_Paned), "button-release-event", G_CALLBACK (apvlv_window_paned_resized_cb), this);
+        mPaned = vsp == false? gtk_vpaned_new (): gtk_hpaned_new ();
+        g_signal_connect (G_OBJECT (mPaned), "button-release-event", G_CALLBACK (apvlv_window_paned_resized_cb), this);
 
-        replace_widget (widget (), m_Paned, WR_REF);
+        replace_widget (widget (), mPaned, WR_REF);
 
-        gtk_paned_pack1 (GTK_PANED (m_Paned), nwindow->widget (), TRUE, TRUE);
-        gtk_paned_pack2 (GTK_PANED (m_Paned), nwindow2->widget (), TRUE, TRUE);
+        gtk_paned_pack1 (GTK_PANED (mPaned), nwindow->widget (), TRUE, TRUE);
+        gtk_paned_pack2 (GTK_PANED (mPaned), nwindow2->widget (), TRUE, TRUE);
 
         type = vsp == false? AW_SP: AW_VSP;
         if (type == AW_SP)
           {
-            nwindow->setsize (m_width, m_height / 2);
-            nwindow2->setsize (m_width, m_height / 2);
+            nwindow->setsize (mWidth, mHeight / 2);
+            nwindow2->setsize (mWidth, mHeight / 2);
           }
         else if (type == AW_VSP)
           {
-            nwindow->setsize (m_width / 2, m_height);
-            nwindow2->setsize (m_width / 2, m_height);
+            nwindow->setsize (mWidth / 2, mHeight);
+            nwindow2->setsize (mWidth / 2, mHeight);
           }
 
-        gtk_widget_show_all (m_Paned);
+        gtk_widget_show_all (mPaned);
 
         setcurrentWindow (nwindow2, nwindow);
         return nwindow;
       }
 
+  // unbirth a child
+  // @param 1, be delete
+  // @param 2, be unbirth, that is up to the parent
+  // return the new child
   ApvlvWindow *
-    ApvlvWindow::unbirth (ApvlvWindow *child)
+    ApvlvWindow::unbirth (ApvlvWindow *dead, ApvlvWindow *child)
       {
         asst (type == AW_SP || type == AW_VSP);
-
-        ApvlvWindow *owin = child == child->m_parent->m_son?
-          child->m_parent->m_daughter:
-          child->m_parent->m_son;
-
-        delete owin;
 
         if (child->type == AW_DOC)
           {
             ApvlvDoc *doc = child->getDoc (true);
             replace_widget (widget (), doc->widget (), WR_REF);
-            m_Doc = doc;
+            mDoc = doc;
+            type = AW_DOC;
           }
         else if (child->type == AW_SP || child->type == AW_VSP)
           {
-            replace_widget (widget (), child->widget (), WR_REF_CHILDREN);
-            m_Paned = child->widget ();
+            g_object_ref (G_OBJECT (child->mPaned));
+            gtk_container_remove (GTK_CONTAINER (mPaned), child->mPaned);
+            replace_widget (mPaned, child->mPaned, WR_REMOVE);
+            type = child->type;
+            mPaned = child->mPaned;
+            m_son = child->m_son;
+            m_son->m_parent = this;
+            m_daughter = child->m_daughter;
+            m_daughter->m_parent = this;
+            child->type = AW_NONE;
           }
 
         gtk_widget_show_all (widget ());
-        type = AW_DOC;
+
+        delete dead;
         delete child;
 
-        return this;
+        ApvlvWindow *win;
+        for (win = this; win->type != AW_DOC; win = win->m_son);
+
+        return win;
       }
 
   bool
@@ -414,12 +422,12 @@ namespace apvlv
   void
     ApvlvWindow::setsize (int width, int height)
       {
-        m_width = width;
-        m_height = height;
+        mWidth = width;
+        mHeight = height;
 
         if (type == AW_DOC)
           {
-            m_Doc->setsize (m_width, m_height);
+            mDoc->setsize (mWidth, mHeight);
           }
         else if (type == AW_SP
                  || type == AW_VSP)
@@ -432,20 +440,20 @@ namespace apvlv
     ApvlvWindow::loadDoc (const char *filename)
       {
         asst (type == AW_DOC);
-        if (m_Doc->filename () == NULL || gView->hasloaded (m_Doc->filename ()) != m_Doc)
+        if (mDoc->filename () == NULL || gView->hasloaded (mDoc->filename ()) != mDoc)
           {
-            m_Doc->setsize (m_width, m_height);
-            bool ret = m_Doc->loadfile (filename);
-            return ret? m_Doc: NULL;
+            mDoc->setsize (mWidth, mHeight);
+            bool ret = mDoc->loadfile (filename);
+            return ret? mDoc: NULL;
           }
 
-        ApvlvDoc *ndoc = new ApvlvDoc (gParams->settingvalue ("zoom"));
-        ndoc->setsize (m_width, m_height);
+        ApvlvDoc *ndoc = new ApvlvDoc (gParams->value ("zoom"));
+        ndoc->setsize (mWidth, mHeight);
         bool ret = ndoc->loadfile (filename);
         if (ret)
           {
             replace_widget (widget (), ndoc->widget (), WR_REF);
-            m_Doc = ndoc;
+            mDoc = ndoc;
             gtk_widget_show_all (widget ());
             return ndoc;
           }
@@ -461,19 +469,19 @@ namespace apvlv
       {
         asst (type == AW_DOC);
         replace_widget (widget (), doc->widget (), WR_REF);
-        m_Doc = doc;
+        mDoc = doc;
       }
 
   ApvlvDoc *
     ApvlvWindow::getDoc (bool remove)
       {
         asst (type == AW_DOC);
-        ApvlvDoc *rdoc = m_Doc;
+        ApvlvDoc *rdoc = mDoc;
 
         if (remove)
           {
             remove_widget (widget (), WR_REF);
-            m_Doc = NULL;
+            mDoc = NULL;
           }
 
         return rdoc;
@@ -484,10 +492,10 @@ namespace apvlv
       {
         if (m_parent == NULL) return;
 
-        int val = gtk_paned_get_position (GTK_PANED (m_parent->m_Paned));
+        int val = gtk_paned_get_position (GTK_PANED (m_parent->mPaned));
         int len = 20 * times;
         m_parent->m_son == this? val -= len: val += len;
-        gtk_paned_set_position (GTK_PANED (m_parent->m_Paned), val);
+        gtk_paned_set_position (GTK_PANED (m_parent->mPaned), val);
 
         m_parent->resize_children ();
       }
@@ -497,10 +505,10 @@ namespace apvlv
       {
         if (m_parent == NULL) return;
 
-        int val = gtk_paned_get_position (GTK_PANED (m_parent->m_Paned));
+        int val = gtk_paned_get_position (GTK_PANED (m_parent->mPaned));
         int len = 20 * times;
         m_parent->m_son == this? val += len: val -= len;
-        gtk_paned_set_position (GTK_PANED (m_parent->m_Paned), val);
+        gtk_paned_set_position (GTK_PANED (m_parent->mPaned), val);
 
         m_parent->resize_children ();
       }
@@ -517,23 +525,23 @@ namespace apvlv
   gboolean
     ApvlvWindow::resize_children ()
       {
-        int mw1 = m_width, mw2 = m_width, mh1 = m_height, mh2 = m_height;
-        int mi = GTK_PANED (m_Paned)->min_position;
-        int ma = GTK_PANED (m_Paned)->max_position;
-        int mv = gtk_paned_get_position (GTK_PANED (m_Paned));
+        int mw1 = mWidth, mw2 = mWidth, mh1 = mHeight, mh2 = mHeight;
+        int mi = GTK_PANED (mPaned)->min_position;
+        int ma = GTK_PANED (mPaned)->max_position;
+        int mv = gtk_paned_get_position (GTK_PANED (mPaned));
 
         int ms = ma - mi;
         if (ms != 0)
           {
             if (type == AW_SP)
               {
-                mh1 = (m_height * (mv - mi)) / ms;
-                mh2 = m_height - mh1;
+                mh1 = (mHeight * (mv - mi)) / ms;
+                mh2 = mHeight - mh1;
               }
             else if (type == AW_VSP)
               {
-                mw1 = (m_width * (mv - mi)) / ms;
-                mw2 = m_width - mw1;
+                mw1 = (mWidth * (mv - mi)) / ms;
+                mw2 = mWidth - mw1;
               }
 
             m_son->setsize (mw1, mh1);

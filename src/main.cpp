@@ -69,10 +69,8 @@ main (int argc, char *argv[])
       }
     g_free (ini);
   }
-  //  param.debug ();
 
-
-  ApvlvView sView (argc, argv);
+  ApvlvView sView (&argc, &argv);
   gView = &sView;
 
   gchar *path;

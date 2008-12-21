@@ -43,22 +43,21 @@ namespace apvlv
 
   ApvlvParams::ApvlvParams ()
     {
-      settingpush ("fullscreen", "no");
-      settingpush ("zoom", "fitwidth");
-      settingpush ("width", "800");
-      settingpush ("height", "600");
-      settingpush ("commandtimeout", "1000");
+      push ("fullscreen", "no");
+      push ("zoom", "fitwidth");
+      push ("width", "800");
+      push ("height", "600");
+      push ("commandtimeout", "1000");
 #ifdef WIN32
-      settingpush ("defaultdir", "C:\\");
+      push ("defaultdir", "C:\\");
 #else
-      settingpush ("defaultdir", "/tmp");
+      push ("defaultdir", "/tmp");
 #endif
-  }
+    }
 
   ApvlvParams::~ApvlvParams ()
     {
-      m_maps.clear ();
-      m_settings.clear ();
+      mSettings.clear ();
     }
 
   bool ApvlvParams::loadfile (const char *filename)
@@ -92,7 +91,7 @@ namespace apvlv
                   is >> crap >> data;
                   if (crap == "=" && data.length () > 0)
                     {
-                      settingpush (argu.c_str (), data.c_str ());
+                      push (argu.c_str (), data.c_str ());
                       continue;
                     }
                 }
@@ -108,9 +107,9 @@ namespace apvlv
 
                   if (*p != '\0')
                     {
-                      strncpy (v, argu.c_str () + off + 1, 31);
+                      strncpy (v, p, 31);
                       v[31] = '\0';
-                      settingpush (k, v);
+                      push (k, v);
                       continue;
                     }
                 }
@@ -121,12 +120,21 @@ namespace apvlv
           else if (crap == "map")
             {
               is >> argu;
+
+              if (argu.length () == 0)
+                {
+                  err ("map command not complete");
+                  continue;
+                }
+
               getline (is, data);
-              while (data[0] == ' ' || data[0] == '\t')
+
+              while (data.length () > 0 && isspace (data[0]))
                 data.erase (0, 1);
+
               if (argu.length () > 0 && data.length () > 0)
                 {
-                  mappush (argu, data);
+                  gCmds->buildmap (argu.c_str (), data.c_str ());
                 }
               else
                 {
@@ -143,67 +151,29 @@ namespace apvlv
     }
 
   bool
-    ApvlvParams::mappush (string &ch, string &str)
-      {
-        m_maps[ch] = str;
-        gCmds->buildmap (ch.c_str (), str.c_str ());
-        return true;
-      }
-
-  bool
-    ApvlvParams::settingpush (const char *c, const char *s)
+    ApvlvParams::push (const char *c, const char *s)
       {
         string cs (c), ss (s);
-        m_settings[cs] = ss;
+        mSettings[cs] = ss;
         return true;
       }
 
   bool
-    ApvlvParams::settingpush (string &ch, string &str)
+    ApvlvParams::push (string &ch, string &str)
       {
-        m_settings[ch] = str;
+        mSettings[ch] = str;
         return true;
       }
 
   const char *
-    ApvlvParams::mapvalue (const char *s)
+    ApvlvParams::value (const char *s)
       {
         string ss (s);
         map <string, string>::iterator it;
-        it = m_maps.find (ss);
-        if (it != m_maps.end ())
+        it = mSettings.find (ss);
+        if (it != mSettings.end ())
           {
-            return (*it).second.c_str ();
-          }
-        return NULL;
-      }
-
-  returnType
-    ApvlvParams::getmap (const char *s, int n)
-      {
-        map <string, string>::iterator it;
-        for (it = m_maps.begin (); it != m_maps.end (); ++ it)
-          {
-            if (strncmp (it->first.c_str (), s, n) == 0)
-              {
-                if (it->first.size () == (unsigned int) n)
-                  return MATCH;
-                else
-                  return NEED_MORE;
-              }
-          }
-        return NO_MATCH;
-      }
-
-  const char *
-    ApvlvParams::settingvalue (const char *s)
-      {
-        string ss (s);
-        map <string, string>::iterator it;
-        it = m_settings.find (ss);
-        if (it != m_settings.end ())
-          {
-            return (*it).second.c_str ();
+            return it->second.c_str ();
           }
         return NULL;
       }

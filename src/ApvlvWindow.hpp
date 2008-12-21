@@ -53,13 +53,14 @@ namespace apvlv
 
       /* WE operate the AW_DOC window
        * Any AW_SP, AW_VSP are a virtual window, just for contain the AW_DOC window
+       * AW_NONE is a empty window, need free
        * So, ANY user interface function can only get the AW_DOC window
        * */
-      enum windowType { AW_SP, AW_VSP, AW_DOC } type;
+      enum windowType { AW_SP, AW_VSP, AW_DOC, AW_NONE } type;
 
       ApvlvWindow *birth (bool vsp, ApvlvDoc *doc = NULL);
 
-      ApvlvWindow *unbirth (ApvlvWindow *child);
+      ApvlvWindow *unbirth (ApvlvWindow *, ApvlvWindow *);
 
       bool istop ();
 
@@ -105,12 +106,11 @@ namespace apvlv
                                                      ApvlvWindow    *win);
 
       static ApvlvWindow *m_curWindow;
-      static int times;
 
-      ApvlvDoc *m_Doc;
-      GtkWidget *m_Paned;
+      ApvlvDoc *mDoc;
+      GtkWidget *mPaned;
 
-      int m_width, m_height;
+      int mWidth, mHeight;
     };
 
 }

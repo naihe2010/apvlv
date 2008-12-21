@@ -56,24 +56,26 @@ namespace apvlv
   class ApvlvView
     {
   public:
-    ApvlvView (int argc, char *argv[]);
+    ApvlvView (int *argc, char ***argv);
+
     ~ApvlvView ();
 
     void show ();
 
-    GtkWidget *widget () { return mainwindow; }
+    GtkWidget *widget ();
 
-    ApvlvWindow *currentWindow () { return ApvlvWindow::currentWindow (); }
+    ApvlvWindow *currentWindow ();
 
-    void delcurrentWindow () { ApvlvWindow::delcurrentWindow (); }
+    void delcurrentWindow ();
 
-    void promptsearch ();
-    void promptbacksearch ();
-    void promptcommand ();
+    void promptcommand (char ch);
 
-    void run (cmd_mode_type cmd, const char *str);
+    void promptcommand (const char *str);
 
-    bool loadfile (string file) { return loadfile (file.c_str ()); }
+    void run (const char *str);
+
+    bool loadfile (string file);
+
     bool loadfile (const char *filename);
 
     ApvlvDoc * hasloaded (const char *filename);
@@ -81,7 +83,7 @@ namespace apvlv
     void open ();
     void close ();
 
-    void quit () { apvlv_view_delete_cb (NULL, NULL, this); }
+    void quit ();
 
     void fullscreen ();
 
@@ -96,7 +98,7 @@ namespace apvlv
     void cmd_auto (const char *);
 
   private:
-    ApvlvDoc *crtadoc () { return currentWindow ()->getDoc (); }
+    ApvlvDoc *crtadoc ();
 
     void refresh ();
 
@@ -106,17 +108,15 @@ namespace apvlv
 
     void runcmd (const char *cmd);
 
-    cmd_mode_type cmd_mode;
+    bool mHasCmd;
 
-    bool cmd_has;
+    guint mProCmd;
 
-    guint pro_cmd;
+    GtkWidget *mCommandBar;
+    GtkWidget *mMainWindow;
 
-    GtkWidget *statusbar;
-    GtkWidget *mainwindow;
-
-    gboolean full_has;
-    int width, height;
+    gboolean mHasFull;
+    int mWidth, mHeight;
 
     static void apvlv_view_delete_cb (GtkWidget * wid, GtkAllocation * al,
                                       ApvlvView * view);
@@ -124,9 +124,9 @@ namespace apvlv
                                        ApvlvView * view);
     static gint apvlv_view_keypress_cb (GtkWidget * wid, GdkEvent * ev);
 
-    static gint apvlv_view_statusbar_cb (GtkWidget * wid, GdkEvent * ev);
+    static gint apvlv_view_commandbar_cb (GtkWidget * wid, GdkEvent * ev);
 
-    ApvlvWindow *m_rootWindow, *m_curWindow;
+    ApvlvWindow *mRootWindow, *mCurWindow;
 
     map <string, ApvlvDoc *> mDocs;
     };

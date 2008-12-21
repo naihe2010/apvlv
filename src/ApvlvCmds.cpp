@@ -49,16 +49,6 @@ namespace apvlv
 
   StringKeyMap SK;
 
-#define showv(v) do \
-    {\
-      debug ("%s's size: %d", #v, (v).size ()); \
-      for (unsigned int i=0; i<(v).size (); ++i) \
-        {       \
-          debug ("%s's %dth elm: %c[%d]", #v, i, (v)[i], (v)[i]); \
-        } \
-    } \
-  while (0)
-
 #define gek2guint(g)    ((g)->state == GDK_CONTROL_MASK? CTRL ((g)->keyval): (g)->keyval)
 
   ApvlvCmd::ApvlvCmd ()
@@ -70,21 +60,11 @@ namespace apvlv
 
       mHasPreCount = false;
 
-      mStrCommand[0] = '\0';
-
       mPreCount = 1;
 
       mNext = NULL;
 
       mOrigin = NULL;
-    }
-
-  ApvlvCmd::ApvlvCmd (ApvlvCmd &cmd)
-    {
-      mNext = new ApvlvCmd (*cmd.next ());
-      if (cmd.canmap () == false)
-        {
-        }
     }
 
   void 
@@ -109,6 +89,8 @@ namespace apvlv
       mHasPreCount = false;
       mPreCount = 1;
 
+      mNext = NULL;
+
       if (*s == '-'
           || isdigit (*s))
         {
@@ -125,23 +107,18 @@ namespace apvlv
           || *s == '/'
           || *s == '?')
         {
-          mStrCommand.push_back (*s);
-          mKeyVals.push_back (*s);
-          mNext = new ApvlvCmd;
-          mNext->push (++ s, CT_STRING);
-          return;
-        }
-
-      if (type == CT_STRING)
-        {
           mStrCommand = s;
-          char *p = strstr (mStrCommand.c_str (), "<CR>");
-          if (p != NULL)
+          mType = CT_STRING;
+
+          size_t off = mStrCommand.find ("<CR>");
+          if (off != string::npos)
             {
-              *p = '\0';
+              mStrCommand.erase (off, mStrCommand.length () - off);
               mType = CT_STRING_RETURN;
+              mNext = new ApvlvCmd;
+              mNext->push (s + off + 4);
             }
-          debug ("set return string type command: [%s]", mStrCommand.c_str ());
+          debug ("set string type command: [%s]", mStrCommand.c_str ());
           return;
         }
 
@@ -157,20 +134,46 @@ namespace apvlv
     }
 
   void
+    ApvlvCmd::process ()
+      {
+        if (type () == CT_STRING)
+          {
+            gView->promptcommand (c_str ());
+          }
+        else if (type () == CT_STRING_RETURN)
+          {
+            gView->run (c_str ());
+          }
+        else
+          {
+            for (guint k=0; k<keyvalv_p()->size (); ++k)
+              {
+                gint key = keyval (k);
+                if (key > 0)
+                  gView->process (precount (), keyval (k));
+              }
+          }
+
+        if (next () != NULL)
+          {
+            next ()->process ();
+          }
+      }
+
+  void
     ApvlvCmd::append (GdkEventKey *gek)
       {
         if (gek->state == GDK_CONTROL_MASK)
           {
             mKeyVals.push_back (CTRL (gek->keyval));
           }
-        /*
-           else if (gek->state == GDK_SHIFT_MASK 
-           && (! isupper (gek->keyval)))
-           {
         // hack, if a char is not a Uppercase chracter, we use S- mark
-        mKeyVals.push_back (SHIFT (gek->keyval));
-        } 
-        */
+        /* has lots of error, so commet it for temp 
+        else if (gek->state == GDK_SHIFT_MASK 
+                 && (! isupper (gek->keyval)))
+          {
+            mKeyVals.push_back (SHIFT (gek->keyval));
+          } */
         else
           {
             mKeyVals.push_back (gek->keyval);
@@ -205,13 +208,16 @@ namespace apvlv
             {
               mKeyVals.push_back (CTRL (s[3]));
             }
+          /* commet as above 
           else if (s[1] == 'S')
             {
               mKeyVals.push_back (SHIFT (s[3]));
-            }
+            }*/
           else 
             {
-              asst (0);
+              char ts[6];
+              snprintf (ts, 6, "%s", s);
+              warn ("Can't recognize the symbol: %s", ts);
             }
           return s + 5;
         }
@@ -221,7 +227,7 @@ namespace apvlv
           return s + 1;
         }
 
-      asst (0);
+      return s;
       }
 
   void 
@@ -302,13 +308,19 @@ namespace apvlv
         return mKeyVals;
       }
 
+  void
+    ApvlvCmd::next (ApvlvCmd *cmd)
+      {
+        mNext = cmd;
+      }
+
   ApvlvCmd * 
     ApvlvCmd::next ()
       {
         return mNext;
       }
 
-  guint
+  gint
     ApvlvCmd::keyval (guint id)
       {
         return id >= mKeyVals.size ()? -1: mKeyVals[id];
@@ -344,92 +356,10 @@ namespace apvlv
         return true;
       }
 
-  bool
-    ApvlvCmds::buildevent (const char *p)
-      {
-      m_keys.clear ();
-
-      string ss (p);
-      while (! ss.empty ())
-        {
-          GdkEventKey gk;
-
-          if (ss[0] == '<')
-            {
-              size_t p = ss.find ('>');
-              if (p != string::npos)
-                {
-                  string ss2 (ss.c_str (), p + 1);
-                  int r = translate (ss2, &gk);
-                  if (r > 0)
-                    {
-                      ss.erase (0, p + 1);
-                      goto deft;
-                    }
-                }
-            }
-
-          gk.state = 0;
-          gk.keyval = gdk_unicode_to_keyval (ss[0]);
-          ss.erase (0, 1);
-
-deft:
-          gk.type = GDK_KEY_PRESS;
-          gk.window = gView->widget ()->window;
-          gk.send_event = FALSE;
-          gk.time = GDK_CURRENT_TIME;
-          gk.length = 0;
-          gk.string = "";
-#ifndef WIN32
-          gk.hardware_keycode = XKeysymToKeycode (GDK_WINDOW_XDISPLAY (gk.window), gk.keyval);
-#endif
-          gk.group = 0;
-          gk.is_modifier = 0;
-
-          m_keys.push_back (gk);
-        }
-      return true;
-    }
-
-  void
-    ApvlvCmds::destroyevent ()
-      {
-        if (sendtimer > 0)
-          g_source_remove (sendtimer);
-        m_keys.clear ();
-      }
-
-  void
-    ApvlvCmds::sendevent ()
-      {
-        if (! m_keys.empty ())
-          {
-            GdkEventKey *gev = (GdkEventKey *) &(m_keys[0]);
-            gdk_event_put ((GdkEvent *) gev);
-
-            gev->type = GDK_KEY_RELEASE;
-            gdk_event_put ((GdkEvent *) gev);
-
-            vector <GdkEventKey>::iterator it = m_keys.begin ();
-            m_keys.erase (it);
-          }
-
-        if (! m_keys.empty ())
-          sendtimer = g_timeout_add (100, ae_send_next, this);
-      }
-
-  gboolean
-    ApvlvCmds::ae_send_next (void *data)
-      {
-        ApvlvCmds *ac = (ApvlvCmds *) data;
-        ac->sendevent ();
-        return TRUE;
-      }
-
   ApvlvCmds::ApvlvCmds ()
     {
-      timeouttimer = -1;
-      state = CMD_OK;
+      mTimeoutTimer = -1;
+      mState = CMD_OK;
 
       mCmdHead = NULL;
 
@@ -455,52 +385,27 @@ deft:
           SK["<PageUp>"] = GDK_Page_Up;
           SK["<PageDown>"] = GDK_Page_Down;
         }
-
-      if (KS.empty ())
-        {
-          KS[GDK_BackSpace] = "<BS>";
-          KS[GDK_Tab] = "<Tab>";
-          KS[GDK_Return] = "<CR>";
-          KS[GDK_Escape] = "<Esc>";
-          KS[GDK_space] = "<Space>";
-          KS[GDK_less] = "<lt>";
-          KS[GDK_backslash] = "<Bslash>";
-          KS[GDK_bar] = "<Bar>";
-          KS[GDK_Delete] = "<Del>";
-          KS[GDK_Up] = "<Up>";
-          KS[GDK_Down] = "<Down>";
-          KS[GDK_Left] = "<Left>";
-          KS[GDK_Right] = "<Right>";
-          KS[GDK_Help] = "<Help>";
-          KS[GDK_Insert] = "<Insert>";
-          KS[GDK_Home] = "<Home>";
-          KS[GDK_End] = "<End>";
-          KS[GDK_Page_Up] = "<PageUp>";
-          KS[GDK_Page_Down] = "<PageDown>";
-        }
     }
 
   ApvlvCmds::~ApvlvCmds ()
     {
-      if (timeouttimer > 0)
+      if (mTimeoutTimer > 0)
         {
-          g_source_remove (timeouttimer);
-          timeouttimer = -1;
+          g_source_remove (mTimeoutTimer);
+          mTimeoutTimer = -1;
         }
-
-      destroyevent ();
     }
 
   void
     ApvlvCmds::append (GdkEventKey *gev)
       {
-        if (timeouttimer > 0)
+        if (mTimeoutTimer > 0)
           {
-            g_source_remove (timeouttimer);
-            timeouttimer = -1;
+            g_source_remove (mTimeoutTimer);
+            mTimeoutTimer = -1;
           }
 
-        if (state == GETTING_CMD) 
+        if (mState == GETTING_CMD) 
           {
             asst (mCmdHead);
             ApvlvCmdKeyv v = mCmdHead->keyvalv ();
@@ -511,54 +416,54 @@ deft:
                 process (mCmdHead);
                 delete mCmdHead;
                 mCmdHead = NULL;
-                state = CMD_OK;
+                mState = CMD_OK;
               }
           }
 
         if (mCmdHead == NULL)
           mCmdHead = new ApvlvCmd;
 
-        if (state == CMD_OK)
+        if (mState == CMD_OK)
           {
             if (gev->keyval == '-'
                 || (isdigit (gev->keyval)))
               {
                 char s[2] = { 0 };
                 s[0] = gev->keyval;
-                count += s;
-                state = GETTING_COUNT;
-                timeouttimer = g_timeout_add (3000, apvlv_cmds_timeout_cb, this);
+                mCountString += s;
+                mState = GETTING_COUNT;
+                mTimeoutTimer = g_timeout_add (3000, apvlv_cmds_timeout_cb, this);
                 return;
               }
           }
 
-        else if (state == GETTING_COUNT)
+        else if (mState == GETTING_COUNT)
           {
             if (gev->keyval == '-'
                 || (isdigit (gev->keyval)))
               {
                 char s[2] = { 0 };
                 s[0] = gev->keyval;
-                count += s;
-                timeouttimer = g_timeout_add (3000, apvlv_cmds_timeout_cb, this);
+                mCountString += s;
+                mTimeoutTimer = g_timeout_add (3000, apvlv_cmds_timeout_cb, this);
                 return;
               }
             else
               {
-                if (count.size () > 0)
+                if (mCountString.size () > 0)
                   {
-                    mCmdHead->precount (atoi (count.c_str ()));
-                    count = "";
+                    mCmdHead->precount (atoi (mCountString.c_str ()));
+                    mCountString = "";
                   }
               }
           }
 
-        state = GETTING_CMD;
+        mState = GETTING_CMD;
         mCmdHead->append (gev);
         returnType ret = ismap (mCmdHead->keyvalv_p ());
         if (ret == NEED_MORE)
           {
-            timeouttimer = g_timeout_add (3000, apvlv_cmds_timeout_cb, this);
+            mTimeoutTimer = g_timeout_add (3000, apvlv_cmds_timeout_cb, this);
             return;
           }
 
@@ -566,7 +471,9 @@ deft:
         if (ret == MATCH)
           {
             ApvlvCmd *pcmd = getmap (mCmdHead);
+            pcmd->origin (mCmdHead);
             process (pcmd);
+            pcmd->origin (NULL);
             pcmd = NULL;
           }
         else if (ret == NO_MATCH)
@@ -580,7 +487,7 @@ deft:
 
         delete mCmdHead;
         mCmdHead = pcmd;
-        state = CMD_OK;
+        mState = CMD_OK;
       }
 
   ApvlvCmd *
@@ -595,32 +502,7 @@ deft:
 
         for (guint i=0; i<times; ++ i)
           {
-            ApvlvCmd *ncmd = cmd->next ();
-            if (ncmd != NULL)
-              {
-                if (ncmd->type () != CT_CMD)
-                  {
-                    if (cmd->keyval (0) == ':'
-                        || cmd->keyval (0) == '/'
-                        || cmd->keyval (0) == '?')
-                      {
-                        debug ("run this");
-                        gView->run (cmd_mode_type (cmd->keyval (0)), ncmd->c_str ());
-                        return orig;
-                      }
-                  }
-
-                debug ("Can't run this map command, as default");
-                for (guint k=0; k<cmd->keyvalv_p()->size (); ++k)
-                  gView->process (cmd->precount (), cmd->keyval (k));
-                for (guint k=0; k<ncmd->keyvalv_p()->size (); ++k)
-                  gView->process (ncmd->precount (), ncmd->keyval (k));
-              }
-            else
-              {
-                for (guint k=0; k<cmd->keyvalv_p()->size (); ++k)
-                  gView->process (cmd->precount (), cmd->keyval (k));
-              }
+            cmd->process ();
           }
         return orig;
       }
@@ -671,74 +553,6 @@ deft:
         return it != mMaps.end ()? it->second: NULL;
       }
 
-  void
-    ApvlvCmds::translate (GdkEventKey *gev, string *s)
-      {
-        if (gev->state == GDK_CONTROL_MASK)
-          {
-            guint ret = gdk_keyval_to_unicode (gev->keyval);
-            if (isprint (ret))
-              {
-                s->append ("<C-");
-                s->push_back (ret);
-                s->append (">");
-              }
-          }
-        else
-          {
-            if (KS[gev->keyval] != NULL)
-              {
-                s->append (KS[gev->keyval]);
-              }
-            else
-              {
-                guint ret = gdk_keyval_to_unicode (gev->keyval);
-                if (isprint (ret))
-                  {
-                    s->push_back (ret);
-                  }
-              }
-          }
-      }
-
-  bool
-    ApvlvCmds::translate (string &s, GdkEventKey *gev)
-      {
-        if (s.size () > 4
-            && s[1] == 'C'
-            && s[2] == '-'
-        )
-          {
-            gev->state = GDK_CONTROL_MASK;
-            gev->keyval = gdk_unicode_to_keyval (s[3]);
-            return true;
-          }
-
-        KeyStringMap::iterator it;
-        for (it = KS.begin (); it != KS.end (); ++ it)
-          {
-            if (it->second == NULL) continue;
-            if (strcmp (it->second, s.c_str ()) == 0)
-              {
-                gev->state = 0;
-                gev->keyval = it->first;
-                return true;
-              }
-          }
-
-        return false;
-      }
-
-  void
-    ApvlvCmds::sendmapkey (const char *s)
-      {
-        bool ret = buildevent (s);
-        if (ret)
-          {
-            sendevent ();
-          }
-      }
-
   gboolean
     ApvlvCmds::apvlv_cmds_timeout_cb (gpointer data)
       {
@@ -749,7 +563,7 @@ deft:
             delete cmds->mCmdHead;
             cmds->mCmdHead = NULL;
           }
-        cmds->state = CMD_OK;
+        cmds->mState = CMD_OK;
         return FALSE;
       }
 }

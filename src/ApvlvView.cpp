@@ -52,54 +52,54 @@ namespace apvlv
 {
   ApvlvView *gView = NULL;
 
-  ApvlvView::ApvlvView (int argc, char *argv[])
+  ApvlvView::ApvlvView (int *argc, char ***argv)
     {
-      gtk_init (&argc, &argv);
+      gtk_init (argc, argv);
 
-      mainwindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-      g_signal_connect (G_OBJECT (mainwindow), "size-allocate",
+      mMainWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+      g_signal_connect (G_OBJECT (mMainWindow), "size-allocate",
                         G_CALLBACK (apvlv_view_resized_cb), this);
 
-      int w = atoi (gParams->settingvalue ("width"));
-      int h = atoi (gParams->settingvalue ("height"));
+      int w = atoi (gParams->value ("width"));
+      int h = atoi (gParams->value ("height"));
 
-      gtk_widget_set_size_request (mainwindow, w, h);
+      gtk_widget_set_size_request (mMainWindow, w, h);
 
-      g_object_set_data (G_OBJECT (mainwindow), "view", this);
-      g_signal_connect (G_OBJECT (mainwindow), "key-press-event",
+      g_object_set_data (G_OBJECT (mMainWindow), "view", this);
+      g_signal_connect (G_OBJECT (mMainWindow), "key-press-event",
                         G_CALLBACK (apvlv_view_keypress_cb), this);
 
       GtkWidget *vbox = gtk_vbox_new (FALSE, 2);
-      gtk_container_add (GTK_CONTAINER (mainwindow), vbox);
+      gtk_container_add (GTK_CONTAINER (mMainWindow), vbox);
 
-      m_rootWindow = new ApvlvWindow (NULL);
-      m_rootWindow->setcurrentWindow (NULL, m_rootWindow);
-      gtk_box_pack_start (GTK_BOX (vbox), m_rootWindow->widget (), FALSE, FALSE, 0);
+      mRootWindow = new ApvlvWindow (NULL);
+      mRootWindow->setcurrentWindow (NULL, mRootWindow);
+      gtk_box_pack_start (GTK_BOX (vbox), mRootWindow->widget (), FALSE, FALSE, 0);
 
-      statusbar = gtk_entry_new ();
-      gtk_box_pack_end (GTK_BOX (vbox), statusbar, FALSE, FALSE, 0);
-      g_object_set_data (G_OBJECT (statusbar), "view", this);
-      g_signal_connect (G_OBJECT (statusbar), "key-press-event", G_CALLBACK (apvlv_view_statusbar_cb), this);
+      mCommandBar = gtk_entry_new ();
+      gtk_box_pack_end (GTK_BOX (vbox), mCommandBar, FALSE, FALSE, 0);
+      g_object_set_data (G_OBJECT (mCommandBar), "view", this);
+      g_signal_connect (G_OBJECT (mCommandBar), "key-press-event", G_CALLBACK (apvlv_view_commandbar_cb), this);
 
-      g_signal_connect (G_OBJECT (mainwindow), "delete-event",
+      g_signal_connect (G_OBJECT (mMainWindow), "delete-event",
                         G_CALLBACK (apvlv_view_delete_cb), this);
-      g_signal_connect (G_OBJECT (mainwindow), "destroy-event",
+      g_signal_connect (G_OBJECT (mMainWindow), "destroy-event",
                         G_CALLBACK (apvlv_view_delete_cb), this);
 
-      gtk_widget_show_all (mainwindow);
+      gtk_widget_show_all (mMainWindow);
 
-      pro_cmd = 0;
+      mProCmd = 0;
 
-      full_has = FALSE;
+      mHasFull = FALSE;
 
-      const char *fs = gParams->settingvalue ("fullscreen");
+      const char *fs = gParams->value ("fullscreen");
       if (strcmp (fs, "yes") == 0)
         {
           fullscreen ();
         }
       else
         {
-          gtk_widget_set_usize (mainwindow, width, height);
+          gtk_widget_set_usize (mMainWindow, w, h);
         }
 
       cmd_hide ();
@@ -107,7 +107,7 @@ namespace apvlv
 
   ApvlvView::~ApvlvView ()
     {
-      delete m_rootWindow;
+      delete mRootWindow;
 
       map <string, ApvlvDoc *>::iterator it;
       for (it = mDocs.begin (); it != mDocs.end (); ++ it)
@@ -123,18 +123,36 @@ namespace apvlv
         gtk_main ();
       }
 
+  GtkWidget *
+    ApvlvView::widget () 
+      { 
+        return mMainWindow; 
+      }
+
+  ApvlvWindow *
+    ApvlvView::currentWindow () 
+      { 
+        return ApvlvWindow::currentWindow (); 
+      }
+
+  void 
+    ApvlvView::delcurrentWindow () 
+      { 
+        ApvlvWindow::delcurrentWindow (); 
+      }
+
   void
     ApvlvView::open ()
       {
         GtkWidget *dia = gtk_file_chooser_dialog_new ("",
-                                                      GTK_WINDOW (mainwindow),
+                                                      GTK_WINDOW (mMainWindow),
                                                       GTK_FILE_CHOOSER_ACTION_SAVE,
                                                       GTK_STOCK_CANCEL,
                                                       GTK_RESPONSE_CANCEL,
                                                       GTK_STOCK_OK,
                                                       GTK_RESPONSE_ACCEPT,
                                                       NULL);
-        gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dia), gParams->settingvalue ("defaultdir"));
+        gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dia), gParams->value ("defaultdir"));
 
         GtkFileFilter *filter = gtk_file_filter_new ();
         gtk_file_filter_add_mime_type (filter, "PDF File");
@@ -152,6 +170,18 @@ namespace apvlv
             g_free (filename);
           }
         gtk_widget_destroy (dia);
+      }
+
+  bool 
+    ApvlvView::loadfile (string file)
+      { 
+        return loadfile (file.c_str ()); 
+      }
+
+  void 
+    ApvlvView::quit () 
+      { 
+        apvlv_view_delete_cb (NULL, NULL, this); 
       }
 
   bool
@@ -251,54 +281,46 @@ namespace apvlv
       }
 
   void
-    ApvlvView::promptsearch ()
+    ApvlvView::promptcommand (char ch)
       {
-        gtk_entry_set_text (GTK_ENTRY (statusbar), "/");
-        cmd_mode = SEARCH;
+        char s[2] = { 0 };
+        s[0] = ch;
+        gtk_entry_set_text (GTK_ENTRY (mCommandBar), s);
         cmd_show ();
       }
 
   void
-    ApvlvView::promptbacksearch ()
+    ApvlvView::promptcommand (const char *s)
       {
-        gtk_entry_set_text (GTK_ENTRY (statusbar), "?");
-        cmd_mode = BACKSEARCH;
-        cmd_show ();
-      }
-
-  void
-    ApvlvView::promptcommand ()
-      {
-        gtk_entry_set_text (GTK_ENTRY (statusbar), ":");
-        cmd_mode = COMMANDMODE;
+        gtk_entry_set_text (GTK_ENTRY (mCommandBar), s);
         cmd_show ();
       }
 
   void
     ApvlvView::cmd_show ()
       {
-        if (mainwindow == NULL)
+        if (mMainWindow == NULL)
           return;
 
-        m_rootWindow->setsize (width, height - 20);
-        gtk_widget_set_usize (statusbar, width, 20);
+        mRootWindow->setsize (mWidth, mHeight - 20);
+        gtk_widget_set_usize (mCommandBar, mWidth, 20);
 
-        gtk_widget_grab_focus (statusbar);
-        gtk_entry_set_position (GTK_ENTRY (statusbar), 1);
-        cmd_has = TRUE;
+        gtk_widget_grab_focus (mCommandBar);
+        gtk_entry_set_position (GTK_ENTRY (mCommandBar), -1);
+        mHasCmd = TRUE;
       }
 
   void
     ApvlvView::cmd_hide ()
       {
-        if (mainwindow == NULL)
+        if (mMainWindow == NULL)
           return;
 
-        m_rootWindow->setsize (width, height);
-        gtk_widget_set_usize (statusbar, width, 1);
+        mRootWindow->setsize (mWidth, mHeight);
+        gtk_widget_set_usize (mCommandBar, mWidth, 1);
 
-        gtk_widget_grab_focus (mainwindow);
-        cmd_has = FALSE;
+        gtk_widget_grab_focus (mMainWindow);
+        mHasCmd = FALSE;
       }
 
   void
@@ -343,8 +365,8 @@ namespace apvlv
                 char text[0x100];
                 snprintf (text, sizeof text, ":%s %s", cmd.c_str (), comtext);
                 g_free (comtext);
-                gtk_entry_set_text (GTK_ENTRY (statusbar), text);
-                gtk_editable_set_position (GTK_EDITABLE (statusbar), -1);
+                gtk_entry_set_text (GTK_ENTRY (mCommandBar), text);
+                gtk_editable_set_position (GTK_EDITABLE (mCommandBar), -1);
               }
 
             g_completion_free (gcomp);
@@ -354,23 +376,29 @@ namespace apvlv
   void
     ApvlvView::fullscreen ()
       {
-        if (full_has == false)
+        if (mHasFull == false)
           {
-            gtk_window_maximize (GTK_WINDOW (mainwindow));
-            full_has = true;
+            gtk_window_maximize (GTK_WINDOW (mMainWindow));
+            mHasFull = true;
           }
         else
           {
-            gtk_window_unmaximize (GTK_WINDOW (mainwindow));
-            full_has = false;
+            gtk_window_unmaximize (GTK_WINDOW (mMainWindow));
+            mHasFull = false;
           }
+      }
+
+  ApvlvDoc *
+    ApvlvView::crtadoc () 
+      { 
+        return currentWindow ()->getDoc (); 
       }
 
   returnType
     ApvlvView::subprocess (int ct, guint key)
       {
-        guint procmd = pro_cmd;
-        pro_cmd = 0;
+        guint procmd = mProCmd;
+        mProCmd = 0;
         switch (procmd)
           {
           case CTRL ('w'):
@@ -419,8 +447,7 @@ namespace apvlv
   returnType
     ApvlvView::process (int ct, guint key)
       {
-        debug ("run %c[%d] of %d times", key, key, ct); 
-        if (pro_cmd != 0)
+        if (mProCmd != 0)
           {
             return subprocess (ct, key);
           }
@@ -442,17 +469,13 @@ namespace apvlv
             crtadoc ()->halfprepage (ct);
             break;
           case CTRL ('w'):
-            pro_cmd = CTRL ('w');
+            mProCmd = CTRL ('w');
             return NEED_MORE;
             break;
           case ':':
-            promptcommand ();
-            return NEED_MORE;
           case '/':
-            promptsearch ();
-            return NEED_MORE;
           case '?':
-            promptbacksearch ();
+            promptcommand (key);
             return NEED_MORE;
           case 'H':
             crtadoc ()->scrollto (0.0);
@@ -500,11 +523,11 @@ namespace apvlv
             crtadoc ()->showpage (ct - 1);
             break;
           case 'm':
-            pro_cmd = 'm';
+            mProCmd = 'm';
             return NEED_MORE;
             break;
           case '\'':
-            pro_cmd = '\'';
+            mProCmd = '\'';
             return NEED_MORE;
             break;
           case 'q':
@@ -514,7 +537,7 @@ namespace apvlv
             fullscreen ();
             break;
           case 'z':
-            pro_cmd = 'z';
+            mProCmd = 'z';
             return NEED_MORE;
             break;
           default:
@@ -526,22 +549,22 @@ namespace apvlv
       }
 
   void
-    ApvlvView::run (cmd_mode_type cmd, const char *str)
+    ApvlvView::run (const char *str)
       {
-        switch (cmd)
+        switch (*str)
           {
           case SEARCH:
             crtadoc ()->markposition ('\'');
-            crtadoc ()->search (str);
+            crtadoc ()->search (str + 1);
             break;
 
           case BACKSEARCH:
             crtadoc ()->markposition ('\'');
-            crtadoc ()->backsearch (str);
+            crtadoc ()->backsearch (str + 1);
             break;
 
           case COMMANDMODE:
-            runcmd (str);
+            runcmd (str + 1);
             break;
 
           default:
@@ -564,11 +587,11 @@ namespace apvlv
 
             if (cmd == "set")
               {
-                gParams->settingpush (subcmd, argu);
+                gParams->push (subcmd, argu);
               }
             else if (cmd == "map")
               {
-                gParams->mappush (subcmd, argu);
+                gCmds->buildmap (subcmd.c_str (), argu.c_str ());
               }
             else if (cmd == "o"
                      || cmd == "open"
@@ -672,22 +695,22 @@ namespace apvlv
         int w, h;
 
         gtk_window_get_size (GTK_WINDOW (wid), &w, &h);
-        if (w != view->width
-            || h != view->height)
+        if (w != view->mWidth
+            || h != view->mHeight)
           {
-            if (view->cmd_has)
+            if (view->mHasCmd)
               {
-                view->m_rootWindow->setsize (w, h - 20);
-                gtk_widget_set_usize (view->statusbar, w, 20);
+                view->mRootWindow->setsize (w, h - 20);
+                gtk_widget_set_usize (view->mCommandBar, w, 20);
               }
             else
               {
-                view->m_rootWindow->setsize (w, h);
-                gtk_widget_set_usize (view->statusbar, w, 1);
+                view->mRootWindow->setsize (w, h);
+                gtk_widget_set_usize (view->mCommandBar, w, 1);
               }
 
-            view->width = w;
-            view->height = h;
+            view->mWidth = w;
+            view->mHeight = h;
           }
       }
 
@@ -697,7 +720,7 @@ namespace apvlv
         ApvlvView *view =
           (ApvlvView *) g_object_get_data (G_OBJECT (wid), "view");
 
-        if (view->cmd_has == FALSE)
+        if (view->mHasCmd == FALSE)
           {
             gCmds->append ((GdkEventKey *) ev);
             return TRUE;
@@ -707,20 +730,20 @@ namespace apvlv
       }
 
   gint
-    ApvlvView::apvlv_view_statusbar_cb (GtkWidget * wid, GdkEvent * ev)
+    ApvlvView::apvlv_view_commandbar_cb (GtkWidget * wid, GdkEvent * ev)
       {
         ApvlvView *view = (ApvlvView *) g_object_get_data (G_OBJECT (wid), "view");
 
-        if (view->cmd_has == true)
+        if (view->mHasCmd == true)
           {
             GdkEventKey *gek = (GdkEventKey *) ev;
             if (gek->keyval == GDK_Return)
               {
                 gchar *str =
-                  (gchar *) gtk_entry_get_text (GTK_ENTRY (view->statusbar));
+                  (gchar *) gtk_entry_get_text (GTK_ENTRY (view->mCommandBar));
                 if (str && strlen (str) > 0)
                   {
-                    view->run (view->cmd_mode, str + 1);
+                    view->run (str);
                   }
                 view->cmd_hide ();
                 return TRUE;
@@ -728,12 +751,22 @@ namespace apvlv
             else if (gek->keyval == GDK_Tab)
               {
                 gchar *str =
-                  (gchar *) gtk_entry_get_text (GTK_ENTRY (view->statusbar));
+                  (gchar *) gtk_entry_get_text (GTK_ENTRY (view->mCommandBar));
                 if (str && strlen (str) > 0)
                   {
                     view->cmd_auto (str + 1);
                   }
                 return TRUE;
+              }
+            else if (gek->keyval == GDK_BackSpace)
+              {
+                gchar *str =
+                  (gchar *) gtk_entry_get_text (GTK_ENTRY (view->mCommandBar));
+                if (str == NULL || strlen (str) == 1)
+                  {
+                    view->cmd_hide ();
+                    return TRUE;
+                  }
               }
             else if (gek->keyval == GDK_Escape)
               {
@@ -751,7 +784,7 @@ namespace apvlv
     ApvlvView::apvlv_view_delete_cb (GtkWidget * wid, GtkAllocation * al,
                                      ApvlvView * view)
       {
-        view->mainwindow = NULL;
+        view->mMainWindow = NULL;
         gtk_main_quit ();
       }
 }

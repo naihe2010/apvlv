@@ -63,7 +63,7 @@ namespace apvlv
 
   typedef enum
     {
-      WR_DESTROY,               // destroy this direct
+      WR_REMOVE,               // destroy this direct
       WR_REF_CHILDREN,          // destroy this only, but ref its children
       WR_REF                    // only hide, that is, ref it
     } widremoveType;
@@ -80,11 +80,16 @@ namespace apvlv
       NO_MATCH,
     } returnType;
 
-  // log system
+// some windows macro
+#ifdef WIN32
+#define snprintf _snprintf
+#endif
+
 #ifdef WIN32
 #define __func__ ""
 #endif
 
+// log system
 #if defined DEBUG || defined _DEBUG
 #define debug(...)      logv ("DEBUG", __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define asst(s)         do {                    \
@@ -96,15 +101,15 @@ namespace apvlv
 } while (0)
 #else
 #define debug(...)
-#define asst(s)         do { } while (0)
+#define asst(s)
 #endif
 #define info(...)       logv ("INFO", __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define warn(...)       logv ("WARNNING", __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define err(...)        logv ("ERROR", __FILE__, __LINE__, __func__, __VA_ARGS__)
   void logv (const char *, const char *, int, const char *, const char *, ...);
 
-  // char macro
-  // because every unsigned char is < 256, so use this marco to standrd for Ctrl-c
+// char macro
+// because every unsigned char is < 256, so use this marco to stand for Ctrl+char, Shift+char
 #define CTRL(c)                 ((c) + 256)
 #define SHIFT(c)                (CTRL(c) + 256)
 

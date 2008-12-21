@@ -44,6 +44,8 @@ using namespace std;
 
 namespace apvlv
 {
+  typedef map <string, string> ApvlvParam;
+
   class ApvlvParams
     {
   public:
@@ -52,41 +54,14 @@ namespace apvlv
 
     bool loadfile (const char *filename);
 
-    bool mappush (string &cmd1, string &cmd2);
+    bool push (string &ch, string &str);
 
-    const char *mapvalue (const char *key);
+    bool push (const char *c, const char *s);
 
-    returnType getmap (const char *s, int n);
-
-    const char *cmd (const char *key);
-
-    bool settingpush (string &ch, string &str);
-
-    bool settingpush (const char *c, const char *s);
-
-    const char *settingvalue (const char *key);
-
-    //for debug
-    void show ()
-      {
-        map <string, string>::iterator it;
-
-        cerr << "maps" << endl;
-        for (it = m_maps.begin (); it != m_maps.end (); ++ it)
-          {
-            cerr << "first:[" << (*it).first << "], second[" << (*it).second << "]" << endl;
-          }
-        cerr << endl;
-
-        cerr << "settings" << endl;
-        for (it = m_settings.begin (); it != m_settings.end (); ++ it)
-          {
-            cerr << "first:[" << (*it).first << "], second[" << (*it).second << "]" << endl;
-          }
-      }
+    const char *value (const char *key);
 
   private:
-    map <string, string> m_maps, m_settings;
+    ApvlvParam mSettings;
     };
 
   extern ApvlvParams *gParams;

@@ -43,9 +43,6 @@ using namespace std;
 
 namespace apvlv
 {
-  const guint CmdSize = 6;
-  const guint CmdStrLen = 16;
-
   typedef enum 
     {
       CT_CMD,
@@ -65,9 +62,9 @@ namespace apvlv
   public:
     ApvlvCmd ();
 
-    ApvlvCmd (ApvlvCmd &cmd);
-
     ~ApvlvCmd ();
+
+    void process ();
 
     void push (const char *s, cmdType type = CT_CMD);
 
@@ -103,7 +100,9 @@ namespace apvlv
 
     gint precount ();
 
-    guint keyval (guint id);
+    gint keyval (guint id);
+
+    void next (ApvlvCmd *cmd);
 
     ApvlvCmd *next ();
 
@@ -138,18 +137,24 @@ namespace apvlv
     // next command
     ApvlvCmd *mNext;
 
-    // when a key is map to other, this is the origin key.
+    // when a key is map to other, this is the origin cmd.
     // after a maped key was processed, return to this cmds
     ApvlvCmd *mOrigin;
     };
 
   class ApvlvCmds
     {
-      // New module
   public:
+    ApvlvCmds ();
+
+    ~ApvlvCmds ();
+
+    void append (GdkEventKey *gev);
+
     bool buildmap (const char *os, const char *ms);
 
   private:
+
     ApvlvCmd *process (ApvlvCmd *cmd);
 
     returnType ismap (ApvlvCmdKeyv *ack);
@@ -158,60 +163,22 @@ namespace apvlv
 
     ApvlvCmd *getmap (ApvlvCmd *cmd);
 
+    static gboolean apvlv_cmds_timeout_cb (gpointer);
+
     ApvlvCmdMap mMaps;
 
     ApvlvCmd *mCmdHead;
-    // End New
-
-  public:
-    ApvlvCmds ();
-
-    ~ApvlvCmds ();
-
-    void append (GdkEventKey *gev);
-
-  private:
-
-    void translate (GdkEventKey *gev, string *s);
-
-    bool translate (string &s, GdkEventKey *gev);
-
-    bool run ();
-
-    bool getcount ();
-
-    bool getcmd ();
-
-    returnType getmap ();
-
-    void sendmapkey (const char *s);
 
     enum cmdState
       {
         GETTING_COUNT,
         GETTING_CMD,
         CMD_OK,
-      } state;
+      } mState;
 
-    static gboolean apvlv_cmds_timeout_cb (gpointer);
-    gint timeouttimer;
+    gint mTimeoutTimer;
 
-    bool hasop;
-    string count;
-    KeyStringMap KS;
-
-    bool buildevent (const char *p);
-
-    void destroyevent ();
-
-    void sendevent ();
-
-    int sendtimer;
-
-    static gboolean ae_send_next (void *);
-
-    vector <GdkEventKey> m_keys;
-
+    string mCountString;
     };
 
   extern ApvlvCmds *gCmds;
