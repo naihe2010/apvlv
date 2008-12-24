@@ -570,13 +570,17 @@ namespace apvlv
 
         if (times % 2 != 0)
           {
-            sr += 0.5;
-            if (sr > 1)
+            if (sr > 0.5)
               {
+                sr = 0;
                 rtimes += 1;
-                sr -= 1;
+              }
+            else
+              {
+                sr = 1;
               }
           }
+
         showpage (mPagenum + rtimes, sr);
       }
 
@@ -588,13 +592,17 @@ namespace apvlv
 
         if (times % 2 != 0)
           {
-            sr -= 0.5;
-            if (sr < 0)
+            if (sr < 0.5)
               {
+                sr = 1;
                 rtimes += 1;
-                sr += 1;
+              }
+            else
+              {
+                sr = 0;
               }
           }
+
         showpage (mPagenum - rtimes, sr);
       }
 
