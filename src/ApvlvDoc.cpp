@@ -568,11 +568,16 @@ namespace apvlv
         double sr = scrollrate ();
         int rtimes = times / 2;
 
-        showpage (mPagenum + rtimes, sr);
         if (times % 2 != 0)
           {
-            scrolldown (mLines / 2);
+            sr += 0.5;
+            if (sr > 1)
+              {
+                rtimes += 1;
+                sr -= 1;
+              }
           }
+        showpage (mPagenum + rtimes, sr);
       }
 
   void
@@ -581,11 +586,16 @@ namespace apvlv
         double sr = scrollrate ();
         int rtimes = times / 2;
 
-        showpage (mPagenum - rtimes, sr);
         if (times % 2 != 0)
           {
-            scrollup (mLines / 2);
+            sr -= 0.5;
+            if (sr < 0)
+              {
+                rtimes += 1;
+                sr += 1;
+              }
           }
+        showpage (mPagenum - rtimes, sr);
       }
 
   double
