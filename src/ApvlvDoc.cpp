@@ -659,7 +659,7 @@ namespace apvlv
           {
             gtk_adjustment_set_value (mVaj, mVaj->lower);
           }
-        else if (mPagenum > 0)
+        else
           {
             showpage (mPagenum - 1, 1.00);
           }
@@ -683,7 +683,7 @@ namespace apvlv
           {
             gtk_adjustment_set_value (mVaj, mVaj->upper - mVaj->page_size);
           }
-        else if (mPagenum < poppler_document_get_n_pages (mDoc) - 1)
+        else
           {
             showpage (mPagenum + 1, 0.00);
           }

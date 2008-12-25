@@ -110,6 +110,7 @@ namespace apvlv
 
 // char macro
 // because every unsigned char is < 256, so use this marco to stand for Ctrl+char, Shift+char
+#define VALIDCHAR(c)            ((c) < 256)
 #define CTRL(c)                 ((c) + 256)
 #define SHIFT(c)                (CTRL(c) + 256)
 

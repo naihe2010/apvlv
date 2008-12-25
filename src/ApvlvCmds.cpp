@@ -160,24 +160,31 @@ namespace apvlv
           }
       }
 
-  void
+  bool
     ApvlvCmd::append (GdkEventKey *gek)
       {
-        if (gek->state == GDK_CONTROL_MASK)
+        if (gek->state == 0)
+          {
+            if (VALIDCHAR (gek->keyval))
+              {
+                mKeyVals.push_back (gek->keyval);
+                return true;
+              }
+          }
+        else if (gek->state == GDK_CONTROL_MASK)
           {
             mKeyVals.push_back (CTRL (gek->keyval));
+            return true;
           }
-        // hack, if a char is not a Uppercase chracter, we use S- mark
-        /* has lots of error, so commet it for temp 
-        else if (gek->state == GDK_SHIFT_MASK 
-                 && (! isupper (gek->keyval)))
+        else if (gek->state == GDK_SHIFT_MASK)
           {
-            mKeyVals.push_back (SHIFT (gek->keyval));
-          } */
-        else
-          {
-            mKeyVals.push_back (gek->keyval);
+            if (VALIDCHAR (gek->keyval))
+              {
+                mKeyVals.push_back (gek->keyval);
+                return true;
+              }
           }
+        return false;
       }
 
   const char *
@@ -458,8 +465,14 @@ namespace apvlv
               }
           }
 
+        bool valid = mCmdHead->append (gev);
+        if (!valid)
+          {
+            mTimeoutTimer = g_timeout_add (3000, apvlv_cmds_timeout_cb, this);
+            return;
+          }
+
         mState = GETTING_CMD;
-        mCmdHead->append (gev);
         returnType ret = ismap (mCmdHead->keyvalv_p ());
         if (ret == NEED_MORE)
           {

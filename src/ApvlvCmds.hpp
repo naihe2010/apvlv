@@ -68,7 +68,7 @@ namespace apvlv
 
     void push (const char *s, cmdType type = CT_CMD);
 
-    void append (GdkEventKey *key);
+    bool append (GdkEventKey *key);
 
     const char *append (const char *s);
 
