@@ -443,6 +443,7 @@ namespace apvlv
         if (ac != NULL)
           {
             GdkPixbuf *buf = ac->getbuf (true);
+            asst (buf);
             gtk_image_set_from_pixbuf (GTK_IMAGE (mImage), buf);
             scrollto (s);
 
@@ -509,17 +510,6 @@ namespace apvlv
         gtk_image_set_from_pixbuf (GTK_IMAGE (mImage), mCurrentCache->getbuf (true));
 
         mStatus->show ();
-
-#ifdef HAVE_PTHREAD
-        if (mNextCache != NULL)
-          {
-            mNextCache->set (mNextCache->getpagenum ());
-          }
-        if (mLastCache != NULL)
-          {
-            mLastCache->set (mLastCache->getpagenum ());
-          }
-#endif
       }
 
 #ifdef HAVE_PTHREAD
@@ -1043,7 +1033,7 @@ namespace apvlv
       mData = NULL;
       mBuf = NULL;
 #ifdef HAVE_PTHREAD
-      mTimer = -1;
+      mDelay = 0;
       mThreadRunning = false;
       pthread_cond_init (&mCond, NULL);
       pthread_mutex_init (&mMutex, NULL);
@@ -1057,6 +1047,7 @@ namespace apvlv
         if (mThreadRunning)
           {
             pthread_cancel (mTid);
+            mThreadRunning = false;
           }
 #endif
         mPagenum = p;
@@ -1072,29 +1063,12 @@ namespace apvlv
           }
 #ifdef HAVE_PTHREAD
         pthread_cond_init (&mCond, NULL);
-
-        if (delay == true)
-          {
-            mTimer = g_timeout_add (50, (gboolean (*) (void *)) delayload, this);
-          }
-        else
-          {
-            pthread_create (&mTid, NULL, (void *(*) (void *)) load, this);
-          }
+        mDelay = delay? 50: 0;
+        pthread_create (&mTid, NULL, (void *(*) (void *)) load, this);
 #else
         load (this);
 #endif
       }
-
-#ifdef HAVE_PTHREAD
-  gboolean
-    ApvlvDocCache::delayload (ApvlvDocCache *ac)
-      {
-        pthread_create (&ac->mTid, NULL, (void *(*) (void *)) load, ac);
-        ac->mTimer = -1;
-        return FALSE;
-      }
-#endif
 
   void
     ApvlvDocCache::load (ApvlvDocCache *ac)
@@ -1128,6 +1102,10 @@ namespace apvlv
                                     NULL, NULL);
 
 #ifdef HAVE_PTHREAD
+        if (ac->mDelay > 0)
+          {
+            usleep (ac->mDelay * 1000);
+          }
         pthread_mutex_lock (&rendermutex);
 #endif
         poppler_page_render_to_pixbuf (tpage, 0, 0, ix, iy, ac->mDoc->zoomvalue (), ac->mDoc->getrotate (), bu);
@@ -1141,7 +1119,6 @@ namespace apvlv
 
 #ifdef HAVE_PTHREAD
         pthread_cond_signal (&ac->mCond);
-
         ac->mThreadRunning = false;
 #endif
       }
@@ -1149,10 +1126,6 @@ namespace apvlv
   ApvlvDocCache::~ApvlvDocCache ()
     {
 #ifdef HAVE_PTHREAD
-      if (mTimer > 0)
-        {
-          g_source_remove (mTimer);
-        }
       if (mThreadRunning)
         {
           pthread_cancel (mTid);
@@ -1194,10 +1167,8 @@ namespace apvlv
       guchar *dat = mData;
       if (dat == NULL)
         {
-          pthread_mutex_lock (&mMutex);
           pthread_cond_wait (&mCond, &mMutex);
           dat = mData;
-          pthread_mutex_unlock (&mMutex);
         }
       return dat;
 #endif
@@ -1221,10 +1192,8 @@ namespace apvlv
       GdkPixbuf *bu = mBuf;
       if (bu == NULL)
         {
-          pthread_mutex_lock (&mMutex);
           pthread_cond_wait (&mCond, &mMutex);
           bu = mBuf;
-          pthread_mutex_unlock (&mMutex);
         }
       return bu;
 #endif

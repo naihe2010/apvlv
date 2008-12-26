@@ -80,8 +80,6 @@ namespace apvlv
 
     static void load (ApvlvDocCache *);
 
-    static gboolean delayload (ApvlvDocCache *);
-
     PopplerPage *getpage ();
 
     guint getpagenum ();
@@ -93,7 +91,7 @@ namespace apvlv
   private:
 #ifdef HAVE_PTHREAD
     bool mThreadRunning;
-    gint mTimer;
+    guint mDelay;
     pthread_t mTid;
     pthread_cond_t mCond;
     pthread_mutex_t mMutex;
@@ -101,7 +99,7 @@ namespace apvlv
 
     ApvlvDoc *mDoc;
     PopplerPage *mPage;
-    int mPagenum;
+    gint mPagenum;
     guchar *mData;
     GdkPixbuf *mBuf;
     };
