@@ -131,7 +131,7 @@ namespace apvlv
   class ApvlvDoc
     {
   public:
-    ApvlvDoc (const char *zm = "NORMAL");
+    ApvlvDoc (const char *zm = "NORMAL", bool cache = false);
 
     ~ApvlvDoc ();
 
@@ -156,6 +156,10 @@ namespace apvlv
     double zoomvalue ();
 
     GtkWidget *widget ();
+
+    bool usecache ();
+
+    void usecache (bool use);
 
     bool loadfile (string & filename, bool check = true);
 
@@ -255,6 +259,7 @@ namespace apvlv
     string mSearchstr;
 
 #ifdef HAVE_PTHREAD
+    bool mUseCache;
     ApvlvDocCache *fetchcache (guint);
     ApvlvDocCache *mLastCache, *mNextCache;
 #endif

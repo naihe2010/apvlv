@@ -9,6 +9,8 @@
 
         * add cache module to make the display faster.
 
+        * add ':set [no]cache' to tell apvlv if use cache module.
+
         * add 'r' command to rotate page.
 
         * add ':TOtext' to translate pdf doc page to a text file.

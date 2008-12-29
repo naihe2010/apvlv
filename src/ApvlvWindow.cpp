@@ -447,7 +447,13 @@ namespace apvlv
             return ret? mDoc: NULL;
           }
 
-        ApvlvDoc *ndoc = new ApvlvDoc (gParams->value ("zoom"));
+        bool bcache = false;
+        const char *scache = gParams->value ("cache");
+        if (strcmp (scache, "yes") == 0)
+          {
+            bcache = true;
+          }
+        ApvlvDoc *ndoc = new ApvlvDoc (gParams->value ("zoom"), bcache);
         ndoc->setsize (mWidth, mHeight);
         bool ret = ndoc->loadfile (filename);
         if (ret)

@@ -587,7 +587,20 @@ namespace apvlv
 
             if (cmd == "set")
               {
-                gParams->push (subcmd, argu);
+                if (subcmd == "cache")
+                  {
+                    gParams->push ("cache", "yes");
+                    crtadoc ()->usecache (true);
+                  }
+                else if (subcmd == "nocache")
+                  {
+                    gParams->push ("cache", "no");
+                    crtadoc ()->usecache (false);
+                  }
+                else
+                  {
+                    gParams->push (subcmd, argu);
+                  }
               }
             else if (cmd == "map")
               {
