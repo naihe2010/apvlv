@@ -1,6 +1,7 @@
 AM_CXXFLAGS = -Wall -D_GNU_SOURCE
 
 HEAD = config.hpp \
+       ApvlvCore.hpp \
        ApvlvUtil.hpp \
        ApvlvView.hpp \
        ApvlvCmds.hpp \

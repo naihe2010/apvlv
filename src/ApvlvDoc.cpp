@@ -41,6 +41,7 @@
 #endif
 
 #include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>
 #include <gtk/gtkprintoperation.h>
 #include <glib/poppler.h>
 
@@ -70,6 +71,8 @@ namespace apvlv
           mUseCache = false;
         }
 #endif
+
+      mProCmd = 0;
 
       mRotatevalue = 0;
 
@@ -106,10 +109,13 @@ namespace apvlv
     if (mCurrentCache)
       delete mCurrentCache;
 #ifdef HAVE_PTHREAD
-    if (mNextCache)
-      delete mNextCache;
-    if (mLastCache)
-      delete mLastCache;
+    if (mUseCache)
+      {
+        if (mNextCache)
+          delete mNextCache;
+        if (mLastCache)
+          delete mLastCache;
+      }
 #endif
 
       if (mFilestr != helppdf)
@@ -123,6 +129,134 @@ namespace apvlv
 
       delete mStatus;
     }
+
+  returnType
+    ApvlvDoc::subprocess (int ct, guint key)
+      {
+        guint procmd = mProCmd;
+        mProCmd = 0;
+        switch (procmd)
+          {
+          case 'm':
+            markposition (key);
+            break;
+
+          case '\'':
+            jump (key);
+            break;
+
+          case 'z':
+            if (key == 'i')
+              zoomin ();
+            else if (key == 'o')
+              zoomout ();
+            break;
+
+          default:
+            return NO_MATCH;
+            break;
+          }
+
+        return MATCH;
+      }
+
+  returnType
+    ApvlvDoc::process (int ct, guint key)
+      {
+        if (mProCmd != 0)
+          {
+            return subprocess (ct, key);
+          }
+
+        switch (key)
+          {
+          case GDK_Page_Down:
+          case CTRL ('f'):
+            nextpage (ct);
+            break;
+          case GDK_Page_Up:
+          case CTRL ('b'):
+            prepage (ct);
+            break;
+          case CTRL ('d'):
+            halfnextpage (ct);
+            break;
+          case CTRL ('u'):
+            halfprepage (ct);
+            break;
+          case CTRL ('w'):
+            mProCmd = CTRL ('w');
+            return NEED_MORE;
+            break;
+          case ':':
+          case '/':
+          case '?':
+            gView->promptcommand (key);
+            return NEED_MORE;
+          case 'H':
+            scrollto (0.0);
+            break;
+          case 'M':
+            scrollto (0.5);
+            break;
+          case 'L':
+            scrollto (1.0);
+            break;
+          case CTRL ('p'):
+          case GDK_Up:
+          case 'k':
+            scrollup (ct);
+            break;
+          case CTRL ('n'):
+          case CTRL ('j'):
+          case GDK_Down:
+          case 'j':
+            scrolldown (ct);
+            break;
+          case GDK_BackSpace:
+          case GDK_Left:
+          case CTRL ('h'):
+          case 'h':
+            scrollleft (ct);
+            break;
+          case GDK_space:
+          case GDK_Right:
+          case CTRL ('l'):
+          case 'l':
+            scrollright (ct);
+            break;
+          case 'R':
+            reload ();
+            break;
+          case 'o':
+            gView->open ();
+            break;
+          case 'r':
+            rotate (ct);
+            break;
+          case 'g':
+            markposition ('\'');
+            showpage (ct - 1);
+            break;
+          case 'm':
+            mProCmd = 'm';
+            return NEED_MORE;
+            break;
+          case '\'':
+            mProCmd = '\'';
+            return NEED_MORE;
+            break;
+          case 'z':
+            mProCmd = 'z';
+            return NEED_MORE;
+            break;
+          default:
+            return NO_MATCH;
+            break;
+          }
+
+        return MATCH;
+      }
 
   void
     ApvlvDoc::setsize (int w, int h)

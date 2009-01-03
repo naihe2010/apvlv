@@ -34,8 +34,8 @@
 # include "config.hpp"
 #endif
 
+#include "ApvlvCore.hpp"
 #include "ApvlvUtil.hpp"
-
 
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
@@ -128,12 +128,16 @@ namespace apvlv
     GtkWidget *mStlab[AD_STATUS_SIZE];
     };
 
-  class ApvlvDoc
+  class ApvlvDoc: public ApvlvCore
     {
   public:
     ApvlvDoc (const char *zm = "NORMAL", bool cache = false);
 
     ~ApvlvDoc ();
+
+    void setsize (int w, int h);
+
+    void setactive (bool act);
 
     ApvlvDoc *copy ();
 
@@ -173,12 +177,6 @@ namespace apvlv
 
     bool rotate (int ct = 90);
 
-    void setsize (int wid, int hei);
-
-    void sizesmaller (int s = 1);
-
-    void sizebigger (int s = 1);
-
     void markposition (const char s);
 
     void jump (const char s);
@@ -208,11 +206,11 @@ namespace apvlv
     void search (const char *str);
     void backsearch (const char *str);
 
-    void setactive (bool active);
-
-    returnType process (int times, guint keyval, guint state);
+    returnType process (int times, guint keyval);
 
   private:
+    returnType subprocess (int ct, guint key);
+
     bool status_show ();
 
     int convertindex (int p);
@@ -248,6 +246,8 @@ namespace apvlv
     char *mRawdata;
 
     size_t mRawdatasize;
+
+    guint mProCmd;
 
     PopplerDocument *mDoc;
 
@@ -304,8 +304,6 @@ namespace apvlv
 
     // status bar
     ApvlvDocStatus *mStatus;
-
-    bool mActive;
     };
 
 }

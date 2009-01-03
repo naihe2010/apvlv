@@ -34,7 +34,7 @@
 # include "config.hpp"
 #endif
 
-#include "ApvlvDoc.hpp"
+#include "ApvlvCore.hpp"
 
 #include <gtk/gtk.h>
 
@@ -43,12 +43,12 @@ using namespace std;
 
 namespace apvlv
 {
-  class ApvlvDoc;
+  class ApvlvCore;
 
   class ApvlvWindow
     {
   public:
-      ApvlvWindow (ApvlvDoc *doc);
+      ApvlvWindow (ApvlvCore *core);
       ~ApvlvWindow ();
 
       /* WE operate the AW_DOC window
@@ -56,9 +56,9 @@ namespace apvlv
        * AW_NONE is a empty window, need free
        * So, ANY user interface function can only get the AW_DOC window
        * */
-      enum windowType { AW_SP, AW_VSP, AW_DOC, AW_NONE } type;
+      enum windowType { AW_SP, AW_VSP, AW_CORE, AW_NONE } type;
 
-      ApvlvWindow *birth (bool vsp, ApvlvDoc *doc = NULL);
+      ApvlvWindow *birth (bool vsp, ApvlvCore *core = NULL);
 
       ApvlvWindow *unbirth (ApvlvWindow *, ApvlvWindow *);
 
@@ -70,9 +70,11 @@ namespace apvlv
 
       ApvlvDoc *loadDoc (const char *filename);
 
-      void setDoc (ApvlvDoc *doc);
-
       ApvlvDoc *getDoc (bool remove = false);
+
+      void setCore (ApvlvCore *core);
+
+      ApvlvCore *getCore (bool remove = false);
 
       void setsize (int wid, int hei);
 
@@ -107,7 +109,7 @@ namespace apvlv
 
       static ApvlvWindow *m_curWindow;
 
-      ApvlvDoc *mDoc;
+      ApvlvCore *mCore;
       GtkWidget *mPaned;
 
       int mWidth, mHeight;

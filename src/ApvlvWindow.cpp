@@ -40,30 +40,30 @@ namespace apvlv
 {
   ApvlvWindow *ApvlvWindow::m_curWindow = NULL;
 
-  ApvlvWindow::ApvlvWindow (ApvlvDoc *doc)
+  ApvlvWindow::ApvlvWindow (ApvlvCore *doc)
     {
-      type = AW_DOC;
+      type = AW_CORE;
       if (doc == NULL)
         {
-          mDoc = new ApvlvDoc (gParams->value ("zoom"));
+          mCore = new ApvlvDoc (gParams->value ("zoom"));
         }
       else
         {
-          mDoc = doc;
+          mCore = doc;
         }
       m_son = m_daughter = m_parent = NULL;
     }
 
   ApvlvWindow::~ApvlvWindow ()
     {
-      if (type == AW_DOC)
+      if (type == AW_CORE)
         {
-          if (mDoc != NULL)
+          if (mCore != NULL)
             {
-              const char *fdoc = mDoc->filename ();
-              if (fdoc != NULL && mDoc != gView->hasloaded (fdoc))
+              const char *fdoc = mCore->filename ();
+              if (fdoc != NULL && mCore != gView->hasloaded (fdoc))
                 {
-                  delete mDoc;
+                  delete mCore;
                 }
             }
         }
@@ -78,9 +78,9 @@ namespace apvlv
   GtkWidget *
     ApvlvWindow::widget ()
       {
-        if (type == AW_DOC)
+        if (type == AW_CORE)
           {
-            return mDoc->widget ();
+            return mCore->widget ();
           }
         else if (type == AW_SP || type == AW_VSP)
           {
@@ -96,16 +96,16 @@ namespace apvlv
   void
     ApvlvWindow::setcurrentWindow (ApvlvWindow *pre, ApvlvWindow *win)
       {
-        if (pre) asst (pre->type == AW_DOC);
-        asst (win->type == AW_DOC);
-        if (pre != NULL && pre->type == AW_DOC)
+        if (pre) asst (pre->type == AW_CORE);
+        asst (win->type == AW_CORE);
+        if (pre != NULL && pre->type == AW_CORE)
           {
-            pre->mDoc->setactive (false);
+            pre->mCore->setactive (false);
           }
 
-        if (win->type == AW_DOC)
+        if (win->type == AW_CORE)
           {
-            win->mDoc->setactive (true);
+            win->mCore->setactive (true);
           }
 
         m_curWindow = win;
@@ -189,7 +189,7 @@ namespace apvlv
         ApvlvWindow *cw, *w, *nw, *fw;
         bool right = false;
 
-        asst (this && type == AW_DOC);
+        asst (this && type == AW_CORE);
         for (cw = fw = NULL, w = this; w != NULL; cw = w, w = w->m_parent)
           {
             if (w->type == AW_SP)
@@ -220,7 +220,7 @@ namespace apvlv
 
         for ( nw = w = fw; w != NULL; )
           {
-            if (w->type == AW_DOC)
+            if (w->type == AW_CORE)
               {
                 nw = w;
                 break;
@@ -249,7 +249,7 @@ namespace apvlv
         ApvlvWindow *cw, *w, *nw, *fw;
         bool down = false;
 
-        asst (this && type == AW_DOC);
+        asst (this && type == AW_CORE);
         for (cw = fw = NULL, w = this; w != NULL; cw = w, w = w->m_parent)
           {
             if (w->type == AW_VSP)
@@ -280,7 +280,7 @@ namespace apvlv
 
         for ( nw = w = fw; w != NULL; )
           {
-            if (w->type == AW_DOC)
+            if (w->type == AW_CORE)
               {
                 nw = w;
                 break;
@@ -320,14 +320,14 @@ namespace apvlv
         return n;
       }
 
-  // birth a new AW_DOC window, and the new window beyond the input doc
-  // this made a AW_DOC window to AW_SP|AW_VSP
+  // birth a new AW_CORE window, and the new window beyond the input doc
+  // this made a AW_CORE window to AW_SP|AW_VSP
   ApvlvWindow *
-    ApvlvWindow::birth (bool vsp, ApvlvDoc *doc)
+    ApvlvWindow::birth (bool vsp, ApvlvCore *doc)
       {
-        asst (type == AW_DOC);
+        asst (type == AW_CORE);
 
-        if (doc == mDoc)
+        if (doc == mCore)
           {
             debug ("can't birth with orign doc, copy it");
             doc = NULL;
@@ -335,10 +335,10 @@ namespace apvlv
 
         if (doc == NULL)
           {
-            doc = mDoc->copy ();
+            doc = mCore->copy ();
           }
 
-        ApvlvWindow *nwindow = new ApvlvWindow (mDoc);
+        ApvlvWindow *nwindow = new ApvlvWindow (mCore);
         nwindow->m_parent = this;
         m_son = nwindow;
 
@@ -381,12 +381,12 @@ namespace apvlv
       {
         asst (type == AW_SP || type == AW_VSP);
 
-        if (child->type == AW_DOC)
+        if (child->type == AW_CORE)
           {
-            ApvlvDoc *doc = child->getDoc (true);
+            ApvlvCore *doc = child->getDoc (true);
             replace_widget (widget (), doc->widget (), WR_REF);
-            mDoc = doc;
-            type = AW_DOC;
+            mCore = doc;
+            type = AW_CORE;
           }
         else if (child->type == AW_SP || child->type == AW_VSP)
           {
@@ -408,7 +408,7 @@ namespace apvlv
         delete child;
 
         ApvlvWindow *win;
-        for (win = this; win->type != AW_DOC; win = win->m_son);
+        for (win = this; win->type != AW_CORE; win = win->m_son);
 
         return win;
       }
@@ -425,9 +425,9 @@ namespace apvlv
         mWidth = width;
         mHeight = height;
 
-        if (type == AW_DOC)
+        if (type == AW_CORE)
           {
-            mDoc->setsize (mWidth, mHeight);
+            mCore->setsize (mWidth, mHeight);
           }
         else if (type == AW_SP
                  || type == AW_VSP)
@@ -439,12 +439,12 @@ namespace apvlv
   ApvlvDoc *
     ApvlvWindow::loadDoc (const char *filename)
       {
-        asst (type == AW_DOC);
-        if (mDoc->filename () == NULL || gView->hasloaded (mDoc->filename ()) != mDoc)
+        asst (type == AW_CORE);
+        if (mCore->filename () == NULL || gView->hasloaded (mCore->filename ()) != mCore)
           {
-            mDoc->setsize (mWidth, mHeight);
-            bool ret = mDoc->loadfile (filename);
-            return ret? mDoc: NULL;
+            mCore->setsize (mWidth, mHeight);
+            bool ret = mCore->loadfile (filename);
+            return ret? (ApvlvDoc *) mCore: NULL;
           }
 
         bool bcache = false;
@@ -459,7 +459,7 @@ namespace apvlv
         if (ret)
           {
             replace_widget (widget (), ndoc->widget (), WR_REF);
-            mDoc = ndoc;
+            mCore = ndoc;
             gtk_widget_show_all (widget ());
             return ndoc;
           }
@@ -471,26 +471,26 @@ namespace apvlv
       }
 
   void
-    ApvlvWindow::setDoc (ApvlvDoc *doc)
+    ApvlvWindow::setCore (ApvlvCore *doc)
       {
-        asst (type == AW_DOC);
+        asst (type == AW_CORE);
         replace_widget (widget (), doc->widget (), WR_REF);
-        mDoc = doc;
+        mCore = doc;
       }
 
   ApvlvDoc *
     ApvlvWindow::getDoc (bool remove)
       {
-        asst (type == AW_DOC);
-        ApvlvDoc *rdoc = mDoc;
+        asst (type == AW_CORE);
+        ApvlvCore *rdoc = mCore;
 
         if (remove)
           {
             remove_widget (widget (), WR_REF);
-            mDoc = NULL;
+            mCore = NULL;
           }
 
-        return rdoc;
+        return (ApvlvDoc *) rdoc;
       }
 
   void

@@ -192,7 +192,7 @@ namespace apvlv
         ApvlvDoc *ndoc = hasloaded (abpath);
         if (ndoc != NULL)
           {
-            currentWindow ()->setDoc (ndoc);
+            currentWindow ()->setCore (ndoc);
             ret = true;
           }
         else
@@ -267,6 +267,7 @@ namespace apvlv
 #ifdef WIN32
                 g_free (fname);
 #endif
+                debug ("add a item: %s", (char *) list->data);
                 g_completion_add_items (gcomp, list);
                 g_free (list->data);
               }
@@ -359,14 +360,20 @@ namespace apvlv
         if (gcomp != NULL)
           {
             char *comtext = NULL;
+            debug ("find match: %s", np.c_str ());
             g_completion_complete (gcomp, np.c_str (), &comtext);
             if (comtext != NULL)
               {
+                debug ("get a match: %s", comtext);
                 char text[0x100];
                 snprintf (text, sizeof text, ":%s %s", cmd.c_str (), comtext);
                 g_free (comtext);
                 gtk_entry_set_text (GTK_ENTRY (mCommandBar), text);
                 gtk_editable_set_position (GTK_EDITABLE (mCommandBar), -1);
+              }
+            else
+              {
+                debug ("no get match");
               }
 
             g_completion_free (gcomp);
@@ -421,21 +428,6 @@ namespace apvlv
               }
             break;
 
-          case 'm':
-            crtadoc ()->markposition (key);
-            break;
-
-          case '\'':
-            crtadoc ()->jump (key);
-            break;
-
-          case 'z':
-            if (key == 'i')
-              crtadoc ()->zoomin ();
-            else if (key == 'o')
-              crtadoc ()->zoomout ();
-            break;
-
           default:
             return NO_MATCH;
             break;
@@ -454,80 +446,8 @@ namespace apvlv
 
         switch (key)
           {
-          case GDK_Page_Down:
-          case CTRL ('f'):
-            crtadoc ()->nextpage (ct);
-            break;
-          case GDK_Page_Up:
-          case CTRL ('b'):
-            crtadoc ()->prepage (ct);
-            break;
-          case CTRL ('d'):
-            crtadoc ()->halfnextpage (ct);
-            break;
-          case CTRL ('u'):
-            crtadoc ()->halfprepage (ct);
-            break;
           case CTRL ('w'):
             mProCmd = CTRL ('w');
-            return NEED_MORE;
-            break;
-          case ':':
-          case '/':
-          case '?':
-            promptcommand (key);
-            return NEED_MORE;
-          case 'H':
-            crtadoc ()->scrollto (0.0);
-            break;
-          case 'M':
-            crtadoc ()->scrollto (0.5);
-            break;
-          case 'L':
-            crtadoc ()->scrollto (1.0);
-            break;
-          case CTRL ('p'):
-          case GDK_Up:
-          case 'k':
-            crtadoc ()->scrollup (ct);
-            break;
-          case CTRL ('n'):
-          case CTRL ('j'):
-          case GDK_Down:
-          case 'j':
-            crtadoc ()->scrolldown (ct);
-            break;
-          case GDK_BackSpace:
-          case GDK_Left:
-          case CTRL ('h'):
-          case 'h':
-            crtadoc ()->scrollleft (ct);
-            break;
-          case GDK_space:
-          case GDK_Right:
-          case CTRL ('l'):
-          case 'l':
-            crtadoc ()->scrollright (ct);
-            break;
-          case 'R':
-            crtadoc ()->reload ();
-            break;
-          case 'o':
-            open ();
-            break;
-          case 'r':
-            crtadoc ()->rotate (ct);
-            break;
-          case 'g':
-            crtadoc ()->markposition ('\'');
-            crtadoc ()->showpage (ct - 1);
-            break;
-          case 'm':
-            mProCmd = 'm';
-            return NEED_MORE;
-            break;
-          case '\'':
-            mProCmd = '\'';
             return NEED_MORE;
             break;
           case 'q':
@@ -536,12 +456,8 @@ namespace apvlv
           case 'f':
             fullscreen ();
             break;
-          case 'z':
-            mProCmd = 'z';
-            return NEED_MORE;
-            break;
           default:
-            return NO_MATCH;
+            return crtadoc ()->process (ct, key);
             break;
           }
 
@@ -613,7 +529,7 @@ namespace apvlv
                 ApvlvDoc *dc = hasloaded (subcmd.c_str ());
                 if (dc != NULL)
                   {
-                    currentWindow ()->setDoc (dc);
+                    currentWindow ()->setCore (dc);
                   }
                 else
                   {
