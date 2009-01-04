@@ -279,12 +279,6 @@ namespace apvlv
         return ndoc;
       }
 
-  const char *
-    ApvlvDoc::filename () 
-      { 
-        return mDoc? mFilestr.c_str (): NULL; 
-      }
-
   PopplerDocument *
     ApvlvDoc::getdoc () 
       { 
@@ -358,20 +352,6 @@ namespace apvlv
         return ret;
       }
 
-  void 
-    ApvlvDoc::zoomin () 
-      { 
-        mZoomrate *= 1.1; 
-        refresh (); 
-      }
-
-  void 
-    ApvlvDoc::zoomout () 
-      { 
-        mZoomrate /= 1.1; 
-        refresh (); 
-      }
-
   bool 
     ApvlvDoc::reload () 
       { 
@@ -441,6 +421,8 @@ namespace apvlv
               }
           }
 
+        mReady = false;
+
 #ifdef WIN32
         gchar *wfilename = g_win32_locale_filename_from_utf8 (filename);
 #else
@@ -509,75 +491,17 @@ namespace apvlv
             mStatus->show ();
 
             setactive (true);
+
+            mReady = true;
           }
 
         return mDoc == NULL? false: true;
       }
 
-  void
-    ApvlvDoc::setzoom (const char *z)
-      {
-        if (strcmp (z, "normal") == 0)
-          {
-            mZoommode = NORMAL;
-          }
-        if (strcmp (z, "fitwidth") == 0)
-          {
-            mZoommode = FITWIDTH;
-          }
-        if (strcmp (z, "fitheight") == 0)
-          {
-            mZoommode = FITHEIGHT;
-          }
-        else
-          {
-            double d = atof (z);
-            if (d > 0)
-              {
-                mZoommode = CUSTOM;
-                mZoomrate = d;
-              }
-          }
-
-        refresh ();
-      }
-
-  void
-    ApvlvDoc::setzoom (double d)
-      {
-        mZoommode = CUSTOM;
-        mZoomrate = d;
-        refresh ();
-      }
-
-  int 
-    ApvlvDoc::pagenumber ()
-      { 
-        return mPagenum + 1; 
-      }
-
-  int 
-    ApvlvDoc::getrotate () 
-      { 
-        return mRotatevalue; 
-      }
-
-  int 
+  gint 
     ApvlvDoc::pagesum () 
       { 
         return mDoc? poppler_document_get_n_pages (mDoc): 0; 
-      }
-
-  double 
-    ApvlvDoc::zoomvalue () 
-      { 
-        return mZoomrate; 
-      }
-
-  GtkWidget *
-    ApvlvDoc::widget ()
-      {
-        return mVbox;
       }
 
   int
@@ -786,127 +710,6 @@ namespace apvlv
           }
 
         showpage (mPagenum - rtimes, sr);
-      }
-
-  double
-    ApvlvDoc::scrollrate ()
-      {
-        double maxv = mVaj->upper - mVaj->lower - mVaj->page_size;
-        double val =  mVaj->value / maxv;
-        if (val > 1.0)
-          {
-            return 1.00;
-          }
-        else if (val > 0.0)
-          {
-            return val;
-          }
-        else
-          {
-            return 0.00;
-          }
-      }
-
-  gboolean
-    ApvlvDoc::scrollto (double s)
-      {
-        if (mVaj->upper != mVaj->lower)
-          {
-            double maxv = mVaj->upper - mVaj->lower - mVaj->page_size;
-            double val = maxv * s;
-            gtk_adjustment_set_value (mVaj, val);
-            mStatus->show ();
-            return TRUE;
-          }
-        else
-          {
-            debug ("fatal a timer error, try again!");
-            return FALSE;
-          }
-      }
-
-  void
-    ApvlvDoc::scrollup (int times)
-      {
-        if (mDoc == NULL)
-          return;
-
-        gdouble val = gtk_adjustment_get_value (mVaj);
-        mVrate = (mVaj->upper - mVaj->lower) / mLines;
-        if (val - mVrate * times > mVaj->lower)
-          {
-            gtk_adjustment_set_value (mVaj, val - mVrate * times);
-          }
-        else if (val > mVaj->lower)
-          {
-            gtk_adjustment_set_value (mVaj, mVaj->lower);
-          }
-        else
-          {
-            showpage (mPagenum - 1, 1.00);
-          }
-
-        mStatus->show ();
-      }
-
-  void
-    ApvlvDoc::scrolldown (int times)
-      {
-        if (mDoc == NULL)
-          return;
-
-        gdouble val = gtk_adjustment_get_value (mVaj);
-        mVrate = (mVaj->upper - mVaj->lower) / mLines;
-        if (val + mVrate * times + mVaj->page_size < mVaj->upper)
-          {
-            gtk_adjustment_set_value (mVaj, val + mVrate * times);
-          }
-        else if (val + mVaj->page_size < mVaj->upper)
-          {
-            gtk_adjustment_set_value (mVaj, mVaj->upper - mVaj->page_size);
-          }
-        else
-          {
-            showpage (mPagenum + 1, 0.00);
-          }
-
-        mStatus->show ();
-      }
-
-  void
-    ApvlvDoc::scrollleft (int times)
-      {
-        if (mDoc == NULL)
-          return;
-
-        mHrate = (mHaj->upper - mHaj->lower) / mChars;
-        gdouble val = mHaj->value - mHrate * times;
-        if (val > mVaj->lower)
-          {
-            gtk_adjustment_set_value (mHaj, val);
-          }
-        else
-          {
-            gtk_adjustment_set_value (mHaj, mHaj->lower);
-          }
-      }
-
-  void
-    ApvlvDoc::scrollright (int times)
-      {
-        if (mDoc == NULL)
-          return;
-
-        mHrate = (mHaj->upper - mHaj->lower) / mChars;
-        gdouble val = mHaj->value + mHrate * times;
-        if (val + mHaj->page_size < mHaj->upper)
-          {
-            gtk_adjustment_set_value (mHaj, val);
-          }
-        else
-          {
-            gtk_adjustment_set_value (mHaj, mHaj->upper - mHaj->page_size);
-          }
       }
 
   void
@@ -1239,6 +1042,7 @@ namespace apvlv
         if (mThreadRunning)
           {
             pthread_cancel (mTid);
+            pthread_mutex_unlock (&rendermutex);
             mThreadRunning = false;
           }
 #endif
@@ -1324,6 +1128,8 @@ namespace apvlv
       if (mThreadRunning)
         {
           pthread_cancel (mTid);
+          pthread_mutex_unlock (&rendermutex);
+          mThreadRunning = false;
         }
 #endif
       if (mData != NULL)
@@ -1396,14 +1202,13 @@ namespace apvlv
 #endif
     }
 
-  ApvlvDocStatus::ApvlvDocStatus (ApvlvDoc *dc)
+  ApvlvDocStatus::ApvlvDocStatus (ApvlvDoc *doc)
     {
-      mDoc = dc;
-      mVbox = gtk_hbox_new (FALSE, 0);
+      mDoc = doc;
       for (int i=0; i<AD_STATUS_SIZE; ++i)
         {
           mStlab[i] = gtk_label_new ("");
-          gtk_box_pack_start (GTK_BOX (mVbox), mStlab[i], FALSE, FALSE, 0);
+          gtk_box_pack_start (GTK_BOX (mHbox), mStlab[i], FALSE, FALSE, 0);
         }
     }
 

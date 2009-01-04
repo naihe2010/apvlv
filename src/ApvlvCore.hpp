@@ -44,29 +44,122 @@ using namespace std;
 
 namespace apvlv
 {
+  class ApvlvCore;
+  class ApvlvCoreStatus
+    {
+  public:
+    ApvlvCoreStatus ();
+
+    virtual ~ApvlvCoreStatus ();
+
+    virtual GtkWidget *widget ();
+
+    virtual void active (bool act);
+
+    virtual void setsize (int w, int h);
+
+    virtual void show ();
+
+  protected:
+    GtkWidget *mHbox;
+    };
+
   class ApvlvCore
     {
   public:
-    ApvlvCore () { mActive = false; }
+    ApvlvCore ();
 
-    virtual ~ApvlvCore () { }
+    virtual ~ApvlvCore ();
 
-    virtual ApvlvCore *copy () = 0;
+    virtual GtkWidget *widget ();
 
-    virtual bool loadfile (const char *file, bool check = true) = 0;
+    virtual ApvlvCore *copy ();
 
-    virtual const char *filename () = 0;
+    virtual bool loadfile (const char *file, bool check = true);
 
-    virtual GtkWidget *widget () = 0;
+    virtual const char *filename ();
 
-    virtual void setsize (int wid, int hei) = 0;
+    virtual gint getrotate ();
 
-    virtual void setactive (bool act) { mActive = act; }
+    virtual gint pagenumber ();
 
-    virtual returnType process (int times, guint keyval) = 0;
+    virtual gint pagesum ();
+
+    virtual void showpage (gint, gdouble);
+    virtual void refresh ();
+
+    virtual gdouble zoomvalue ();
+
+    virtual void setzoom (const char *s);
+    virtual void setzoom (double d);
+
+    virtual void zoomin ();
+    virtual void zoomout ();
+
+    virtual void setactive (bool act);
+
+    virtual gdouble scrollrate ();
+
+    virtual gboolean scrollto (double s);
+
+    virtual void scrollup (int times);
+    virtual void scrolldown (int times);
+    virtual void scrollleft (int times);
+    virtual void scrollright (int times);
+
+    virtual void setsize (int wid, int hei);
+
+    virtual returnType process (int times, guint keyval); 
 
   protected:
+    bool mReady;
+
+    string mFilestr;
+
+    guint mProCmd;
+
+    double mScrollvalue;
+
+    GList *mResults;
+    string mSearchstr;
+
+    enum
+      {
+        NORMAL,
+        FITWIDTH,
+        FITHEIGHT,
+        CUSTOM
+      } mZoommode;
+
+    double mZoomrate;
+
+    bool mZoominit;
+
+    int mRotatevalue;
+
+    int mPagenum;
+
+    double mPagex, mPagey;
+
+    double mVrate, mHrate;
+
+    int mLines, mChars;
+
+    int mWidth, mHeight;
+
+    GtkAdjustment *mVaj, *mHaj;
+
+    // the main widget
+    GtkWidget *mVbox; 
+    
+    // the document scrolled window
+    GtkWidget *mScrollwin;
+
+    // if active
     bool mActive;
+
+    // status bar
+    ApvlvCoreStatus *mStatus;
     };
 }
 

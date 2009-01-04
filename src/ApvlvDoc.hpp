@@ -104,14 +104,12 @@ namespace apvlv
     GdkPixbuf *mBuf;
     };
 
-  class ApvlvDocStatus
+  class ApvlvDocStatus: public ApvlvCoreStatus
     {
   public:
-    ApvlvDocStatus (ApvlvDoc *doc);
+    ApvlvDocStatus (ApvlvDoc *);
 
     ~ApvlvDocStatus ();
-
-    GtkWidget *widget () { return mVbox; }
 
     void active (bool act);
 
@@ -120,11 +118,8 @@ namespace apvlv
     void show ();
 
   private:
+    ApvlvDoc *mDoc;
 #define AD_STATUS_SIZE   4
-    ApvlvDoc  *mDoc;
-
-    GtkWidget *mVbox;
-
     GtkWidget *mStlab[AD_STATUS_SIZE];
     };
 
@@ -141,25 +136,13 @@ namespace apvlv
 
     ApvlvDoc *copy ();
 
-    const char *filename ();
-
     PopplerDocument *getdoc ();
 
     void getpagesize (PopplerPage *p, double *x, double *y);
 
     bool getpagetext (PopplerPage *p, char **contents);
 
-    int pagenumber ();
-
-    int getrotate ();
-
-    int pagesum ();
-
-    double scrollrate ();
-
-    double zoomvalue ();
-
-    GtkWidget *widget ();
+    gint pagesum ();
 
     bool usecache ();
 
@@ -190,18 +173,6 @@ namespace apvlv
     void halfnextpage (int times = 1);
 
     void halfprepage (int times = 1);
-
-    gboolean scrollto (double s);
-
-    void scrollup (int times = 1);
-    void scrolldown (int times = 1);
-    void scrollleft (int times = 1);
-    void scrollright (int times = 1);
-
-    void setzoom (const char *s);
-    void setzoom (double d);
-    void zoomin ();
-    void zoomout ();
 
     void search (const char *str);
     void backsearch (const char *str);
@@ -241,22 +212,14 @@ namespace apvlv
     static void end_print (GtkPrintOperation *operation,
                            GtkPrintContext   *context,
                            PrintData         *data);
-    string mFilestr;
 
     char *mRawdata;
 
     size_t mRawdatasize;
 
-    guint mProCmd;
-
     PopplerDocument *mDoc;
 
-    double mScrollvalue;
-
     ApvlvDocPositionMap mPositions;
-
-    GList *mResults;
-    string mSearchstr;
 
 #ifdef HAVE_PTHREAD
     bool mUseCache;
@@ -267,43 +230,8 @@ namespace apvlv
     ApvlvDocCache *newcache (int pagenum);
     void deletecache (ApvlvDocCache *ac);
 
-    int mRotatevalue;
-
-    int mPagenum;
-
-    double mPagex, mPagey;
-
-    double mVrate, mHrate;
-
-    enum
-      {
-        NORMAL,
-        FITWIDTH,
-        FITHEIGHT,
-        CUSTOM
-      } mZoommode;
-
-    double mZoomrate;
-
-    bool mZoominit;
-
-    int mLines, mChars;
-
-    int mWidth, mHeight;
-
-    GtkAdjustment *mVaj, *mHaj;
-
-    // the main widget
-    GtkWidget *mVbox; 
-    
-    // the document scrolled window
-    GtkWidget *mScrollwin;
-
     // image viewer
     GtkWidget *mImage;
-
-    // status bar
-    ApvlvDocStatus *mStatus;
     };
 
 }
