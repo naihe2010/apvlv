@@ -30,7 +30,7 @@
 #include "ApvlvView.hpp"
 #include "ApvlvUtil.hpp"
 #include "ApvlvParams.hpp"
-#include "ApvlvIter.hpp"
+#include "ApvlvDir.hpp"
 #include "ApvlvWindow.hpp"
 
 #include <gtk/gtk.h>
@@ -477,8 +477,8 @@ namespace apvlv
             if (((ApvlvDoc *) mCore)->indexiter ())
               {
                 debug ("iter: %p", ((ApvlvDoc *) mCore)->indexiter ());
-                ApvlvIter *itr = new ApvlvIter (((ApvlvDoc *) mCore));
-                birth (true, itr);
+                ApvlvDir *dir = new ApvlvDir ("NORMAL", (ApvlvDoc *) mCore);
+                birth (true, dir);
               }
           }
 
@@ -497,8 +497,8 @@ namespace apvlv
             if (((ApvlvDoc *) doc)->indexiter ())
               {
                 debug ("iter: %p", ((ApvlvDoc *) doc)->indexiter ());
-                ApvlvIter *itr = new ApvlvIter ((ApvlvDoc *) doc);
-                birth (true, itr);
+                ApvlvDir *dir = new ApvlvDir ("NORMAL", (ApvlvDoc *) mCore);
+                birth (true, dir);
               }
           }
       }

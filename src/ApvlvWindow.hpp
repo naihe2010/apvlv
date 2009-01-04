@@ -35,6 +35,7 @@
 #endif
 
 #include "ApvlvCore.hpp"
+#include "ApvlvDoc.hpp"
 
 #include <gtk/gtk.h>
 

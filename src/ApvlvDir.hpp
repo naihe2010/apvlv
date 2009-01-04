@@ -30,14 +30,107 @@
 #ifndef _APVLV_DIR_
 #define _APVLV_DIR_
 
+#ifdef HAVE_CONFIG_H
+# include "config.hpp"
+#endif
+
 #include "ApvlvCore.hpp"
-#include "ApvlvIter.hpp"
+#include "ApvlvWindow.hpp"
 
 namespace apvlv
 {
+  class ApvlvDirNode
+    {
+  public:
+    ApvlvDirNode (gint p);
+
+    virtual ~ApvlvDirNode ();
+
+    virtual void show (ApvlvWindow *);
+
+  protected:
+    gint mPagenum;
+    };
+
+  class ApvlvDirNodeDir: public ApvlvDirNode
+    {
+  public:
+    ApvlvDirNodeDir (const char *filename);
+
+    virtual ~ApvlvDirNodeDir ();
+
+    virtual void show (ApvlvWindow *);
+
+  protected:
+    string mPath;
+    };
+
+  class ApvlvDirNodeFile: public ApvlvDirNodeDir
+    {
+  public:
+    ApvlvDirNodeFile (const char *path, const char *file);
+
+    virtual ~ApvlvDirNodeFile ();
+
+    virtual void show (ApvlvWindow *);
+
+  protected:
+    string mFile;
+    };
+
+  class ApvlvDir;
+  class ApvlvDirStatus: public ApvlvCoreStatus
+    {
+  public:
+    ApvlvDirStatus (ApvlvDir *);
+
+    ~ApvlvDirStatus ();
+
+    void active (bool act);
+
+    void setsize (int, int);
+
+    void show ();
+
+  private:
+    ApvlvDir *mDoc;
+#define AD_STATUS_SIZE   4
+    GtkWidget *mStlab[AD_STATUS_SIZE];
+    };
+
   class ApvlvDir: public ApvlvCore
-  {
-  };
+    {
+  public:
+    ApvlvDir (const char *zm, const char *path);
+
+    ApvlvDir (const char *zm, ApvlvDoc *doc);
+
+    ~ApvlvDir ();
+
+    void setactive (bool act);
+
+    returnType process (int times, guint keyval);
+
+  private:
+    returnType subprocess (int ct, guint key);
+
+    bool reload ();
+
+    static void apvlv_dir_on_changed (GtkTreeSelection *, ApvlvDir *);
+
+    void walk_poppler_iter_index (GtkTreeIter *titr, PopplerIndexIter *iter);
+
+    void walk_path_file_index (GtkTreeIter *titr, const char *path);
+
+    string mPath;
+    ApvlvDoc *mDoc;
+
+    ApvlvWindow *mWindow;
+
+    // directory view
+    GtkWidget *mDirView;
+    };
+
 }
 
 #endif

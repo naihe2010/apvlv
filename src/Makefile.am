@@ -3,7 +3,6 @@ AM_CXXFLAGS = -Wall -D_GNU_SOURCE
 HEAD = config.hpp \
        ApvlvUtil.hpp \
        ApvlvCore.hpp \
-       ApvlvIter.hpp \
        ApvlvDir.hpp \
        ApvlvDoc.hpp \
        ApvlvView.hpp \
@@ -14,7 +13,6 @@ HEAD = config.hpp \
 SOURCE = main.cpp \
 	 ApvlvUtil.cpp \
 	 ApvlvCore.cpp \
-	 ApvlvIter.cpp \
 	 ApvlvDir.cpp \
 	 ApvlvDoc.cpp \
 	 ApvlvView.cpp \
