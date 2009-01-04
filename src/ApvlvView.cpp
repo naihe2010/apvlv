@@ -44,6 +44,7 @@
 #include <iostream>
 #include <sstream>
 
+
 #ifdef WIN32
 #define snprintf _snprintf
 #endif
@@ -52,7 +53,10 @@ namespace apvlv
 {
   ApvlvView *gView = NULL;
 
-  ApvlvView::ApvlvView (int *argc, char ***argv)
+  const int ApvlvView::APVLV_CMD_BAR_HEIGHT = 20;
+  const int ApvlvView::APVLV_TABS_HEIGHT = 30;
+
+  ApvlvView::ApvlvView (int *argc, char ***argv) : mHasTabs(false), mCurrTabPos (-1)
     {
       gtk_init (argc, argv);
 
@@ -69,12 +73,17 @@ namespace apvlv
       g_signal_connect (G_OBJECT (mMainWindow), "key-press-event",
                         G_CALLBACK (apvlv_view_keypress_cb), this);
 
-      GtkWidget *vbox = gtk_vbox_new (FALSE, 2);
+      GtkWidget* vbox = gtk_vbox_new (FALSE, 2);
       gtk_container_add (GTK_CONTAINER (mMainWindow), vbox);
+    
+      
 
-      mRootWindow = new ApvlvWindow (NULL);
-      mRootWindow->setcurrentWindow (NULL, mRootWindow);
-      gtk_box_pack_start (GTK_BOX (vbox), mRootWindow->widget (), FALSE, FALSE, 0);
+      mTabContainer = gtk_notebook_new ();
+      gtk_notebook_set_show_tabs (GTK_NOTEBOOK(mTabContainer), FALSE);
+      newtab();
+
+      gtk_box_pack_start (GTK_BOX (vbox), mTabContainer, FALSE, FALSE, 0);
+
 
       mCommandBar = gtk_entry_new ();
       gtk_box_pack_end (GTK_BOX (vbox), mCommandBar, FALSE, FALSE, 0);
@@ -137,7 +146,7 @@ namespace apvlv
 
   void 
     ApvlvView::delcurrentWindow () 
-      { 
+      {
         ApvlvWindow::delcurrentWindow (); 
       }
 
@@ -170,6 +179,8 @@ namespace apvlv
             g_free (filename);
           }
         gtk_widget_destroy (dia);
+
+	//gtk_widget_show_all (currentWindow()->widget());
       }
 
   bool 
@@ -180,9 +191,94 @@ namespace apvlv
 
   void 
     ApvlvView::quit () 
-      { 
-        apvlv_view_delete_cb (NULL, NULL, this); 
+      {
+	if ((int) mTabList.size() == 1)
+	  {
+	    apvlv_view_delete_cb (NULL, NULL, this); 
+	    return;	
+	  }
+
+	delete_tabcontext (mCurrTabPos);
+	gtk_notebook_remove_page (GTK_NOTEBOOK(mTabContainer), mCurrTabPos);
+	
+	if (mCurrTabPos != (int) mTabList.size() )
+	    switch_tabcontext (mCurrTabPos);
+	else
+	    switch_tabcontext (mCurrTabPos - 1);
+
+	gtk_notebook_set_current_page (GTK_NOTEBOOK(mTabContainer), mCurrTabPos);
+	mRootWindow->setsize (mWidth, adjheight());
       }
+
+  void
+    ApvlvView::newtab ()
+      {
+	int pos = new_tabcontext (true); 
+
+	switch_tabcontext (pos);
+
+	GtkWidget* tabname = gtk_label_new ("None");
+	gtk_notebook_insert_page (GTK_NOTEBOOK(mTabContainer), currentWindow()->widget(), tabname, pos);
+
+	//gtk_widget_show (currentWindow()->widget());
+	
+	gtk_widget_show_all (currentWindow()->widget());
+	gtk_notebook_set_current_page (GTK_NOTEBOOK(mTabContainer), mCurrTabPos);
+      }
+  
+  int
+    ApvlvView::new_tabcontext (bool insertAfterCurr)
+      {
+	ApvlvWindow* troot = new ApvlvWindow (NULL);
+	TabEntry context(troot, troot);	
+	if (!insertAfterCurr || mCurrTabPos == -1 )
+	  {
+	    mTabList.push_back (context);
+	    return mTabList.size() - 1;
+	  }
+	
+	std::vector<TabEntry>::iterator 
+	    insPos = mTabList.begin() + mCurrTabPos + 1;
+	mTabList.insert (insPos, context);
+
+	return mCurrTabPos + 1;
+      }
+
+  void 
+    ApvlvView::delete_tabcontext (int tabPos)
+      {
+	asst (tabPos > 0 && tabPos < mTabList.size());
+
+	std::vector<TabEntry>::iterator remPos = mTabList.begin() + tabPos;
+
+	ApvlvWindow* rootWin = remPos->root;
+	if (rootWin != NULL)
+	    delete rootWin;
+	int c = mTabList.size();
+	mTabList.erase (remPos);
+	if (c == (int) mTabList.size())
+	  cerr << "erase failed to remove context\n";
+
+      }
+
+  void
+    ApvlvView::switch_tabcontext (int tabPos)
+      {
+	if (tabPos < 0 || tabPos >= (int) mTabList.size())
+	  {
+	    cout << "Out of range tab: " << tabPos << endl;
+	    return;
+	  }
+
+	if (mCurrTabPos != -1)
+	    mTabList[mCurrTabPos] = TabEntry(mRootWindow, currentWindow());
+
+	mRootWindow = mTabList[tabPos].root;
+	ApvlvWindow::setcurrentWindow (NULL, mTabList[tabPos].curr);
+
+	mCurrTabPos = tabPos;
+      }
+
 
   bool
     ApvlvView::loadfile (const char *filename)
@@ -193,6 +289,7 @@ namespace apvlv
         if (ndoc != NULL)
           {
             currentWindow ()->setDoc (ndoc);
+	    
             ret = true;
           }
         else
@@ -204,6 +301,14 @@ namespace apvlv
                 ret = true;
               }
           }
+
+	if (ret)
+	  {
+	    GtkWidget* tabname = gtk_label_new (currentWindow()->getDoc()->filename());
+	    GtkWidget* tab = 
+	      gtk_notebook_get_nth_page (GTK_NOTEBOOK(mTabContainer), mCurrTabPos);
+	    gtk_notebook_set_tab_label (GTK_NOTEBOOK(mTabContainer), tab, tabname);
+	  }
 
         g_free (abpath);
         return ret;
@@ -302,12 +407,14 @@ namespace apvlv
         if (mMainWindow == NULL)
           return;
 
-        mRootWindow->setsize (mWidth, mHeight - 20);
-        gtk_widget_set_usize (mCommandBar, mWidth, 20);
+        mHasCmd = TRUE;
+
+        mRootWindow->setsize (mWidth, adjheight());
+	cout << "height in cmd_show: " << adjheight() << endl;
+        gtk_widget_set_usize (mCommandBar, mWidth, APVLV_CMD_BAR_HEIGHT);
 
         gtk_widget_grab_focus (mCommandBar);
         gtk_entry_set_position (GTK_ENTRY (mCommandBar), -1);
-        mHasCmd = TRUE;
       }
 
   void
@@ -315,12 +422,13 @@ namespace apvlv
       {
         if (mMainWindow == NULL)
           return;
+        mHasCmd = FALSE;
 
-        mRootWindow->setsize (mWidth, mHeight);
+        mRootWindow->setsize (mWidth, adjheight());
+	cout << "height in cmd_hide: " << adjheight() << endl;
         gtk_widget_set_usize (mCommandBar, mWidth, 1);
 
         gtk_widget_grab_focus (mMainWindow);
-        mHasCmd = FALSE;
       }
 
   void
@@ -435,6 +543,13 @@ namespace apvlv
             else if (key == 'o')
               crtadoc ()->zoomout ();
             break;
+	  
+	  case 'g':
+	    if (key == 't')
+	      switchtab (mCurrTabPos + 1);
+	    else if (key == 'T')
+	      switchtab (mCurrTabPos - 1);
+	    break;
 
           default:
             return NO_MATCH;
@@ -519,8 +634,10 @@ namespace apvlv
             crtadoc ()->rotate (ct);
             break;
           case 'g':
-            crtadoc ()->markposition ('\'');
-            crtadoc ()->showpage (ct - 1);
+	    mProCmd = 'g';
+            //crtadoc ()->markposition ('\'');
+            //crtadoc ()->showpage (ct - 1);
+	    return NEED_MORE;
             break;
           case 'm':
             mProCmd = 'm';
@@ -587,7 +704,20 @@ namespace apvlv
 
             if (cmd == "set")
               {
-                gParams->push (subcmd, argu);
+                if (subcmd == "cache")
+                  {
+                    gParams->push ("cache", "yes");
+                    crtadoc ()->usecache (true);
+                  }
+                else if (subcmd == "nocache")
+                  {
+                    gParams->push ("cache", "no");
+                    crtadoc ()->usecache (false);
+                  }
+                else
+                  {
+                    gParams->push (subcmd, argu);
+                  }
               }
             else if (cmd == "map")
               {
@@ -685,6 +815,25 @@ namespace apvlv
                     delcurrentWindow ();
                   }
               }
+	    else if (cmd == "tabnew")
+	      {
+		newtab ();
+
+		mHasTabs = true;
+		gtk_notebook_set_show_tabs (GTK_NOTEBOOK(mTabContainer), TRUE);
+		mRootWindow->setsize (mWidth, adjheight());
+		//loadfile (helppdf);
+
+		gtk_widget_show_all (mMainWindow);	
+	      }
+	    else if (cmd == "tabn" || cmd == "tabnext")
+	      {
+		switchtab (mCurrTabPos + 1);
+	      }
+	    else if (cmd == "tabp" || cmd == "tabprevious")
+	      {
+		switchtab (mCurrTabPos - 1);
+	      }
           }
       }
 
@@ -698,19 +847,16 @@ namespace apvlv
         if (w != view->mWidth
             || h != view->mHeight)
           {
-            if (view->mHasCmd)
-              {
-                view->mRootWindow->setsize (w, h - 20);
-                gtk_widget_set_usize (view->mCommandBar, w, 20);
-              }
-            else
-              {
-                view->mRootWindow->setsize (w, h);
-                gtk_widget_set_usize (view->mCommandBar, w, 1);
-              }
 
-            view->mWidth = w;
-            view->mHeight = h;
+            if (view->mHasCmd)
+                gtk_widget_set_usize (view->mCommandBar, w, 20);
+            else
+                gtk_widget_set_usize (view->mCommandBar, w, 1);
+	
+	    view->mWidth = w;
+	    view->mHeight = h;
+	    view->mRootWindow->setsize (w, view->adjheight());
+	    cout << "height in resized_cb: " << view->adjheight() << endl;
           }
       }
 
@@ -787,4 +933,28 @@ namespace apvlv
         view->mMainWindow = NULL;
         gtk_main_quit ();
       }
+  int
+    ApvlvView::adjheight ()
+      {
+	int adj = 0;
+	if (mHasTabs)
+	  adj += APVLV_TABS_HEIGHT;
+	if (mHasCmd)
+	  adj += APVLV_CMD_BAR_HEIGHT;
+
+	return mHeight - adj;
+      }
+  void
+    ApvlvView::switchtab (int tabPos)
+      {
+	int ntabs = mTabList.size();
+	while (tabPos < 0)
+	  tabPos += ntabs;
+
+	tabPos = tabPos % (int) mTabList.size();
+	switch_tabcontext (tabPos);
+	gtk_notebook_set_current_page (GTK_NOTEBOOK(mTabContainer), tabPos);
+	mRootWindow->setsize (mWidth, adjheight());
+      }
 }
+

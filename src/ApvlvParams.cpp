@@ -47,6 +47,7 @@ namespace apvlv
       push ("zoom", "fitwidth");
       push ("width", "800");
       push ("height", "600");
+      push ("cache", "no");
       push ("commandtimeout", "1000");
 #ifdef WIN32
       push ("defaultdir", "C:\\");

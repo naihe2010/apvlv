@@ -194,8 +194,8 @@ namespace apvlv
           {
             if (w->type == AW_SP)
               {
-                if (cw == w->m_daughter && down == true
-                    || cw == w->m_son && down == false)
+                if ((cw == w->m_daughter && down == true)
+                    || (cw == w->m_son && down == false))
                   {
                     continue;
                   }
@@ -254,8 +254,8 @@ namespace apvlv
           {
             if (w->type == AW_VSP)
               {
-                if (cw == w->m_daughter && right == true
-                    || cw == w->m_son && right == false)
+                if ((cw == w->m_daughter && right == true)
+                    || (cw == w->m_son && right == false))
                   {
                     continue;
                   }
@@ -447,7 +447,13 @@ namespace apvlv
             return ret? mDoc: NULL;
           }
 
-        ApvlvDoc *ndoc = new ApvlvDoc (gParams->value ("zoom"));
+        bool bcache = false;
+        const char *scache = gParams->value ("cache");
+        if (strcmp (scache, "yes") == 0)
+          {
+            bcache = true;
+          }
+        ApvlvDoc *ndoc = new ApvlvDoc (gParams->value ("zoom"), bcache);
         ndoc->setsize (mWidth, mHeight);
         bool ret = ndoc->loadfile (filename);
         if (ret)

@@ -41,6 +41,8 @@
 
 #include <gtk/gtk.h>
 
+#include <list>
+
 namespace apvlv
 {
   typedef enum
@@ -108,15 +110,47 @@ namespace apvlv
 
     void runcmd (const char *cmd);
 
-    bool mHasCmd;
+    void newtab ();
+
+    int new_tabcontext (bool insertAfterCurr);
+
+    void delete_tabcontext (int tabPos);
+
+    void switch_tabcontext (int tabPos);
+
+    // Caclulate number of pixels that the document should be.
+    //  This figure accounts for decorations like (mCmdBar and mHaveTabs).
+    // Returns a nonnegative number.
+    int adjheight ();
+  
+    void switchtab (int tabPos);
+
+    bool mHasCmd, mHasTabs;
 
     guint mProCmd;
 
     GtkWidget *mCommandBar;
     GtkWidget *mMainWindow;
 
+    GtkWidget *mTabContainer;
+
+    // possibly use GArray instead
+    // fst - Root window
+    // snd - Cur window
+    struct TabEntry {
+      ApvlvWindow *root;
+      ApvlvWindow *curr;
+
+      TabEntry (ApvlvWindow *_r, ApvlvWindow *_c) 
+	: root(_r), curr(_c)
+      { }
+    };
+    std::vector<TabEntry> mTabList;
+    int mCurrTabPos;
+
     gboolean mHasFull;
     int mWidth, mHeight;
+
 
     static void apvlv_view_delete_cb (GtkWidget * wid, GtkAllocation * al,
                                       ApvlvView * view);
@@ -129,6 +163,8 @@ namespace apvlv
     ApvlvWindow *mRootWindow, *mCurWindow;
 
     map <string, ApvlvDoc *> mDocs;
+
+    static const int APVLV_CMD_BAR_HEIGHT, APVLV_TABS_HEIGHT;
     };
 
   extern ApvlvView *gView;
