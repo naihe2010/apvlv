@@ -48,7 +48,7 @@ namespace apvlv
   class ApvlvWindow
     {
   public:
-      ApvlvWindow (ApvlvCore *core);
+      ApvlvWindow (ApvlvCore *core, bool usecon);
       ~ApvlvWindow ();
 
       /* WE operate the AW_DOC window
@@ -68,7 +68,7 @@ namespace apvlv
 
       GtkWidget *widget ();
 
-      ApvlvDoc *loadDoc (const char *filename);
+      ApvlvCore *loadDoc (const char *filename);
 
       ApvlvDoc *getDoc (bool remove = false);
 
@@ -108,6 +108,8 @@ namespace apvlv
                                                      ApvlvWindow    *win);
 
       static ApvlvWindow *m_curWindow;
+
+      bool mUseContent;
 
       ApvlvCore *mCore;
       GtkWidget *mPaned;

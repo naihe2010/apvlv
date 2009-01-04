@@ -30,6 +30,7 @@
 #include "ApvlvView.hpp"
 #include "ApvlvUtil.hpp"
 #include "ApvlvParams.hpp"
+#include "ApvlvIter.hpp"
 #include "ApvlvWindow.hpp"
 
 #include <gtk/gtk.h>
@@ -40,8 +41,10 @@ namespace apvlv
 {
   ApvlvWindow *ApvlvWindow::m_curWindow = NULL;
 
-  ApvlvWindow::ApvlvWindow (ApvlvCore *doc)
+  ApvlvWindow::ApvlvWindow (ApvlvCore *doc, bool usecon)
     {
+      mUseContent = usecon;
+
       type = AW_CORE;
       if (doc == NULL)
         {
@@ -338,11 +341,11 @@ namespace apvlv
             doc = mCore->copy ();
           }
 
-        ApvlvWindow *nwindow = new ApvlvWindow (mCore);
+        ApvlvWindow *nwindow = new ApvlvWindow (doc, false);
         nwindow->m_parent = this;
         m_son = nwindow;
 
-        ApvlvWindow *nwindow2 = new ApvlvWindow (doc);
+        ApvlvWindow *nwindow2 = new ApvlvWindow (mCore, false);
         nwindow2->m_parent = this;
         m_daughter = nwindow2;
 
@@ -436,38 +439,50 @@ namespace apvlv
           }
       }
 
-  ApvlvDoc *
+  ApvlvCore *
     ApvlvWindow::loadDoc (const char *filename)
       {
         asst (type == AW_CORE);
+        bool ret;
         if (mCore->filename () == NULL || gView->hasloaded (mCore->filename ()) != mCore)
           {
             mCore->setsize (mWidth, mHeight);
-            bool ret = mCore->loadfile (filename);
-            return ret? (ApvlvDoc *) mCore: NULL;
-          }
-
-        bool bcache = false;
-        const char *scache = gParams->value ("cache");
-        if (strcmp (scache, "yes") == 0)
-          {
-            bcache = true;
-          }
-        ApvlvDoc *ndoc = new ApvlvDoc (gParams->value ("zoom"), bcache);
-        ndoc->setsize (mWidth, mHeight);
-        bool ret = ndoc->loadfile (filename);
-        if (ret)
-          {
-            replace_widget (widget (), ndoc->widget (), WR_REF);
-            mCore = ndoc;
-            gtk_widget_show_all (widget ());
-            return ndoc;
+            ret = mCore->loadfile (filename);
           }
         else
           {
-            delete ndoc;
-            return NULL;
+            bool bcache = false;
+            const char *scache = gParams->value ("cache");
+            if (strcmp (scache, "yes") == 0)
+              {
+                bcache = true;
+              }
+            ApvlvDoc *ndoc = new ApvlvDoc ();
+            ret = ndoc->loadfile (filename);
+            if (!ret)
+              {
+                delete ndoc;
+                return NULL;
+              }
+
+            replace_widget (widget (), ndoc->widget (), WR_REF);
+            ndoc->setsize (mWidth, mHeight);
+            gtk_widget_show_all (widget ());
+
+            mCore = ndoc;
           }
+
+        if (ret && mUseContent)
+          {
+            if (((ApvlvDoc *) mCore)->indexiter ())
+              {
+                debug ("iter: %p", ((ApvlvDoc *) mCore)->indexiter ());
+                ApvlvIter *itr = new ApvlvIter (((ApvlvDoc *) mCore));
+                birth (true, itr);
+              }
+          }
+
+        return (ApvlvDoc *) mCore;
       }
 
   void
@@ -476,6 +491,16 @@ namespace apvlv
         asst (type == AW_CORE);
         replace_widget (widget (), doc->widget (), WR_REF);
         mCore = doc;
+
+        if (mUseContent)
+          {
+            if (((ApvlvDoc *) doc)->indexiter ())
+              {
+                debug ("iter: %p", ((ApvlvDoc *) doc)->indexiter ());
+                ApvlvIter *itr = new ApvlvIter ((ApvlvDoc *) doc);
+                birth (true, itr);
+              }
+          }
       }
 
   ApvlvDoc *

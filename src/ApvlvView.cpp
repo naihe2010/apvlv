@@ -72,7 +72,18 @@ namespace apvlv
       GtkWidget *vbox = gtk_vbox_new (FALSE, 2);
       gtk_container_add (GTK_CONTAINER (mMainWindow), vbox);
 
-      mRootWindow = new ApvlvWindow (NULL);
+      const char *con = gParams->value ("content");
+      bool usecon;
+      if (strcmp (con, "yes") == 0)
+        {
+          usecon = true;
+        }
+      else
+        {
+          usecon = false;
+        }
+
+      mRootWindow = new ApvlvWindow (NULL, usecon);
       mRootWindow->setcurrentWindow (NULL, mRootWindow);
       gtk_box_pack_start (GTK_BOX (vbox), mRootWindow->widget (), FALSE, FALSE, 0);
 
@@ -197,7 +208,8 @@ namespace apvlv
           }
         else
           {
-            ndoc = currentWindow ()->loadDoc (filename);
+            ApvlvCore *ncore = currentWindow ()->loadDoc (filename);
+            ndoc = (ApvlvDoc *) ncore;
             if (ndoc)
               {
                 mDocs[abpath] = ndoc;

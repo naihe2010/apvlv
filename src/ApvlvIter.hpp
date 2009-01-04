@@ -35,29 +35,59 @@
 #endif
 
 #include "ApvlvCore.hpp"
+#include "ApvlvDoc.hpp"
+
+#include <glib/poppler-document.h>
 
 namespace apvlv
 {
+  class ApvlvIter;
+  class ApvlvIterStatus: public ApvlvCoreStatus
+  {
+public:
+  ApvlvIterStatus (ApvlvIter *itr);
+
+  ~ApvlvIterStatus ();
+
+  void show ();
+
+  void setsize (int, int);
+
+  void active (bool act);
+
+private:
+  ApvlvIter *mIter;
+#define AI_STATUS_SIZE  4
+  GtkWidget *mStlab[AI_STATUS_SIZE];
+  };
+
   class ApvlvIter: public ApvlvCore
   {
 public:
-  ApvlvIter ();
+  ApvlvIter (ApvlvDoc *doc);
 
   ~ApvlvIter ();
 
-  void setsize (int w, int h);
-
   void setactive (bool act);
-
-  ApvlvIter *copy ();
 
   const char *filename ();
 
-  bool loadfile (const char *src, bool check = true);
+  ApvlvDoc *getdoc ();
+
+  void show (gdouble s);
 
   returnType process (int times, guint keyval);
 
 private:
+  static void apvlv_iter_on_changed (GtkTreeSelection *, ApvlvDoc *);
+
+  void walk_index (GtkTreeIter *titr, PopplerIndexIter *iter);
+
+  ApvlvDoc *mDoc;
+
+  GtkWidget *mTreeView;
+  GtkTreeStore *mTreeStore;
+  GtkTreeIter *mParentIter;
   };
 }
 

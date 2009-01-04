@@ -29,3 +29,19 @@
 
 #include "ApvlvDir.hpp"
 
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <sys/stat.h>
+
+#include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>
+#include <glib/poppler.h>
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
+namespace apvlv
+{
+}

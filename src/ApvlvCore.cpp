@@ -47,11 +47,11 @@ namespace apvlv
       mVbox = gtk_vbox_new (FALSE, 0);
 
       mScrollwin = gtk_scrolled_window_new (NULL, NULL);
+      gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin), GTK_POLICY_AUTOMATIC,
+                                      GTK_POLICY_AUTOMATIC);
 
       mVaj = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
       mHaj = gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
-
-      gtk_box_pack_start (GTK_BOX (mVbox), mScrollwin, FALSE, FALSE, 0);
     }
 
   ApvlvCore::~ApvlvCore ()

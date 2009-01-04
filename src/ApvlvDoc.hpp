@@ -113,7 +113,7 @@ namespace apvlv
 
     void active (bool act);
 
-    void setsize (int w, int h);
+    void setsize (int, int);
 
     void show ();
 
@@ -130,13 +130,15 @@ namespace apvlv
 
     ~ApvlvDoc ();
 
-    void setsize (int w, int h);
-
     void setactive (bool act);
 
-    ApvlvDoc *copy ();
+    bool hascontent ();
+
+    PopplerIndexIter *indexiter ();
 
     PopplerDocument *getdoc ();
+
+    ApvlvDoc *copy ();
 
     void getpagesize (PopplerPage *p, double *x, double *y);
 
@@ -151,8 +153,6 @@ namespace apvlv
     bool loadfile (string & filename, bool check = true);
 
     bool loadfile (const char *src, bool check = true);
-
-    bool reload ();
 
     bool print (int ct);
 
@@ -194,6 +194,8 @@ namespace apvlv
 
     void refresh ();
 
+    bool reload ();
+
     bool savelastposition ();
 
     bool loadlastposition ();
@@ -218,6 +220,7 @@ namespace apvlv
     size_t mRawdatasize;
 
     PopplerDocument *mDoc;
+    PopplerIndexIter *mIter;
 
     ApvlvDocPositionMap mPositions;
 

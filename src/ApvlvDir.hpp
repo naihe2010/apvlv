@@ -30,4 +30,14 @@
 #ifndef _APVLV_DIR_
 #define _APVLV_DIR_
 
+#include "ApvlvCore.hpp"
+#include "ApvlvIter.hpp"
+
+namespace apvlv
+{
+  class ApvlvDir: public ApvlvCore
+  {
+  };
+}
+
 #endif

@@ -72,6 +72,10 @@ namespace apvlv
         }
 #endif
 
+      mReady = false;
+
+      mIter = NULL;
+
       mProCmd = 0;
 
       mRotatevalue = 0;
@@ -82,19 +86,9 @@ namespace apvlv
       mResults = NULL;
       mSearchstr = "";
 
-      mVbox = gtk_vbox_new (FALSE, 0);
-
-      mScrollwin = gtk_scrolled_window_new (NULL, NULL);
-
       mImage = gtk_image_new ();
       gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mScrollwin),
                                              mImage);
-      gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin),
-                                      GTK_POLICY_AUTOMATIC,
-                                      GTK_POLICY_AUTOMATIC);
-
-      mVaj = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
-      mHaj = gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
 
       mStatus = new ApvlvDocStatus (this);
 
@@ -106,6 +100,11 @@ namespace apvlv
 
   ApvlvDoc::~ApvlvDoc ()
     {
+      if (mIter)
+        {
+          poppler_index_iter_free (mIter);
+        }
+
     if (mCurrentCache)
       delete mCurrentCache;
 #ifdef HAVE_PTHREAD
@@ -258,14 +257,10 @@ namespace apvlv
         return MATCH;
       }
 
-  void
-    ApvlvDoc::setsize (int w, int h)
+  PopplerIndexIter *
+    ApvlvDoc::indexiter ()
       {
-        gtk_widget_set_usize (widget (), w, h);
-        gtk_widget_set_usize (mScrollwin, w, h - 20);
-        mStatus->setsize (w, 20);
-        mWidth = w;
-        mHeight = h;
+        return mIter;
       }
 
   ApvlvDoc *
@@ -423,6 +418,8 @@ namespace apvlv
 
         mReady = false;
 
+        mIter = NULL;
+
 #ifdef WIN32
         gchar *wfilename = g_win32_locale_filename_from_utf8 (filename);
 #else
@@ -466,6 +463,8 @@ namespace apvlv
 
         if (mDoc != NULL)
           {
+            mIter = poppler_index_iter_new (mDoc);
+
             mZoominit = false;
             mLines = 50;
             mChars = 80;
