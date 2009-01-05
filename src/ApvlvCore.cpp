@@ -29,6 +29,8 @@
 
 #include "ApvlvCore.hpp"
 
+#include <stdlib.h>
+
 #include <iostream>
 
 namespace apvlv
