@@ -80,8 +80,6 @@ namespace apvlv
 
     bool loadfile (const char *filename);
 
-    ApvlvDoc * hasloaded (const char *filename);
-
     void open ();
     void close ();
 
@@ -125,6 +123,10 @@ namespace apvlv
   
     void switchtab (int tabPos);
 
+    // Update the tab's context and update tab label.
+    void windowadded ();
+    
+    void updatetabname ();
     bool mHasCmd, mHasTabs;
 
     guint mProCmd;
@@ -134,17 +136,16 @@ namespace apvlv
 
     GtkWidget *mTabContainer;
 
-    // possibly use GArray instead
-    // fst - Root window
-    // snd - Cur window
     struct TabEntry {
       ApvlvWindow *root;
       ApvlvWindow *curr;
-
-      TabEntry (ApvlvWindow *_r, ApvlvWindow *_c) 
-	: root(_r), curr(_c)
+      
+      int numwindows;
+      TabEntry (ApvlvWindow *_r, ApvlvWindow *_c, int _n) 
+	: root(_r), curr(_c), numwindows(_n)
       { }
     };
+    // possibly use GArray instead
     std::vector<TabEntry> mTabList;
     int mCurrTabPos;
 
@@ -162,7 +163,6 @@ namespace apvlv
 
     ApvlvWindow *mRootWindow, *mCurWindow;
 
-    map <string, ApvlvDoc *> mDocs;
 
     static const int APVLV_CMD_BAR_HEIGHT, APVLV_TABS_HEIGHT;
     };

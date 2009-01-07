@@ -61,16 +61,26 @@ namespace apvlv
           if (mDoc != NULL)
             {
               const char *fdoc = mDoc->filename ();
-              if (fdoc != NULL && mDoc != gView->hasloaded (fdoc))
+              if (fdoc != NULL)
                 {
                   delete mDoc;
+		  mDoc = NULL;
                 }
             }
         }
       else if (type == AW_SP || type == AW_VSP)
         {
-          delete m_son;
-          delete m_daughter;
+	  if (m_son != NULL)
+	    {
+	      delete m_son;
+	      m_son = NULL;
+	    }
+	  if (m_daughter != NULL)
+	    {
+	      delete m_daughter;
+	      m_daughter = NULL;
+	    }
+
           gtk_widget_destroy (mPaned);
         }
     }
@@ -403,9 +413,11 @@ namespace apvlv
           }
 
         gtk_widget_show_all (widget ());
-
-        delete dead;
-        delete child;
+	
+	if (dead != NULL)
+	  delete dead;
+	if (child != NULL)
+	  delete child;
 
         ApvlvWindow *win;
         for (win = this; win->type != AW_DOC; win = win->m_son);
@@ -440,7 +452,7 @@ namespace apvlv
     ApvlvWindow::loadDoc (const char *filename)
       {
         asst (type == AW_DOC);
-        if (mDoc->filename () == NULL || gView->hasloaded (mDoc->filename ()) != mDoc)
+        if (mDoc->filename () == NULL)
           {
             mDoc->setsize (mWidth, mHeight);
             bool ret = mDoc->loadfile (filename);
@@ -465,7 +477,12 @@ namespace apvlv
           }
         else
           {
-            delete ndoc;
+	    if (ndoc != NULL)
+	      {
+		delete ndoc;
+		ndoc = NULL;
+	      }
+
             return NULL;
           }
       }

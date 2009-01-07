@@ -59,16 +59,9 @@ namespace apvlv
     {
       mCurrentCache = NULL;
 #ifdef HAVE_PTHREAD
-      if (cache)
-        {
-          mUseCache = true;
-          mLastCache = NULL;
-          mNextCache = NULL;
-        }
-      else
-        {
-          mUseCache = false;
-        }
+      mUseCache = cache;
+      mLastCache = NULL;
+      mNextCache = NULL;
 #endif
 
       mRotatevalue = 0;
@@ -103,6 +96,7 @@ namespace apvlv
 
   ApvlvDoc::~ApvlvDoc ()
     {
+
     if (mCurrentCache)
       delete mCurrentCache;
 #ifdef HAVE_PTHREAD
@@ -1188,7 +1182,7 @@ namespace apvlv
 #ifdef HAVE_PTHREAD
       if (mThreadRunning)
         {
-          pthread_cancel (mTid);
+          pthread_join (mTid, NULL);
         }
 #endif
       if (mData != NULL)
