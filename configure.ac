@@ -2,7 +2,7 @@ dnl
 dnl APVLV - Alf's PDF Viewer Like Vim
 dnl
  
-AC_INIT(apvlv, 0.0.5.2, naihe2010@gmail.com)
+AC_INIT(apvlv, 0.0.5, naihe2010@gmail.com)
 AC_COPYRIGHT([Copyright (C) 2008 Alf's Software.])
 
 if test -e .svn; then
@@ -27,7 +27,22 @@ AC_PROG_CXX
 AC_PROG_LD
 AC_PROG_INSTALL
 
+if test "$prefix" = "NONE"; then
+  prefix="/usr/local"
+fi
+
 AC_DEFINE_UNQUOTED(PREFIX, ["$prefix"], [The prefix path])
+
+docdir="$prefix/share/doc/$PACKAGE_TARNAME"
+AC_ARG_WITH(docdir,
+            [[  --with-docdir=DIR       directory for documentations of apvlv [PREFIX/share/doc/apvlv]]], 
+            [ case "$withval" in
+             yes|no) 
+             ;;
+             *) docdir="$withval"
+             ;;
+           esac])
+AC_SUBST(DOCDIR)
 AC_DEFINE_UNQUOTED(DOCDIR, ["$docdir"], [The documents directory])
 
 if test x$apvlv_debug = xyes; then 
