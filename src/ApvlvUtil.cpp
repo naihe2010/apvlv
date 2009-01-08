@@ -55,8 +55,8 @@ namespace apvlv
   string inifile = "~\\_apvlvrc";
   string sessionfile = "~\\_apvlvinfo";
 #else
-  string helppdf = string (PREFIX) + "/share/doc/apvlv/Startup.pdf";
-  string iniexam = string (PREFIX) + "/share/doc/apvlv/apvlvrc.example";
+  string helppdf = string (DOCDIR) + "/Startup.pdf";
+  string iniexam = string (DOCDIR) + "/apvlvrc.example";
   string inifile = "~/.apvlvrc";
   string sessionfile = "~/.apvlvinfo";
 #endif

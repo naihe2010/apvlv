@@ -27,11 +27,8 @@ AC_PROG_CXX
 AC_PROG_LD
 AC_PROG_INSTALL
 
-if test "$prefix" = "NONE"; then
-   prefix="/usr/local"
-fi
-
 AC_DEFINE_UNQUOTED(PREFIX, ["$prefix"], [The prefix path])
+AC_DEFINE_UNQUOTED(DOCDIR, ["$docdir"], [The documents directory])
 
 if test x$apvlv_debug = xyes; then 
   AC_DEFINE(DEBUG, 1, 
