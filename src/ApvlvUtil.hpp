@@ -82,11 +82,11 @@ namespace apvlv
 
 // some windows macro
 #ifdef WIN32
-#define snprintf _snprintf
-#endif
-
-#ifdef WIN32
-#define __func__ ""
+#include <wtypes.h>
+#include <winbase.h>
+#define usleep(x)    Sleep((x) / 1000)
+#define snprintf     _snprintf
+#define __func__     ""
 #endif
 
 // log system

@@ -185,6 +185,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\ApvlvCore.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\ApvlvDir.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\ApvlvDoc.cpp"
 				>
 			</File>
@@ -216,6 +224,14 @@
 			>
 			<File
 				RelativePath="..\src\ApvlvCmds.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\ApvlvCore.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\ApvlvDir.hpp"
 				>
 			</File>
 			<File
