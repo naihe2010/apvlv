@@ -230,11 +230,13 @@ namespace apvlv
 	switch_tabcontext (pos);
 
 	GtkWidget* tabname = gtk_label_new ("None");
-	gtk_notebook_insert_page (GTK_NOTEBOOK(mTabContainer), currentWindow()->widget(), tabname, pos);
+	GtkWidget* parentbox = gtk_vbox_new (false, 0);
+	gtk_container_add (GTK_CONTAINER(parentbox), mTabList[mCurrTabPos].root->widget());
+	mRootWindow->setsize (mWidth, adjheight());
 
-	//gtk_widget_show (currentWindow()->widget());
-	
-	gtk_widget_show_all (currentWindow()->widget());
+	gtk_notebook_insert_page (GTK_NOTEBOOK(mTabContainer), parentbox, tabname, pos);
+
+	gtk_widget_show_all (parentbox);
 	gtk_notebook_set_current_page (GTK_NOTEBOOK(mTabContainer), mCurrTabPos);
       }
   
@@ -259,7 +261,7 @@ namespace apvlv
   void 
     ApvlvView::delete_tabcontext (int tabPos)
       {
-	asst (tabPos > 0 && tabPos < mTabList.size());
+	asst (tabPos >= 0 && tabPos < (int) mTabList.size());
 
 	std::vector<TabEntry>::iterator remPos = mTabList.begin() + tabPos;
 
@@ -279,15 +281,14 @@ namespace apvlv
   void
     ApvlvView::switch_tabcontext (int tabPos)
       {
-	asst(tabPos > 0 && tabPos < (int) mTabList.size());
+	asst(tabPos >= 0 && tabPos < (int) mTabList.size());
 
 	if (mCurrTabPos != -1)
 	    mTabList[mCurrTabPos].curr = currentWindow();
 
+	mCurrTabPos = tabPos;
 	mRootWindow = mTabList[tabPos].root;
 	ApvlvWindow::setcurrentWindow (NULL, mTabList[tabPos].curr);
-
-	mCurrTabPos = tabPos;
       }
 
 
@@ -295,13 +296,13 @@ namespace apvlv
     ApvlvView::loadfile (const char *filename)
       {
         char *abpath = absolutepath (filename);
+	ApvlvDoc* rdoc = currentWindow()->loadDoc(filename);
+	g_free (abpath);
 
-	if (currentWindow()->loadDoc (filename) == NULL)
+	if (rdoc == NULL)
 	    return false;
 
 	updatetabname ();
-
-        g_free (abpath);
         return true;
       }
 
@@ -388,8 +389,8 @@ namespace apvlv
 
         mHasCmd = TRUE;
 
-        mRootWindow->setsize (mWidth, adjheight());
         gtk_widget_set_usize (mCommandBar, mWidth, APVLV_CMD_BAR_HEIGHT);
+        mRootWindow->setsize (mWidth, adjheight());
 
         gtk_widget_grab_focus (mCommandBar);
         gtk_entry_set_position (GTK_ENTRY (mCommandBar), -1);
@@ -402,8 +403,8 @@ namespace apvlv
           return;
         mHasCmd = FALSE;
 
-        mRootWindow->setsize (mWidth, adjheight());
         gtk_widget_set_usize (mCommandBar, mWidth, 1);
+        mRootWindow->setsize (mWidth, adjheight());
 
         gtk_widget_grab_focus (mMainWindow);
       }
@@ -526,10 +527,13 @@ namespace apvlv
             break;
 	  
 	  case 'g':
+	    if (ct == 0)
+	      ct = 1;
+
 	    if (key == 't')
-	      switchtab (mCurrTabPos + 1);
+	      switchtab (mCurrTabPos + ct);
 	    else if (key == 'T')
-	      switchtab (mCurrTabPos - 1);
+	      switchtab (mCurrTabPos - ct);
 	    else if (key == 'g')
 	      crtadoc()->showpage(0);
 	    break;
@@ -943,10 +947,10 @@ namespace apvlv
 	while (tabPos < 0)
 	  tabPos += ntabs;
 
-	tabPos = tabPos % (int) mTabList.size();
+	tabPos = tabPos % ntabs; 
 	switch_tabcontext (tabPos);
-	gtk_notebook_set_current_page (GTK_NOTEBOOK(mTabContainer), tabPos);
 	mRootWindow->setsize (mWidth, adjheight());
+	gtk_notebook_set_current_page (GTK_NOTEBOOK(mTabContainer), mCurrTabPos);
       }
   void
     ApvlvView::windowadded ()
@@ -958,13 +962,11 @@ namespace apvlv
   void
     ApvlvView::updatetabname ()
       {
-	GtkWidget* tab = gtk_notebook_get_nth_page (GTK_NOTEBOOK(mTabContainer), 
-						    mCurrTabPos);
 	const int maxlength = 26;
 	char tagname[maxlength];	
 	
 	const char* filename = currentWindow()->getDoc()->filename();
-	if (filename == NULL || filename[0] == '\0')
+	if (filename == NULL)
 	    filename = "None";
 	else
 	    filename = g_path_get_basename (filename);
@@ -975,7 +977,9 @@ namespace apvlv
 	    snprintf (tagname, maxlength, "%s", filename);
 
 	GtkWidget* tabname = gtk_label_new (tagname);
-	gtk_notebook_set_tab_label (GTK_NOTEBOOK(mTabContainer), tab, tabname);
+	GtkWidget* tabwidget = gtk_notebook_get_nth_page (GTK_NOTEBOOK(mTabContainer), mCurrTabPos);
+	gtk_notebook_set_tab_label (GTK_NOTEBOOK(mTabContainer), tabwidget, tabname);
+	//gtk_notebook_set_tab_label_text (GTK_NOTEBOOK(mTabContainer), currentWindow()->widget(), tagname);
 	gtk_notebook_set_current_page (GTK_NOTEBOOK(mTabContainer), mCurrTabPos);
       }
 
