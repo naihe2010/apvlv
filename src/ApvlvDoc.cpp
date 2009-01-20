@@ -60,16 +60,9 @@ namespace apvlv
     {
       mCurrentCache = NULL;
 #ifdef HAVE_PTHREAD
-      if (cache)
-        {
-          mUseCache = true;
-          mLastCache = NULL;
-          mNextCache = NULL;
-        }
-      else
-        {
-          mUseCache = false;
-        }
+      mUseCache = cache;
+      mLastCache = NULL;
+      mNextCache = NULL;
 #endif
 
       mReady = false;
@@ -108,13 +101,10 @@ namespace apvlv
     if (mCurrentCache)
       delete mCurrentCache;
 #ifdef HAVE_PTHREAD
-    if (mUseCache)
-      {
-        if (mNextCache)
-          delete mNextCache;
-        if (mLastCache)
-          delete mLastCache;
-      }
+    if (mNextCache)
+      delete mNextCache;
+    if (mLastCache)
+      delete mLastCache;
 #endif
 
       if (mFilestr != helppdf)
@@ -233,7 +223,7 @@ namespace apvlv
           case 'r':
             rotate (ct);
             break;
-          case 'g':
+          case 'G':
             markposition ('\'');
             showpage (ct - 1);
             break;
@@ -593,7 +583,6 @@ namespace apvlv
                 break;
               }
           }
-
         refresh ();
 
         scrollto (s);
@@ -1087,9 +1076,9 @@ namespace apvlv
 
         double tpagex, tpagey;
         ac->mDoc->getpagesize (tpage, &tpagex, &tpagey);
-
+	
         int ix = (int) (tpagex * ac->mDoc->zoomvalue ()), iy = (int) (tpagey * ac->mDoc->zoomvalue ());
-
+	
         guchar *dat = new guchar[ix * iy * 3];
 
         GdkPixbuf *bu = gdk_pixbuf_new_from_data (dat, GDK_COLORSPACE_RGB,
@@ -1126,7 +1115,7 @@ namespace apvlv
 #ifdef HAVE_PTHREAD
       if (mThreadRunning)
         {
-          pthread_cancel (mTid);
+          pthread_join (mTid, NULL);
           pthread_mutex_unlock (&rendermutex);
           mThreadRunning = false;
         }

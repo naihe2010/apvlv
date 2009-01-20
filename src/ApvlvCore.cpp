@@ -125,6 +125,8 @@ namespace apvlv
                 mZoommode = CUSTOM;
                 mZoomrate = d;
               }
+	    else
+		mZoomrate = 1.f;
           }
 
         refresh ();

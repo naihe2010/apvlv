@@ -126,7 +126,7 @@ namespace apvlv
   class ApvlvDoc: public ApvlvCore
     {
   public:
-    ApvlvDoc (const char *zm = "NORMAL", bool cache = false);
+    ApvlvDoc (const char *zm = "normal", bool cache = false);
 
     ~ApvlvDoc ();
 
