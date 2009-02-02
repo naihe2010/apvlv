@@ -162,7 +162,12 @@ namespace apvlv
   bool
     ApvlvCmd::append (GdkEventKey *gek)
       {
-        if (gek->state == 0)
+        if (gek->state & GDK_CONTROL_MASK)
+          {
+            mKeyVals.push_back (CTRL (gek->keyval));
+            return true;
+          }
+        else if (gek->state & GDK_SHIFT_MASK)
           {
             if (VALIDCHAR (gek->keyval))
               {
@@ -170,12 +175,7 @@ namespace apvlv
                 return true;
               }
           }
-        else if (gek->state == GDK_CONTROL_MASK)
-          {
-            mKeyVals.push_back (CTRL (gek->keyval));
-            return true;
-          }
-        else if (gek->state == GDK_SHIFT_MASK)
+        else
           {
             if (VALIDCHAR (gek->keyval))
               {
