@@ -40,6 +40,8 @@
 
 #include <gtk/gtk.h>
 
+#include <list>
+
 namespace apvlv
 {
   typedef enum
@@ -107,15 +109,50 @@ namespace apvlv
 
     void runcmd (const char *cmd);
 
-    bool mHasCmd;
+    void newtab ();
+
+    int new_tabcontext (bool insertAfterCurr);
+
+    void delete_tabcontext (int tabPos);
+
+    void switch_tabcontext (int tabPos);
+
+    // Caclulate number of pixels that the document should be.
+    //  This figure accounts for decorations like (mCmdBar and mHaveTabs).
+    // Returns a nonnegative number.
+    int adjheight ();
+  
+    void switchtab (int tabPos);
+
+    // Update the tab's context and update tab label.
+    void windowadded ();
+    
+    void updatetabname ();
+    bool mHasCmd, mHasTabs;
 
     guint mProCmd;
 
     GtkWidget *mCommandBar;
     GtkWidget *mMainWindow;
 
+    GtkWidget *mTabContainer;
+
+    struct TabEntry {
+      ApvlvWindow *root;
+      ApvlvWindow *curr;
+      
+      int numwindows;
+      TabEntry (ApvlvWindow *_r, ApvlvWindow *_c, int _n) 
+	: root(_r), curr(_c), numwindows(_n)
+      { }
+    };
+    // possibly use GArray instead
+    std::vector<TabEntry> mTabList;
+    int mCurrTabPos;
+
     gboolean mHasFull;
     int mWidth, mHeight;
+
 
     static void apvlv_view_delete_cb (GtkWidget * wid, GtkAllocation * al,
                                       ApvlvView * view);
@@ -125,9 +162,13 @@ namespace apvlv
 
     static gint apvlv_view_commandbar_cb (GtkWidget * wid, GdkEvent * ev);
 
+    static void apvlv_notebook_switch_cb (GtkWidget * wid, GtkNotebookPage *page, guint num, ApvlvView *view);
+
     ApvlvWindow *mRootWindow, *mCurWindow;
 
     map <string, ApvlvDoc *> mDocs;
+
+    static const int APVLV_CMD_BAR_HEIGHT, APVLV_TABS_HEIGHT;
     };
 
   extern ApvlvView *gView;

@@ -7,7 +7,7 @@
 \large
 
 \title{Apvlv - Alf's PDF Viewer Like Vim}
-\author{version 0.0.5}
+\author{version 0.0.6}
 \date{by Alf $<$naihe2010@gmail.com$>$ \\Apvlv is open source and freely distributable}
 \maketitle{}
 
@@ -34,7 +34,7 @@ And, Apvlv can understand that how many times you want to run the command.
 
 The only thing you need to do is typing the number before the command. For example, typing '50' and $<$Ctrl-f$>$ will go forward 50 pages, typing '30' and $<$Ctrl-b$>$ will go previous 30 pages.
 
-What's more important, Apvlv can understand negative numbers too. If it got '-50' and 'Ctrl-B', PDF document will go FORWARD (preward -50) 50 pages. For example, typing '50g' will goto the 50th page, and typing '-50g' will go to the 50th page from the last page to count.
+What's more important, Apvlv can understand negative numbers too. If it got '-50' and 'Ctrl-B', PDF document will go FORWARD (preward -50) 50 pages. For example, typing '50G' will goto the 50th page, and typing '-50G' will go to the 50th page from the last page to count.
 
 Do you like it? If yes, continue read the help document.
 
@@ -84,9 +84,17 @@ reload the file which was be read.
 
 [count] rotate the document page view
 
-\item g
+\item G
 
 [count] page show
+
+\item gt
+
+next tab show
+
+\item gT
+
+previous tab show
 
 \item $<$PageDown$>$
 
@@ -257,7 +265,7 @@ This argument has 4 types.
 
 \begin{enumerate}
 
-\item normal=
+\item normal
 
 the default zoom value will be set by the application itself.
 
@@ -327,6 +335,11 @@ print the current document.
 \item :TOtext 'filename'
 
 translate page to a text file named 'filename'.
+
+\item :tabnew
+
+create a new tab
+
 \item :sp
 
 split the current window into two windows.

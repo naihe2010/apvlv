@@ -1,4 +1,21 @@
+    apvlv 0.0.6
+    ============
+
+    News features
+
+       * add tab view
+         add :tabnew and 'gt' 'gg' 'gT' 'g[n]' command to support tab switch, change goto page command from 'g' to 'G'
+
+       * add content view
+
+     Bug fix
+
+       * fix the windows open bug
+       * fix the keys can't work on 64bit platform
+
+
     apvlv 0.0.5
+    ============
 
     News features
 

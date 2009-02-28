@@ -1,12 +1,14 @@
 0.      Bug fix.
 
-1.      Regex search, multiple search.
+1.      Last opened direcotry open
 
-2.      Directory view.
-2.1     Content view. Implemante it with directory toghter?
+2.      continous view
 
-3.      Word moving, put a curcor in the document. and 'k','j' ... moves it.
-3.1     Press 'v' to select a text area, and then TOtext them or copy them to clipboard.
+3.      Regex search, multiple search.
 
-4.      Other document type, like .gv?????
-5.      Edit file????????
+4.      Word moving, put a curcor in the document. and 'k','j' ... moves it.
+4.1     Press 'v' to select a text area, and then TOtext them or copy them to clipboard.
+
+5.      Other document type, like .gv, word, ?????
+
+6.      Edit file????????

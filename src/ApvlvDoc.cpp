@@ -232,7 +232,7 @@ namespace apvlv
           case 'r':
             rotate (ct);
             break;
-          case 'g':
+          case 'G':
             markposition ('\'');
             showpage (ct - 1);
             break;
@@ -1086,9 +1086,9 @@ namespace apvlv
 
         double tpagex, tpagey;
         ac->mDoc->getpagesize (tpage, &tpagex, &tpagey);
-
+	
         int ix = (int) (tpagex * ac->mDoc->zoomvalue ()), iy = (int) (tpagey * ac->mDoc->zoomvalue ());
-
+	
         guchar *dat = new guchar[ix * iy * 3];
 
         GdkPixbuf *bu = gdk_pixbuf_new_from_data (dat, GDK_COLORSPACE_RGB,
@@ -1125,7 +1125,7 @@ namespace apvlv
 #ifdef HAVE_PTHREAD
       if (mThreadRunning)
         {
-          pthread_cancel (mTid);
+          pthread_join (mTid, NULL);
           pthread_mutex_unlock (&rendermutex);
           mThreadRunning = false;
         }

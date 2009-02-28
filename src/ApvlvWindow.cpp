@@ -66,13 +66,23 @@ namespace apvlv
               if (fdoc != NULL && mCore != gView->hasloaded (fdoc))
                 {
                   delete mCore;
+		  mCore = NULL;
                 }
             }
         }
       else if (type == AW_SP || type == AW_VSP)
         {
-          delete m_son;
-          delete m_daughter;
+	  if (m_son != NULL)
+	    {
+	      delete m_son;
+	      m_son = NULL;
+	    }
+	  if (m_daughter != NULL)
+	    {
+	      delete m_daughter;
+	      m_daughter = NULL;
+	    }
+
           gtk_widget_destroy (mPaned);
         }
     }
@@ -196,8 +206,8 @@ namespace apvlv
           {
             if (w->type == AW_SP)
               {
-                if (cw == w->m_daughter && down == true
-                    || cw == w->m_son && down == false)
+                if ((cw == w->m_daughter && down == true)
+                    || (cw == w->m_son && down == false))
                   {
                     continue;
                   }
@@ -256,8 +266,8 @@ namespace apvlv
           {
             if (w->type == AW_VSP)
               {
-                if (cw == w->m_daughter && right == true
-                    || cw == w->m_son && right == false)
+                if ((cw == w->m_daughter && right == true)
+                    || (cw == w->m_son && right == false))
                   {
                     continue;
                   }
@@ -405,9 +415,11 @@ namespace apvlv
           }
 
         gtk_widget_show_all (widget ());
-
-        delete dead;
-        delete child;
+	
+	if (dead != NULL)
+	  delete dead;
+	if (child != NULL)
+	  delete child;
 
         ApvlvWindow *win;
         for (win = this; win->type != AW_CORE; win = win->m_son);
@@ -456,35 +468,34 @@ namespace apvlv
               {
                 bcache = true;
               }
-            ApvlvDoc *ndoc = new ApvlvDoc ();
-            ret = ndoc->loadfile (filename);
-            if (!ret)
+
+            ApvlvDoc *ndoc = new ApvlvDoc (gParams->value ("zoom"), bcache);
+            ndoc->setsize (mWidth, mHeight);
+            bool ret = ndoc->loadfile (filename);
+            if (ret)
               {
-                delete ndoc;
-                return NULL;
+                replace_widget (widget (), ndoc->widget (), WR_REF);
+                ndoc->setsize (mWidth, mHeight);
+                gtk_widget_show_all (widget ());
+
+                mCore = ndoc;
               }
 
-            replace_widget (widget (), ndoc->widget (), WR_REF);
-            ndoc->setsize (mWidth, mHeight);
-            gtk_widget_show_all (widget ());
-
-            mCore = ndoc;
-          }
-
-        if (ret && mUseContent)
-          {
-            if (((ApvlvDoc *) mCore)->indexiter ())
+            if (ret && mUseContent)
               {
-                debug ("iter: %p", ((ApvlvDoc *) mCore)->indexiter ());
-                ApvlvDir *dir = new ApvlvDir ("NORMAL", (ApvlvDoc *) mCore);
-                birth (true, dir);
+                if (((ApvlvDoc *) mCore)->indexiter ())
+                  {
+                    debug ("iter: %p", ((ApvlvDoc *) mCore)->indexiter ());
+                    ApvlvDir *dir = new ApvlvDir ("NORMAL", (ApvlvDoc *) mCore);
+                    birth (true, dir);
+                  }
               }
           }
 
         return (ApvlvDoc *) mCore;
       }
 
-  void
+        void
     ApvlvWindow::setCore (ApvlvCore *doc)
       {
         asst (type == AW_CORE);

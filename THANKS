@@ -1,6 +1,9 @@
 I would like to give thanks to the following for their support and
 contributions:
 
+        - Robert Smolinski <scottymcribs@gmail.com>, for his vimlike tabs code contribution. 
+          And, he is a developer of apvlv now.
+
         - Robby Workman <rworkman@slackbuilds.org>, for his bug fix about doc directory
         - grandpa <lxdjob.gmail.com>, for his test on windows
         - Ali Gholami Rudi <aligrudi@gmail.com>, for his bug fixes
