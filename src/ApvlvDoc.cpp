@@ -429,7 +429,7 @@ namespace apvlv
         int rt = stat (wfilename, &sbuf);
         if (rt < 0)
           {
-            err ("Can't stat the PDF file: %s.", wfilename);
+            errp ("Can't stat the PDF file: %s.", filename);
             return false;
           }
         filelen = sbuf.st_size;

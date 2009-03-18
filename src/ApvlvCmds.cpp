@@ -189,45 +189,54 @@ namespace apvlv
   const char *
     ApvlvCmd::append (const char *s)
       {
-      size_t len = strlen (s);
+        size_t len;
+        char *e;
 
-      asst (len);
-      for (unsigned int i=1; i<len; ++i)
-        {
-          string ss (s, i);
-          StringKeyMap::iterator it;
-          it = SK.find (ss.c_str ());
-          if (it != SK.end ())
-            {
-              mKeyVals.push_back (it->second);
-              return s + i;
-            }
-        }
+        len = strlen (s);
 
-      if (len >= 5
-               && s[0] == '<'
-               && s[2] == '-'
-               && s[4] == '>'
-      )
-        {
-          if (s[1] == 'C')
-            {
-              mKeyVals.push_back (CTRL (s[3]));
-            }
-          /* commet as above 
-          else if (s[1] == 'S')
-            {
-              mKeyVals.push_back (SHIFT (s[3]));
-            }*/
-          else 
-            {
-              char ts[6];
-              snprintf (ts, 6, "%s", s);
-              warn ("Can't recognize the symbol: %s", ts);
-            }
+        asst (len);
+
+        if (len >= 4
+            && *s == '<' 
+            && (e = strchr (s, '>')) != '\0'
+            && *(s + 2) != '-')
+          {
+            e ++;
+            StringKeyMap::iterator it;
+            for (it = SK.begin (); it != SK.end (); it ++)
+              {
+                if (strncmp (it->first, s, e - s) == 0)
+                  {
+                    mKeyVals.push_back (it->second);
+                    return e;
+                  }
+              }
+          }
+
+        if (len >= 5
+            && s[0] == '<'
+            && s[2] == '-'
+            && s[4] == '>'
+        )
+          {
+            if (s[1] == 'C')
+              {
+                mKeyVals.push_back (CTRL (s[3]));
+              }
+            /* commet as above 
+               else if (s[1] == 'S')
+               {
+               mKeyVals.push_back (SHIFT (s[3]));
+               }*/
+            else 
+              {
+                char ts[6];
+                snprintf (ts, 6, "%s", s);
+                warn ("Can't recognize the symbol: %s", ts);
+              }
           return s + 5;
         }
-      else if (len >= 1)
+      else
         {
           mKeyVals.push_back (s[0]);
           return s + 1;

@@ -68,7 +68,7 @@ namespace apvlv
 
       if (! os.is_open ())
         {
-          err ("Open configure file %s error", filename);
+          errp ("Open configure file %s error", filename);
           return false;
         }
 
@@ -115,7 +115,7 @@ namespace apvlv
                     }
                 }
 
-              err ("Syntax error: set: %s", str.c_str ());
+              errp ("Syntax error: set: %s", str.c_str ());
             }
           // like "map n next-page"
           else if (crap == "map")
@@ -124,7 +124,7 @@ namespace apvlv
 
               if (argu.length () == 0)
                 {
-                  err ("map command not complete");
+                  errp ("map command not complete");
                   continue;
                 }
 
@@ -139,12 +139,12 @@ namespace apvlv
                 }
               else
                 {
-                  err ("Syntax error: map: %s", str.c_str ());
+                  errp ("Syntax error: map: %s", str.c_str ());
                 }
             }
           else
             {
-              err ("Unknown rc command: %s: %s", crap.c_str (), str.c_str ());
+              errp ("Unknown rc command: %s: %s", crap.c_str (), str.c_str ());
             }
         }
 

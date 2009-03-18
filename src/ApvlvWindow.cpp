@@ -100,7 +100,7 @@ namespace apvlv
           }
         else
           {
-            err ("type error: %d", type);
+            errp ("type error: %d", type);
             return NULL;
           }
       }
