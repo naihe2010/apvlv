@@ -26,6 +26,7 @@
 */
 /* @date Created: 2009/01/03 23:28:26 Alf*/
 
+#include "ApvlvView.hpp"
 #include "ApvlvDir.hpp"
 
 #include <stdlib.h>
@@ -94,8 +95,8 @@ namespace apvlv
 
       mRotatevalue = 0;
 
-      GtkTreeStore *store = gtk_tree_store_new (2, G_TYPE_POINTER, G_TYPE_STRING);
-      mDirView = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
+      mStore = gtk_tree_store_new (2, G_TYPE_POINTER, G_TYPE_STRING);
+      mDirView = gtk_tree_view_new_with_model (GTK_TREE_MODEL (mStore));
       gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (mDirView), FALSE);
       gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mScrollwin),
                                              mDirView);
@@ -106,8 +107,8 @@ namespace apvlv
       gtk_tree_view_column_set_resizable (column, FALSE);
       gtk_tree_view_append_column (GTK_TREE_VIEW (mDirView), column);
 
-      GtkTreeSelection *select = gtk_tree_view_get_selection (GTK_TREE_VIEW (mDirView));
-      g_signal_connect (G_OBJECT (select), "changed", G_CALLBACK (apvlv_dir_on_changed), this);
+      mSelection = gtk_tree_view_get_selection (GTK_TREE_VIEW (mDirView));
+      g_signal_connect (G_OBJECT (mSelection), "changed", G_CALLBACK (apvlv_dir_on_changed), this);
 
       mStatus = new ApvlvDirStatus (this);
 
@@ -127,8 +128,8 @@ namespace apvlv
 
       mRotatevalue = 0;
 
-      GtkTreeStore *store = gtk_tree_store_new (2, G_TYPE_POINTER, G_TYPE_STRING);
-      mDirView = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
+      mStore = gtk_tree_store_new (2, G_TYPE_POINTER, G_TYPE_STRING);
+      mDirView = gtk_tree_view_new_with_model (GTK_TREE_MODEL (mStore));
       gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (mDirView), FALSE);
       gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mScrollwin),
                                              mDirView);
@@ -139,8 +140,8 @@ namespace apvlv
       gtk_tree_view_column_set_resizable (column, FALSE);
       gtk_tree_view_append_column (GTK_TREE_VIEW (mDirView), column);
 
-      GtkTreeSelection *select = gtk_tree_view_get_selection (GTK_TREE_VIEW (mDirView));
-      g_signal_connect (G_OBJECT (select), "changed", G_CALLBACK (apvlv_dir_on_changed), this);
+      mSelection = gtk_tree_view_get_selection (GTK_TREE_VIEW (mDirView));
+      g_signal_connect (G_OBJECT (mSelection), "changed", G_CALLBACK (apvlv_dir_on_changed), this);
 
       mStatus = new ApvlvDirStatus (this);
 
@@ -154,6 +155,10 @@ namespace apvlv
       GtkTreeIter *itr = NULL;
       PopplerIndexIter *iiter= doc->indexiter ();
       walk_poppler_iter_index (itr, iiter);
+
+      mFirstSelTimer = g_timeout_add (50, (gboolean (*) (gpointer)) apvlv_dir_first_select_cb, this);
+
+      mReady = true;
     }
 
   ApvlvDir::~ApvlvDir ()
@@ -168,6 +173,9 @@ namespace apvlv
         mProCmd = 0;
         switch (procmd)
           {
+          default:
+            return NO_MATCH;
+            break;
           }
 
         return MATCH;
@@ -183,9 +191,137 @@ namespace apvlv
 
         switch (key)
           {
+          case ':':
+          case '/':
+          case '?':
+            gView->promptcommand (key);
+            return NEED_MORE;
+          case 'H':
+            scrollto (0.0);
+            break;
+          case 'M':
+            scrollto (0.5);
+            break;
+          case 'L':
+            scrollto (1.0);
+            break;
+          case GDK_Up:
+          case 'k':
+            scrollup (ct);
+            break;
+          case CTRL ('n'):
+          case CTRL ('j'):
+          case GDK_Down:
+          case 'j':
+            scrolldown (ct);
+            break;
+          case GDK_BackSpace:
+          case GDK_Left:
+          case CTRL ('h'):
+          case 'h':
+            scrollleft (ct);
+            break;
+          case GDK_space:
+          case GDK_Right:
+          case CTRL ('l'):
+          case 'l':
+            scrollright (ct);
           }
 
         return MATCH;
+      }
+
+  void
+    ApvlvDir::scrollup (int times)
+      {
+        if (!mReady)
+          return;
+
+        GtkTreePath *path = gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
+        for (gboolean ret = TRUE; times > 0 && ret; times --)
+          {
+            ret = gtk_tree_path_prev (path);
+          }
+
+        gtk_tree_model_get_iter (GTK_TREE_MODEL (mStore), &mCurrentIter, path);
+        gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
+
+        gtk_tree_path_free (path);
+
+        mStatus->show ();
+      }
+
+  void
+    ApvlvDir::scrolldown (int times)
+      {
+        if (!mReady)
+          return;
+
+        GtkTreeIter itr;
+        gboolean ret;
+
+        for (ret = TRUE, itr = mCurrentIter; times > 0 && ret; times --)
+          {
+            mCurrentIter = itr;
+            ret = gtk_tree_model_iter_next (GTK_TREE_MODEL (mStore), &itr);
+            if (ret)
+              {
+                mCurrentIter = itr;
+              }
+          }
+
+        gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
+
+        mStatus->show ();
+      }
+
+  void
+    ApvlvDir::scrollleft (int times)
+      {
+        if (!mReady)
+          return;
+
+        GtkTreeIter itr;
+        for (gboolean ret = TRUE; times > 0 && ret; times --)
+          {
+            ret = gtk_tree_model_iter_parent (GTK_TREE_MODEL (mStore), &itr, &mCurrentIter);
+            if (ret)
+              {
+                mCurrentIter = itr;
+              }
+          }
+
+        gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
+
+        GtkTreePath *path = gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
+        gtk_tree_view_collapse_row (GTK_TREE_VIEW (mDirView), path);
+        gtk_tree_path_free (path);
+
+        mStatus->show ();
+      }
+
+  void
+    ApvlvDir::scrollright (int times)
+      {
+        if (!mReady)
+          return;
+
+        GtkTreeIter itr;
+        for (gboolean ret = TRUE; times > 0 && ret; times --)
+          {
+            ret = gtk_tree_model_iter_children (GTK_TREE_MODEL (mStore), &itr, &mCurrentIter);
+            if (ret)
+              {
+                mCurrentIter = itr;
+              }
+          }
+
+        GtkTreePath *path = gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
+        gtk_tree_view_expand_to_path (GTK_TREE_VIEW (mDirView), path);
+        gtk_tree_path_free (path);
+        gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
+
+        mStatus->show ();
       }
 
   void
@@ -231,15 +367,14 @@ namespace apvlv
       {
         ApvlvDirNode *node;
         char *title;
-        GtkTreeIter iter;
         GtkTreeModel *model;
         ApvlvWindow *win;
 
         win = ApvlvWindow::currentWindow ()->getnext (1);
 
-        if (gtk_tree_selection_get_selected (selection, &model, &iter))
+        if (gtk_tree_selection_get_selected (selection, &model, &dir->mCurrentIter))
           {
-            gtk_tree_model_get (model, &iter, 0, &node, 1, &title, -1);
+            gtk_tree_model_get (model, &dir->mCurrentIter, 0, &node, 1, &title, -1);
 
             node->show (win);
             g_print ("You selected a ref %s\n", title);
@@ -318,5 +453,16 @@ namespace apvlv
               }
             g_free (bn);
           }
+      }
+
+  gboolean 
+    ApvlvDir::apvlv_dir_first_select_cb (ApvlvDir *dir)
+      {
+        GtkTreeIter gtir;
+        if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (dir->mStore), &gtir))
+          {
+            gtk_tree_selection_select_iter (dir->mSelection, &gtir);
+          }
+        return FALSE;
       }
 }

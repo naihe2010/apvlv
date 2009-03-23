@@ -41,6 +41,7 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 
 
@@ -161,6 +162,31 @@ namespace apvlv
   void
     ApvlvView::open ()
       {
+        const char *lastfile = NULL;
+        gchar *dirname;
+
+        char *path = absolutepath (sessionfile.c_str ());
+        ifstream os (path, ios::in);
+        g_free (path);
+
+        string line, files;
+        if (os.is_open ())
+          {
+
+            while ((getline (os, line)) != NULL)
+              {
+                const char *p = line.c_str ();
+
+                if (*p == '>')
+                  {
+                    stringstream ss (++ p);
+                    ss >> files;
+                    lastfile = files.c_str ();
+                  }
+              }
+            os.close ();
+          }
+
         GtkWidget *dia = gtk_file_chooser_dialog_new ("",
                                                       GTK_WINDOW (mMainWindow),
                                                       GTK_FILE_CHOOSER_ACTION_SAVE,
@@ -169,7 +195,9 @@ namespace apvlv
                                                       GTK_STOCK_OK,
                                                       GTK_RESPONSE_ACCEPT,
                                                       NULL);
-        gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dia), gParams->value ("defaultdir"));
+        dirname = lastfile? g_dirname (lastfile): g_strdup (gParams->value ("defaultdir"));
+        gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dia), dirname);
+        g_free (dirname);
 
         GtkFileFilter *filter = gtk_file_filter_new ();
         gtk_file_filter_add_mime_type (filter, "PDF File");
@@ -187,8 +215,6 @@ namespace apvlv
             g_free (filename);
           }
         gtk_widget_destroy (dia);
-
-	//gtk_widget_show_all (currentWindow()->widget());
       }
 
   bool 
@@ -316,24 +342,28 @@ namespace apvlv
       {
         bool ret = false;
         char *abpath = absolutepath (filename);
-        ApvlvDoc *ndoc = hasloaded (abpath);
-        if (ndoc != NULL)
+        if (abpath != NULL)
           {
-            currentWindow ()->setCore (ndoc);
-            ret = true;
-          }
-        else
-          {
-            ApvlvCore *ncore = currentWindow ()->loadDoc (filename);
-            ndoc = (ApvlvDoc *) ncore;
-            if (ndoc)
+            ApvlvDoc *ndoc = hasloaded (abpath);
+            if (ndoc != NULL)
               {
-                mDocs[abpath] = ndoc;
+                currentWindow ()->setCore (ndoc);
                 ret = true;
               }
+            else
+              {
+                ApvlvCore *ncore = currentWindow ()->loadDoc (filename);
+                ndoc = (ApvlvDoc *) ncore;
+                if (ndoc)
+                  {
+                    mDocs[abpath] = ndoc;
+                    ret = true;
+                  }
+              }
+            g_free (abpath);
           }
 
-	updatetabname ();
+        updatetabname ();
         return true;
       }
 
@@ -692,12 +722,12 @@ namespace apvlv
               }
             else if (cmd == "sp")
               {
-                currentWindow ()->birth (false);
+                currentWindow ()->birth (false, false);
 		windowadded();
               }
             else if (cmd == "vsp")
               {
-                currentWindow ()->birth (true);
+                currentWindow ()->birth (false, true);
 		windowadded();
               }
             else if (cmd == "zoom" || cmd == "z")

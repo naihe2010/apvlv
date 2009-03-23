@@ -42,6 +42,8 @@ namespace apvlv
 
   ApvlvWindow::ApvlvWindow (ApvlvCore *doc, bool usecon)
     {
+      mIsClose = false;
+
       mUseContent = usecon;
 
       type = AW_CORE;
@@ -58,6 +60,21 @@ namespace apvlv
 
   ApvlvWindow::~ApvlvWindow ()
     {
+      if (mIsClose)
+        {
+          return;
+        }
+
+      debug ("delete window: %p", this);
+
+      mIsClose = true;
+
+      if (mBrother != NULL)
+        {
+          delete m_parent;
+          return;
+        }
+
       if (type == AW_CORE)
         {
           if (mCore != NULL)
@@ -66,21 +83,23 @@ namespace apvlv
               if (fdoc != NULL && mCore != gView->hasloaded (fdoc))
                 {
                   delete mCore;
-		  mCore = NULL;
+                  mCore = NULL;
                 }
             }
         }
       else if (type == AW_SP || type == AW_VSP)
         {
-	  if (m_son != NULL)
+          if (m_son != NULL)
 	    {
-	      delete m_son;
+              ApvlvWindow *win = m_son;
 	      m_son = NULL;
+	      delete win;
 	    }
 	  if (m_daughter != NULL)
 	    {
-	      delete m_daughter;
+              ApvlvWindow *win = m_daughter;
 	      m_daughter = NULL;
+	      delete win;
 	    }
 
           gtk_widget_destroy (mPaned);
@@ -335,7 +354,7 @@ namespace apvlv
   // birth a new AW_CORE window, and the new window beyond the input doc
   // this made a AW_CORE window to AW_SP|AW_VSP
   ApvlvWindow *
-    ApvlvWindow::birth (bool vsp, ApvlvCore *doc)
+    ApvlvWindow::birth (bool isbrother, bool vsp, ApvlvCore *doc)
       {
         asst (type == AW_CORE);
 
@@ -357,6 +376,9 @@ namespace apvlv
         ApvlvWindow *nwindow2 = new ApvlvWindow (mCore, false);
         nwindow2->m_parent = this;
         m_daughter = nwindow2;
+
+        nwindow->mBrother = NULL;
+        nwindow2->mBrother = isbrother? nwindow: NULL;
 
         mPaned = vsp == false? gtk_vpaned_new (): gtk_hpaned_new ();
         g_signal_connect (G_OBJECT (mPaned), "button-release-event", G_CALLBACK (apvlv_window_paned_resized_cb), this);
@@ -479,15 +501,15 @@ namespace apvlv
                 gtk_widget_show_all (widget ());
 
                 mCore = ndoc;
-              }
 
-            if (ret && mUseContent)
-              {
-                if (((ApvlvDoc *) mCore)->indexiter ())
+                if (mUseContent)
                   {
-                    debug ("iter: %p", ((ApvlvDoc *) mCore)->indexiter ());
-                    ApvlvDir *dir = new ApvlvDir ("NORMAL", (ApvlvDoc *) mCore);
-                    birth (true, dir);
+                    if (((ApvlvDoc *) mCore)->indexiter ())
+                      {
+                        debug ("iter: %p", ((ApvlvDoc *) mCore)->indexiter ());
+                        ApvlvDir *dir = new ApvlvDir ("NORMAL", (ApvlvDoc *) mCore);
+                        birth (true, true, dir);
+                      }
                   }
               }
           }
@@ -508,7 +530,7 @@ namespace apvlv
               {
                 debug ("iter: %p", ((ApvlvDoc *) doc)->indexiter ());
                 ApvlvDir *dir = new ApvlvDir ("NORMAL", (ApvlvDoc *) mCore);
-                birth (true, dir);
+                birth (true, true, dir);
               }
           }
       }

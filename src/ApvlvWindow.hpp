@@ -58,7 +58,7 @@ namespace apvlv
        * */
       enum windowType { AW_SP, AW_VSP, AW_CORE, AW_NONE } type;
 
-      ApvlvWindow *birth (bool vsp, ApvlvCore *core = NULL);
+      ApvlvWindow *birth (bool isbrother, bool vsp, ApvlvCore *core = NULL);
 
       ApvlvWindow *unbirth (ApvlvWindow *, ApvlvWindow *);
 
@@ -93,6 +93,10 @@ namespace apvlv
 
       static ApvlvWindow *currentWindow ();
 
+      // when this window is a content of the other, or it is a body of the other. 
+      // It must be closed toghter.
+      ApvlvWindow *mBrother;
+
       ApvlvWindow *m_parent, *m_son, *m_daughter;
 
   private:
@@ -110,6 +114,8 @@ namespace apvlv
       static ApvlvWindow *m_curWindow;
 
       bool mUseContent;
+
+      bool mIsClose;
 
       ApvlvCore *mCore;
       GtkWidget *mPaned;

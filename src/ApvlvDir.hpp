@@ -115,11 +115,23 @@ namespace apvlv
 
     bool reload ();
 
+    void scrollup (int times);
+
+    void scrolldown (int times);
+
+    void scrollleft (int times);
+
+    void scrollright (int times);
+
     static void apvlv_dir_on_changed (GtkTreeSelection *, ApvlvDir *);
 
     void walk_poppler_iter_index (GtkTreeIter *titr, PopplerIndexIter *iter);
 
     void walk_path_file_index (GtkTreeIter *titr, const char *path);
+
+    static gboolean apvlv_dir_first_select_cb (ApvlvDir *);
+
+    gint mFirstSelTimer;
 
     string mPath;
     ApvlvDoc *mDoc;
@@ -128,6 +140,10 @@ namespace apvlv
 
     // directory view
     GtkWidget *mDirView;
+    GtkTreeView *mView;
+    GtkTreeStore *mStore;
+    GtkTreeIter mPrevIter, mCurrentIter;
+    GtkTreeSelection *mSelection;
     };
 
 }

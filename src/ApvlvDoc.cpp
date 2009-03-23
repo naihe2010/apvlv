@@ -182,10 +182,6 @@ namespace apvlv
           case CTRL ('u'):
             halfprepage (ct);
             break;
-          case CTRL ('w'):
-            mProCmd = CTRL ('w');
-            return NEED_MORE;
-            break;
           case ':':
           case '/':
           case '?':
@@ -237,15 +233,9 @@ namespace apvlv
             showpage (ct - 1);
             break;
           case 'm':
-            mProCmd = 'm';
-            return NEED_MORE;
-            break;
           case '\'':
-            mProCmd = '\'';
-            return NEED_MORE;
-            break;
           case 'z':
-            mProCmd = 'z';
+            mProCmd = key;
             return NEED_MORE;
             break;
           default:
