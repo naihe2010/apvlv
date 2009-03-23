@@ -966,19 +966,22 @@ namespace apvlv
   void
     ApvlvView::updatetabname ()
       {
-	const int maxlength = 26;
-	char tagname[maxlength];	
+	char tagname[26];
 	
 	const char* filename = currentWindow()->getDoc()->filename();
+        gchar *gfilename;
+
 	if (filename == NULL)
-	    filename = "None";
+	    gfilename = g_strdup ("None");
 	else
-	    filename = g_path_get_basename (filename);
+	    gfilename = g_path_get_basename (filename);
 
 	if (mTabList[mCurrTabPos].numwindows > 1)
-	    snprintf (tagname, maxlength, "[%d] %s", mTabList[mCurrTabPos].numwindows, filename);
+	    snprintf (tagname, sizeof tagname, "[%d] %s", mTabList[mCurrTabPos].numwindows, gfilename);
 	else
-	    snprintf (tagname, maxlength, "%s", filename);
+	    snprintf (tagname, sizeof tagname, "%s", gfilename);
+
+        g_free (gfilename);
 
 	GtkWidget* tabname = gtk_label_new (tagname);
 	GtkWidget* tabwidget = gtk_notebook_get_nth_page (GTK_NOTEBOOK(mTabContainer), mCurrTabPos);

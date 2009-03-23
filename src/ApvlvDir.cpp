@@ -337,15 +337,18 @@ namespace apvlv
         GtkTreeStore *store = GTK_TREE_STORE (gtk_tree_view_get_model (GTK_TREE_VIEW (mDirView)));
         do
           {
-            PopplerAction *act = poppler_index_iter_get_action (iter);
             GtkTreeIter nitr;
-            if (* (PopplerActionType *) act == POPPLER_ACTION_GOTO_DEST)
+
+            PopplerAction *act = poppler_index_iter_get_action (iter);
+            if (act && * (PopplerActionType *) act == POPPLER_ACTION_GOTO_DEST)
               {
                 PopplerActionGotoDest *pagd = (PopplerActionGotoDest *) act;
                 ApvlvDirNode *node = new ApvlvDirNode (pagd->dest->page_num - 1);
+
                 gtk_tree_store_append (store, &nitr, titr);
                 gtk_tree_store_set (store, &nitr, 0, node, 1, pagd->title, -1);
               }
+            poppler_action_free (act);
 
             PopplerIndexIter *child = poppler_index_iter_get_child (iter);
             if (child)

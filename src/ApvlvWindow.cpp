@@ -69,10 +69,18 @@ namespace apvlv
 
       mIsClose = true;
 
-      if (mBrother != NULL)
+      if (m_parent != NULL)
         {
-          delete m_parent;
-          return;
+          if (m_parent->m_son != NULL
+              && m_parent->m_son == this)
+            {
+              m_parent->m_son = NULL;
+            }
+          else if (m_parent->m_daughter != NULL
+                   && m_parent->m_daughter == this)
+            {
+              m_parent->m_daughter = NULL;
+            }
         }
 
       if (type == AW_CORE)
@@ -86,11 +94,17 @@ namespace apvlv
                   mCore = NULL;
                 }
             }
+
+          if (mBrother != NULL)
+            {
+              delete m_parent;
+              return;
+            }
         }
       else if (type == AW_SP || type == AW_VSP)
         {
           if (m_son != NULL)
-	    {
+            {
               ApvlvWindow *win = m_son;
 	      m_son = NULL;
 	      delete win;
