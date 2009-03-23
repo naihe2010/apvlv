@@ -163,6 +163,7 @@ namespace apvlv
     ApvlvWindow::process (int ct, guint key)
       {
         ApvlvWindow *nwin;
+        debug ("input [%d]", key);
 
         switch (key)
           {

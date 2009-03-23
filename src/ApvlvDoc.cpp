@@ -450,6 +450,32 @@ namespace apvlv
 
         mDoc = poppler_document_new_from_data (mRawdata, filelen, NULL, NULL);
 
+        if (mDoc == NULL
+            && POPPLER_ERROR == POPPLER_ERROR_ENCRYPTED)
+          {
+            GtkWidget *dia = 
+              gtk_message_dialog_new (NULL, 
+                                      GTK_DIALOG_DESTROY_WITH_PARENT, 
+                                      GTK_MESSAGE_QUESTION, GTK_BUTTONS_OK_CANCEL,
+                                      "Maybe this PDF file is encrypted, please input a password:");
+
+            GtkWidget *entry = gtk_entry_new ();
+            gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dia)->vbox), entry, TRUE, TRUE, 10);
+            gtk_widget_show (entry);
+
+            int ret = gtk_dialog_run (GTK_DIALOG (dia));
+            if (ret == GTK_RESPONSE_OK)
+              {
+                gchar *ans = (gchar *) gtk_entry_get_text (GTK_ENTRY (entry));
+                if (ans != NULL)
+                  {
+                    mDoc = poppler_document_new_from_data (mRawdata, filelen, ans, NULL);
+                  }
+              }
+
+            gtk_widget_destroy (dia);
+          }
+
         if (mDoc != NULL)
           {
             mIter = poppler_index_iter_new (mDoc);

@@ -8,6 +8,8 @@
 
        * add content view
 
+       * add open entrypted pdf with password support
+
      Bug fix
 
        * fix the windows open bug
