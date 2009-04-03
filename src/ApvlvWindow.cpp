@@ -71,13 +71,11 @@ namespace apvlv
 
       if (m_parent != NULL)
         {
-          if (m_parent->m_son != NULL
-              && m_parent->m_son == this)
+          if (m_parent->m_son == this)
             {
               m_parent->m_son = NULL;
             }
-          else if (m_parent->m_daughter != NULL
-                   && m_parent->m_daughter == this)
+          else if (m_parent->m_daughter == this)
             {
               m_parent->m_daughter = NULL;
             }
@@ -95,11 +93,6 @@ namespace apvlv
                 }
             }
 
-          if (mBrother != NULL)
-            {
-              delete m_parent;
-              return;
-            }
         }
       else if (type == AW_SP || type == AW_VSP)
         {
@@ -160,7 +153,13 @@ namespace apvlv
     ApvlvWindow::delcurrentWindow ()
       {
         asst (currentWindow ()->istop () == false);
+
         ApvlvWindow *crwin = currentWindow ();
+        if (crwin->mBrother)
+          {
+            crwin = crwin->m_parent;
+          }
+
         ApvlvWindow *pwin = crwin->m_parent;
         ApvlvWindow *child = crwin == pwin->m_son? pwin->m_daughter: pwin->m_son;
         ApvlvWindow *cwin = pwin->unbirth (crwin, child);

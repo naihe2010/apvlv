@@ -572,7 +572,8 @@ namespace apvlv
                 || key == CTRL ('Q')
             )
               {
-                if (currentWindow ()->istop ())
+                if (currentWindow ()->istop ()
+                    || currentWindow ()->mBrother && currentWindow ()->m_parent->istop ())
                   {
                     quit ();
                   }
@@ -783,7 +784,8 @@ namespace apvlv
               }
             else if (cmd == "q" || cmd == "quit")
               {
-                if (currentWindow ()->istop ())
+                if (currentWindow ()->istop ()
+                    || currentWindow ()->mBrother && currentWindow ()->m_parent->istop ())
                   {
                     quit ();
                   }
@@ -792,21 +794,22 @@ namespace apvlv
                     delcurrentWindow ();
                   }
               }
-	    else if (cmd == "qall")
-	      {
-		while (!mTabList.empty())
-		  {
-		    if (currentWindow ()->istop ())
-		      {
-			quit ();
-		      }
-		    else
-		      {
-			delcurrentWindow ();
-		      }
-		  }
-	      }
-	    else if (cmd == "tabnew")
+            else if (cmd == "qall")
+              {
+                while (!mTabList.empty())
+                  {
+                    if (currentWindow ()->istop ()
+                        || currentWindow ()->mBrother && currentWindow ()->m_parent->istop ())
+                      {
+                        quit ();
+                      }
+                    else
+                      {
+                        delcurrentWindow ();
+                      }
+                  }
+              }
+            else if (cmd == "tabnew")
 	      {
 		mHasTabs = true;
 		gtk_notebook_set_show_tabs (GTK_NOTEBOOK(mTabContainer), TRUE);
