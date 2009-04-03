@@ -232,7 +232,7 @@ namespace apvlv
               {
                 char ts[6];
                 snprintf (ts, 6, "%s", s);
-                warn ("Can't recognize the symbol: %s", ts);
+                warnp ("Can't recognize the symbol: %s", ts);
               }
           return s + 5;
         }

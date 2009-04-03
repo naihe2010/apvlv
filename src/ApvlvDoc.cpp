@@ -388,8 +388,8 @@ namespace apvlv
 #else
         if (use)
           {
-            warn ("No pthread, can't support cache!!!");
-            warn ("If you really have pthread, please recomplie the apvlv and try again.");
+            warnp ("No pthread, can't support cache!!!");
+            warnp ("If you really have pthread, please recomplie the apvlv and try again.");
           }
 #endif
       }
@@ -633,7 +633,8 @@ namespace apvlv
           return;
 
         mCurrentCache->set (mPagenum, false);
-        gtk_image_set_from_pixbuf (GTK_IMAGE (mImage), mCurrentCache->getbuf (true));
+        GdkPixbuf *buf = mCurrentCache->getbuf (true);
+        gtk_image_set_from_pixbuf (GTK_IMAGE (mImage), buf);
 
         mStatus->show ();
 
@@ -935,7 +936,7 @@ namespace apvlv
 
         if (ct % 90 != 0)
           {
-            warn ("Not a 90 times value, ignore.");
+            warnp ("Not a 90 times value, ignore.");
             return false;
           }
 

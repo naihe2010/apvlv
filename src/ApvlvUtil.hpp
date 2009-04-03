@@ -103,7 +103,7 @@ namespace apvlv
 #define asst(s)
 #endif
 #define info(...)       logv ("INFO", __FILE__, __LINE__, __func__, __VA_ARGS__)
-#define warn(...)       logv ("WARNNING", __FILE__, __LINE__, __func__, __VA_ARGS__)
+#define warnp(...)      logv ("WARNNING", __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define errp(...)       logv ("ERROR", __FILE__, __LINE__, __func__, __VA_ARGS__)
   void logv (const char *, const char *, int, const char *, const char *, ...);
 

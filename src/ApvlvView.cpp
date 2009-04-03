@@ -364,7 +364,7 @@ namespace apvlv
           }
 
         updatetabname ();
-        return true;
+        return ret;
       }
 
  

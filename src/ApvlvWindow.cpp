@@ -507,31 +507,29 @@ namespace apvlv
 
             ApvlvDoc *ndoc = new ApvlvDoc (gParams->value ("zoom"), bcache);
             ndoc->setsize (mWidth, mHeight);
-            bool ret = ndoc->loadfile (filename);
+            ret = ndoc->loadfile (filename);
+
             if (ret)
               {
                 replace_widget (widget (), ndoc->widget (), WR_REF);
                 ndoc->setsize (mWidth, mHeight);
-                gtk_widget_show_all (widget ());
-
                 mCore = ndoc;
-
-                if (mUseContent)
-                  {
-                    if (((ApvlvDoc *) mCore)->indexiter ())
-                      {
-                        debug ("iter: %p", ((ApvlvDoc *) mCore)->indexiter ());
-                        ApvlvDir *dir = new ApvlvDir ("NORMAL", (ApvlvDoc *) mCore);
-                        birth (true, true, dir);
-                      }
-                  }
+                gtk_widget_show_all (widget ());
               }
+          }
+
+        if (ret && mUseContent
+            && ((ApvlvDoc *) mCore)->indexiter ())
+          {
+            debug ("iter: %p", ((ApvlvDoc *) mCore)->indexiter ());
+            ApvlvDir *dir = new ApvlvDir ("NORMAL", (ApvlvDoc *) mCore);
+            birth (true, true, dir);
           }
 
         return (ApvlvDoc *) mCore;
       }
 
-        void
+  void
     ApvlvWindow::setCore (ApvlvCore *doc)
       {
         asst (type == AW_CORE);
