@@ -1,14 +1,12 @@
 0.      Bug fix.
 
-1.      Last opened direcotry open
+.      continous view
 
-2.      continous view
+.      Regex search, multiple search.
 
-3.      Regex search, multiple search.
+.      Word moving, put a curcor in the document. and 'k','j' ... moves it.
+.1     Press 'v' to select a text area, and then TOtext them or copy them to clipboard.
 
-4.      Word moving, put a curcor in the document. and 'k','j' ... moves it.
-4.1     Press 'v' to select a text area, and then TOtext them or copy them to clipboard.
+.      Other document type, like .gv, word, ?????
 
-5.      Other document type, like .gv, word, ?????
-
-6.      Edit file????????
+.      Edit file????????

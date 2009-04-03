@@ -10,6 +10,8 @@
 
        * add open entrypted pdf with password support
 
+       * add open last directory
+
      Bug fix
 
        * fix the windows open bug
