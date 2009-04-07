@@ -198,7 +198,7 @@ namespace apvlv
 
         if (len >= 4
             && *s == '<' 
-            && (e = strchr (s, '>')) != '\0'
+            && (e = strchr ((char *) s, '>')) != '\0'
             && *(s + 2) != '-')
           {
             e ++;
