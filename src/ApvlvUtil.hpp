@@ -109,9 +109,6 @@ namespace apvlv
 
 // char macro
 // because every unsigned char is < 256, so use this marco to stand for Ctrl+char, Shift+char
-#define VALIDCHAR(c)            ((c) != 65505 && (c) != 65508) // Is it enouth? 
-                                                               // I don't known. 
-                                                               // But check a table is so ugly that I can't control myself to delete it.
 #define CTRL(c)                 ((c) + 256)
 #define SHIFT(c)                (CTRL(c) + 256)
 

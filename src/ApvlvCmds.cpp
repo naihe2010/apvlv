@@ -50,6 +50,28 @@ namespace apvlv
 
 #define gek2guint(g)    ((g)->state == GDK_CONTROL_MASK? CTRL ((g)->keyval): (g)->keyval)
 
+  static inline bool 
+    modifierkey(guint k)
+      {
+        switch (k)
+          {
+          case GDK_Shift_L:
+          case GDK_Shift_R:
+          case GDK_Shift_Lock:
+          case GDK_Meta_L:
+          case GDK_Meta_R:
+          case GDK_Alt_L:
+          case GDK_Alt_R:
+          case GDK_Super_L:
+          case GDK_Super_R:
+          case GDK_Hyper_L:
+          case GDK_Hyper_R:
+            return true;
+          default:
+            return false;
+          }
+      }
+
   ApvlvCmd::ApvlvCmd ()
     {
       mType = CT_CMD;
@@ -162,28 +184,22 @@ namespace apvlv
   bool
     ApvlvCmd::append (GdkEventKey *gek)
       {
+        if (modifierkey (gek->keyval))
+          return false;
+
         if (gek->state & GDK_CONTROL_MASK)
           {
             mKeyVals.push_back (CTRL (gek->keyval));
-            return true;
           }
         else if (gek->state & GDK_SHIFT_MASK)
           {
-            if (VALIDCHAR (gek->keyval))
-              {
-                mKeyVals.push_back (gek->keyval);
-                return true;
-              }
+            mKeyVals.push_back (gek->keyval);
           }
         else
           {
-            if (VALIDCHAR (gek->keyval))
-              {
-                mKeyVals.push_back (gek->keyval);
-                return true;
-              }
+            mKeyVals.push_back (gek->keyval);
           }
-        return false;
+        return true;
       }
 
   const char *
