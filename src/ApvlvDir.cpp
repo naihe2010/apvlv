@@ -47,15 +47,39 @@ namespace apvlv
   ApvlvDirNode::ApvlvDirNode (gint p)
     {
       mPagenum = p;
+      mNamed = NULL;
+    }
+
+  ApvlvDirNode::ApvlvDirNode (const char *d)
+    {
+      mPagenum = 1;
+      mNamed = strdup (d);
     }
 
   ApvlvDirNode::~ApvlvDirNode ()
     {
+      if (mNamed != NULL)
+        {
+          free (mNamed);
+          mNamed = NULL;
+        }
     }
 
   void 
     ApvlvDirNode::show (ApvlvWindow *win)
       {
+        if (mNamed != NULL)
+          {
+            PopplerDest *destnew = poppler_document_find_dest (win->getDoc (false)->getdoc (), 
+                                                               mNamed);
+            if (destnew != NULL)
+              {
+                mPagenum = destnew->page_num - 1;
+                poppler_dest_free (destnew);
+                free (mNamed);
+                mNamed = NULL;
+              }
+          }
         win->getDoc (false)->showpage (mPagenum);
       }
 
@@ -343,7 +367,15 @@ namespace apvlv
             if (act && * (PopplerActionType *) act == POPPLER_ACTION_GOTO_DEST)
               {
                 PopplerActionGotoDest *pagd = (PopplerActionGotoDest *) act;
-                ApvlvDirNode *node = new ApvlvDirNode (pagd->dest->page_num - 1);
+                ApvlvDirNode *node = NULL;
+                if (pagd->dest->type == POPPLER_DEST_NAMED) 
+                  {
+                    node = new ApvlvDirNode (pagd->dest->named_dest);
+                  }
+                else
+                  {
+                    node = new ApvlvDirNode (pagd->dest->page_num - 1);
+                  }
 
                 gtk_tree_store_append (store, &nitr, titr);
                 gtk_tree_store_set (store, &nitr, 0, node, 1, pagd->title, -1);
@@ -378,10 +410,7 @@ namespace apvlv
         if (gtk_tree_selection_get_selected (selection, &model, &dir->mCurrentIter))
           {
             gtk_tree_model_get (model, &dir->mCurrentIter, 0, &node, 1, &title, -1);
-
             node->show (win);
-            g_print ("You selected a ref %s\n", title);
-
             g_free (title);
           }
       }

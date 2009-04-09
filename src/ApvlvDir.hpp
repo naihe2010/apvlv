@@ -42,6 +42,7 @@ namespace apvlv
     {
   public:
     ApvlvDirNode (gint p);
+    ApvlvDirNode (const char *s);
 
     virtual ~ApvlvDirNode ();
 
@@ -49,6 +50,7 @@ namespace apvlv
 
   protected:
     gint mPagenum;
+    char *mNamed;
     };
 
   class ApvlvDirNodeDir: public ApvlvDirNode
