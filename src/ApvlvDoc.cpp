@@ -451,7 +451,8 @@ namespace apvlv
         mDoc = poppler_document_new_from_data (mRawdata, filelen, NULL, NULL);
 
         if (mDoc == NULL
-            && POPPLER_ERROR == POPPLER_ERROR_ENCRYPTED)
+//            && POPPLER_ERROR == POPPLER_ERROR_ENCRYPTED) /* fix this later */
+          )
           {
             GtkWidget *dia = 
               gtk_message_dialog_new (NULL, 
