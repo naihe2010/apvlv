@@ -405,13 +405,13 @@ namespace apvlv
         type = vsp == false? AW_SP: AW_VSP;
         if (type == AW_SP)
           {
-            nwindow->setsize (mWidth, mHeight / 2);
-            nwindow2->setsize (mWidth, mHeight / 2);
+            nwindow->setsize (mWidth, isbrother? mHeight / 4: mHeight / 2);
+            nwindow2->setsize (mWidth, isbrother? mHeight - mHeight / 4: mHeight / 2);
           }
         else if (type == AW_VSP)
           {
-            nwindow->setsize (mWidth / 2, mHeight);
-            nwindow2->setsize (mWidth / 2, mHeight);
+            nwindow->setsize (isbrother? mWidth / 4: mWidth / 2, mHeight);
+            nwindow2->setsize (isbrother? mWidth - mWidth / 4: mWidth / 2, mHeight);
           }
 
         gtk_widget_show_all (mPaned);
