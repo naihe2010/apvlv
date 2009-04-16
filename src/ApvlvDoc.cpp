@@ -1200,7 +1200,7 @@ namespace apvlv
           {
             poppler_page_free_link_mapping (ac->mLinkMappings);
           }
-        ac->mLinkMappings = poppler_page_get_link_mapping (tpage);
+        ac->mLinkMappings = g_list_reverse (poppler_page_get_link_mapping (tpage));
         debug ("has mLinkMappings: %p", ac->mLinkMappings);
 
         ac->mPage = tpage;

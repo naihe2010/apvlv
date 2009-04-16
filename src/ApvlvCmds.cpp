@@ -66,6 +66,8 @@ namespace apvlv
           case GDK_Super_R:
           case GDK_Hyper_L:
           case GDK_Hyper_R:
+          case GDK_Control_L:
+          case GDK_Control_R:
             return true;
           default:
             return false;
@@ -190,10 +192,6 @@ namespace apvlv
         if (gek->state & GDK_CONTROL_MASK)
           {
             mKeyVals.push_back (CTRL (gek->keyval));
-          }
-        else if (gek->state & GDK_SHIFT_MASK)
-          {
-            mKeyVals.push_back (gek->keyval);
           }
         else
           {

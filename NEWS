@@ -10,6 +10,8 @@
 
        * add content view
 
+       * add <C-]> goto a heperlink and <C-t> to come back
+
        * add open entrypted pdf with password support
 
        * add open last directory
