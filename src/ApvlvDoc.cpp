@@ -225,6 +225,12 @@ namespace apvlv
           case 'o':
             gView->open ();
             break;
+          case CTRL (']'):
+            gotolink (ct);
+            break;
+          case CTRL ('t'):
+            returnlink (ct);
+            break;
           case 'r':
             rotate (ct);
             break;
@@ -950,6 +956,67 @@ namespace apvlv
         return true;
       }
 
+  void
+    ApvlvDoc::gotolink (int ct)
+      {
+        int nn = -1;
+
+        PopplerLinkMapping *map = (PopplerLinkMapping *) g_list_nth_data (mCurrentCache->getlinks (), ct - 1);
+
+        debug ("Ctrl-] %d", ct);
+        if (map)
+          {
+            PopplerAction *act = map->action;
+            if (act && * (PopplerActionType *) act == POPPLER_ACTION_GOTO_DEST)
+              {
+                PopplerDest *pd = ((PopplerActionGotoDest *) act)->dest;
+                if (pd->type == POPPLER_DEST_NAMED) 
+                  {
+                    PopplerDest *destnew = poppler_document_find_dest (mDoc, 
+                                                                       pd->named_dest);
+                    if (destnew != NULL)
+                      {
+                        nn = destnew->page_num - 1;
+            debug ("nn: %d", nn);
+                        poppler_dest_free (destnew);
+                      }
+                  }
+                else
+                  {
+                    nn = pd->page_num - 1;
+            debug ("nn: %d", nn);
+                  }
+              }
+          }
+
+        if (nn >= 0)
+          {
+            markposition ('\'');
+
+            ApvlvDocPosition p = { mPagenum, scrollrate () };
+            mLinkPositions.push_back (p);
+
+            showpage (nn);
+          }
+      }
+
+  void
+    ApvlvDoc::returnlink (int ct)
+      {
+        debug ("Ctrl-t %d", ct);
+        if (ct <= (int) mLinkPositions.size () && ct > 0)
+          {
+            markposition ('\'');
+            ApvlvDocPosition p = { 0, 0 };
+            while (ct -- > 0)
+              {
+                p = mLinkPositions[mLinkPositions.size () - 1];
+                mLinkPositions.pop_back ();
+              }
+            showpage (p.pagenum, p.scrollrate);
+          }
+      }
+
   bool
     ApvlvDoc::print (int ct)
       {
@@ -1043,6 +1110,7 @@ namespace apvlv
       mPagenum = -1;
       mData = NULL;
       mBuf = NULL;
+      mLinkMappings = NULL;
 #ifdef HAVE_PTHREAD
       mDelay = 0;
       mThreadRunning = false;
@@ -1128,6 +1196,13 @@ namespace apvlv
         pthread_mutex_unlock (&rendermutex);
 #endif
 
+        if (ac->mLinkMappings)
+          {
+            poppler_page_free_link_mapping (ac->mLinkMappings);
+          }
+        ac->mLinkMappings = poppler_page_get_link_mapping (tpage);
+        debug ("has mLinkMappings: %p", ac->mLinkMappings);
+
         ac->mPage = tpage;
         ac->mData = dat;
         ac->mBuf = bu;
@@ -1148,6 +1223,11 @@ namespace apvlv
           mThreadRunning = false;
         }
 #endif
+      if (mLinkMappings)
+        {
+          poppler_page_free_link_mapping (mLinkMappings);
+        }
+
       if (mData != NULL)
         delete []mData;
       if (mBuf != NULL)
@@ -1217,6 +1297,12 @@ namespace apvlv
       return bu;
 #endif
     }
+
+  GList *
+    ApvlvDocCache::getlinks ()
+      {
+        return mLinkMappings;
+      }
 
   ApvlvDocStatus::ApvlvDocStatus (ApvlvDoc *doc)
     {

@@ -3,6 +3,8 @@
 
     News features
 
+       * Warnning !!! change 'goto' command's 'g' to 'G'
+
        * add tab view
          add :tabnew and 'gt' 'gg' 'gT' 'g[n]' command to support tab switch, change goto page command from 'g' to 'G'
 
@@ -15,6 +17,7 @@
      Bug fix
 
        * fix the windows open bug
+
        * fix the keys can't work on 64bit platform
 
 

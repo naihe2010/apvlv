@@ -87,6 +87,8 @@ namespace apvlv
 
     GdkPixbuf *getbuf (bool wait);
 
+    GList *getlinks ();
+
   private:
 #ifdef HAVE_PTHREAD
     bool mThreadRunning;
@@ -98,6 +100,7 @@ namespace apvlv
 
     ApvlvDoc *mDoc;
     PopplerPage *mPage;
+    GList *mLinkMappings;
     gint mPagenum;
     guchar *mData;
     GdkPixbuf *mBuf;
@@ -191,6 +194,10 @@ namespace apvlv
 
     GList * searchpage (int num);
 
+    void gotolink (int ct);
+
+    void returnlink (int ct);
+
     void refresh ();
 
     bool reload ();
@@ -222,6 +229,7 @@ namespace apvlv
     PopplerIndexIter *mIter;
 
     ApvlvDocPositionMap mPositions;
+    vector <ApvlvDocPosition> mLinkPositions;
 
 #ifdef HAVE_PTHREAD
     bool mUseCache;
