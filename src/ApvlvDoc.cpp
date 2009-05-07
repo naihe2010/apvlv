@@ -73,6 +73,10 @@ namespace apvlv
 
       mReady = false;
 
+      mZoominit = false;
+      mLines = 50;
+      mChars = 80;
+
       mIter = NULL;
 
       mProCmd = 0;
@@ -487,9 +491,6 @@ namespace apvlv
           {
             mIter = poppler_index_iter_new (mDoc);
 
-            mZoominit = false;
-            mLines = 50;
-            mChars = 80;
             mFilestr = filename;
 
 #ifdef HAVE_PTHREAD
