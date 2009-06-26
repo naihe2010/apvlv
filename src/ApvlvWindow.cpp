@@ -487,6 +487,29 @@ namespace apvlv
       }
 
   ApvlvCore *
+    ApvlvWindow::loadDir (const char *path)
+      {
+        asst (type == AW_CORE);
+        debug ("new dir");
+        bool bcache = false;
+        const char *scache = gParams->value ("cache");
+        if (strcmp (scache, "yes") == 0)
+          {
+            debug ("use cache");
+            bcache = true;
+          }
+
+        ApvlvDir *ndir = new ApvlvDir (gParams->value ("zoom"), path);
+        replace_widget (widget (), ndir->widget (), WR_REF);
+        ndir->setsize (mWidth, mHeight);
+        mCore = ndir;
+        debug ("mCore %p", mCore);
+        gtk_widget_show_all (widget ());
+
+        return mCore;
+      }
+
+  ApvlvCore *
     ApvlvWindow::loadDoc (const char *filename)
       {
         asst (type == AW_CORE);

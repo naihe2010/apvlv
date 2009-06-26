@@ -70,6 +70,8 @@ namespace apvlv
 
       ApvlvCore *loadDoc (const char *filename);
 
+      ApvlvCore *loadDir (const char *path);
+
       ApvlvDoc *getDoc (bool remove = false);
 
       void setCore (ApvlvCore *core);

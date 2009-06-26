@@ -46,6 +46,9 @@ namespace apvlv
   extern string helppdf;
   extern string iniexam;
   extern string inifile;
+  extern string icondir;
+  extern string iconreg;
+  extern string iconpdf;
   extern string sessionfile;
 
 #ifdef WIN32
@@ -84,8 +87,7 @@ namespace apvlv
 #include <wtypes.h>
 #include <winbase.h>
 #define usleep(x)    Sleep((x) / 1000)
-#define snprintf     _snprintf
-#define __func__     ""
+#define __func__     __FUNCTION__
 #endif
 
 // log system

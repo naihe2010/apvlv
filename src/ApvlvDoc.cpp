@@ -229,6 +229,9 @@ namespace apvlv
           case 'o':
             gView->open ();
             break;
+          case 'O':
+            gView->opendir ();
+            break;
           case CTRL (']'):
             gotolink (ct);
             break;

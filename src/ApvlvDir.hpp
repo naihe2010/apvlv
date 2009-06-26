@@ -117,6 +117,8 @@ namespace apvlv
 
     bool reload ();
 
+    bool enter ();
+
     void scrollup (int times);
 
     void scrolldown (int times);
@@ -124,6 +126,8 @@ namespace apvlv
     void scrollleft (int times);
 
     void scrollright (int times);
+
+    static void apvlv_dir_on_changed0 (GtkTreeSelection *, ApvlvDir *);
 
     static void apvlv_dir_on_changed (GtkTreeSelection *, ApvlvDir *);
 
@@ -141,8 +145,13 @@ namespace apvlv
     ApvlvWindow *mWindow;
 
     // directory view
+    GSList *fileinfos;
+
+    static void icon_data_func (GtkTreeViewColumn *, GtkCellRenderer *, GtkTreeModel *, GtkTreeIter *, gpointer);
+
+    static void text_data_func (GtkTreeViewColumn *, GtkCellRenderer *, GtkTreeModel *, GtkTreeIter *, gpointer);
+
     GtkWidget *mDirView;
-    GtkTreeView *mView;
     GtkTreeStore *mStore;
     GtkTreeIter mPrevIter, mCurrentIter;
     GtkTreeSelection *mSelection;

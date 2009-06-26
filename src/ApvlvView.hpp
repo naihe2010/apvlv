@@ -79,9 +79,14 @@ namespace apvlv
 
     bool loadfile (const char *filename);
 
+    bool loaddir (const char *path);
+
     ApvlvDoc * hasloaded (const char *filename);
 
     void open ();
+
+    void opendir ();
+
     void close ();
 
     void quit ();

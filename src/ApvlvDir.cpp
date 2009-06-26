@@ -27,6 +27,7 @@
 /* @date Created: 2009/01/03 23:28:26 Alf*/
 
 #include "ApvlvView.hpp"
+#include "ApvlvParams.hpp"
 #include "ApvlvDir.hpp"
 
 #include <stdlib.h>
@@ -37,6 +38,7 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #include <glib/poppler.h>
+#include <glib/gstdio.h>
 
 #include <iostream>
 #include <fstream>
@@ -44,6 +46,27 @@
 
 namespace apvlv
 {
+  typedef struct
+    {
+      GtkTreeIter itr[1];
+
+      gboolean isdir;
+      char last[0x40];
+      char realname[PATH_MAX];
+      char filename[0x100];
+      char modified[0x100];
+
+      GSList *subfiles;
+
+    } fileinfo_t;
+
+  static void fileinfo_free (GSList *);
+  static GSList * fileinfo_new (GSList *, const char *, const char *, struct stat *);
+  static fileinfo_t * fileinfo_find (GSList *, GtkTreeModel *, GtkTreeIter *);
+
+  static GSList * dir_to_list (const char *);
+  static void list_to_store (GSList *, GtkTreeStore *, GtkTreeIter *);
+
   ApvlvDirNode::ApvlvDirNode (gint p)
     {
       mPagenum = p;
@@ -119,20 +142,37 @@ namespace apvlv
 
       mRotatevalue = 0;
 
-      mStore = gtk_tree_store_new (2, G_TYPE_POINTER, G_TYPE_STRING);
-      mDirView = gtk_tree_view_new_with_model (GTK_TREE_MODEL (mStore));
-      gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (mDirView), FALSE);
-      gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mScrollwin),
-                                             mDirView);
+      fileinfos = NULL;
 
-      GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
-      g_object_set (G_OBJECT (renderer), "foreground", "black", "background", "white", NULL);
-      GtkTreeViewColumn *column = gtk_tree_view_column_new_with_attributes ("title", renderer, "text", 1, NULL);
-      gtk_tree_view_column_set_resizable (column, FALSE);
-      gtk_tree_view_append_column (GTK_TREE_VIEW (mDirView), column);
+      GType types[] = {
+          G_TYPE_STRING,		/* name */
+          G_TYPE_STRING,		/* modified */
+      };
+
+      mStore = gtk_tree_store_newv (sizeof types / sizeof types[0], types);
+
+      mDirView = gtk_tree_view_new_with_model (GTK_TREE_MODEL (mStore));
+      gtk_container_add (GTK_CONTAINER (mScrollwin), mDirView);
 
       mSelection = gtk_tree_view_get_selection (GTK_TREE_VIEW (mDirView));
-      g_signal_connect (G_OBJECT (mSelection), "changed", G_CALLBACK (apvlv_dir_on_changed), this);
+      g_signal_connect (G_OBJECT (mSelection), "changed", G_CALLBACK (apvlv_dir_on_changed0), this);
+
+      /* Name Column */
+      GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
+      GtkTreeViewColumn *column = gtk_tree_view_column_new_with_attributes ("Name", renderer, "text", 0, NULL);
+      gtk_tree_view_column_set_sort_column_id (column, 0);
+
+      gtk_tree_view_append_column (GTK_TREE_VIEW (mDirView), column);
+
+      /* Modification column */
+      renderer = gtk_cell_renderer_text_new ();
+      column = gtk_tree_view_column_new_with_attributes ("Modified", renderer, "text", 1, NULL);
+      gtk_tree_view_column_set_sort_column_id (column, 1);
+/*  gtk_tree_view_column_set_cell_data_func (column, renderer,
+                                               text_data_func,
+                                               this, NULL);*/      
+
+      gtk_tree_view_append_column (GTK_TREE_VIEW (mDirView), column);
 
       mStatus = new ApvlvDirStatus (this);
 
@@ -141,7 +181,14 @@ namespace apvlv
 
       gtk_widget_show_all (mVbox);
 
+      fileinfos = dir_to_list (path);
+      list_to_store (fileinfos, mStore, NULL);
+
       setzoom (zm);
+
+      mFirstSelTimer = g_timeout_add (50, (gboolean (*) (gpointer)) apvlv_dir_first_select_cb, this);
+
+      mReady = true;
     }
 
   ApvlvDir::ApvlvDir (const char *zm, ApvlvDoc *doc)
@@ -149,6 +196,8 @@ namespace apvlv
       mReady = false;
 
       mProCmd = 0;
+
+      fileinfos = NULL;
 
       mRotatevalue = 0;
 
@@ -187,6 +236,11 @@ namespace apvlv
 
   ApvlvDir::~ApvlvDir ()
     {
+      if (fileinfos)
+        {
+          fileinfo_free (fileinfos);
+        }
+
       delete mStatus;
     }
 
@@ -220,6 +274,9 @@ namespace apvlv
           case '?':
             gView->promptcommand (key);
             return NEED_MORE;
+          case GDK_Return:
+            enter ();
+            break;
           case 'H':
             scrollto (0.0);
             break;
@@ -253,6 +310,37 @@ namespace apvlv
           }
 
         return MATCH;
+      }
+
+  bool 
+    ApvlvDir::enter ()
+      {
+        debug ("enter pressed");
+        fileinfo_t *info;
+
+        info = fileinfo_find (fileinfos, GTK_TREE_MODEL (mStore), &mCurrentIter);
+        if (info == NULL
+            || info->isdir)
+          {
+            return false;
+          }
+
+        bool bcache = false;
+        const char *scache = gParams->value ("cache");
+        if (strcmp (scache, "yes") == 0)
+          {
+            bcache = true;
+          }
+
+        ApvlvDoc *ndoc = new ApvlvDoc (gParams->value ("zoom"), bcache);
+        ndoc->setsize (mWidth, mHeight);
+        ndoc->loadfile (info->realname);
+        ndoc->setsize (mWidth, mHeight);
+
+        ApvlvWindow *win = ApvlvWindow::currentWindow ();
+        win->setCore (ndoc);
+
+        return true;
       }
 
   void
@@ -398,6 +486,13 @@ namespace apvlv
       }
 
   void
+    ApvlvDir::apvlv_dir_on_changed0 (GtkTreeSelection *selection, ApvlvDir *dir)
+      {
+        GtkTreeModel *model;
+        gtk_tree_selection_get_selected (selection, &model, &dir->mCurrentIter);
+      }
+
+  void
     ApvlvDir::apvlv_dir_on_changed (GtkTreeSelection *selection, ApvlvDir *dir)
       {
         ApvlvDirNode *node;
@@ -496,5 +591,240 @@ namespace apvlv
             gtk_tree_selection_select_iter (dir->mSelection, &gtir);
           }
         return FALSE;
+      }
+
+  static void
+    fileinfo_free (GSList *fileinfos)
+      {
+        GSList *list;
+        fileinfo_t *info;
+
+        if ((list = fileinfos) != NULL)
+          {
+            do
+              {
+                info = (fileinfo_t *) list->data;
+
+                if (info->subfiles != NULL)
+                  {
+                    fileinfo_free (info->subfiles);
+                  }
+                free (info);
+              }
+            while ((list = g_slist_next (list)) != NULL);
+
+            g_slist_free (fileinfos);
+            fileinfos = NULL;
+          }
+      }
+
+  static GSList *
+    fileinfo_new (GSList *list, const char *real, const char *file, struct stat *stat)
+      {
+        fileinfo_t *info;
+        struct tm *tmp;
+        gboolean isdir;
+        GSList *sublist;
+
+        if (S_ISDIR (stat->st_mode))
+          {
+            isdir = true;
+            sublist = dir_to_list (real);
+          }
+        else
+          {
+            if (g_ascii_strncasecmp (file + strlen (file) - 4, ".pdf", 4) != 0)
+              {
+                debug ("avoid file: %s", file);
+                return list;
+              }
+
+            isdir = false;
+            sublist = NULL;
+          }
+
+        info = (fileinfo_t *) calloc (1, sizeof (fileinfo_t));
+        if (info == NULL)
+          {
+            return list;
+          }
+
+        tmp = localtime (&stat->st_mtime);
+        strftime (info->last, sizeof info->last, "%Y-%h-%m %H:%M:%S", tmp);
+
+        info->isdir = isdir;
+        if (info->isdir)
+          {
+            info->subfiles = sublist;
+          }
+        g_snprintf (info->realname, sizeof info->realname, real);
+        g_snprintf (info->filename, sizeof info->filename, file);
+
+        if (isdir)
+          {
+            list = g_slist_prepend (list, info);
+          }
+        else
+          {
+            list = g_slist_append (list, info);
+          }
+
+        return list;
+      }
+
+  static fileinfo_t *
+    fileinfo_find (GSList *fileinfos, GtkTreeModel *model, GtkTreeIter * itr)
+      {
+        GSList *list;
+        GtkTreePath *path, *ipath;
+        fileinfo_t *info;
+
+        path = gtk_tree_model_get_path (model, itr);
+        if (path == NULL)
+          {
+            return NULL;
+          }
+
+        for (list = fileinfos; list != NULL; list = g_slist_next (list))
+          {
+            info = (fileinfo_t *) list->data;
+            ipath = gtk_tree_model_get_path (model, info->itr);
+            if (ipath == NULL)
+              {
+                continue;
+              }
+
+            if (gtk_tree_path_compare (path, ipath) == 0)
+              {
+                gtk_tree_path_free (ipath);
+                gtk_tree_path_free (path);
+                return info;
+              }
+            gtk_tree_path_free (ipath);
+
+            if (info->subfiles != NULL)
+              {
+                info = fileinfo_find (info->subfiles, model, itr);
+                if (info != NULL)
+                  {
+                    gtk_tree_path_free (path);
+                    return info;
+                  }
+              }
+          }
+
+        gtk_tree_path_free (path);
+        return NULL;
+      }
+
+  static GSList * 
+    dir_to_list (const char *path)
+      {
+        GSList *list = NULL;
+
+        GDir *dir = g_dir_open (path, 0, NULL);
+        if (dir != NULL)
+          {
+            const gchar *name;
+            while ((name = g_dir_read_name (dir)) != NULL)
+              {
+                if (strcmp (name, ".") == 0)
+                  {
+                    debug ("avoid hidden file: %s", name);
+                    continue;
+                  }
+
+                gchar *realname = g_strjoin ("/", path, name, NULL);
+                debug ("add a item: %s[%s]", name, realname);
+
+                struct stat buf[1];
+                g_stat (realname, buf);
+                list = fileinfo_new (list, realname, name, buf);
+                g_free (realname);
+              }
+          }
+        g_dir_close (dir);
+
+        return list;
+      }
+
+  static void 
+    list_to_store (GSList *list, GtkTreeStore *store, GtkTreeIter *itr)
+      {
+        fileinfo_t *info;
+        GSList *node;
+
+        for (node = list; node; node = g_slist_next (node))
+          {
+            debug ("");
+            info = (fileinfo_t *) node->data;
+            gtk_tree_store_append (store, info->itr, itr);
+            gtk_tree_store_set (store, info->itr, 0, info->filename, 1, info->last, -1);
+            if (info->subfiles != NULL)
+              {
+                list_to_store (info->subfiles, store, info->itr);
+              }
+          }
+      }
+
+  void
+    ApvlvDir::icon_data_func (GtkTreeViewColumn * column,
+                    GtkCellRenderer * cell,
+                    GtkTreeModel * model, GtkTreeIter * iter, gpointer data)
+      {
+        GSList *list = ((ApvlvDir *) data)->fileinfos;
+        fileinfo_t *info;
+        GdkPixbuf *pixbuf;
+
+        info = fileinfo_find (list, model, iter);
+        if (info)
+          {
+            if (info->isdir)
+              {
+                pixbuf =
+                  gdk_pixbuf_new_from_file_at_size (icondir.c_str (), 40, 20, NULL);
+              }
+            else if (info->isdir == false)
+              {
+                pixbuf =
+                  gdk_pixbuf_new_from_file_at_size (iconreg.c_str (), 40, 20, NULL);
+              }
+            else
+              {
+                pixbuf =
+                  gdk_pixbuf_new_from_file_at_size (iconpdf.c_str (), 40, 20, NULL);
+              }
+
+            if (pixbuf)
+              {
+                g_object_set (cell, "pixbuf", pixbuf, NULL);
+                g_object_unref (pixbuf);
+              }
+          }
+      }
+
+  void
+    ApvlvDir::text_data_func (GtkTreeViewColumn * column,
+                    GtkCellRenderer * cell,
+                    GtkTreeModel * model, GtkTreeIter * iter, gpointer data)
+      {
+        GSList *list = ((ApvlvDir *) data)->fileinfos;
+        fileinfo_t *info;
+        gint id;
+
+        info = fileinfo_find (list, model, iter);
+        if (info)
+          {
+            id = gtk_tree_view_column_get_sort_column_id (column);
+            asst (id >= 0);
+            if (id == 0)
+              {
+                g_object_set (cell, "text", info->filename, NULL);
+              }
+            else if (id == 1)
+              {
+                g_object_set (cell, "text", info->last, NULL);
+              }
+          }
       }
 }

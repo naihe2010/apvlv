@@ -217,6 +217,90 @@ namespace apvlv
         gtk_widget_destroy (dia);
       }
 
+  void
+    ApvlvView::opendir ()
+      {
+        const char *lastfile = NULL;
+        gchar *dirname;
+
+        char *path = absolutepath (sessionfile.c_str ());
+        ifstream os (path, ios::in);
+        g_free (path);
+
+        string line, files;
+        if (os.is_open ())
+          {
+
+            while ((getline (os, line)) != NULL)
+              {
+                const char *p = line.c_str ();
+
+                if (*p == '>')
+                  {
+                    stringstream ss (++ p);
+                    ss >> files;
+                    lastfile = files.c_str ();
+                  }
+              }
+            os.close ();
+          }
+
+        GtkWidget *dia = gtk_file_chooser_dialog_new ("",
+                                                      GTK_WINDOW (mMainWindow),
+                                                      GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
+                                                      GTK_STOCK_CANCEL,
+                                                      GTK_RESPONSE_CANCEL,
+                                                      GTK_STOCK_OK,
+                                                      GTK_RESPONSE_ACCEPT,
+                                                      NULL);
+        dirname = lastfile? g_dirname (lastfile): g_strdup (gParams->value ("defaultdir"));
+        gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dia), dirname);
+        g_free (dirname);
+
+        /*
+        GtkFileFilter *filter = gtk_file_filter_new ();
+        gtk_file_filter_add_mime_type (filter, "PDF File");
+        gtk_file_filter_add_pattern (filter, "*.pdf");
+        gtk_file_filter_add_pattern (filter, "*.PDF");
+        gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dia), filter); */
+
+        gint ret = gtk_dialog_run (GTK_DIALOG (dia));
+        if (ret == GTK_RESPONSE_ACCEPT)
+          {
+            gchar *filename =
+              gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dia));
+
+            loaddir (filename);
+            g_free (filename);
+          }
+        gtk_widget_destroy (dia);
+      }
+
+  bool
+    ApvlvView::loaddir (const char *path)
+      {
+        bool ret = false;
+        ApvlvDoc *ndoc = hasloaded (path);
+        if (ndoc != NULL)
+          {
+            currentWindow ()->setCore (ndoc);
+            ret = true;
+          }
+        else
+          {
+            ApvlvCore *ncore = currentWindow ()->loadDir (path);
+            ndoc = (ApvlvDoc *) ncore;
+            if (ndoc)
+              {
+                mDocs[path] = ndoc;
+                ret = true;
+              }
+          }
+
+        updatetabname ();
+        return ret;
+      }
+
   bool 
     ApvlvView::loadfile (string file)
       { 
