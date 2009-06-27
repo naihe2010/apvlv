@@ -362,6 +362,7 @@ namespace apvlv
         if (doc == NULL)
           {
             doc = mCore->copy ();
+            gView->regloaded (doc);
           }
 
         ApvlvWindow *nwindow = new ApvlvWindow (doc);

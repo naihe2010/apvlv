@@ -136,8 +136,6 @@ public:
 
   bool hascontent ();
 
-  PopplerIndexIter *indexiter ();
-
   PopplerDocument *getdoc ();
 
   ApvlvDoc *copy ();
@@ -221,12 +219,7 @@ private:
                          GtkPrintContext   *context,
                          PrintData         *data);
 
-  char *mRawdata;
-
-  size_t mRawdatasize;
-
   PopplerDocument *mDoc;
-  PopplerIndexIter *mIter;
 
   ApvlvDocPositionMap mPositions;
   vector <ApvlvDocPosition> mLinkPositions;

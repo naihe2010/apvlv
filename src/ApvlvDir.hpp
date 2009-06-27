@@ -38,46 +38,23 @@
 
 namespace apvlv
 {
+  class ApvlvDir;
   class ApvlvDirNode
     {
   public:
-    ApvlvDirNode (gint p);
-    ApvlvDirNode (const char *s);
+    ApvlvDirNode (gint);
+    ApvlvDirNode (bool isdir, const char *, const char *);
+    ~ApvlvDirNode ();
 
-    virtual ~ApvlvDirNode ();
+    //
+    // Get the destination
+    bool dest (const char **realpath, int *pagenum);
 
-    virtual void show (ApvlvWindow *);
-
-  protected:
-    gint mPagenum;
-    char *mNamed;
+  private:
+    gint mPagenum;      /* -1 means dir, 0 means file, > 0 means page num */
+    char filename[0x100];
+    char *realname;
     };
-
-  class ApvlvDirNodeDir: public ApvlvDirNode
-  {
-public:
-  ApvlvDirNodeDir (const char *filename);
-
-  virtual ~ApvlvDirNodeDir ();
-
-  virtual void show (ApvlvWindow *);
-
-protected:
-  string mPath;
-  };
-
-  class ApvlvDirNodeFile: public ApvlvDirNodeDir
-  {
-public:
-  ApvlvDirNodeFile (const char *path, const char *file);
-
-  virtual ~ApvlvDirNodeFile ();
-
-  virtual void show (ApvlvWindow *);
-
-protected:
-  string mFile;
-  };
 
   class ApvlvDir;
   class ApvlvDirStatus: public ApvlvCoreStatus
@@ -102,9 +79,9 @@ private:
   class ApvlvDir: public ApvlvCore
   {
 public:
-  ApvlvDir (const char *zm, const char *path);
+  ApvlvDir (int w, int h, const char *path);
 
-  ApvlvDir (const char *zm, ApvlvDoc *doc);
+  ApvlvDir (int w, int h, PopplerDocument *);
 
   ~ApvlvDir ();
 
@@ -113,6 +90,9 @@ public:
   returnType process (int times, guint keyval);
 
 private:
+
+  void init_ui (int w, int h);
+
   returnType subprocess (int ct, guint key);
 
   bool reload ();
@@ -127,29 +107,19 @@ private:
 
   void scrollright (int times);
 
-  static void apvlv_dir_on_changed0 (GtkTreeSelection *, ApvlvDir *);
-
   static void apvlv_dir_on_changed (GtkTreeSelection *, ApvlvDir *);
 
-  void walk_poppler_iter_index (GtkTreeIter *titr, PopplerIndexIter *iter);
+  bool walk_poppler_iter_index (GtkTreeIter *titr, PopplerIndexIter *iter);
 
-  void walk_path_file_index (GtkTreeIter *titr, const char *path);
+  bool walk_dir_path_index (GtkTreeIter *titr, const char *path);
 
   static gboolean apvlv_dir_first_select_cb (ApvlvDir *);
 
   gint mFirstSelTimer;
 
-  string mPath;
-  ApvlvDoc *mDoc;
+  PopplerDocument *mDoc;
 
-  ApvlvWindow *mWindow;
-
-  // directory view
-  GSList *fileinfos;
-
-  static void icon_data_func (GtkTreeViewColumn *, GtkCellRenderer *, GtkTreeModel *, GtkTreeIter *, gpointer);
-
-  static void text_data_func (GtkTreeViewColumn *, GtkCellRenderer *, GtkTreeModel *, GtkTreeIter *, gpointer);
+  GSList *mDirNodes;
 
   GtkWidget *mDirView;
   GtkTreeStore *mStore;

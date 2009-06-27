@@ -270,9 +270,9 @@ namespace apvlv
         ApvlvCore *ndoc = hasloaded (path, CORE_DIR);
         if (ndoc == NULL)
           {
-            ApvlvCore *ncore = new ApvlvDir (gParams->values ("zoom"), path);
-            ncore->setsize (mWidth, mHeight);
-            ndoc = (ApvlvDoc *) ncore;
+            int w, h;
+            currentWindow ()->getsize (&w, &h);
+            ndoc = new ApvlvDir (w, h, path);
             regloaded (ndoc);
           }
 
@@ -415,18 +415,43 @@ namespace apvlv
         char *abpath = absolutepath (filename);
         if (abpath != NULL)
           {
-            ApvlvCore *ndoc = hasloaded (abpath, CORE_DOC);
+            ApvlvWindow *win = ApvlvWindow::currentWindow ();
+            ApvlvCore *ndoc;
+
+            ndoc = hasloaded (abpath, gParams->valueb ("content") ? CORE_CONTENT : CORE_DOC);
+
             if (ndoc == NULL)
               {
-                ApvlvWindow *win = ApvlvWindow::currentWindow ();
                 int w, h;
                 win->getsize (&w, &h);
-                ApvlvCore *ncore = new ApvlvDoc (w, h, gParams->values ("zoom"), false);
-                ndoc = (ApvlvDoc *) ncore;
-                ndoc->loadfile (filename);
-                regloaded (ncore);
-                win->setCore (ncore);
+                if (gParams->valueb ("content"))
+                  {
+                    PopplerDocument *doc = file_to_popplerdoc (filename);
+                    if (doc == NULL)
+                      {
+                        g_free (abpath);
+                        return false;
+                      }
+
+                    PopplerIndexIter *iter = poppler_index_iter_new (doc);
+                    if (iter == NULL)
+                      {
+                        ndoc = new ApvlvDoc (w, h, gParams->values ("zoom"), false);
+                        ndoc->loadfile (filename);
+                      }
+                    else
+                      {
+                        ndoc = new ApvlvDir (w, h, doc);
+                      }
+                  }
+                else
+                  {
+                    ndoc = new ApvlvDoc (w, h, gParams->values ("zoom"), false);
+                    ndoc->loadfile (filename);
+                  }
+                regloaded (ndoc);
               }
+            win->setCore (ndoc);
             g_free (abpath);
           }
 

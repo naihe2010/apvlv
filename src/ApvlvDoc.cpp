@@ -77,13 +77,10 @@ namespace apvlv
       mLines = 50;
       mChars = 80;
 
-      mIter = NULL;
-
       mProCmd = 0;
 
       mRotatevalue = 0;
 
-      mRawdata = NULL;
       mDoc = NULL;
 
       mResults = NULL;
@@ -105,11 +102,6 @@ namespace apvlv
 
   ApvlvDoc::~ApvlvDoc ()
     {
-      if (mIter)
-        {
-          poppler_index_iter_free (mIter);
-        }
-
       if (mCurrentCache)
         delete mCurrentCache;
 #ifdef HAVE_PTHREAD
@@ -127,9 +119,6 @@ namespace apvlv
           savelastposition ();
         }
       mPositions.clear ();
-
-      if (mRawdata != NULL)
-        delete []mRawdata;
 
       delete mStatus;
     }
@@ -259,12 +248,6 @@ namespace apvlv
           }
 
         return MATCH;
-      }
-
-  PopplerIndexIter *
-    ApvlvDoc::indexiter ()
-      {
-        return mIter;
       }
 
   ApvlvDoc *
@@ -422,80 +405,9 @@ namespace apvlv
 
         mReady = false;
 
-        mIter = NULL;
-
-#ifdef WIN32
-        gchar *wfilename = g_win32_locale_filename_from_utf8 (filename);
-#else
-        gchar *wfilename = (gchar *) filename;
-#endif
-        size_t filelen;
-        struct stat sbuf;
-        int rt = stat (wfilename, &sbuf);
-        if (rt < 0)
-          {
-            errp ("Can't stat the PDF file: %s.", filename);
-            return false;
-          }
-        filelen = sbuf.st_size;
-
-        if (mRawdata != NULL
-            && mRawdatasize < filelen)
-          {
-            delete []mRawdata;
-            mRawdata = NULL;
-          }
-
-        if (mRawdata == NULL)
-          {
-            mRawdata = new char[filelen];
-            mRawdatasize = filelen;
-          }
-
-        ifstream ifs (wfilename, ios::binary);
-        if (ifs.is_open ())
-          {
-            ifs.read (mRawdata, filelen);
-            ifs.close ();
-          }
-
-#ifdef WIN32
-        g_free (wfilename);
-#endif
-
-        mDoc = poppler_document_new_from_data (mRawdata, filelen, NULL, NULL);
-
-        if (mDoc == NULL
-            //            && POPPLER_ERROR == POPPLER_ERROR_ENCRYPTED) /* fix this later */
-          )
-            {
-              GtkWidget *dia = 
-                gtk_message_dialog_new (NULL, 
-                                        GTK_DIALOG_DESTROY_WITH_PARENT, 
-                                        GTK_MESSAGE_QUESTION, GTK_BUTTONS_OK_CANCEL,
-                                        "Maybe this PDF file is encrypted, please input a password:");
-
-              GtkWidget *entry = gtk_entry_new ();
-              gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dia)->vbox), entry, TRUE, TRUE, 10);
-              gtk_widget_show (entry);
-
-              int ret = gtk_dialog_run (GTK_DIALOG (dia));
-              if (ret == GTK_RESPONSE_OK)
-                {
-                  gchar *ans = (gchar *) gtk_entry_get_text (GTK_ENTRY (entry));
-                  if (ans != NULL)
-                    {
-                      mDoc = poppler_document_new_from_data (mRawdata, filelen, ans, NULL);
-                    }
-                }
-
-              gtk_widget_destroy (dia);
-            }
-
+        mDoc = file_to_popplerdoc (filename);
         if (mDoc != NULL)
           {
-            mIter = poppler_index_iter_new (mDoc);
-
             mFilestr = filename;
 
 #ifdef HAVE_PTHREAD
