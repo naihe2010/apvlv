@@ -1,29 +1,29 @@
 /*
-* This file is part of the apvlv package
-*
-* Copyright (C) 2008 Alf.
-*
-* Contact: Alf <naihe2010@gmail.com>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2.0 of
-* the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* General Public License for more details.
-*
-* You should have received a copy of the GNU General Public
-* License along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*
-*/
+ * This file is part of the apvlv package
+ *
+ * Copyright (C) 2008 Alf.
+ *
+ * Contact: Alf <naihe2010@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2.0 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
 /* @CFILE ApvlvCore.cpp
-*
-*  Author: Alf <naihe2010@gmail.com>
-*/
+ *
+ *  Author: Alf <naihe2010@gmail.com>
+ */
 /* @date Created: 2009/01/04 09:34:51 Alf*/
 
 #include "ApvlvCore.hpp"
@@ -46,6 +46,7 @@ namespace apvlv
       mSearchstr = "";
 
       mVbox = gtk_vbox_new (FALSE, 0);
+      g_object_ref (mVbox);
 
       mScrollwin = gtk_scrolled_window_new (NULL, NULL);
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin), GTK_POLICY_AUTOMATIC,
@@ -57,7 +58,20 @@ namespace apvlv
 
   ApvlvCore::~ApvlvCore ()
     {
+      g_object_unref (mVbox);
     }
+
+  bool
+    ApvlvCore::inuse ()
+      {
+        return mInuse;
+      }
+
+  int
+    ApvlvCore::type ()
+      {
+        return mType;
+      }
 
   returnType
     ApvlvCore::process (int ct, guint key)
@@ -104,15 +118,15 @@ namespace apvlv
   void
     ApvlvCore::setzoom (const char *z)
       {
-        if (strcmp (z, "normal") == 0)
+        if (strcasecmp (z, "normal") == 0)
           {
             mZoommode = NORMAL;
           }
-        if (strcmp (z, "fitwidth") == 0)
+        if (strcasecmp (z, "fitwidth") == 0)
           {
             mZoommode = FITWIDTH;
           }
-        if (strcmp (z, "fitheight") == 0)
+        if (strcasecmp (z, "fitheight") == 0)
           {
             mZoommode = FITHEIGHT;
           }

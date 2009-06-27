@@ -1,29 +1,29 @@
 /*
-* This file is part of the apvlv package
-*
-* Copyright (C) 2008 Alf.
-*
-* Contact: Alf <naihe2010@gmail.com>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2.0 of
-* the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* General Public License for more details.
-*
-* You should have received a copy of the GNU General Public
-* License along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*
-*/
+ * This file is part of the apvlv package
+ *
+ * Copyright (C) 2008 Alf.
+ *
+ * Contact: Alf <naihe2010@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2.0 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
 /* @CFILE ApvlvDir.cpp
-*
-*  Author: Alf <naihe2010@gmail.com>
-*/
+ *
+ *  Author: Alf <naihe2010@gmail.com>
+ */
 /* @date Created: 2009/01/03 23:28:26 Alf*/
 
 #include "ApvlvView.hpp"
@@ -93,7 +93,7 @@ namespace apvlv
       {
         if (mNamed != NULL)
           {
-            PopplerDest *destnew = poppler_document_find_dest (win->getDoc (false)->getdoc (), 
+            PopplerDest *destnew = poppler_document_find_dest (((ApvlvDoc *) win->getCore ())->getdoc (), 
                                                                mNamed);
             if (destnew != NULL)
               {
@@ -103,7 +103,7 @@ namespace apvlv
                 mNamed = NULL;
               }
           }
-        win->getDoc (false)->showpage (mPagenum);
+        ((ApvlvDoc *) win->getCore ())->showpage (mPagenum);
       }
 
   ApvlvDirNodeDir::ApvlvDirNodeDir (const char *filename):
@@ -122,8 +122,8 @@ namespace apvlv
 
   ApvlvDirNodeFile::ApvlvDirNodeFile (const char *path, const char *file):
     ApvlvDirNodeDir (path)
-    {
-    }
+  {
+  }
 
   ApvlvDirNodeFile::~ApvlvDirNodeFile ()
     {
@@ -168,9 +168,9 @@ namespace apvlv
       renderer = gtk_cell_renderer_text_new ();
       column = gtk_tree_view_column_new_with_attributes ("Modified", renderer, "text", 1, NULL);
       gtk_tree_view_column_set_sort_column_id (column, 1);
-/*  gtk_tree_view_column_set_cell_data_func (column, renderer,
-                                               text_data_func,
-                                               this, NULL);*/      
+      /*  gtk_tree_view_column_set_cell_data_func (column, renderer,
+          text_data_func,
+          this, NULL);*/      
 
       gtk_tree_view_append_column (GTK_TREE_VIEW (mDirView), column);
 
@@ -274,8 +274,10 @@ namespace apvlv
           case '?':
             gView->promptcommand (key);
             return NEED_MORE;
+          case 't':
+          case 'o':
           case GDK_Return:
-            enter ();
+            enter (key);
             break;
           case 'H':
             scrollto (0.0);
@@ -313,7 +315,7 @@ namespace apvlv
       }
 
   bool 
-    ApvlvDir::enter ()
+    ApvlvDir::enter (guint key)
       {
         debug ("enter pressed");
         fileinfo_t *info;
@@ -325,20 +327,26 @@ namespace apvlv
             return false;
           }
 
-        bool bcache = false;
-        const char *scache = gParams->value ("cache");
-        if (strcmp (scache, "yes") == 0)
-          {
-            bcache = true;
-          }
-
-        ApvlvDoc *ndoc = new ApvlvDoc (gParams->value ("zoom"), bcache);
-        ndoc->setsize (mWidth, mHeight);
+        ApvlvDoc *ndoc = new ApvlvDoc (mWidth, mHeight, gParams->values ("zoom"), gParams->valueb ("cache"));
         ndoc->loadfile (info->realname);
-        ndoc->setsize (mWidth, mHeight);
 
-        ApvlvWindow *win = ApvlvWindow::currentWindow ();
-        win->setCore (ndoc);
+        switch (key)
+          {
+          case GDK_Return:
+            ApvlvWindow::currentWindow ()->setCore (ndoc);
+            break;
+
+          case 'o':
+            ApvlvWindow::currentWindow ()->birth (false, ndoc);
+            break;
+
+          case 't':
+            gView->newtab (ndoc);
+            break;
+
+          default:
+            return false;
+          }
 
         return true;
       }
@@ -357,7 +365,7 @@ namespace apvlv
 
         gtk_tree_model_get_iter (GTK_TREE_MODEL (mStore), &mCurrentIter, path);
         gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
-
+        gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL, TRUE, 0.5, 0.0);
         gtk_tree_path_free (path);
 
         mStatus->show ();
@@ -383,6 +391,9 @@ namespace apvlv
           }
 
         gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
+        GtkTreePath *path = gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
+        gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL, TRUE, 0.5, 0.0);
+        gtk_tree_path_free (path);
 
         mStatus->show ();
       }
@@ -404,8 +415,8 @@ namespace apvlv
           }
 
         gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
-
         GtkTreePath *path = gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
+        gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL, TRUE, 0.5, 0.0);
         gtk_tree_view_collapse_row (GTK_TREE_VIEW (mDirView), path);
         gtk_tree_path_free (path);
 
@@ -430,8 +441,9 @@ namespace apvlv
 
         GtkTreePath *path = gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
         gtk_tree_view_expand_to_path (GTK_TREE_VIEW (mDirView), path);
-        gtk_tree_path_free (path);
         gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
+        gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL, TRUE, 0.5, 0.0);
+        gtk_tree_path_free (path);
 
         mStatus->show ();
       }
@@ -570,10 +582,10 @@ namespace apvlv
             char temp[AD_STATUS_SIZE][256];
             gchar *bn;
             bn = g_path_get_basename (mDoc->filename ());
-            snprintf (temp[0], sizeof temp[0], "%s", bn);
-            snprintf (temp[1], sizeof temp[1], "%d/%d", mDoc->pagenumber (), mDoc->pagesum ());
-            snprintf (temp[2], sizeof temp[2], "%d%%", (int) (mDoc->zoomvalue () * 100));
-            snprintf (temp[3], sizeof temp[3], "%d%%", (int) (mDoc->scrollrate () * 100));
+            g_snprintf (temp[0], sizeof temp[0], "%s", bn);
+            g_snprintf (temp[1], sizeof temp[1], "%d/%d", mDoc->pagenumber (), mDoc->pagesum ());
+            g_snprintf (temp[2], sizeof temp[2], "%d%%", (int) (mDoc->zoomvalue () * 100));
+            g_snprintf (temp[3], sizeof temp[3], "%d%%", (int) (mDoc->scrollrate () * 100));
             for (unsigned int i=0; i<AD_STATUS_SIZE; ++i)
               {
                 gtk_label_set_text (GTK_LABEL (mStlab[i]), temp[i]);
@@ -630,6 +642,11 @@ namespace apvlv
           {
             isdir = true;
             sublist = dir_to_list (real);
+
+            if (sublist == NULL)
+              {
+                return list;
+              }
           }
         else
           {
@@ -769,8 +786,8 @@ namespace apvlv
 
   void
     ApvlvDir::icon_data_func (GtkTreeViewColumn * column,
-                    GtkCellRenderer * cell,
-                    GtkTreeModel * model, GtkTreeIter * iter, gpointer data)
+                              GtkCellRenderer * cell,
+                              GtkTreeModel * model, GtkTreeIter * iter, gpointer data)
       {
         GSList *list = ((ApvlvDir *) data)->fileinfos;
         fileinfo_t *info;
@@ -805,8 +822,8 @@ namespace apvlv
 
   void
     ApvlvDir::text_data_func (GtkTreeViewColumn * column,
-                    GtkCellRenderer * cell,
-                    GtkTreeModel * model, GtkTreeIter * iter, gpointer data)
+                              GtkCellRenderer * cell,
+                              GtkTreeModel * model, GtkTreeIter * iter, gpointer data)
       {
         GSList *list = ((ApvlvDir *) data)->fileinfos;
         fileinfo_t *info;

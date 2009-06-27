@@ -1,29 +1,29 @@
 /*
-* This file is part of the apvlv package
-*
-* Copyright (C) 2008 Alf.
-*
-* Contact: Alf <naihe2010@gmail.com>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2.0 of
-* the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* General Public License for more details.
-*
-* You should have received a copy of the GNU General Public
-* License along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*
-*/
+ * This file is part of the apvlv package
+ *
+ * Copyright (C) 2008 Alf.
+ *
+ * Contact: Alf <naihe2010@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2.0 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
 /* @CFILE ApvlvDir.hpp
-*
-*  Author: Alf <naihe2010@gmail.com>
-*/
+ *
+ *  Author: Alf <naihe2010@gmail.com>
+ */
 /* @date Created: 2009/01/03 23:27:52 Alf*/
 
 #ifndef _APVLV_DIR_
@@ -54,108 +54,108 @@ namespace apvlv
     };
 
   class ApvlvDirNodeDir: public ApvlvDirNode
-    {
-  public:
-    ApvlvDirNodeDir (const char *filename);
+  {
+public:
+  ApvlvDirNodeDir (const char *filename);
 
-    virtual ~ApvlvDirNodeDir ();
+  virtual ~ApvlvDirNodeDir ();
 
-    virtual void show (ApvlvWindow *);
+  virtual void show (ApvlvWindow *);
 
-  protected:
-    string mPath;
-    };
+protected:
+  string mPath;
+  };
 
   class ApvlvDirNodeFile: public ApvlvDirNodeDir
-    {
-  public:
-    ApvlvDirNodeFile (const char *path, const char *file);
+  {
+public:
+  ApvlvDirNodeFile (const char *path, const char *file);
 
-    virtual ~ApvlvDirNodeFile ();
+  virtual ~ApvlvDirNodeFile ();
 
-    virtual void show (ApvlvWindow *);
+  virtual void show (ApvlvWindow *);
 
-  protected:
-    string mFile;
-    };
+protected:
+  string mFile;
+  };
 
   class ApvlvDir;
   class ApvlvDirStatus: public ApvlvCoreStatus
-    {
-  public:
-    ApvlvDirStatus (ApvlvDir *);
+  {
+public:
+  ApvlvDirStatus (ApvlvDir *);
 
-    ~ApvlvDirStatus ();
+  ~ApvlvDirStatus ();
 
-    void active (bool act);
+  void active (bool act);
 
-    void setsize (int, int);
+  void setsize (int, int);
 
-    void show ();
+  void show ();
 
-  private:
-    ApvlvDir *mDoc;
+private:
+  ApvlvDir *mDoc;
 #define AD_STATUS_SIZE   4
-    GtkWidget *mStlab[AD_STATUS_SIZE];
-    };
+  GtkWidget *mStlab[AD_STATUS_SIZE];
+  };
 
   class ApvlvDir: public ApvlvCore
-    {
-  public:
-    ApvlvDir (const char *zm, const char *path);
+  {
+public:
+  ApvlvDir (const char *zm, const char *path);
 
-    ApvlvDir (const char *zm, ApvlvDoc *doc);
+  ApvlvDir (const char *zm, ApvlvDoc *doc);
 
-    ~ApvlvDir ();
+  ~ApvlvDir ();
 
-    void setactive (bool act);
+  void setactive (bool act);
 
-    returnType process (int times, guint keyval);
+  returnType process (int times, guint keyval);
 
-  private:
-    returnType subprocess (int ct, guint key);
+private:
+  returnType subprocess (int ct, guint key);
 
-    bool reload ();
+  bool reload ();
 
-    bool enter ();
+  bool enter (guint key);
 
-    void scrollup (int times);
+  void scrollup (int times);
 
-    void scrolldown (int times);
+  void scrolldown (int times);
 
-    void scrollleft (int times);
+  void scrollleft (int times);
 
-    void scrollright (int times);
+  void scrollright (int times);
 
-    static void apvlv_dir_on_changed0 (GtkTreeSelection *, ApvlvDir *);
+  static void apvlv_dir_on_changed0 (GtkTreeSelection *, ApvlvDir *);
 
-    static void apvlv_dir_on_changed (GtkTreeSelection *, ApvlvDir *);
+  static void apvlv_dir_on_changed (GtkTreeSelection *, ApvlvDir *);
 
-    void walk_poppler_iter_index (GtkTreeIter *titr, PopplerIndexIter *iter);
+  void walk_poppler_iter_index (GtkTreeIter *titr, PopplerIndexIter *iter);
 
-    void walk_path_file_index (GtkTreeIter *titr, const char *path);
+  void walk_path_file_index (GtkTreeIter *titr, const char *path);
 
-    static gboolean apvlv_dir_first_select_cb (ApvlvDir *);
+  static gboolean apvlv_dir_first_select_cb (ApvlvDir *);
 
-    gint mFirstSelTimer;
+  gint mFirstSelTimer;
 
-    string mPath;
-    ApvlvDoc *mDoc;
+  string mPath;
+  ApvlvDoc *mDoc;
 
-    ApvlvWindow *mWindow;
+  ApvlvWindow *mWindow;
 
-    // directory view
-    GSList *fileinfos;
+  // directory view
+  GSList *fileinfos;
 
-    static void icon_data_func (GtkTreeViewColumn *, GtkCellRenderer *, GtkTreeModel *, GtkTreeIter *, gpointer);
+  static void icon_data_func (GtkTreeViewColumn *, GtkCellRenderer *, GtkTreeModel *, GtkTreeIter *, gpointer);
 
-    static void text_data_func (GtkTreeViewColumn *, GtkCellRenderer *, GtkTreeModel *, GtkTreeIter *, gpointer);
+  static void text_data_func (GtkTreeViewColumn *, GtkCellRenderer *, GtkTreeModel *, GtkTreeIter *, gpointer);
 
-    GtkWidget *mDirView;
-    GtkTreeStore *mStore;
-    GtkTreeIter mPrevIter, mCurrentIter;
-    GtkTreeSelection *mSelection;
-    };
+  GtkWidget *mDirView;
+  GtkTreeStore *mStore;
+  GtkTreeIter mPrevIter, mCurrentIter;
+  GtkTreeSelection *mSelection;
+  };
 
 }
 

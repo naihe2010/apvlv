@@ -1,29 +1,29 @@
 /*
-* This file is part of the apvlv package
-*
-* Copyright (C) 2008 Alf.
-*
-* Contact: Alf <naihe2010@gmail.com>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2.0 of
-* the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* General Public License for more details.
-*
-* You should have received a copy of the GNU General Public
-* License along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*
-*/
+ * This file is part of the apvlv package
+ *
+ * Copyright (C) 2008 Alf.
+ *
+ * Contact: Alf <naihe2010@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2.0 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
 /*@CPPFILE main.cpp Apvlv start at this.
-*
-*  Author: Alf <naihe2010@gmail.com>
-*/
+ *
+ *  Author: Alf <naihe2010@gmail.com>
+ */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
 #include "ApvlvView.hpp"
@@ -48,6 +48,8 @@ main (int argc, char *argv[])
 {
   setlocale (LC_ALL, "");
 
+  gtk_init (&argc, &argv);
+
   ApvlvCmds sCmds;
   gCmds = &sCmds;
 
@@ -56,23 +58,34 @@ main (int argc, char *argv[])
 
   gchar *ini = absolutepath (inifile.c_str ());
   if (ini != NULL)
-  {
-    gboolean exist = g_file_test (ini, G_FILE_TEST_IS_REGULAR);
-    if (!exist)
-      {
-        filecpy (inifile.c_str (), iniexam.c_str ());
-      }
-    else
-      {
-        gParams->loadfile (ini);
-      }
-    g_free (ini);
-  }
-
-  ApvlvView sView (&argc, &argv);
-  gView = &sView;
+    {
+      gboolean exist = g_file_test (ini, G_FILE_TEST_IS_REGULAR);
+      if (!exist)
+        {
+          filecpy (inifile.c_str (), iniexam.c_str ());
+        }
+      else
+        {
+          gParams->loadfile (ini);
+        }
+      g_free (ini);
+    }
 
   gchar *path;
+  if (argc > 1)
+    {
+      path = argv[1];
+      argc --;
+      argv ++;
+    }
+  else
+    {
+      path = (gchar *) helppdf.c_str ();
+    }
+
+  ApvlvView sView (path);
+  gView = &sView;
+
   if (argc > 1)
     {
       for (unsigned int i=argc-1; i>0; --i)
@@ -82,14 +95,8 @@ main (int argc, char *argv[])
           g_free (path);
         }
     }
-  else
-    {
-      path = absolutepath (helppdf.c_str ());
-      gView->loadfile (path);
-      g_free (path);
-    }
 
-  gView->show ();
+  gtk_main ();
 
   return 0;
 }

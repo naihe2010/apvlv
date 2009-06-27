@@ -1,29 +1,29 @@
 /*
-* This file is part of the apvlv package
-*
-* Copyright (C) 2008 Alf.
-*
-* Contact: Alf <naihe2010@gmail.com>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2.0 of
-* the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* General Public License for more details.
-*
-* You should have received a copy of the GNU General Public
-* License along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*
-*/
+ * This file is part of the apvlv package
+ *
+ * Copyright (C) 2008 Alf.
+ *
+ * Contact: Alf <naihe2010@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2.0 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
 /* @CPPFILE ApvlvDoc.cpp
-*
-*  Author: Alf <naihe2010@gmail.com>
-*/
+ *
+ *  Author: Alf <naihe2010@gmail.com>
+ */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
 #include "ApvlvUtil.hpp"
@@ -55,7 +55,7 @@ namespace apvlv
 #endif
   static GtkPrintSettings *settings = NULL;
 
-  ApvlvDoc::ApvlvDoc (const char *zm, bool cache)
+  ApvlvDoc::ApvlvDoc (int w, int h, const char *zm, bool cache)
     {
       mCurrentCache = NULL;
 #ifdef HAVE_PTHREAD
@@ -98,6 +98,8 @@ namespace apvlv
       gtk_box_pack_start (GTK_BOX (mVbox), mScrollwin, FALSE, FALSE, 0);
       gtk_box_pack_end (GTK_BOX (mVbox), mStatus->widget (), FALSE, FALSE, 0);
 
+      setsize (w, h);
+
       setzoom (zm);
     }
 
@@ -108,16 +110,16 @@ namespace apvlv
           poppler_index_iter_free (mIter);
         }
 
-    if (mCurrentCache)
-      delete mCurrentCache;
+      if (mCurrentCache)
+        delete mCurrentCache;
 #ifdef HAVE_PTHREAD
-    if (mUseCache)
-      {
-        if (mNextCache)
-          delete mNextCache;
-        if (mLastCache)
-          delete mLastCache;
-      }
+      if (mUseCache)
+        {
+          if (mNextCache)
+            delete mNextCache;
+          if (mLastCache)
+            delete mLastCache;
+        }
 #endif
 
       if (mFilestr != helppdf)
@@ -269,8 +271,8 @@ namespace apvlv
     ApvlvDoc::copy ()
       {
         char rate[16];
-        snprintf (rate, sizeof rate, "%f", mZoomrate);
-        ApvlvDoc *ndoc = new ApvlvDoc (rate, usecache ());
+        g_snprintf (rate, sizeof rate, "%f", mZoomrate);
+        ApvlvDoc *ndoc = new ApvlvDoc (mWidth, mHeight, rate, usecache ()? "yes": "no");
         ndoc->loadfile (mFilestr, false);
         ndoc->showpage (mPagenum, scrollrate ());
         return ndoc;
@@ -452,10 +454,10 @@ namespace apvlv
 
         ifstream ifs (wfilename, ios::binary);
         if (ifs.is_open ())
-        {
-          ifs.read (mRawdata, filelen);
-          ifs.close ();
-        }
+          {
+            ifs.read (mRawdata, filelen);
+            ifs.close ();
+          }
 
 #ifdef WIN32
         g_free (wfilename);
@@ -464,31 +466,31 @@ namespace apvlv
         mDoc = poppler_document_new_from_data (mRawdata, filelen, NULL, NULL);
 
         if (mDoc == NULL
-//            && POPPLER_ERROR == POPPLER_ERROR_ENCRYPTED) /* fix this later */
+            //            && POPPLER_ERROR == POPPLER_ERROR_ENCRYPTED) /* fix this later */
           )
-          {
-            GtkWidget *dia = 
-              gtk_message_dialog_new (NULL, 
-                                      GTK_DIALOG_DESTROY_WITH_PARENT, 
-                                      GTK_MESSAGE_QUESTION, GTK_BUTTONS_OK_CANCEL,
-                                      "Maybe this PDF file is encrypted, please input a password:");
+            {
+              GtkWidget *dia = 
+                gtk_message_dialog_new (NULL, 
+                                        GTK_DIALOG_DESTROY_WITH_PARENT, 
+                                        GTK_MESSAGE_QUESTION, GTK_BUTTONS_OK_CANCEL,
+                                        "Maybe this PDF file is encrypted, please input a password:");
 
-            GtkWidget *entry = gtk_entry_new ();
-            gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dia)->vbox), entry, TRUE, TRUE, 10);
-            gtk_widget_show (entry);
+              GtkWidget *entry = gtk_entry_new ();
+              gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dia)->vbox), entry, TRUE, TRUE, 10);
+              gtk_widget_show (entry);
 
-            int ret = gtk_dialog_run (GTK_DIALOG (dia));
-            if (ret == GTK_RESPONSE_OK)
-              {
-                gchar *ans = (gchar *) gtk_entry_get_text (GTK_ENTRY (entry));
-                if (ans != NULL)
-                  {
-                    mDoc = poppler_document_new_from_data (mRawdata, filelen, ans, NULL);
-                  }
-              }
+              int ret = gtk_dialog_run (GTK_DIALOG (dia));
+              if (ret == GTK_RESPONSE_OK)
+                {
+                  gchar *ans = (gchar *) gtk_entry_get_text (GTK_ENTRY (entry));
+                  if (ans != NULL)
+                    {
+                      mDoc = poppler_document_new_from_data (mRawdata, filelen, ans, NULL);
+                    }
+                }
 
-            gtk_widget_destroy (dia);
-          }
+              gtk_widget_destroy (dia);
+            }
 
         if (mDoc != NULL)
           {
@@ -608,6 +610,7 @@ namespace apvlv
                 mZoomrate = 1.2;
                 break;
               case FITWIDTH:
+                debug ("mWidth: %d, zoom rate: %f", mWidth, mZoomrate);
                 mZoomrate = ((double) (mWidth - 26)) / mPagex;
                 break;
               case FITHEIGHT:
@@ -618,6 +621,8 @@ namespace apvlv
               default:
                 break;
               }
+
+            debug ("zoom rate: %f", mZoomrate);
           }
 
         refresh ();
@@ -647,6 +652,7 @@ namespace apvlv
         GdkPixbuf *buf = mCurrentCache->getbuf (true);
         gtk_image_set_from_pixbuf (GTK_IMAGE (mImage), buf);
 
+        debug ("zoom rate: %f", mZoomrate);
         mStatus->show ();
 
 #ifdef HAVE_PTHREAD
@@ -981,14 +987,14 @@ namespace apvlv
                     if (destnew != NULL)
                       {
                         nn = destnew->page_num - 1;
-            debug ("nn: %d", nn);
+                        debug ("nn: %d", nn);
                         poppler_dest_free (destnew);
                       }
                   }
                 else
                   {
                     nn = pd->page_num - 1;
-            debug ("nn: %d", nn);
+                    debug ("nn: %d", nn);
                   }
               }
           }
@@ -1176,17 +1182,17 @@ namespace apvlv
 
         double tpagex, tpagey;
         ac->mDoc->getpagesize (tpage, &tpagex, &tpagey);
-	
+
         int ix = (int) (tpagex * ac->mDoc->zoomvalue ()), iy = (int) (tpagey * ac->mDoc->zoomvalue ());
-	
+
         guchar *dat = new guchar[ix * iy * 3];
 
         GdkPixbuf *bu = gdk_pixbuf_new_from_data (dat, GDK_COLORSPACE_RGB,
-                                    FALSE,
-                                    8,
-                                    ix, iy,
-                                    3 * ix,
-                                    NULL, NULL);
+                                                  FALSE,
+                                                  8,
+                                                  ix, iy,
+                                                  3 * ix,
+                                                  NULL, NULL);
 
 #ifdef HAVE_PTHREAD
         if (ac->mDelay > 0)
@@ -1368,10 +1374,10 @@ namespace apvlv
             char temp[AD_STATUS_SIZE][256];
             gchar *bn;
             bn = g_path_get_basename (mDoc->filename ());
-            snprintf (temp[0], sizeof temp[0], "%s", bn);
-            snprintf (temp[1], sizeof temp[1], "%d/%d", mDoc->pagenumber (), mDoc->pagesum ());
-            snprintf (temp[2], sizeof temp[2], "%d%%", (int) (mDoc->zoomvalue () * 100));
-            snprintf (temp[3], sizeof temp[3], "%d%%", (int) (mDoc->scrollrate () * 100));
+            g_snprintf (temp[0], sizeof temp[0], "%s", bn);
+            g_snprintf (temp[1], sizeof temp[1], "%d/%d", mDoc->pagenumber (), mDoc->pagesum ());
+            g_snprintf (temp[2], sizeof temp[2], "%d%%", (int) (mDoc->zoomvalue () * 100));
+            g_snprintf (temp[3], sizeof temp[3], "%d%%", (int) (mDoc->scrollrate () * 100));
             for (unsigned int i=0; i<AD_STATUS_SIZE; ++i)
               {
                 gtk_label_set_text (GTK_LABEL (mStlab[i]), temp[i]);

@@ -1,29 +1,29 @@
 /*
-* This file is part of the apvlv package
-*
-* Copyright (C) 2008 Alf.
-*
-* Contact: Alf <naihe2010@gmail.com>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2.0 of
-* the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* General Public License for more details.
-*
-* You should have received a copy of the GNU General Public
-* License along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*
-*/
+ * This file is part of the apvlv package
+ *
+ * Copyright (C) 2008 Alf.
+ *
+ * Contact: Alf <naihe2010@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2.0 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
 /* @CFILE ApvlvUtil.cpp
-*
-*  Author: Alf <naihe2010@gmail.com>
-*/
+ *
+ *  Author: Alf <naihe2010@gmail.com>
+ */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
 #include "ApvlvUtil.hpp"
@@ -84,9 +84,9 @@ namespace apvlv
 #else
             char *home = getenv ("HOME");
 #endif
-            snprintf (abpath, sizeof abpath, "%s%s",
-                      home,
-                      ++ path);
+            g_snprintf (abpath, sizeof abpath, "%s%s",
+                        home,
+                        ++ path);
           }
         else
           {
@@ -125,38 +125,14 @@ namespace apvlv
         return ok;
       }
 
-  // remove a widget from its parent
-  // return the parent widget
-  GtkWidget *
-    remove_widget (GtkWidget *wid, widremoveType remove)
-      {
-        if (remove == WR_REF)
-          {
-            g_object_ref (G_OBJECT (wid));
-          }
-        else if (remove == WR_REF_CHILDREN)
-          {
-            GList *children = gtk_container_get_children (GTK_CONTAINER (wid));
-            GList *child = children;
-            while (child != NULL)
-              {
-                g_object_ref (G_OBJECT (child->data));
-                child = g_list_next (child);
-              }
-            g_list_free (children);
-          }
-
-        GtkWidget *parent = gtk_widget_get_parent (wid);
-        gtk_container_remove (GTK_CONTAINER (parent), wid);
-        return parent;
-      }
-
   // replace a widget with a new widget
   // return the parent widget
   GtkWidget *
-    replace_widget (GtkWidget *owid, GtkWidget *nwid, widremoveType remove)
+    replace_widget (GtkWidget *owid, GtkWidget *nwid)
       {
-        GtkWidget *parent = remove_widget (owid, remove);
+        GtkWidget *parent = gtk_widget_get_parent (owid);
+        debug ("parent: %p, owid: %p, nwid: %p", parent, owid, nwid);
+        gtk_container_remove (GTK_CONTAINER (parent), owid);
         gtk_container_add (GTK_CONTAINER (parent), nwid);
         gtk_widget_show_all (parent);
         return parent;
@@ -168,8 +144,8 @@ namespace apvlv
         char p[0x1000], temp[0x100];
         va_list vap;
 
-        snprintf (temp, sizeof temp, "[%s] %s: %d: %s(): ",
-                  level, file, line, func);
+        g_snprintf (temp, sizeof temp, "[%s] %s: %d: %s(): ",
+                    level, file, line, func);
 
         va_start (vap, ms);
         vsnprintf (p, sizeof p, ms, vap);

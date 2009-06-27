@@ -1,29 +1,29 @@
 /*
-* This file is part of the apvlv package
-*
-* Copyright (C) 2008 Alf.
-*
-* Contact: Alf <naihe2010@gmail.com>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2.0 of
-* the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* General Public License for more details.
-*
-* You should have received a copy of the GNU General Public
-* License along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*
-*/
+ * This file is part of the apvlv package
+ *
+ * Copyright (C) 2008 Alf.
+ *
+ * Contact: Alf <naihe2010@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2.0 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
 /* @CPPFILE ApvlvCmds.cpp
-*
-*  Author: Alf <naihe2010@gmail.com>
-*/
+ *
+ *  Author: Alf <naihe2010@gmail.com>
+ */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
 #include "ApvlvParams.hpp"
@@ -105,51 +105,51 @@ namespace apvlv
   void
     ApvlvCmd::push (const char *s, cmdType type)
       {
-      asst (s);
+        asst (s);
 
-      mType = type;
+        mType = type;
 
-      mHasPreCount = false;
-      mPreCount = 1;
+        mHasPreCount = false;
+        mPreCount = 1;
 
-      mNext = NULL;
+        mNext = NULL;
 
-      if (*s == '-'
-          || isdigit (*s))
-        {
-          mHasPreCount = true;
-          mPreCount = atoi (s);
-          do 
-            {
-              s ++;
-            } 
-          while (isdigit (*s));
-        }
+        if (*s == '-'
+            || isdigit (*s))
+          {
+            mHasPreCount = true;
+            mPreCount = atoi (s);
+            do 
+              {
+                s ++;
+              } 
+            while (isdigit (*s));
+          }
 
-      if (*s == ':'
-          || *s == '/'
-          || *s == '?')
-        {
-          mStrCommand = s;
-          mType = CT_STRING;
+        if (*s == ':'
+            || *s == '/'
+            || *s == '?')
+          {
+            mStrCommand = s;
+            mType = CT_STRING;
 
-          size_t off = mStrCommand.find ("<CR>");
-          if (off != string::npos)
-            {
-              mStrCommand.erase (off, mStrCommand.length () - off);
-              mType = CT_STRING_RETURN;
-              mNext = new ApvlvCmd;
-              mNext->push (s + off + 4);
-            }
-          debug ("set string type command: [%s]", mStrCommand.c_str ());
-          return;
-        }
+            size_t off = mStrCommand.find ("<CR>");
+            if (off != string::npos)
+              {
+                mStrCommand.erase (off, mStrCommand.length () - off);
+                mType = CT_STRING_RETURN;
+                mNext = new ApvlvCmd;
+                mNext->push (s + off + 4);
+              }
+            debug ("set string type command: [%s]", mStrCommand.c_str ());
+            return;
+          }
 
-      while (*s != '\0')
-        {
-          s = append (s);
-        }
-    }
+        while (*s != '\0')
+          {
+            s = append (s);
+          }
+      }
 
   ApvlvCmd::~ApvlvCmd ()
     {
@@ -245,18 +245,18 @@ namespace apvlv
             else 
               {
                 char ts[6];
-                snprintf (ts, 6, "%s", s);
+                g_snprintf (ts, 6, "%s", s);
                 warnp ("Can't recognize the symbol: %s", ts);
               }
-          return s + 5;
-        }
-      else
-        {
-          mKeyVals.push_back (s[0]);
-          return s + 1;
-        }
+            return s + 5;
+          }
+        else
+          {
+            mKeyVals.push_back (s[0]);
+            return s + 1;
+          }
 
-      return s;
+        return s;
       }
 
   void 
@@ -265,59 +265,59 @@ namespace apvlv
         mBeMap = bemap;
       }
 
-    bool 
-      ApvlvCmd::bemap ()
-        {
-          return mBeMap;
-        }
+  bool 
+    ApvlvCmd::bemap ()
+      {
+        return mBeMap;
+      }
 
-    void 
-      ApvlvCmd::canmap (bool canmap)
-        {
-          mCanMap = canmap;
-        }
+  void 
+    ApvlvCmd::canmap (bool canmap)
+      {
+        mCanMap = canmap;
+      }
 
-    bool 
-      ApvlvCmd::canmap ()
-        {
-          return mCanMap;
-        }
+  bool 
+    ApvlvCmd::canmap ()
+      {
+        return mCanMap;
+      }
 
-    void 
-      ApvlvCmd::hascount (bool hascount)
-        {
-          mHasPreCount = hascount;
-        }
+  void 
+    ApvlvCmd::hascount (bool hascount)
+      {
+        mHasPreCount = hascount;
+      }
 
-    bool 
-      ApvlvCmd::hascount ()
-        {
-          return mHasPreCount;
-        }
+  bool 
+    ApvlvCmd::hascount ()
+      {
+        return mHasPreCount;
+      }
 
-    void 
-      ApvlvCmd::precount (gint precount)
-        {
-          mPreCount = precount;
-        }
+  void 
+    ApvlvCmd::precount (gint precount)
+      {
+        mPreCount = precount;
+      }
 
-    gint
-      ApvlvCmd::precount ()
-        {
-          return mPreCount;
-        }
+  gint
+    ApvlvCmd::precount ()
+      {
+        return mPreCount;
+      }
 
-    void 
-      ApvlvCmd::origin (ApvlvCmd *ori)
-        {
-          mOrigin = ori;
-        }
+  void 
+    ApvlvCmd::origin (ApvlvCmd *ori)
+      {
+        mOrigin = ori;
+      }
 
-    ApvlvCmd *
-      ApvlvCmd::origin ()
-        {
-          return mOrigin;
-        }
+  ApvlvCmd *
+    ApvlvCmd::origin ()
+      {
+        return mOrigin;
+      }
 
   const char *
     ApvlvCmd::c_str ()

@@ -1,29 +1,29 @@
 /*
-* This file is part of the apvlv package
-*
-* Copyright (C) 2008 Alf.
-*
-* Contact: Alf <naihe2010@gmail.com>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2.0 of
-* the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* General Public License for more details.
-*
-* You should have received a copy of the GNU General Public
-* License along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*
-*/
+ * This file is part of the apvlv package
+ *
+ * Copyright (C) 2008 Alf.
+ *
+ * Contact: Alf <naihe2010@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2.0 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
 /* @PPCFILE ApvlvDoc.hpp
-*
-*  Author: Alf <naihe2010@gmail.com>
-*/
+ *
+ *  Author: Alf <naihe2010@gmail.com>
+ */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
 #ifndef _APVLV_DOC_H_
@@ -107,142 +107,142 @@ namespace apvlv
     };
 
   class ApvlvDocStatus: public ApvlvCoreStatus
-    {
-  public:
-    ApvlvDocStatus (ApvlvDoc *);
+  {
+public:
+  ApvlvDocStatus (ApvlvDoc *);
 
-    ~ApvlvDocStatus ();
+  ~ApvlvDocStatus ();
 
-    void active (bool act);
+  void active (bool act);
 
-    void setsize (int, int);
+  void setsize (int, int);
 
-    void show ();
+  void show ();
 
-  private:
-    ApvlvDoc *mDoc;
+private:
+  ApvlvDoc *mDoc;
 #define AD_STATUS_SIZE   4
-    GtkWidget *mStlab[AD_STATUS_SIZE];
-    };
+  GtkWidget *mStlab[AD_STATUS_SIZE];
+  };
 
   class ApvlvDoc: public ApvlvCore
-    {
-  public:
-    ApvlvDoc (const char *zm = "NORMAL", bool cache = false);
+  {
+public:
+  ApvlvDoc (int w, int h, const char *zm = "NORMAL", bool cache = false);
 
-    ~ApvlvDoc ();
+  ~ApvlvDoc ();
 
-    void setactive (bool act);
+  void setactive (bool act);
 
-    bool hascontent ();
+  bool hascontent ();
 
-    PopplerIndexIter *indexiter ();
+  PopplerIndexIter *indexiter ();
 
-    PopplerDocument *getdoc ();
+  PopplerDocument *getdoc ();
 
-    ApvlvDoc *copy ();
+  ApvlvDoc *copy ();
 
-    void getpagesize (PopplerPage *p, double *x, double *y);
+  void getpagesize (PopplerPage *p, double *x, double *y);
 
-    bool getpagetext (PopplerPage *p, char **contents);
+  bool getpagetext (PopplerPage *p, char **contents);
 
-    gint pagesum ();
+  gint pagesum ();
 
-    bool usecache ();
+  bool usecache ();
 
-    void usecache (bool use);
+  void usecache (bool use);
 
-    bool loadfile (string & filename, bool check = true);
+  bool loadfile (string & filename, bool check = true);
 
-    bool loadfile (const char *src, bool check = true);
+  bool loadfile (const char *src, bool check = true);
 
-    bool print (int ct);
+  bool print (int ct);
 
-    bool totext (const char *name);
+  bool totext (const char *name);
 
-    bool rotate (int ct = 90);
+  bool rotate (int ct = 90);
 
-    void markposition (const char s);
+  void markposition (const char s);
 
-    void jump (const char s);
+  void jump (const char s);
 
-    void showpage (int p, double s = 0.00);
+  void showpage (int p, double s = 0.00);
 
-    void nextpage (int times = 1);
+  void nextpage (int times = 1);
 
-    void prepage (int times = 1);
+  void prepage (int times = 1);
 
-    void halfnextpage (int times = 1);
+  void halfnextpage (int times = 1);
 
-    void halfprepage (int times = 1);
+  void halfprepage (int times = 1);
 
-    void search (const char *str);
-    void backsearch (const char *str);
+  void search (const char *str);
+  void backsearch (const char *str);
 
-    returnType process (int times, guint keyval);
+  returnType process (int times, guint keyval);
 
-  private:
-    returnType subprocess (int ct, guint key);
+private:
+  returnType subprocess (int ct, guint key);
 
-    bool status_show ();
+  bool status_show ();
 
-    int convertindex (int p);
+  int convertindex (int p);
 
-    void markselection ();
+  void markselection ();
 
-    bool needsearch (const char *str);
+  bool needsearch (const char *str);
 
-    GList * searchpage (int num);
+  GList * searchpage (int num);
 
-    void gotolink (int ct);
+  void gotolink (int ct);
 
-    void returnlink (int ct);
+  void returnlink (int ct);
 
-    void refresh ();
+  void refresh ();
 
-    bool reload ();
+  bool reload ();
 
-    bool savelastposition ();
+  bool savelastposition ();
 
-    bool loadlastposition ();
+  bool loadlastposition ();
 
-    static gboolean apvlv_doc_first_scroll_cb (gpointer);
+  static gboolean apvlv_doc_first_scroll_cb (gpointer);
 
-    static gboolean apvlv_doc_first_copy_cb (gpointer);
+  static gboolean apvlv_doc_first_copy_cb (gpointer);
 
-    static void begin_print (GtkPrintOperation *operation,
-                             GtkPrintContext   *context,
-                             PrintData         *data);
-    static void draw_page (GtkPrintOperation *operation,
-                           GtkPrintContext   *context,
-                           gint               page_nr,
-                           PrintData         *data);
-    static void end_print (GtkPrintOperation *operation,
+  static void begin_print (GtkPrintOperation *operation,
                            GtkPrintContext   *context,
                            PrintData         *data);
+  static void draw_page (GtkPrintOperation *operation,
+                         GtkPrintContext   *context,
+                         gint               page_nr,
+                         PrintData         *data);
+  static void end_print (GtkPrintOperation *operation,
+                         GtkPrintContext   *context,
+                         PrintData         *data);
 
-    char *mRawdata;
+  char *mRawdata;
 
-    size_t mRawdatasize;
+  size_t mRawdatasize;
 
-    PopplerDocument *mDoc;
-    PopplerIndexIter *mIter;
+  PopplerDocument *mDoc;
+  PopplerIndexIter *mIter;
 
-    ApvlvDocPositionMap mPositions;
-    vector <ApvlvDocPosition> mLinkPositions;
+  ApvlvDocPositionMap mPositions;
+  vector <ApvlvDocPosition> mLinkPositions;
 
 #ifdef HAVE_PTHREAD
-    bool mUseCache;
-    ApvlvDocCache *fetchcache (guint);
-    ApvlvDocCache *mLastCache, *mNextCache;
+  bool mUseCache;
+  ApvlvDocCache *fetchcache (guint);
+  ApvlvDocCache *mLastCache, *mNextCache;
 #endif
-    ApvlvDocCache *mCurrentCache;
-    ApvlvDocCache *newcache (int pagenum);
-    void deletecache (ApvlvDocCache *ac);
+  ApvlvDocCache *mCurrentCache;
+  ApvlvDocCache *newcache (int pagenum);
+  void deletecache (ApvlvDocCache *ac);
 
-    // image viewer
-    GtkWidget *mImage;
-    };
+  // image viewer
+  GtkWidget *mImage;
+  };
 
 }
 

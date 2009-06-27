@@ -9,6 +9,18 @@
          add :tabnew and 'gt' 'gg' 'gT' 'g[n]' command to support tab switch, change goto page command from 'g' to 'G'
 
        * add content view
+             * k, j to select up, down
+             * h, l to expand, collapase
+             * <CR> open selected page
+             * 'o' open selected page in split window
+             * 't' open selected page in new tab
+
+       * add direcotry view by command 'O'
+             * k, j to select up, down
+             * h, l to expand, collapase
+             * <CR> open selected file
+             * 'o' open selected file in split window
+             * 't' open selected file in new tab
 
        * add <C-]> goto a heperlink and <C-t> to come back
 

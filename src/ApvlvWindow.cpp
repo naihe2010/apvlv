@@ -1,29 +1,29 @@
 /*
-* This file is part of the apvlv package
-*
-* Copyright (C) 2008 Alf.
-*
-* Contact: Alf <naihe2010@gmail.com>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2.0 of
-* the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* General Public License for more details.
-*
-* You should have received a copy of the GNU General Public
-* License along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*
-*/
+ * This file is part of the apvlv package
+ *
+ * Copyright (C) 2008 Alf.
+ *
+ * Contact: Alf <naihe2010@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2.0 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
 /* @CPPFILE ApvlvWindow.cpp
-*
-*  Author: Alf <naihe2010@gmail.com>
-*/
+ *
+ *  Author: Alf <naihe2010@gmail.com>
+ */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
 #include "ApvlvView.hpp"
@@ -40,16 +40,14 @@ namespace apvlv
 {
   ApvlvWindow *ApvlvWindow::m_curWindow = NULL;
 
-  ApvlvWindow::ApvlvWindow (ApvlvCore *doc, bool usecon)
+  ApvlvWindow::ApvlvWindow (ApvlvCore *doc)
     {
       mIsClose = false;
-
-      mUseContent = usecon;
 
       type = AW_CORE;
       if (doc == NULL)
         {
-          mCore = new ApvlvDoc (gParams->value ("zoom"));
+          mCore = new ApvlvDoc (0, 0, gParams->values ("zoom"));
         }
       else
         {
@@ -81,35 +79,22 @@ namespace apvlv
             }
         }
 
-      if (type == AW_CORE)
-        {
-          if (mCore != NULL)
-            {
-              const char *fdoc = mCore->filename ();
-              if (fdoc != NULL && mCore != gView->hasloaded (fdoc))
-                {
-                  delete mCore;
-                  mCore = NULL;
-                }
-            }
-
-        }
-      else if (type == AW_SP || type == AW_VSP)
+      if (type == AW_SP || type == AW_VSP)
         {
           if (m_son != NULL)
             {
               ApvlvWindow *win = m_son;
-	      m_son = NULL;
-	      delete win;
-	    }
-	  if (m_daughter != NULL)
-	    {
+              m_son = NULL;
+              delete win;
+            }
+          if (m_daughter != NULL)
+            {
               ApvlvWindow *win = m_daughter;
-	      m_daughter = NULL;
-	      delete win;
-	    }
+              m_daughter = NULL;
+              delete win;
+            }
 
-          gtk_widget_destroy (mPaned);
+          g_object_unref (mPaned);
         }
     }
 
@@ -155,10 +140,6 @@ namespace apvlv
         asst (currentWindow ()->istop () == false);
 
         ApvlvWindow *crwin = currentWindow ();
-        if (crwin->mBrother)
-          {
-            crwin = crwin->m_parent;
-          }
 
         ApvlvWindow *pwin = crwin->m_parent;
         ApvlvWindow *child = crwin == pwin->m_son? pwin->m_daughter: pwin->m_son;
@@ -368,7 +349,7 @@ namespace apvlv
   // birth a new AW_CORE window, and the new window beyond the input doc
   // this made a AW_CORE window to AW_SP|AW_VSP
   ApvlvWindow *
-    ApvlvWindow::birth (bool isbrother, bool vsp, ApvlvCore *doc)
+    ApvlvWindow::birth (bool vsp, ApvlvCore *doc)
       {
         asst (type == AW_CORE);
 
@@ -383,21 +364,38 @@ namespace apvlv
             doc = mCore->copy ();
           }
 
-        ApvlvWindow *nwindow = new ApvlvWindow (doc, false);
+        ApvlvWindow *nwindow = new ApvlvWindow (doc);
         nwindow->m_parent = this;
         m_son = nwindow;
 
-        ApvlvWindow *nwindow2 = new ApvlvWindow (mCore, false);
+        ApvlvWindow *nwindow2 = new ApvlvWindow (mCore);
         nwindow2->m_parent = this;
         m_daughter = nwindow2;
 
-        nwindow->mBrother = NULL;
-        nwindow2->mBrother = isbrother? nwindow: NULL;
-
         mPaned = vsp == false? gtk_vpaned_new (): gtk_hpaned_new ();
+        g_object_ref (mPaned);
         g_signal_connect (G_OBJECT (mPaned), "button-release-event", G_CALLBACK (apvlv_window_paned_resized_cb), this);
 
-        replace_widget (widget (), mPaned, WR_REF);
+        if (m_parent)
+          {
+            void (*panedcb) (GtkPaned *, GtkWidget *);
+            GtkWidget *parent = m_parent->mPaned;
+            if (gtk_paned_get_child1 (GTK_PANED (parent)) == widget ())
+              {
+                panedcb = gtk_paned_add1;
+              }
+            else
+              {
+                panedcb = gtk_paned_add2;
+              }
+
+            gtk_container_remove (GTK_CONTAINER (parent), widget ());
+            panedcb (GTK_PANED (parent), mPaned);
+          }
+        else
+          {
+            replace_widget (widget (), mPaned);
+          }
 
         gtk_paned_pack1 (GTK_PANED (mPaned), nwindow->widget (), TRUE, TRUE);
         gtk_paned_pack2 (GTK_PANED (mPaned), nwindow2->widget (), TRUE, TRUE);
@@ -405,13 +403,13 @@ namespace apvlv
         type = vsp == false? AW_SP: AW_VSP;
         if (type == AW_SP)
           {
-            nwindow->setsize (mWidth, isbrother? mHeight / 4: mHeight / 2);
-            nwindow2->setsize (mWidth, isbrother? mHeight - mHeight / 4: mHeight / 2);
+            nwindow->setsize (mWidth, mHeight / 2);
+            nwindow2->setsize (mWidth, mHeight / 2);
           }
         else if (type == AW_VSP)
           {
-            nwindow->setsize (isbrother? mWidth / 4: mWidth / 2, mHeight);
-            nwindow2->setsize (isbrother? mWidth - mWidth / 4: mWidth / 2, mHeight);
+            nwindow->setsize (mWidth / 2, mHeight);
+            nwindow2->setsize (mWidth / 2, mHeight);
           }
 
         gtk_widget_show_all (mPaned);
@@ -429,18 +427,36 @@ namespace apvlv
       {
         asst (type == AW_SP || type == AW_VSP);
 
+        if (m_parent)
+          {
+            void (*panedcb) (GtkPaned *, GtkWidget *);
+            GtkWidget *parent = m_parent->mPaned;
+            if (gtk_paned_get_child1 (GTK_PANED (parent)) == mPaned)
+              {
+                panedcb = gtk_paned_add1;
+              }
+            else
+              {
+                panedcb = gtk_paned_add2;
+              }
+
+            gtk_container_remove (GTK_CONTAINER (parent), mPaned);
+            panedcb (GTK_PANED (parent), child->widget ());
+          }
+        else
+          {
+            gtk_container_remove (GTK_CONTAINER (mPaned), child->widget ());
+            replace_widget (mPaned, child->widget ());
+          }
+
         if (child->type == AW_CORE)
           {
-            ApvlvCore *doc = child->getDoc (true);
-            replace_widget (widget (), doc->widget (), WR_REF);
-            mCore = doc;
+            ApvlvCore *doc = child->getCore ();
             type = AW_CORE;
+            mCore = doc;
           }
         else if (child->type == AW_SP || child->type == AW_VSP)
           {
-            g_object_ref (G_OBJECT (child->mPaned));
-            gtk_container_remove (GTK_CONTAINER (mPaned), child->mPaned);
-            replace_widget (mPaned, child->mPaned, WR_REMOVE);
             type = child->type;
             mPaned = child->mPaned;
             m_son = child->m_son;
@@ -451,11 +467,11 @@ namespace apvlv
           }
 
         gtk_widget_show_all (widget ());
-	
-	if (dead != NULL)
-	  delete dead;
-	if (child != NULL)
-	  delete child;
+
+        if (dead != NULL)
+          delete dead;
+        if (child != NULL)
+          delete child;
 
         ApvlvWindow *win;
         for (win = this; win->type != AW_CORE; win = win->m_son);
@@ -470,10 +486,24 @@ namespace apvlv
       }
 
   void
+    ApvlvWindow::getsize (int *width, int *height)
+      {
+        if (width)
+          {
+            *width = mWidth;
+          }
+        if (height)
+          {
+            *height = mHeight;
+          }
+      }
+
+  void
     ApvlvWindow::setsize (int width, int height)
       {
         mWidth = width;
         mHeight = height;
+        debug ("mWidth: %d, mHeight: %d", mWidth, mHeight);
 
         if (type == AW_CORE)
           {
@@ -486,103 +516,21 @@ namespace apvlv
           }
       }
 
-  ApvlvCore *
-    ApvlvWindow::loadDir (const char *path)
-      {
-        asst (type == AW_CORE);
-        debug ("new dir");
-        bool bcache = false;
-        const char *scache = gParams->value ("cache");
-        if (strcmp (scache, "yes") == 0)
-          {
-            debug ("use cache");
-            bcache = true;
-          }
-
-        ApvlvDir *ndir = new ApvlvDir (gParams->value ("zoom"), path);
-        replace_widget (widget (), ndir->widget (), WR_REF);
-        ndir->setsize (mWidth, mHeight);
-        mCore = ndir;
-        debug ("mCore %p", mCore);
-        gtk_widget_show_all (widget ());
-
-        return mCore;
-      }
-
-  ApvlvCore *
-    ApvlvWindow::loadDoc (const char *filename)
-      {
-        asst (type == AW_CORE);
-        bool ret;
-        if (mCore->filename () == NULL || gView->hasloaded (mCore->filename ()) != mCore)
-          {
-            mCore->setsize (mWidth, mHeight);
-            ret = mCore->loadfile (filename);
-          }
-        else
-          {
-            bool bcache = false;
-            const char *scache = gParams->value ("cache");
-            if (strcmp (scache, "yes") == 0)
-              {
-                bcache = true;
-              }
-
-            ApvlvDoc *ndoc = new ApvlvDoc (gParams->value ("zoom"), bcache);
-            ndoc->setsize (mWidth, mHeight);
-            ret = ndoc->loadfile (filename);
-
-            if (ret)
-              {
-                replace_widget (widget (), ndoc->widget (), WR_REF);
-                ndoc->setsize (mWidth, mHeight);
-                mCore = ndoc;
-                gtk_widget_show_all (widget ());
-              }
-          }
-
-        if (ret && mUseContent
-            && ((ApvlvDoc *) mCore)->indexiter ())
-          {
-            debug ("iter: %p", ((ApvlvDoc *) mCore)->indexiter ());
-            ApvlvDir *dir = new ApvlvDir ("NORMAL", (ApvlvDoc *) mCore);
-            birth (true, true, dir);
-          }
-
-        return (ApvlvDoc *) mCore;
-      }
-
   void
     ApvlvWindow::setCore (ApvlvCore *doc)
       {
-        asst (type == AW_CORE);
-        replace_widget (widget (), doc->widget (), WR_REF);
+        debug ("widget (): %p, doc->widget (): %p", widget (), doc->widget ());
+        replace_widget (widget (), doc->widget ());
+        type = AW_CORE;
         mCore = doc;
-
-        if (mUseContent)
-          {
-            if (((ApvlvDoc *) doc)->indexiter ())
-              {
-                debug ("iter: %p", ((ApvlvDoc *) doc)->indexiter ());
-                ApvlvDir *dir = new ApvlvDir ("NORMAL", (ApvlvDoc *) mCore);
-                birth (true, true, dir);
-              }
-          }
       }
 
-  ApvlvDoc *
-    ApvlvWindow::getDoc (bool remove)
+  ApvlvCore *
+    ApvlvWindow::getCore ()
       {
         asst (type == AW_CORE);
         ApvlvCore *rdoc = mCore;
-
-        if (remove)
-          {
-            remove_widget (widget (), WR_REF);
-            mCore = NULL;
-          }
-
-        return (ApvlvDoc *) rdoc;
+        return rdoc;
       }
 
   void

@@ -1,29 +1,29 @@
 /*
-* This file is part of the apvlv package
-*
-* Copyright (C) 2008 Alf.
-*
-* Contact: Alf <naihe2010@gmail.com>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2.0 of
-* the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* General Public License for more details.
-*
-* You should have received a copy of the GNU General Public
-* License along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*
-*/
+ * This file is part of the apvlv package
+ *
+ * Copyright (C) 2008 Alf.
+ *
+ * Contact: Alf <naihe2010@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2.0 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
 /* @CPPFILE ApvlvParams.cpp
-*
-*  Author: Alf <naihe2010@gmail.com>
-*/
+ *
+ *  Author: Alf <naihe2010@gmail.com>
+ */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
 #include "ApvlvUtil.hpp"
@@ -167,7 +167,7 @@ namespace apvlv
       }
 
   const char *
-    ApvlvParams::value (const char *s)
+    ApvlvParams::values (const char *s)
       {
         string ss (s);
         map <string, string>::iterator it;
@@ -177,5 +177,46 @@ namespace apvlv
             return it->second.c_str ();
           }
         return NULL;
+      }
+
+  int
+    ApvlvParams::valuei (const char *s)
+      {
+        string ss (s);
+        map <string, string>::iterator it;
+        it = mSettings.find (ss);
+        if (it != mSettings.end ())
+          {
+            return atoi (it->second.c_str ());
+          }
+        return -1;
+      }
+
+  double
+    ApvlvParams::valuef (const char *s)
+      {
+        string ss (s);
+        map <string, string>::iterator it;
+        it = mSettings.find (ss);
+        if (it != mSettings.end ())
+          {
+            return atof (it->second.c_str ());
+          }
+        return -1.0;
+      }
+
+  bool
+    ApvlvParams::valueb (const char *s)
+      {
+        string ss (s);
+        map <string, string>::iterator it;
+        it = mSettings.find (ss);
+        if (it != mSettings.end ()
+            && strcasecmp (it->second.c_str (), "yes") == 0
+        )
+          {
+            return true;
+          }
+        return false;
       }
 }

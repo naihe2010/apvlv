@@ -1,29 +1,29 @@
 /*
-* This file is part of the apvlv package
-*
-* Copyright (C) 2008 Alf.
-*
-* Contact: Alf <naihe2010@gmail.com>
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2.0 of
-* the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* General Public License for more details.
-*
-* You should have received a copy of the GNU General Public
-* License along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*
-*/
+ * This file is part of the apvlv package
+ *
+ * Copyright (C) 2008 Alf.
+ *
+ * Contact: Alf <naihe2010@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2.0 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
 /* @CPPFILE ApvlvView.hpp
-*
-*  Author: Alf <naihe2010@gmail.com>
-*/
+ *
+ *  Author: Alf <naihe2010@gmail.com>
+ */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
 #ifndef _APVLV_VIEW_H_
@@ -57,7 +57,7 @@ namespace apvlv
   class ApvlvView
     {
   public:
-    ApvlvView (int *argc, char ***argv);
+    ApvlvView (const char *);
 
     ~ApvlvView ();
 
@@ -68,6 +68,10 @@ namespace apvlv
     ApvlvWindow *currentWindow ();
 
     void delcurrentWindow ();
+
+    void newtab (const char *filename);
+
+    void newtab (ApvlvCore *core);
 
     void promptcommand (char ch);
 
@@ -81,7 +85,9 @@ namespace apvlv
 
     bool loaddir (const char *path);
 
-    ApvlvDoc * hasloaded (const char *filename);
+    ApvlvCore * hasloaded (const char *filename, int type);
+
+    void regloaded (ApvlvCore *);
 
     void open ();
 
@@ -114,9 +120,7 @@ namespace apvlv
 
     void runcmd (const char *cmd);
 
-    void newtab ();
-
-    int new_tabcontext (bool insertAfterCurr);
+    int new_tabcontext (ApvlvCore *core, bool insertAfterCurr);
 
     void delete_tabcontext (int tabPos);
 
@@ -126,12 +130,12 @@ namespace apvlv
     //  This figure accounts for decorations like (mCmdBar and mHaveTabs).
     // Returns a nonnegative number.
     int adjheight ();
-  
+
     void switchtab (int tabPos);
 
     // Update the tab's context and update tab label.
     void windowadded ();
-    
+
     void updatetabname ();
     bool mHasCmd, mHasTabs;
 
@@ -143,13 +147,13 @@ namespace apvlv
     GtkWidget *mTabContainer;
 
     struct TabEntry {
-      ApvlvWindow *root;
-      ApvlvWindow *curr;
-      
-      int numwindows;
-      TabEntry (ApvlvWindow *_r, ApvlvWindow *_c, int _n) 
-	: root(_r), curr(_c), numwindows(_n)
-      { }
+        ApvlvWindow *root;
+        ApvlvWindow *curr;
+
+        int numwindows;
+        TabEntry (ApvlvWindow *_r, ApvlvWindow *_c, int _n) 
+          : root(_r), curr(_c), numwindows(_n)
+          { }
     };
     // possibly use GArray instead
     std::vector<TabEntry> mTabList;
@@ -158,20 +162,19 @@ namespace apvlv
     gboolean mHasFull;
     int mWidth, mHeight;
 
-
     static void apvlv_view_delete_cb (GtkWidget * wid, GtkAllocation * al,
                                       ApvlvView * view);
     static void apvlv_view_resized_cb (GtkWidget * wid, GtkAllocation * al,
                                        ApvlvView * view);
-    static gint apvlv_view_keypress_cb (GtkWidget * wid, GdkEvent * ev);
+    static gint apvlv_view_keypress_cb (GtkWidget * wid, GdkEvent * ev, ApvlvView * view);
 
-    static gint apvlv_view_commandbar_cb (GtkWidget * wid, GdkEvent * ev);
+    static gint apvlv_view_commandbar_cb (GtkWidget * wid, GdkEvent * ev, ApvlvView * view);
 
     static void apvlv_notebook_switch_cb (GtkWidget * wid, GtkNotebookPage *page, guint num, ApvlvView *view);
 
-    ApvlvWindow *mRootWindow, *mCurWindow;
+    ApvlvWindow *mRootWindow;
 
-    map <string, ApvlvDoc *> mDocs;
+    GSList *mDocs;
 
     static const int APVLV_CMD_BAR_HEIGHT, APVLV_TABS_HEIGHT;
     };
