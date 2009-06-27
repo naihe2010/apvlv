@@ -440,6 +440,7 @@ namespace apvlv
                 panedcb = gtk_paned_add2;
               }
 
+            gtk_container_remove (GTK_CONTAINER (mPaned), child->widget ());
             gtk_container_remove (GTK_CONTAINER (parent), mPaned);
             panedcb (GTK_PANED (parent), child->widget ());
           }

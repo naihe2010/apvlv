@@ -272,7 +272,7 @@ namespace apvlv
       {
         char rate[16];
         g_snprintf (rate, sizeof rate, "%f", mZoomrate);
-        ApvlvDoc *ndoc = new ApvlvDoc (mWidth, mHeight, rate, usecache ()? "yes": "no");
+        ApvlvDoc *ndoc = new ApvlvDoc (mWidth, mHeight, rate, usecache ());
         ndoc->loadfile (mFilestr, false);
         ndoc->showpage (mPagenum, scrollrate ());
         return ndoc;
