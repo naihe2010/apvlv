@@ -522,7 +522,12 @@ namespace apvlv
     ApvlvWindow::setCore (ApvlvCore *doc)
       {
         debug ("widget (): %p, doc->widget (): %p", widget (), doc->widget ());
+        if (type == AW_CORE)
+          {
+            mCore->inuse (false);
+          }
         replace_widget (widget (), doc->widget ());
+        doc->inuse (true);
         type = AW_CORE;
         mCore = doc;
       }

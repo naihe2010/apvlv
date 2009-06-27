@@ -91,7 +91,7 @@ namespace apvlv
         return false;
       }
 
-  ApvlvDir::ApvlvDir (int w, int h, const char *path)
+  ApvlvDir::ApvlvDir (int w, int h)
     {
       mReady = false;
 
@@ -101,60 +101,58 @@ namespace apvlv
 
       mDirNodes = NULL;
 
-      init_ui (w, h);
+      mStore = gtk_tree_store_new (2, G_TYPE_POINTER, G_TYPE_STRING);
+      mDirView = gtk_tree_view_new_with_model (GTK_TREE_MODEL (mStore));
+      gtk_container_add (GTK_CONTAINER (mScrollwin), mDirView);
+      gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (mDirView), FALSE);
 
-      walk_dir_path_index (NULL, path);
+      mSelection = gtk_tree_view_get_selection (GTK_TREE_VIEW (mDirView));
+      g_signal_connect (G_OBJECT (mSelection), "changed", G_CALLBACK (apvlv_dir_on_changed), this);
 
-      mFirstSelTimer = g_timeout_add (50, (gboolean (*) (gpointer)) apvlv_dir_first_select_cb, this);
+      /* Title Column */
+      GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
+      GtkTreeViewColumn *column = gtk_tree_view_column_new_with_attributes ("title", renderer, "text", 1, NULL);
+      gtk_tree_view_column_set_sort_column_id (column, 1);
+      gtk_tree_view_append_column (GTK_TREE_VIEW (mDirView), column);
 
-      mReady = true;
+      mStatus = new ApvlvDirStatus (this);
+
+      gtk_box_pack_start (GTK_BOX (mVbox), mScrollwin, FALSE, FALSE, 0);
+      gtk_box_pack_end (GTK_BOX (mVbox), mStatus->widget (), FALSE, FALSE, 0);
+
+      gtk_widget_show_all (mVbox);
+
+      setsize (w, h);
     }
 
-  ApvlvDir::ApvlvDir (int w, int h, PopplerDocument *doc)
-    {
-      mReady = false;
-
-      mProCmd = 0;
-
-      mRotatevalue = 0;
-
-      mDirNodes = NULL;
-
-      init_ui (w, h);
-
-      mDoc = doc;
-      walk_poppler_iter_index (NULL, poppler_index_iter_new (doc));
-
-      mFirstSelTimer = g_timeout_add (50, (gboolean (*) (gpointer)) apvlv_dir_first_select_cb, this);
-
-      mReady = true;
-    }
-
-  void 
-    ApvlvDir::init_ui (int w, int h)
+  bool
+    ApvlvDir::loadfile (const char *path, bool check)
       {
-        mStore = gtk_tree_store_new (2, G_TYPE_POINTER, G_TYPE_STRING);
-        mDirView = gtk_tree_view_new_with_model (GTK_TREE_MODEL (mStore));
-        gtk_container_add (GTK_CONTAINER (mScrollwin), mDirView);
-        gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (mDirView), FALSE);
+        struct stat buf[1];
+        stat (path, buf);
+        if (S_ISDIR (buf->st_mode))
+          {
+            mReady = walk_dir_path_index (NULL, path);
+          }
+        else
+          {
+            mDoc = file_to_popplerdoc (path);
+            PopplerIndexIter *iter;
+            if (mDoc != NULL
+                && (iter = poppler_index_iter_new (mDoc)) != NULL
+            )
+              {
+                mReady = walk_poppler_iter_index (NULL, iter);
+              }
+          }
 
-        mSelection = gtk_tree_view_get_selection (GTK_TREE_VIEW (mDirView));
-        g_signal_connect (G_OBJECT (mSelection), "changed", G_CALLBACK (apvlv_dir_on_changed), this);
+        if (mReady)
+          {
+            mFilestr = path;
+            mFirstSelTimer = g_timeout_add (50, (gboolean (*) (gpointer)) apvlv_dir_first_select_cb, this);
+          }
 
-        /* Title Column */
-        GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
-        GtkTreeViewColumn *column = gtk_tree_view_column_new_with_attributes ("title", renderer, "text", 1, NULL);
-        gtk_tree_view_column_set_sort_column_id (column, 1);
-        gtk_tree_view_append_column (GTK_TREE_VIEW (mDirView), column);
-
-        mStatus = new ApvlvDirStatus (this);
-
-        gtk_box_pack_start (GTK_BOX (mVbox), mScrollwin, FALSE, FALSE, 0);
-        gtk_box_pack_end (GTK_BOX (mVbox), mStatus->widget (), FALSE, FALSE, 0);
-
-        gtk_widget_show_all (mVbox);
-
-        setsize (w, h);
+        return mReady;
       }
 
   ApvlvDir::~ApvlvDir ()
@@ -261,17 +259,44 @@ namespace apvlv
             return false;
           }
 
-        ApvlvDoc *ndoc;
+        ApvlvCore *ndoc = NULL;
         if (name != NULL)
           {
-            ndoc = new ApvlvDoc (mWidth, mHeight, gParams->values ("zoom"), gParams->valueb ("cache"));
-            ndoc->loadfile (name);
+            if (gParams->valueb ("content"))
+              {
+                ndoc = new ApvlvDir (mWidth, mHeight);
+                if (!ndoc->loadfile (name))
+                  {
+                    delete ndoc;
+                    ndoc = NULL;
+                  }
+              }
+
+            if (ndoc == NULL)
+              {
+                ndoc = new ApvlvDoc (mWidth, mHeight, gParams->values ("zoom"), gParams->valueb ("cache"));
+                ndoc->loadfile (name);
+              }
           }
         else
           {
-            ndoc = new ApvlvDoc (mWidth, mHeight, gParams->values ("zoom"), gParams->valueb ("cache"));
-            ndoc->loadfile (filename ());
-            ndoc->showpage (pn);
+            ApvlvDoc *adoc = new ApvlvDoc (mWidth, mHeight, gParams->values ("zoom"), gParams->valueb ("cache"));
+            if (!adoc->loadfile (filename ()))
+              {
+                delete adoc;
+                adoc = NULL;
+              }
+
+            if (adoc != NULL)
+              {
+                adoc->showpage (pn);
+                ndoc = adoc;
+              }
+          }
+
+        if (ndoc == NULL)
+          {
+            return false;
           }
 
         switch (key)

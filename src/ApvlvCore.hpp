@@ -70,6 +70,8 @@ namespace apvlv
 
     virtual ~ApvlvCore ();
 
+    virtual void inuse (bool use);
+
     virtual bool inuse ();
 
     virtual int type ();

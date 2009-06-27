@@ -272,7 +272,12 @@ namespace apvlv
           {
             int w, h;
             currentWindow ()->getsize (&w, &h);
-            ndoc = new ApvlvDir (w, h, path);
+            ndoc = new ApvlvDir (w, h);
+            if (!ndoc->loadfile (path))
+              {
+                delete ndoc;
+                return false;
+              }
             regloaded (ndoc);
           }
 
@@ -312,11 +317,7 @@ namespace apvlv
         if (mCurrTabPos > p)
           --mCurrTabPos;
 
-        if ((int) mTabList.size() == 1)
-          {
-            gtk_notebook_set_show_tabs (GTK_NOTEBOOK(mTabContainer), FALSE);
-            mHasTabs = false;
-          }
+        mRootWindow->setsize (mWidth, adjheight());
       }
 
   void
@@ -392,8 +393,15 @@ namespace apvlv
         int c = mTabList.size();
         mTabList.erase (remPos);
         if (c == (int) mTabList.size())
-          cerr << "erase failed to remove context\n";
+          {
+            warnp ("erase failed to remove context");
+          }
 
+        if ((int) mTabList.size() <= 1)
+          {
+            gtk_notebook_set_show_tabs (GTK_NOTEBOOK(mTabContainer), FALSE);
+            mHasTabs = false;
+          }
       }
 
   void
@@ -426,29 +434,24 @@ namespace apvlv
                 win->getsize (&w, &h);
                 if (gParams->valueb ("content"))
                   {
-                    PopplerDocument *doc = file_to_popplerdoc (filename);
-                    if (doc == NULL)
+                    ndoc = new ApvlvDir (w, h);
+                    if (!ndoc->loadfile (abpath))
                       {
-                        g_free (abpath);
-                        return false;
-                      }
-
-                    PopplerIndexIter *iter = poppler_index_iter_new (doc);
-                    if (iter == NULL)
-                      {
-                        ndoc = new ApvlvDoc (w, h, gParams->values ("zoom"), false);
-                        ndoc->loadfile (filename);
-                      }
-                    else
-                      {
-                        ndoc = new ApvlvDir (w, h, doc);
+                        delete ndoc;
+                        ndoc = NULL;
                       }
                   }
-                else
+
+                if (ndoc == NULL)
                   {
                     ndoc = new ApvlvDoc (w, h, gParams->values ("zoom"), false);
-                    ndoc->loadfile (filename);
+                    if (!ndoc->loadfile (filename))
+                      {
+                        delete ndoc;
+                        ndoc = NULL;
+                      }
                   }
+
                 regloaded (ndoc);
               }
             win->setCore (ndoc);
@@ -467,7 +470,8 @@ namespace apvlv
         for (node = mDocs; node != NULL; node = g_slist_next (node))
           {
             core = (ApvlvCore *) node->data;
-            if (core->type () == type
+            if (core->inuse () == false
+                && core->type () == type
                 && strcmp (core->filename (), abpath) == 0
             )
               {

@@ -61,6 +61,12 @@ namespace apvlv
       g_object_unref (mVbox);
     }
 
+  void
+    ApvlvCore::inuse (bool use)
+      {
+        mInuse = use;
+      }
+
   bool
     ApvlvCore::inuse ()
       {

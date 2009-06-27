@@ -79,19 +79,17 @@ private:
   class ApvlvDir: public ApvlvCore
   {
 public:
-  ApvlvDir (int w, int h, const char *path);
-
-  ApvlvDir (int w, int h, PopplerDocument *);
+  ApvlvDir (int w, int h);
 
   ~ApvlvDir ();
+
+  bool loadfile (const char *file, bool check = true);
 
   void setactive (bool act);
 
   returnType process (int times, guint keyval);
 
 private:
-
-  void init_ui (int w, int h);
 
   returnType subprocess (int ct, guint key);
 

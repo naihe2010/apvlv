@@ -73,8 +73,8 @@ namespace apvlv
 
   PopplerDocument * file_to_popplerdoc (const char *filename);
 
-    // function return type
-    typedef enum
+  // function return type
+  typedef enum
     {
       MATCH,
       NEED_MORE,
