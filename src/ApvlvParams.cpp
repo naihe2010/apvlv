@@ -30,6 +30,7 @@
 #include "ApvlvCmds.hpp"
 #include "ApvlvParams.hpp"
 
+#include <stdlib.h>
 #include <string.h>
 
 #include <iostream>
