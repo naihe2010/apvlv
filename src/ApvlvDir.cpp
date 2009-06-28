@@ -101,7 +101,7 @@ namespace apvlv
 
       mDirNodes = NULL;
 
-      mStore = gtk_tree_store_new (2, G_TYPE_POINTER, G_TYPE_STRING);
+      mStore = gtk_tree_store_new (3, G_TYPE_POINTER, G_TYPE_OBJECT, G_TYPE_STRING);
       mDirView = gtk_tree_view_new_with_model (GTK_TREE_MODEL (mStore));
       gtk_container_add (GTK_CONTAINER (mScrollwin), mDirView);
       gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (mDirView), FALSE);
@@ -110,9 +110,14 @@ namespace apvlv
       g_signal_connect (G_OBJECT (mSelection), "changed", G_CALLBACK (apvlv_dir_on_changed), this);
 
       /* Title Column */
+      GtkCellRenderer *renderer0 = gtk_cell_renderer_pixbuf_new ();
       GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
-      GtkTreeViewColumn *column = gtk_tree_view_column_new_with_attributes ("title", renderer, "text", 1, NULL);
-      gtk_tree_view_column_set_sort_column_id (column, 1);
+      GtkTreeViewColumn *column = gtk_tree_view_column_new ();
+      gtk_tree_view_column_pack_start (column, renderer0, FALSE);
+      gtk_tree_view_column_pack_start (column, renderer, FALSE);
+      gtk_tree_view_column_add_attribute (column, renderer0, "pixbuf", 1);
+      gtk_tree_view_column_add_attribute (column, renderer, "text", 2);
+      gtk_tree_view_column_set_sort_column_id (column, 2);
       gtk_tree_view_append_column (GTK_TREE_VIEW (mDirView), column);
 
       mStatus = new ApvlvDirStatus (this);
@@ -457,7 +462,15 @@ namespace apvlv
                   {
                     mDirNodes = g_slist_append (mDirNodes, node);
                     gtk_tree_store_append (mStore, &nitr, titr);
-                    gtk_tree_store_set (mStore, &nitr, 0, node, 1, pagd->title, -1);
+                    GdkPixbuf *pix = gdk_pixbuf_new_from_file_at_size (iconreg.c_str (), 40, 20, NULL);
+                    if (pix)
+                      {
+                        gtk_tree_store_set (mStore, &nitr, 0, node, 1, pix, 2, pagd->title, -1);
+                      }
+                    else
+                      {
+                        gtk_tree_store_set (mStore, &nitr, 0, node, 2, pagd->title, -1);
+                      }
                   }
               }
             poppler_action_free (act);
@@ -591,7 +604,15 @@ namespace apvlv
 
                     GtkTreeIter mitr[1];
                     gtk_tree_store_append (mStore, mitr, itr);
-                    gtk_tree_store_set (mStore, mitr, 0, node, 1, name, -1);
+                    GdkPixbuf *pix = gdk_pixbuf_new_from_file_at_size (icondir.c_str (), 40, 20, NULL);
+                    if (pix)
+                      {
+                        gtk_tree_store_set (mStore, mitr, 0, node, 1, pix, 2, name, -1);
+                      }
+                    else
+                      {
+                        gtk_tree_store_set (mStore, mitr, 0, node, 2, name, -1);
+                      }
 
                     if (!walk_dir_path_index (mitr, realname))
                       {
@@ -612,7 +633,15 @@ namespace apvlv
                     mDirNodes = g_slist_append (mDirNodes, node);
                     GtkTreeIter mitr[1];
                     gtk_tree_store_append (mStore, mitr, itr);
-                    gtk_tree_store_set (mStore, mitr, 0, node, 1, name, -1);
+                    GdkPixbuf *pix = gdk_pixbuf_new_from_file_at_size (iconpdf.c_str (), 40, 20, NULL);
+                    if (pix)
+                      {
+                        gtk_tree_store_set (mStore, mitr, 0, node, 1, pix, 2, name, -1);
+                      }
+                    else
+                      {
+                        gtk_tree_store_set (mStore, mitr, 0, node, 2, name, -1);
+                      }
 
                     has = true;
                   }
