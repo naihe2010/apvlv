@@ -466,6 +466,7 @@ namespace apvlv
                     if (pix)
                       {
                         gtk_tree_store_set (mStore, &nitr, 0, node, 1, pix, 2, pagd->title, -1);
+                        g_object_unref (pix);
                       }
                     else
                       {
@@ -608,6 +609,7 @@ namespace apvlv
                     if (pix)
                       {
                         gtk_tree_store_set (mStore, mitr, 0, node, 1, pix, 2, name, -1);
+                        g_object_unref (pix);
                       }
                     else
                       {
@@ -637,6 +639,7 @@ namespace apvlv
                     if (pix)
                       {
                         gtk_tree_store_set (mStore, mitr, 0, node, 1, pix, 2, name, -1);
+                        g_object_unref (pix);
                       }
                     else
                       {
