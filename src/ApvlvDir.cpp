@@ -134,7 +134,14 @@ namespace apvlv
     ApvlvDir::loadfile (const char *path, bool check)
       {
         struct stat buf[1];
+#ifdef _WIN32
+		gchar *realpath;
+		realpath = g_win32_locale_filename_from_utf8 (path);
+		stat (realpath, buf);
+		g_free (realpath);
+#else	
         stat (path, buf);
+#endif
         if (S_ISDIR (buf->st_mode))
           {
             mReady = walk_dir_path_index (NULL, path);
@@ -593,12 +600,18 @@ namespace apvlv
                     continue;
                   }
 
-                gchar *realname = g_strjoin ("/", path, name, NULL);
+                gchar *realname = g_strjoin (PATH_SEP_S, path, name, NULL);
                 debug ("add a item: %s[%s]", name, realname);
 
                 ApvlvDirNode *node = NULL;
                 struct stat buf[1];
+#ifdef _WIN32
+				char *wrealname = g_win32_locale_filename_from_utf8 (realname);
+				stat (wrealname, buf);
+				g_free (wrealname);
+#else
                 g_stat (realname, buf);
+#endif
                 if (S_ISDIR (buf->st_mode))
                   {
                     node = new ApvlvDirNode (true, realname, name);
@@ -635,6 +648,7 @@ namespace apvlv
                     mDirNodes = g_slist_append (mDirNodes, node);
                     GtkTreeIter mitr[1];
                     gtk_tree_store_append (mStore, mitr, itr);
+
                     GdkPixbuf *pix = gdk_pixbuf_new_from_file_at_size (iconpdf.c_str (), 40, 20, NULL);
                     if (pix)
                       {

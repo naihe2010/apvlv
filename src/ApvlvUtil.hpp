@@ -87,6 +87,12 @@ namespace apvlv
 #include <winbase.h>
 #define usleep(x)    Sleep((x) / 1000)
 #define __func__     __FUNCTION__
+#define strcasecmp   _strcmpi
+
+#ifndef S_ISDIR
+#define S_ISDIR(mode)  (((mode) & 0170000) == (0040000))
+#endif
+
 #endif
 
   // log system

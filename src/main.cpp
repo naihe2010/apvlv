@@ -71,6 +71,18 @@ main (int argc, char *argv[])
       g_free (ini);
     }
 
+#ifdef _WIN32
+  gchar *temp = absolutepath (iconpdf.c_str ());
+  iconpdf = temp;
+  g_free (temp);
+  temp = absolutepath (icondir.c_str ());
+  icondir = temp;
+  g_free (temp);
+  temp = absolutepath (iconreg.c_str ());
+  iconreg = temp;
+  g_free (temp);
+#endif
+
   gchar *path;
   if (argc > 1)
     {

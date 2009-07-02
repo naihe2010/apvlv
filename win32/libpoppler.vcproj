@@ -42,7 +42,7 @@
 				UseUnicodeResponseFiles="true"
 				Optimization="0"
 				AdditionalIncludeDirectories="msvc;msvc\poppler;&quot;poppler-0.10.0&quot;;&quot;poppler-0.10.0\goo&quot;;&quot;poppler-0.10.0\poppler&quot;;freetype231\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -108,7 +108,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="msvc;msvc\poppler;&quot;poppler-0.10.0&quot;;&quot;poppler-0.10.0\goo&quot;;&quot;poppler-0.10.0\poppler&quot;;freetype231\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -405,11 +405,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\poppler-0.10.0\poppler\poppler-config.h"
+				RelativePath=".\msvc\poppler\poppler-config.h"
 				>
 			</File>
 			<File
-				RelativePath=".\msvc\poppler\poppler-config.h"
+				RelativePath=".\poppler-0.10.0\poppler\poppler-config.h"
 				>
 			</File>
 			<File

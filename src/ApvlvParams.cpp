@@ -213,7 +213,7 @@ namespace apvlv
         map <string, string>::iterator it;
         it = mSettings.find (ss);
         if (it != mSettings.end ()
-            && strcasecmp (it->second.c_str (), "yes") == 0
+            && it->second.compare ("yes") == 0
         )
           {
             return true;

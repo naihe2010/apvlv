@@ -47,9 +47,9 @@ namespace apvlv
 #ifdef WIN32
   string helppdf = "~\\Startup.pdf";
   string iniexam = "~\\apvlvrc.example";
-  string iconreg = "\\reg.png";
-  string icondir = "\\dir.png";
-  string iconpdf = "\\pdf.png";
+  string iconreg = "~\\reg.png";
+  string icondir = "~\\dir.png";
+  string iconpdf = "~\\pdf.png";
   string inifile = "~\\_apvlvrc";
   string sessionfile = "~\\_apvlvinfo";
 #else
