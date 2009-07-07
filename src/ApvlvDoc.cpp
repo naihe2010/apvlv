@@ -57,7 +57,7 @@ namespace apvlv
 
   ApvlvDoc::ApvlvDoc (int w, int h, const char *zm, bool cache)
     {
-      mCurrentCache = NULL;
+      mCurrentCache1 = mCurrentCache2 = NULL;
 #ifdef HAVE_PTHREAD
       if (cache)
         {
@@ -86,9 +86,13 @@ namespace apvlv
       mResults = NULL;
       mSearchstr = "";
 
-      mImage = gtk_image_new ();
-      gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mScrollwin),
-                                             mImage);
+      GtkWidget *vbox = gtk_vbox_new (TRUE, 0);
+      gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mScrollwin), vbox);
+
+      mImage1 = gtk_image_new ();
+      gtk_box_pack_start (GTK_BOX (vbox), mImage1, TRUE, TRUE, 0);
+      mImage2 = gtk_image_new ();
+      gtk_box_pack_start (GTK_BOX (vbox), mImage2, TRUE, TRUE, 0);
 
       mStatus = new ApvlvDocStatus (this);
 
@@ -102,8 +106,10 @@ namespace apvlv
 
   ApvlvDoc::~ApvlvDoc ()
     {
-      if (mCurrentCache)
-        delete mCurrentCache;
+      if (mCurrentCache1)
+        delete mCurrentCache1;
+      if (mCurrentCache2)
+        delete mCurrentCache2;
 #ifdef HAVE_PTHREAD
       if (mUseCache)
         {
@@ -421,9 +427,13 @@ namespace apvlv
                 mNextCache = new ApvlvDocCache (this);
               }
 #endif
-            if (mCurrentCache != NULL)
-              delete mCurrentCache;
-            mCurrentCache = new ApvlvDocCache (this);
+            if (mCurrentCache1 != NULL)
+              delete mCurrentCache1;
+            mCurrentCache1 = new ApvlvDocCache (this);
+
+            if (mCurrentCache2 != NULL)
+              delete mCurrentCache2;
+            mCurrentCache2 = new ApvlvDocCache (this);
 
             loadlastposition ();
 
@@ -560,9 +570,12 @@ namespace apvlv
         if (mDoc == NULL)
           return;
 
-        mCurrentCache->set (mPagenum, false);
-        GdkPixbuf *buf = mCurrentCache->getbuf (true);
-        gtk_image_set_from_pixbuf (GTK_IMAGE (mImage), buf);
+        mCurrentCache1->set (mPagenum, false);
+        GdkPixbuf *buf = mCurrentCache1->getbuf (true);
+        gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), buf);
+        mCurrentCache2->set (mPagenum + 1, false);
+        buf = mCurrentCache2->getbuf (true);
+        gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), buf);
 
         debug ("zoom rate: %f", mZoomrate);
         mStatus->show ();
@@ -661,7 +674,7 @@ namespace apvlv
       {
         PopplerRectangle *rect = (PopplerRectangle *) mResults->data;
 
-        gchar *txt = poppler_page_get_text (mCurrentCache->getpage (), POPPLER_SELECTION_GLYPH, rect);
+        gchar *txt = poppler_page_get_text (mCurrentCache1->getpage (), POPPLER_SELECTION_GLYPH, rect);
         if (txt == NULL)
           {
             debug ("no search result");
@@ -702,8 +715,8 @@ namespace apvlv
             gtk_adjustment_set_value (mHaj, mHaj->lower);
           }
 
-        guchar *pagedata = mCurrentCache->getdata (true);
-        GdkPixbuf *pixbuf = mCurrentCache->getbuf (true);
+        guchar *pagedata = mCurrentCache1->getdata (true);
+        GdkPixbuf *pixbuf = mCurrentCache1->getbuf (true);
         // change the back color of the selection
         for (gint y = y1; y < y2; y ++)
           {
@@ -716,7 +729,7 @@ namespace apvlv
               }
           }
 
-        gtk_image_set_from_pixbuf (GTK_IMAGE (mImage), pixbuf);
+        gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), pixbuf);
 
         g_free (rect);
         mResults = g_list_remove (mResults, rect);
@@ -839,7 +852,7 @@ namespace apvlv
         if (mDoc == NULL)
           return false;
 
-        PopplerPage *page = mCurrentCache->getpage ();
+        PopplerPage *page = mCurrentCache1->getpage ();
         char *txt;
         bool ret = getpagetext (page, &txt);
         if (ret == true)
@@ -883,7 +896,7 @@ namespace apvlv
       {
         int nn = -1;
 
-        PopplerLinkMapping *map = (PopplerLinkMapping *) g_list_nth_data (mCurrentCache->getlinks (), ct - 1);
+        PopplerLinkMapping *map = (PopplerLinkMapping *) g_list_nth_data (mCurrentCache1->getlinks (), ct - 1);
 
         debug ("Ctrl-] %d", ct);
         if (map)

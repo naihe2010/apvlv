@@ -229,12 +229,12 @@ private:
   ApvlvDocCache *fetchcache (guint);
   ApvlvDocCache *mLastCache, *mNextCache;
 #endif
-  ApvlvDocCache *mCurrentCache;
+  ApvlvDocCache *mCurrentCache1, *mCurrentCache2;
   ApvlvDocCache *newcache (int pagenum);
   void deletecache (ApvlvDocCache *ac);
 
   // image viewer
-  GtkWidget *mImage;
+  GtkWidget *mImage1, *mImage2;
   };
 
 }
