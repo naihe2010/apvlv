@@ -343,7 +343,9 @@ namespace apvlv
         switch_tabcontext (pos);
         mRootWindow->setsize (mWidth, adjheight());
 
-        GtkWidget* tabname = gtk_label_new ("None");
+        gchar *base = g_path_get_basename (core->filename ());
+        GtkWidget* tabname = gtk_label_new (base);
+        g_free (base);
         GtkWidget* parentbox = gtk_vbox_new (false, 0);
         gtk_container_add (GTK_CONTAINER(parentbox), mTabList[mCurrTabPos].root->widget());
 
@@ -908,9 +910,6 @@ namespace apvlv
             else if (cmd == "tabnew")
               {
                 newtab (helppdf.c_str ());
-                mRootWindow->setsize (mWidth, adjheight());
-
-                gtk_widget_show_all (mMainWindow);	
               }
             else if (cmd == "tabn" || cmd == "tabnext")
               {

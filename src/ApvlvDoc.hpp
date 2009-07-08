@@ -36,10 +36,6 @@
 #include "ApvlvCore.hpp"
 #include "ApvlvUtil.hpp"
 
-#ifdef HAVE_PTHREAD
-#include <pthread.h>
-#endif
-
 #include <gtk/gtk.h>
 #include <glib/poppler.h>
 #include <stdlib.h>
@@ -90,14 +86,6 @@ namespace apvlv
     GList *getlinks ();
 
   private:
-#ifdef HAVE_PTHREAD
-    bool mThreadRunning;
-    guint mDelay;
-    pthread_t mTid;
-    pthread_cond_t mCond;
-    pthread_mutex_t mMutex;
-#endif
-
     ApvlvDoc *mDoc;
     PopplerPage *mPage;
     GList *mLinkMappings;
@@ -224,11 +212,6 @@ private:
   ApvlvDocPositionMap mPositions;
   vector <ApvlvDocPosition> mLinkPositions;
 
-#ifdef HAVE_PTHREAD
-  bool mUseCache;
-  ApvlvDocCache *fetchcache (guint);
-  ApvlvDocCache *mLastCache, *mNextCache;
-#endif
   ApvlvDocCache *mCurrentCache1, *mCurrentCache2;
   ApvlvDocCache *newcache (int pagenum);
   void deletecache (ApvlvDocCache *ac);

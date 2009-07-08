@@ -26,6 +26,7 @@
  */
 /* @date Created: 2009/01/04 09:34:51 Alf*/
 
+#include "ApvlvParams.hpp"
 #include "ApvlvCore.hpp"
 
 #include <stdlib.h>
@@ -49,8 +50,8 @@ namespace apvlv
       g_object_ref (mVbox);
 
       mScrollwin = gtk_scrolled_window_new (NULL, NULL);
-      gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin), GTK_POLICY_AUTOMATIC,
-                                      GTK_POLICY_AUTOMATIC);
+      gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin), GTK_POLICY_NEVER,
+                                      GTK_POLICY_NEVER);
 
       mVaj = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
       mHaj = gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
@@ -110,15 +111,21 @@ namespace apvlv
   void 
     ApvlvCore::zoomin () 
       { 
-        mZoomrate *= 1.1; 
-        refresh (); 
+        if (mZoomrate <= 2)
+          {
+            mZoomrate *= 1.1; 
+            refresh (); 
+          }
       }
 
   void 
     ApvlvCore::zoomout () 
       { 
-        mZoomrate /= 1.1; 
-        refresh (); 
+        if (mZoomrate >= 0.5)
+          {
+            mZoomrate /= 1.1; 
+            refresh (); 
+          }
       }
 
   void
@@ -250,7 +257,9 @@ namespace apvlv
           return;
 
         gdouble val = gtk_adjustment_get_value (mVaj);
-        mVrate = (mVaj->upper - mVaj->lower) / mLines;
+        gdouble sub = mVaj->upper - mVaj->lower;
+        mVrate = sub / mLines;
+
         if (val - mVrate * times > mVaj->lower)
           {
             gtk_adjustment_set_value (mVaj, val - mVrate * times);
@@ -261,7 +270,14 @@ namespace apvlv
           }
         else
           {
-            showpage (mPagenum - 1, 1.00);
+            if (gParams->valueb ("continuous"))
+              {
+                showpage (mPagenum - 1, mVaj->upper / (2 * sub - mVaj->page_size));
+              }
+            else
+              {
+                showpage (mPagenum - 1, 1.0);
+              }
           }
 
         mStatus->show ();
@@ -274,7 +290,9 @@ namespace apvlv
           return;
 
         gdouble val = gtk_adjustment_get_value (mVaj);
-        mVrate = (mVaj->upper - mVaj->lower) / mLines;
+        gdouble sub = mVaj->upper - mVaj->lower;
+        mVrate = sub / mLines;
+
         if (val + mVrate * times + mVaj->page_size < mVaj->upper)
           {
             gtk_adjustment_set_value (mVaj, val + mVrate * times);
@@ -285,7 +303,14 @@ namespace apvlv
           }
         else
           {
-            showpage (mPagenum + 1, 0.00);
+            if (gParams->valueb ("continuous"))
+              {
+                showpage (mPagenum + 1, (sub - mVaj->page_size) / 2 / sub);
+              }
+            else
+              {
+                showpage (mPagenum + 1, 0.0);
+              }
           }
 
         mStatus->show ();

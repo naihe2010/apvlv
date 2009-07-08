@@ -27,6 +27,7 @@
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
 #include "ApvlvUtil.hpp"
+#include "ApvlvParams.hpp"
 #include "ApvlvView.hpp"
 #include "ApvlvDoc.hpp"
 
@@ -34,10 +35,6 @@
 #include <string.h>
 #include <math.h>
 #include <sys/stat.h>
-
-#ifdef HAVE_PTHREAD
-#include <pthread.h>
-#endif
 
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
@@ -50,26 +47,11 @@
 
 namespace apvlv
 {
-#ifdef HAVE_PTHREAD
-  static pthread_mutex_t rendermutex = PTHREAD_MUTEX_INITIALIZER;
-#endif
   static GtkPrintSettings *settings = NULL;
 
   ApvlvDoc::ApvlvDoc (int w, int h, const char *zm, bool cache)
     {
       mCurrentCache1 = mCurrentCache2 = NULL;
-#ifdef HAVE_PTHREAD
-      if (cache)
-        {
-          mUseCache = true;
-          mLastCache = NULL;
-          mNextCache = NULL;
-        }
-      else
-        {
-          mUseCache = false;
-        }
-#endif
 
       mReady = false;
 
@@ -91,8 +73,11 @@ namespace apvlv
 
       mImage1 = gtk_image_new ();
       gtk_box_pack_start (GTK_BOX (vbox), mImage1, TRUE, TRUE, 0);
-      mImage2 = gtk_image_new ();
-      gtk_box_pack_start (GTK_BOX (vbox), mImage2, TRUE, TRUE, 0);
+      if (gParams->valueb ("continuous"))
+        {
+          mImage2 = gtk_image_new ();
+          gtk_box_pack_start (GTK_BOX (vbox), mImage2, TRUE, TRUE, 0);
+        }
 
       mStatus = new ApvlvDocStatus (this);
 
@@ -110,15 +95,6 @@ namespace apvlv
         delete mCurrentCache1;
       if (mCurrentCache2)
         delete mCurrentCache2;
-#ifdef HAVE_PTHREAD
-      if (mUseCache)
-        {
-          if (mNextCache)
-            delete mNextCache;
-          if (mLastCache)
-            delete mLastCache;
-        }
-#endif
 
       if (mFilestr != helppdf)
         {
@@ -356,46 +332,17 @@ namespace apvlv
   bool
     ApvlvDoc::usecache ()
       {
-#ifdef HAVE_PTHREAD
-        return mUseCache;
-#else
         return false;
-#endif
       }
 
   void
     ApvlvDoc::usecache (bool use)
       {
-#ifdef HAVE_PTHREAD
-        if (use && !mUseCache)
-          {
-            mUseCache = use;
-            mNextCache = new ApvlvDocCache (this);
-            mNextCache->set (convertindex (mPagenum + 1), false);
-            mLastCache = new ApvlvDocCache (this);
-            mLastCache->set (convertindex (mPagenum - 1), true);
-          }
-        else if (!use && mUseCache)
-          {
-            mUseCache = use;
-            if (mNextCache)
-              {
-                delete mNextCache;
-                mNextCache = NULL;
-              }
-            if (mLastCache)
-              {
-                delete mLastCache;
-                mLastCache = NULL;
-              }
-          }
-#else
         if (use)
           {
             warnp ("No pthread, can't support cache!!!");
             warnp ("If you really have pthread, please recomplie the apvlv and try again.");
           }
-#endif
       }
 
   bool
@@ -416,17 +363,6 @@ namespace apvlv
           {
             mFilestr = filename;
 
-#ifdef HAVE_PTHREAD
-            if (mUseCache)
-              {
-                if (mLastCache != NULL)
-                  delete mLastCache;
-                if (mNextCache != NULL)
-                  delete mNextCache;
-                mLastCache = new ApvlvDocCache (this);
-                mNextCache = new ApvlvDocCache (this);
-              }
-#endif
             if (mCurrentCache1 != NULL)
               delete mCurrentCache1;
             mCurrentCache1 = new ApvlvDocCache (this);
@@ -503,22 +439,6 @@ namespace apvlv
 
         mPagenum = rp;
 
-#ifdef HAVE_PTHREAD
-        if (mUseCache)
-          {
-            ApvlvDocCache *ac = fetchcache (rp);
-            if (ac != NULL)
-              {
-                GdkPixbuf *buf = ac->getbuf (true);
-                asst (buf);
-                gtk_image_set_from_pixbuf (GTK_IMAGE (mImage), buf);
-                scrollto (s);
-
-                mCurrentCache = ac;
-                return;
-              }
-          }
-#endif
         if (mZoominit == false)
           {
             mZoominit = true;
@@ -573,57 +493,15 @@ namespace apvlv
         mCurrentCache1->set (mPagenum, false);
         GdkPixbuf *buf = mCurrentCache1->getbuf (true);
         gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), buf);
-        mCurrentCache2->set (mPagenum + 1, false);
-        buf = mCurrentCache2->getbuf (true);
-        gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), buf);
+        if (gParams->valueb ("continuous"))
+          {
+            mCurrentCache2->set (convertindex (mPagenum + 1), false);
+            buf = mCurrentCache2->getbuf (true);
+            gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), buf);
+          }
 
-        debug ("zoom rate: %f", mZoomrate);
         mStatus->show ();
-
-#ifdef HAVE_PTHREAD
-        if (mUseCache)
-          {
-            int rp = convertindex (mPagenum + 1);
-            mNextCache->set (rp, true);
-            mLastCache->set (mLastCache->getpagenum (), true);
-          }
-#endif
       }
-
-#ifdef HAVE_PTHREAD
-  ApvlvDocCache *
-    ApvlvDoc::fetchcache (guint pn)
-      {
-        ApvlvDocCache *ac = NULL;
-
-        if (mNextCache->getpagenum () == pn)
-          {
-            ac = mNextCache;
-            mNextCache = mLastCache;
-            mLastCache = mCurrentCache;
-            mNextCache->set (convertindex (pn + 1));
-          }
-
-        else if (mLastCache->getpagenum () == pn)
-          {
-            ac = mLastCache;
-            if ((int) mCurrentCache->getpagenum () == convertindex (pn + 1))
-              {
-                mLastCache = mNextCache;
-                mLastCache->set (convertindex (pn - 1));
-                mNextCache = mCurrentCache;
-              }
-            else
-              {
-                mLastCache = mCurrentCache;
-                mLastCache->set (convertindex (pn - 1));
-                mNextCache->set (convertindex (pn + 1));
-              }
-          }
-
-        return ac;
-      }
-#endif
 
   void
     ApvlvDoc::halfnextpage (int times)
@@ -1046,25 +924,11 @@ namespace apvlv
       mData = NULL;
       mBuf = NULL;
       mLinkMappings = NULL;
-#ifdef HAVE_PTHREAD
-      mDelay = 0;
-      mThreadRunning = false;
-      pthread_cond_init (&mCond, NULL);
-      pthread_mutex_init (&mMutex, NULL);
-#endif
     }
 
   void
     ApvlvDocCache::set (guint p, bool delay)
       {
-#ifdef HAVE_PTHREAD
-        if (mThreadRunning)
-          {
-            pthread_cancel (mTid);
-            pthread_mutex_unlock (&rendermutex);
-            mThreadRunning = false;
-          }
-#endif
         mPagenum = p;
         if (mData != NULL)
           {
@@ -1076,15 +940,6 @@ namespace apvlv
             g_object_unref (mBuf);
             mBuf = NULL;
           }
-#ifdef HAVE_PTHREAD
-        if (mDoc->usecache ())
-          {
-            pthread_cond_init (&mCond, NULL);
-            mDelay = delay? 50: 0;
-            pthread_create (&mTid, NULL, (void *(*) (void *)) load, this);
-          }
-        else
-#endif
           load (this);
       }
 
@@ -1098,10 +953,6 @@ namespace apvlv
             debug ("no this page: %d", ac->mPagenum);
             return;
           }
-
-#ifdef HAVE_PTHREAD
-        ac->mThreadRunning = true;
-#endif
 
         PopplerPage *tpage = poppler_document_get_page (ac->mDoc->getdoc (), ac->mPagenum);
 
@@ -1119,45 +970,22 @@ namespace apvlv
                                                   3 * ix,
                                                   NULL, NULL);
 
-#ifdef HAVE_PTHREAD
-        if (ac->mDelay > 0)
-          {
-            usleep (ac->mDelay * 1000);
-          }
-        pthread_mutex_lock (&rendermutex);
-#endif
         poppler_page_render_to_pixbuf (tpage, 0, 0, ix, iy, ac->mDoc->zoomvalue (), ac->mDoc->getrotate (), bu);
-#ifdef HAVE_PTHREAD
-        pthread_mutex_unlock (&rendermutex);
-#endif
 
         if (ac->mLinkMappings)
           {
             poppler_page_free_link_mapping (ac->mLinkMappings);
           }
         ac->mLinkMappings = g_list_reverse (poppler_page_get_link_mapping (tpage));
-        debug ("has mLinkMappings: %p", ac->mLinkMappings);
+//        debug ("has mLinkMappings: %p", ac->mLinkMappings);
 
         ac->mPage = tpage;
         ac->mData = dat;
         ac->mBuf = bu;
-
-#ifdef HAVE_PTHREAD
-        pthread_cond_signal (&ac->mCond);
-        ac->mThreadRunning = false;
-#endif
       }
 
   ApvlvDocCache::~ApvlvDocCache ()
     {
-#ifdef HAVE_PTHREAD
-      if (mThreadRunning)
-        {
-          pthread_join (mTid, NULL);
-          pthread_mutex_unlock (&rendermutex);
-          mThreadRunning = false;
-        }
-#endif
       if (mLinkMappings)
         {
           poppler_page_free_link_mapping (mLinkMappings);
@@ -1188,24 +1016,7 @@ namespace apvlv
    * */
   guchar *ApvlvDocCache::getdata (bool wait)
     {
-#ifndef HAVE_PTHREAD
       return mData;
-#else
-      if (!wait)
-        {
-          return mData;
-        }
-
-      guchar *dat = mData;
-      if (dat == NULL)
-        {
-          pthread_mutex_lock (&mMutex);
-          pthread_cond_wait (&mCond, &mMutex);
-          dat = mData;
-          pthread_mutex_unlock (&mMutex);
-        }
-      return dat;
-#endif
     }
 
   /*
@@ -1215,22 +1026,7 @@ namespace apvlv
    * */
   GdkPixbuf *ApvlvDocCache::getbuf (bool wait)
     {
-#ifndef HAVE_PTHREAD
       return mBuf;
-#else
-      if (!wait)
-        {
-          return mBuf;
-        }
-
-      GdkPixbuf *bu = mBuf;
-      if (bu == NULL)
-        {
-          pthread_cond_wait (&mCond, &mMutex);
-          bu = mBuf;
-        }
-      return bu;
-#endif
     }
 
   GList *
