@@ -50,8 +50,8 @@ namespace apvlv
       g_object_ref (mVbox);
 
       mScrollwin = gtk_scrolled_window_new (NULL, NULL);
-      gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin), GTK_POLICY_NEVER,
-                                      GTK_POLICY_NEVER);
+      gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin), GTK_POLICY_AUTOMATIC,
+                                      GTK_POLICY_AUTOMATIC);
 
       mVaj = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
       mHaj = gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
@@ -111,11 +111,8 @@ namespace apvlv
   void 
     ApvlvCore::zoomin () 
       { 
-        if (mZoomrate <= 2)
-          {
-            mZoomrate *= 1.1; 
-            refresh (); 
-          }
+        mZoomrate *= 1.1; 
+        refresh (); 
       }
 
   void 
