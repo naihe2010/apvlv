@@ -37,6 +37,8 @@
 
        * fix the keys can't work on 64bit platform
 
+       * fix some segment fault
+
 
     apvlv 0.0.5
     ============

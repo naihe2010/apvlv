@@ -31,6 +31,7 @@
 #include "ApvlvDir.hpp"
 
 #include <stdlib.h>
+#include <errno.h>
 #include <string.h>
 #include <math.h>
 #include <sys/stat.h>
@@ -70,22 +71,18 @@ namespace apvlv
   bool
     ApvlvDirNode::dest (const char **path, int *pn)
       {
-        if (mPagenum == 0)
+        if (mPagenum == 0
+            && path != NULL)
           {
-            if (path != NULL)
-              {
-                *path = realname;
-                return true;
-              }
+            *path = realname;
+            return true;
           }
 
-        else if (mPagenum > 0)
+        else if (mPagenum > 0
+                 && pn != NULL)
           {
-            if (pn != NULL)
-              {
-                *pn = mPagenum;
-                return true;
-              }
+            *pn = mPagenum;
+            return true;
           }
 
         return false;
@@ -133,15 +130,27 @@ namespace apvlv
   bool
     ApvlvDir::loadfile (const char *path, bool check)
       {
+        gchar *realpath;
+
+        if (path == NULL
+            || *path == '\0'
+            || (realpath = g_locale_from_utf8 (path, -1, NULL, NULL, NULL)) == NULL
+        )
+          {
+            errp ("path error: %s", path? path: "No path");
+            return false;
+          }
+
         struct stat buf[1];
-#ifdef _WIN32
-		gchar *realpath;
-		realpath = g_win32_locale_filename_from_utf8 (path);
-		stat (realpath, buf);
-		g_free (realpath);
-#else	
-        stat (path, buf);
-#endif
+        int ret = stat (realpath, buf);
+        g_free (realpath);
+        if (ret < 0)
+          {
+            errp ("stat error: %d:%s", errno, strerror (errno));
+            g_free (realpath);
+            return false;
+          }
+
         if (S_ISDIR (buf->st_mode))
           {
             mReady = walk_dir_path_index (NULL, path);
@@ -155,6 +164,10 @@ namespace apvlv
             )
               {
                 mReady = walk_poppler_iter_index (NULL, iter);
+              }
+            else
+              {
+                mReady = false;
               }
           }
 
@@ -255,7 +268,6 @@ namespace apvlv
   bool 
     ApvlvDir::enter (guint key)
       {
-        debug ("enter pressed");
         ApvlvDirNode *node;
 
         gtk_tree_model_get (GTK_TREE_MODEL (mStore), &mCurrentIter, 0, &node, -1);
@@ -287,22 +299,25 @@ namespace apvlv
             if (ndoc == NULL)
               {
                 ndoc = new ApvlvDoc (mWidth, mHeight, gParams->values ("zoom"), gParams->valueb ("cache"));
-                ndoc->loadfile (name);
+                if (!ndoc->loadfile (name))
+                  {
+                    delete ndoc;
+                    ndoc = NULL;
+                  }
               }
           }
         else
           {
-            ApvlvDoc *adoc = new ApvlvDoc (mWidth, mHeight, gParams->values ("zoom"), gParams->valueb ("cache"));
-            if (!adoc->loadfile (filename ()))
+            ndoc = new ApvlvDoc (mWidth, mHeight, gParams->values ("zoom"), gParams->valueb ("cache"));
+            if (!ndoc->loadfile (filename ()))
               {
-                delete adoc;
-                adoc = NULL;
+                delete ndoc;
+                ndoc = NULL;
               }
 
-            if (adoc != NULL)
+            if (ndoc != NULL)
               {
-                adoc->showpage (pn);
-                ndoc = adoc;
+                ((ApvlvDoc *) ndoc)->showpage (pn);
               }
           }
 
@@ -335,10 +350,14 @@ namespace apvlv
   void
     ApvlvDir::scrollup (int times)
       {
-        if (!mReady)
-          return;
+        GtkTreePath *path;
 
-        GtkTreePath *path = gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
+        if (!mReady
+            || (path = gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter)) == NULL)
+          {
+            return;
+          }
+
         for (gboolean ret = TRUE; times > 0 && ret; times --)
           {
             ret = gtk_tree_path_prev (path);
@@ -372,9 +391,13 @@ namespace apvlv
           }
 
         gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
+
         GtkTreePath *path = gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
-        gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL, TRUE, 0.5, 0.0);
-        gtk_tree_path_free (path);
+        if (path)
+          {
+            gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL, TRUE, 0.5, 0.0);
+            gtk_tree_path_free (path);
+          }
 
         mStatus->show ();
       }
@@ -396,10 +419,14 @@ namespace apvlv
           }
 
         gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
+
         GtkTreePath *path = gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
-        gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL, TRUE, 0.5, 0.0);
-        gtk_tree_view_collapse_row (GTK_TREE_VIEW (mDirView), path);
-        gtk_tree_path_free (path);
+        if (path)
+          {
+            gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL, TRUE, 0.5, 0.0);
+            gtk_tree_view_collapse_row (GTK_TREE_VIEW (mDirView), path);
+            gtk_tree_path_free (path);
+          }
 
         mStatus->show ();
       }
@@ -421,10 +448,13 @@ namespace apvlv
           }
 
         GtkTreePath *path = gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
-        gtk_tree_view_expand_to_path (GTK_TREE_VIEW (mDirView), path);
-        gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
-        gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL, TRUE, 0.5, 0.0);
-        gtk_tree_path_free (path);
+        if (path)
+          {
+            gtk_tree_view_expand_to_path (GTK_TREE_VIEW (mDirView), path);
+            gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
+            gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL, TRUE, 0.5, 0.0);
+            gtk_tree_path_free (path);
+          }
 
         mStatus->show ();
       }
@@ -439,54 +469,59 @@ namespace apvlv
   bool
     ApvlvDir::walk_poppler_iter_index (GtkTreeIter *titr, PopplerIndexIter *iter)
       {
-        bool has = true;
+        bool has = false;
         do
           {
-            GtkTreeIter nitr;
+            GtkTreeIter nitr[1];
 
             PopplerAction *act = poppler_index_iter_get_action (iter);
-            if (act && * (PopplerActionType *) act == POPPLER_ACTION_GOTO_DEST)
+            if (act)
               {
-                PopplerActionGotoDest *pagd = (PopplerActionGotoDest *) act;
-                ApvlvDirNode *node = NULL;
-                if (pagd->dest->type == POPPLER_DEST_NAMED) 
+                if (* (PopplerActionType *) act == POPPLER_ACTION_GOTO_DEST)
                   {
-                    PopplerDest *destnew = poppler_document_find_dest (mDoc, pagd->dest->named_dest);
-                    int pn = 1;
-                    if (destnew != NULL)
+                    PopplerActionGotoDest *pagd = (PopplerActionGotoDest *) act;
+                    ApvlvDirNode *node = NULL;
+                    if (pagd->dest->type == POPPLER_DEST_NAMED) 
                       {
-                        pn = destnew->page_num - 1;
-                        poppler_dest_free (destnew);
-                      }
-                    node = new ApvlvDirNode (pn);
-                  }
-                else
-                  {
-                    node = new ApvlvDirNode (pagd->dest->page_num - 1);
-                  }
-
-                if (node != NULL)
-                  {
-                    mDirNodes = g_slist_append (mDirNodes, node);
-                    gtk_tree_store_append (mStore, &nitr, titr);
-                    GdkPixbuf *pix = gdk_pixbuf_new_from_file_at_size (iconreg.c_str (), 40, 20, NULL);
-                    if (pix)
-                      {
-                        gtk_tree_store_set (mStore, &nitr, 0, node, 1, pix, 2, pagd->title, -1);
-                        g_object_unref (pix);
+                        PopplerDest *destnew = poppler_document_find_dest (mDoc, pagd->dest->named_dest);
+                        int pn = 1;
+                        if (destnew != NULL)
+                          {
+                            pn = destnew->page_num - 1;
+                            poppler_dest_free (destnew);
+                          }
+                        node = new ApvlvDirNode (pn);
                       }
                     else
                       {
-                        gtk_tree_store_set (mStore, &nitr, 0, node, 2, pagd->title, -1);
+                        node = new ApvlvDirNode (pagd->dest->page_num - 1);
+                      }
+
+                    if (node != NULL)
+                      {
+                        mDirNodes = g_slist_append (mDirNodes, node);
+                        has = true;
+                        gtk_tree_store_append (mStore, nitr, titr);
+                        GdkPixbuf *pix = gdk_pixbuf_new_from_file_at_size (iconreg.c_str (), 40, 20, NULL);
+                        if (pix)
+                          {
+                            gtk_tree_store_set (mStore, nitr, 0, node, 1, pix, 2, pagd->title, -1);
+                            g_object_unref (pix);
+                          }
+                        else
+                          {
+                            gtk_tree_store_set (mStore, nitr, 0, node, 2, pagd->title, -1);
+                          }
                       }
                   }
+                poppler_action_free (act);
               }
-            poppler_action_free (act);
 
             PopplerIndexIter *child = poppler_index_iter_get_child (iter);
             if (child)
               {
-                walk_poppler_iter_index (&nitr, child);
+                bool chas = walk_poppler_iter_index (has ? nitr: NULL, child);
+                has = has? has: chas;
                 poppler_index_iter_free (child);
               }
           }
@@ -605,13 +640,22 @@ namespace apvlv
 
                 ApvlvDirNode *node = NULL;
                 struct stat buf[1];
-#ifdef _WIN32
-				char *wrealname = g_win32_locale_filename_from_utf8 (realname);
-				stat (wrealname, buf);
-				g_free (wrealname);
-#else
-                g_stat (realname, buf);
-#endif
+                char *wrealname = g_locale_from_utf8 (realname, -1, NULL, NULL, NULL);
+                if (wrealname == NULL)
+                  {
+                    g_free (realname);
+                    continue;
+                  }
+
+                int ret = stat (wrealname, buf);
+                g_free (wrealname);
+
+                if (ret < 0)
+                  {
+                    g_free (realname);
+                    continue;
+                  }
+
                 if (S_ISDIR (buf->st_mode))
                   {
                     node = new ApvlvDirNode (true, realname, name);

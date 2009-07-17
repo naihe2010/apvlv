@@ -146,19 +146,25 @@ namespace apvlv
       {
         static gchar *mRawdata = NULL;
         static guint mRawdatasize = 0;
+        gchar *wfilename;
 
-#ifdef WIN32
-        gchar *wfilename = g_win32_locale_filename_from_utf8 (filename);
-#else
-        gchar *wfilename = (gchar *) filename;
-#endif
+        if (filename == NULL
+            || *filename == '\0'
+            || g_file_test (filename, G_FILE_TEST_IS_REGULAR) == FALSE
+            || (wfilename = g_locale_from_utf8 (filename, -1, NULL, NULL, NULL)) == NULL
+        )
+          {
+            errp ("filename error: %s", filename? filename: "No name");
+            return NULL;
+          }
+
         size_t filelen;
         struct stat sbuf;
         int rt = stat (wfilename, &sbuf);
         if (rt < 0)
           {
             errp ("Can't stat the PDF file: %s.", filename);
-            return false;
+            return NULL;
           }
         filelen = sbuf.st_size;
 
@@ -182,9 +188,7 @@ namespace apvlv
             ifs.close ();
           }
 
-#ifdef WIN32
         g_free (wfilename);
-#endif
 
         PopplerDocument *doc = poppler_document_new_from_data (mRawdata, filelen, NULL, NULL);
 

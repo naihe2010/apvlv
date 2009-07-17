@@ -418,15 +418,12 @@ namespace apvlv
     ApvlvDoc::jump (const char s)
       {
         ApvlvDocPositionMap::iterator it;
-        for (it = mPositions.begin (); it != mPositions.end (); ++ it)
+        it = mPositions.find (s);
+        if (it != mPositions.end ())
           {
-            if ((*it).first == s)
-              {
-                ApvlvDocPosition adp = (*it).second;
-                markposition ('\'');
-                showpage (adp.pagenum, adp.scrollrate);
-                break;
-              }
+            ApvlvDocPosition adp = it->second;
+            markposition ('\'');
+            showpage (adp.pagenum, adp.scrollrate);
           }
       }
 
@@ -616,14 +613,15 @@ namespace apvlv
   GList *
     ApvlvDoc::searchpage (int num)
       {
-        if (mDoc == NULL)
-          return NULL;
-
         PopplerPage *page = poppler_document_get_page (mDoc, num);
 
-        GList *ret = poppler_page_find_text (page, mSearchstr.c_str ());
+        if (mDoc == NULL
+            || (page = poppler_document_get_page (mDoc, num)) == NULL)
+          {
+            return NULL;
+          }
 
-        return ret;
+        return poppler_page_find_text (page, mSearchstr.c_str ());
       }
 
   bool
@@ -940,21 +938,29 @@ namespace apvlv
             g_object_unref (mBuf);
             mBuf = NULL;
           }
-          load (this);
+        if (mLinkMappings != NULL)
+          {
+            g_list_free (mLinkMappings);
+            mLinkMappings = NULL;
+          }
+
+        load (this);
       }
 
   void
     ApvlvDocCache::load (ApvlvDocCache *ac)
       {
         int c = poppler_document_get_n_pages (ac->mDoc->getdoc ());
+        PopplerPage *tpage;
+
         if (ac->mPagenum < 0
-            || ac->mPagenum >= c)
+            || ac->mPagenum >= c
+            || (tpage = poppler_document_get_page (ac->mDoc->getdoc (), ac->mPagenum)) == NULL
+        )
           {
             debug ("no this page: %d", ac->mPagenum);
             return;
           }
-
-        PopplerPage *tpage = poppler_document_get_page (ac->mDoc->getdoc (), ac->mPagenum);
 
         double tpagex, tpagey;
         ac->mDoc->getpagesize (tpage, &tpagex, &tpagey);
@@ -977,7 +983,7 @@ namespace apvlv
             poppler_page_free_link_mapping (ac->mLinkMappings);
           }
         ac->mLinkMappings = g_list_reverse (poppler_page_get_link_mapping (tpage));
-//        debug ("has mLinkMappings: %p", ac->mLinkMappings);
+        //        debug ("has mLinkMappings: %p", ac->mLinkMappings);
 
         ac->mPage = tpage;
         ac->mData = dat;

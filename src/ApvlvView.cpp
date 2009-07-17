@@ -191,6 +191,7 @@ namespace apvlv
                                                       GTK_RESPONSE_ACCEPT,
                                                       NULL);
         dirname = lastfile? g_dirname (lastfile): g_strdup (gParams->values ("defaultdir"));
+        debug ("lastfile: [%s], dirname: [%s]", lastfile, dirname);
         gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dia), dirname);
         g_free (dirname);
 
@@ -422,6 +423,12 @@ namespace apvlv
   bool
     ApvlvView::loadfile (const char *filename)
       {
+        if (filename == NULL
+            || *filename == '\0')
+          {
+            return false;
+          }
+
         char *abpath = absolutepath (filename);
         if (abpath != NULL)
           {
@@ -454,9 +461,16 @@ namespace apvlv
                       }
                   }
 
-                regloaded (ndoc);
+                if (ndoc)
+                  {
+                    regloaded (ndoc);
+                  }
               }
-            win->setCore (ndoc);
+
+            if (ndoc != NULL)
+              {
+                win->setCore (ndoc);
+              }
             g_free (abpath);
           }
 
@@ -505,15 +519,15 @@ namespace apvlv
             size_t len = strlen (bname);
             while ((name = g_dir_read_name (dir)) != NULL)
               {
-#ifdef WIN32
-                gchar *fname = g_win32_locale_filename_from_utf8 (name);
-#else
-                gchar *fname = (gchar *) name;
-#endif
+                gchar *fname = g_locale_from_utf8 (name, -1, NULL, NULL, NULL);
+
                 if (strcmp (bname, PATH_SEP_S) != 0)
                   {
                     if (strncmp (fname, bname, len) != 0)
-                      continue;
+                      {
+                        g_free (fname);
+                        continue;
+                      }
                   }
 
                 if (strcmp (dname, ".") == 0)
@@ -532,9 +546,8 @@ namespace apvlv
                       }
                   }
 
-#ifdef WIN32
                 g_free (fname);
-#endif
+
                 debug ("add a item: %s", (char *) list->data);
                 g_completion_add_items (gcomp, list);
               }
@@ -803,21 +816,26 @@ namespace apvlv
                     gParams->push (subcmd, argu);
                   }
               }
-            else if (cmd == "map")
+            else if (cmd == "map" 
+                     && subcmd != "")
               {
                 gCmds->buildmap (subcmd.c_str (), argu.c_str ());
               }
-            else if (cmd == "o"
-                     || cmd == "open"
-                     || cmd == "doc")
+            else if ((cmd == "o"
+                      || cmd == "open"
+                      || cmd == "doc")
+                     && subcmd != "")
               {
                 loadfile (subcmd.c_str ());
               }
-            else if (cmd == "TOtext")
+            else if (cmd == "TOtext"
+                     && subcmd != "")
               {
                 crtadoc ()->totext (subcmd.c_str ());
               }
-            else if (cmd == "pr" || cmd == "print")
+            else if ((cmd == "pr" 
+                      || cmd == "print")
+                     && subcmd != "")
               {
                 crtadoc ()->print (atoi (subcmd.c_str ()));
               }
@@ -831,7 +849,9 @@ namespace apvlv
                 currentWindow ()->birth (true);
                 windowadded();
               }
-            else if (cmd == "zoom" || cmd == "z")
+            else if ((cmd == "zoom" 
+                      || cmd == "z")
+                     && subcmd != "")
               {
                 crtadoc ()->setzoom (subcmd.c_str ());
               }
@@ -1076,7 +1096,6 @@ namespace apvlv
         GtkWidget* tabname = gtk_label_new (tagname);
         GtkWidget* tabwidget = gtk_notebook_get_nth_page (GTK_NOTEBOOK(mTabContainer), mCurrTabPos);
         gtk_notebook_set_tab_label (GTK_NOTEBOOK(mTabContainer), tabwidget, tabname);
-        //gtk_notebook_set_tab_label_text (GTK_NOTEBOOK(mTabContainer), currentWindow()->widget(), tagname);
         gtk_notebook_set_current_page (GTK_NOTEBOOK(mTabContainer), mCurrTabPos);
       }
 }
