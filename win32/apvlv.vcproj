@@ -91,6 +91,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy ..\Startup.pdf Debug&#x0D;&#x0A;copy ..\apvlvrc.example Debug"
 			/>
 		</Configuration>
 		<Configuration
@@ -171,6 +172,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy ..\Startup.pdf Release&#x0D;&#x0A;copy ..\apvlvrc.example Release"
 			/>
 		</Configuration>
 	</Configurations>

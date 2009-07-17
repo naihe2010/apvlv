@@ -95,7 +95,20 @@ main (int argc, char *argv[])
       path = (gchar *) helppdf.c_str ();
     }
 
+  gchar *rpath = g_locale_to_utf8 (path, -1, NULL, NULL, NULL);
+  if (rpath != NULL)
+    {
+      path = absolutepath (rpath);
+      g_free (rpath);
+    }
+  else
+    {
+      return 1;
+    }
+
   ApvlvView sView (path);
+  g_free (path);
+
   gView = &sView;
 
   if (argc > 1)
