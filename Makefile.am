@@ -7,3 +7,4 @@ EXTRA_DIST = apvlvrc.example Startup.pdf icons/*
 
 pdf_DATA = Startup.pdf
 doc_DATA = apvlvrc.example icons/reg.png icons/dir.png icons/pdf.png
+man_MANS = apvlv.1

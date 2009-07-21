@@ -2,7 +2,7 @@ dnl
 dnl APVLV - Alf's PDF Viewer Like Vim
 dnl
  
-AC_INIT(apvlv, 0.0.6.7, naihe2010@gmail.com)
+AC_INIT(apvlv, 0.0.6.8, naihe2010@gmail.com)
 AC_COPYRIGHT([Copyright (C) 2008 Alf's Software.])
 
 if test -e .svn; then
@@ -44,6 +44,18 @@ AC_ARG_WITH(docdir,
            esac])
 AC_SUBST(DOCDIR)
 AC_DEFINE_UNQUOTED(DOCDIR, ["$docdir"], [The documents directory])
+
+mandir="$prefix/man"
+AC_ARG_WITH(mandir,
+            [[  --with-mandir=DIR       directory for man page of apvlv [PREFIX/man]]], 
+            [ case "$withval" in
+             yes|no) 
+             ;;
+             *) mandir="$withval"
+             ;;
+           esac])
+AC_SUBST(MANDIR)
+AC_DEFINE_UNQUOTED(MANDIR, ["$mandir"], [The man page directory])
 
 if test x$apvlv_debug = xyes; then 
   AC_DEFINE(DEBUG, 1, 

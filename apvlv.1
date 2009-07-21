@@ -1,0 +1,134 @@
+.TH "apvlv" "1" "0.0.6.8" "Alf" "text"
+.SH "NAME"
+.LP 
+apvlv \- PDF viewer with Vim\-like behaviour
+.SH "SYNOPSIS"
+.LP 
+apvlv [file]
+.SH "DESCRIPTION"
+.LP 
+apvlv is a PDF viewer, which behave like Vim.
+.SH "COMMANDS"
+.LP 
+o				display a file chooser dialog to select a PDF file to open
+.br 
+O				select a directory to display
+.br 
+R				reload the file which was be read
+.br 
+r				[count] rotate the document page view
+.br 
+G				[count] page show
+.br 
+gt				next tab show
+.br 
+gT				previous tab show
+.br 
+PageDown, C\-f		[count] forward page
+.br 
+PageUp, C\-b		[count] preward page
+.br 
+C\-d				[count] half forward page
+.br 
+C\-u				[count] half previous page
+.br 
+H				scroll to head
+.br 
+M				scroll to middle
+.br 
+L				scroll to last
+.br 
+C\-p, Up, k		[count] page scroll up
+.br 
+C\-n, Down, C\-j, j	[count] page scroll down
+.br 
+BackSpace, Left, h	[count] page scroll left
+.br 
+Space, C\-l, l		[count] page scroll right
+.br 
+f				If Apvlv is in full screen mode, switch to normal mode. Other 
+				wise, switch to full screen.
+.br 
+zi				zoom in page
+.br 
+zo				zoom out page
+.br 
+m				Mark the read position to the followed char.
+.br 
+				That is, press 'ma' will mark the current position to a, and
+				you can return here by press 'a'.
+.br 
+q				Close the current window.
+.SH "SETTINGS"
+.LP 
+This settings can be set in ~/.apvlvrc:
+
+
+fullscreen=yes/no			If set yes, apvlv will start in full screen mode.
+.br 
+width=<int>				If fullscreen is not set to yes, this is the window width.
+.br 
+height=<int>				If fullscreen is not set to yes, this is the window height.
+.br 
+defaultdir=<path>			When display the open dialog, this is the default directory.
+.br 
+zoom
+.br 
+	normal				The default zoom value will be set by the application itself.
+.br 
+	fitwidth				The default zoom value will let the page width eque to the
+						window width.
+.br 
+	fitheight				The default zoom value will let the page height eque to the
+						window height.
+.br 
+	custom				Set a custom value like zoom=1.0, zoom=1.2, zoom=0.8.
+.br 
+	continuous=yes/no		Set a pdf page continuous or not.
+.SH "PROMPT"
+.LP 
+:h[elp]				display the help pdf document
+.br 
+:h[elp] info			display the help pdf document about the introduction
+.br 
+:h[elp] command		display the help pdf document about the command
+.br 
+:h[elp] setting		display the help pdf document about the setting in the .apvlvrc
+.br 
+:h[elp] prompt			display the help pdf document about the prompt command
+.br 
+:q[uit]				close the current window. If the window is the top level 
+					window, quit the program.
+.br 
+:o[pen] 'filename'		open a file which named 'filename'
+.br 
+:doc 'filename'		load the 'filename' to current window
+.br 
+:TOtext				translate the current page to a text file
+.br 
+:TOtext 'filename'		translate the current page to a text file named 'filename'
+.br 
+:pr[int]				print the current document
+.br 
+:tabnew				create a new tab
+.br 
+:sp					split the current window into two windows
+.br 
+:vsp					split the current window into two horizon windows
+.br 
+:fp, :forwardpage		go forward some pages
+.br 
+:bp, :prewardpage		go preward some pages
+.br 
+:g, :goto				go to a page
+.br 
+:set [no]cache			set if use cache module. If you don't feel scroll slowly,
+					you don't need set this to on.
+.br 
+:z[oom]				zoom to a value
+.SH "AUTHORS"
+.LP 
+apvlv was written by Alf <naihe2010@gmail.com>.
+.br 
+
+This manual page was written by Stefan Ritter <xeno@thehappy.de>, for the Debian project (but may be used by others).
