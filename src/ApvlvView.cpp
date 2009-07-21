@@ -328,12 +328,8 @@ namespace apvlv
         if (ndoc->loadfile (filename))
           {
             regloaded (ndoc);
-            newtab (ndoc);
           }
-        else
-          {
-            delete ndoc;
-          }
+        newtab (ndoc);
       }
 
   void
@@ -344,7 +340,7 @@ namespace apvlv
         switch_tabcontext (pos);
         mRootWindow->setsize (mWidth, adjheight());
 
-        gchar *base = g_path_get_basename (core->filename ());
+        gchar *base = core->filename ()? g_path_get_basename (core->filename ()): g_strdup ("NONE");
         GtkWidget* tabname = gtk_label_new (base);
         g_free (base);
         GtkWidget* parentbox = gtk_vbox_new (false, 0);

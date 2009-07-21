@@ -252,6 +252,11 @@ namespace apvlv
   bool
     ApvlvDoc::savelastposition ()
       {
+        if (filename () == NULL)
+          {
+            return false;
+          }
+
         gchar *path = absolutepath (sessionfile.c_str ());
         ofstream os (path, ios::app);
         g_free (path);
