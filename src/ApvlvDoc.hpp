@@ -192,6 +192,8 @@ private:
 
   bool loadlastposition ();
 
+  static void apvlv_doc_on_mouse (GtkAdjustment *, ApvlvDoc *);
+
   static gboolean apvlv_doc_first_scroll_cb (gpointer);
 
   static gboolean apvlv_doc_first_copy_cb (gpointer);

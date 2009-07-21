@@ -31,6 +31,8 @@
 
        * add open last directory
 
+       * add mouse wheel scrollup and down support
+
      Bug fix
 
        * fix the windows open bug

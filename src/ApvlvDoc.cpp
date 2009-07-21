@@ -79,6 +79,8 @@ namespace apvlv
           gtk_box_pack_start (GTK_BOX (vbox), mImage2, TRUE, TRUE, 0);
         }
 
+      g_signal_connect (G_OBJECT (mVaj), "value-changed", G_CALLBACK (apvlv_doc_on_mouse), this);
+
       mStatus = new ApvlvDocStatus (this);
 
       gtk_box_pack_start (GTK_BOX (mVbox), mScrollwin, FALSE, FALSE, 0);
@@ -870,6 +872,19 @@ namespace apvlv
         g_object_unref (print);
         return ret;
 #endif
+      }
+
+  void 
+    ApvlvDoc::apvlv_doc_on_mouse (GtkAdjustment *adj, ApvlvDoc *doc)
+      {
+        if (adj->upper - adj->lower == adj->page_size + adj->value)
+          {
+            doc->scrolldown (1);
+          }
+        else if (adj->value == 0)
+          {
+            doc->scrollup (1);
+          }
       }
 
   gboolean
