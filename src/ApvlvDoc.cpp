@@ -55,6 +55,8 @@ namespace apvlv
 
       mReady = false;
 
+      mAdjInchg = false;
+
       mZoominit = false;
       mLines = 50;
       mChars = 80;
@@ -73,7 +75,8 @@ namespace apvlv
 
       mImage1 = gtk_image_new ();
       gtk_box_pack_start (GTK_BOX (vbox), mImage1, TRUE, TRUE, 0);
-      if (gParams->valueb ("continuous"))
+      if (gParams->valueb ("autoscrollpage")
+          && gParams->valueb ("continuous"))
         {
           mImage2 = gtk_image_new ();
           gtk_box_pack_start (GTK_BOX (vbox), mImage2, TRUE, TRUE, 0);
@@ -441,6 +444,8 @@ namespace apvlv
         if (rp < 0)
           return;
 
+        mAdjInchg = true;
+
         mPagenum = rp;
 
         if (mZoominit == false)
@@ -497,7 +502,8 @@ namespace apvlv
         mCurrentCache1->set (mPagenum, false);
         GdkPixbuf *buf = mCurrentCache1->getbuf (true);
         gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), buf);
-        if (gParams->valueb ("continuous"))
+        if (gParams->valueb ("autoscrollpage") 
+            && gParams->valueb ("continuous"))
           {
             mCurrentCache2->set (convertindex (mPagenum + 1), false);
             buf = mCurrentCache2->getbuf (true);
@@ -877,6 +883,12 @@ namespace apvlv
   void 
     ApvlvDoc::apvlv_doc_on_mouse (GtkAdjustment *adj, ApvlvDoc *doc)
       {
+        if (doc->mAdjInchg) 
+          {
+            doc->mAdjInchg = false;
+            return;
+          }
+
         if (adj->upper - adj->lower == adj->page_size + adj->value)
           {
             doc->scrolldown (1);

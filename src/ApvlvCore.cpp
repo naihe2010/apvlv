@@ -267,13 +267,16 @@ namespace apvlv
           }
         else
           {
-            if (gParams->valueb ("continuous"))
+            if (gParams->valueb ("autoscrollpage"))
               {
-                showpage (mPagenum - 1, mVaj->upper / (2 * sub - mVaj->page_size));
-              }
-            else
-              {
-                showpage (mPagenum - 1, 1.0);
+                if (gParams->valueb ("continuous"))
+                  {
+                    showpage (mPagenum - 1, mVaj->upper / (2 * sub - mVaj->page_size));
+                  }
+                else
+                  {
+                    showpage (mPagenum - 1, 1.0);
+                  }
               }
           }
 
@@ -300,13 +303,16 @@ namespace apvlv
           }
         else
           {
-            if (gParams->valueb ("continuous"))
+            if (gParams->valueb ("autoscrollpage"))
               {
-                showpage (mPagenum + 1, (sub - mVaj->page_size) / 2 / sub);
-              }
-            else
-              {
-                showpage (mPagenum + 1, 0.0);
+                if (gParams->valueb ("continuous"))
+                  {
+                    showpage (mPagenum + 1, (sub - mVaj->page_size) / 2 / sub);
+                  }
+                else
+                  {
+                    showpage (mPagenum + 1, 0.0);
+                  }
               }
           }
 

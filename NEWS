@@ -8,6 +8,9 @@
        * add continuous view of pdf page
          set in .apvlvrc "set continuous=yes/no"
 
+       * add argument to support weather auto scroll page when k,j to page's end or head
+         set in .apvlvrc "set autoscrollpage=yes/no"
+
        * add tab view
          add :tabnew and 'gt' 'gg' 'gT' 'g[n]' command to support tab switch, change goto page command from 'g' to 'G'
 

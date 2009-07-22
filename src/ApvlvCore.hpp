@@ -146,6 +146,8 @@ namespace apvlv
 
     int mRotatevalue;
 
+    bool mAdjInchg;
+
     int mPagenum;
 
     double mPagex, mPagey;
