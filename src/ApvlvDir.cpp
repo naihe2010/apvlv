@@ -56,7 +56,7 @@ namespace apvlv
   ApvlvDirNode::ApvlvDirNode (bool isdir, const char *real, const char *file)
     {
       mPagenum = isdir? -1: 0;
-      g_snprintf (filename, sizeof filename, file);
+      g_snprintf (filename, sizeof filename, "%s", file);
       realname = g_strdup (real);
     }
 

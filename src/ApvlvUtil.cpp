@@ -96,7 +96,10 @@ namespace apvlv
             strcat (abpath, "\\");
             strcat (abpath, path);
 #else
-            realpath (path, abpath);
+            if (realpath (path, abpath) == NULL)
+              {
+                return NULL;
+              }
 #endif
           }
 
