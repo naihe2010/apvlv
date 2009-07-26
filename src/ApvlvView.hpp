@@ -176,6 +176,10 @@ namespace apvlv
 
     GSList *mDocs;
 
+    std::vector<string> mCmdHistroy;
+    int mCurrHistroy;
+    bool mInHistroy;
+
     static const int APVLV_CMD_BAR_HEIGHT, APVLV_TABS_HEIGHT;
     };
 

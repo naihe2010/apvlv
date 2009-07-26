@@ -126,6 +126,8 @@ namespace apvlv
           delete mTabList[i].root;
         }
       mTabList.clear();
+
+      mCmdHistroy.clear ();
     }
 
   void
@@ -979,6 +981,8 @@ namespace apvlv
       {
         if (view->mHasCmd == true)
           {
+            view->mInHistroy = false;
+
             GdkEventKey *gek = (GdkEventKey *) ev;
             if (gek->keyval == GDK_Return)
               {
@@ -987,6 +991,8 @@ namespace apvlv
                 if (str && strlen (str) > 0)
                   {
                     view->run (str);
+                    view->mCmdHistroy.push_back (str);
+                    view->mCurrHistroy = view->mCmdHistroy.size () - 1;
                   }
                 view->cmd_hide ();
                 return TRUE;
@@ -1016,6 +1022,24 @@ namespace apvlv
                 view->cmd_hide ();
                 return TRUE;
               }
+            else if (gek->keyval == GDK_Up)
+              {
+                view->mInHistroy = true;
+                gtk_entry_set_text (GTK_ENTRY (view->mCommandBar), 
+                                    view->mCurrHistroy > 0 ? 
+                                    view->mCmdHistroy[-- view->mCurrHistroy].c_str (): 
+                                    view->mCmdHistroy[0].c_str ());
+                return TRUE;
+              }
+            else if (gek->keyval == GDK_Down)
+              {
+                view->mInHistroy = true;
+                gtk_entry_set_text (GTK_ENTRY (view->mCommandBar), (size_t) view->mCurrHistroy < view->mCmdHistroy.size () - 1? 
+                                    view->mCmdHistroy[++ view->mCurrHistroy].c_str (): 
+                                    view->mCmdHistroy[view->mCmdHistroy.size () - 1].c_str ());
+                return TRUE;
+              }
+
 
             return FALSE;
           }
