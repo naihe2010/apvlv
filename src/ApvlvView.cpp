@@ -114,8 +114,6 @@ namespace apvlv
 
   ApvlvView::~ApvlvView ()
     {
-      delete mRootWindow;
-
       for (GSList *node = mDocs; node != NULL; node = g_slist_next (node))
         {
           ApvlvCore *core = (ApvlvCore *) node->data;
@@ -124,7 +122,9 @@ namespace apvlv
       g_slist_free (mDocs);
 
       for (int i = 0; i < (int) mTabList.size(); i++)
-        delete mTabList[i].root;
+        {
+          delete mTabList[i].root;
+        }
       mTabList.clear();
     }
 
@@ -191,9 +191,11 @@ namespace apvlv
                                                       GTK_RESPONSE_ACCEPT,
                                                       NULL);
         dirname = lastfile? g_dirname (lastfile): g_strdup (gParams->values ("defaultdir"));
-        debug ("lastfile: [%s], dirname: [%s]", lastfile, dirname);
-        gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dia), dirname);
+        gchar *realdir = absolutepath (dirname);
         g_free (dirname);
+        debug ("lastfile: [%s], dirname: [%s]", lastfile, realdir);
+        gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dia), realdir);
+        g_free (realdir);
 
         GtkFileFilter *filter = gtk_file_filter_new ();
         gtk_file_filter_add_mime_type (filter, "PDF File");

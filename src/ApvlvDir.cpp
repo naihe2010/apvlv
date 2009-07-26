@@ -98,6 +98,8 @@ namespace apvlv
 
       mDirNodes = NULL;
 
+      mIndex = NULL;
+
       mStore = gtk_tree_store_new (3, G_TYPE_POINTER, G_TYPE_OBJECT, G_TYPE_STRING);
       mDirView = gtk_tree_view_new_with_model (GTK_TREE_MODEL (mStore));
       gtk_container_add (GTK_CONTAINER (mScrollwin), mDirView);
@@ -158,12 +160,11 @@ namespace apvlv
         else
           {
             mDoc = file_to_popplerdoc (path);
-            PopplerIndexIter *iter;
             if (mDoc != NULL
-                && (iter = poppler_index_iter_new (mDoc)) != NULL
+                && (mIndex = poppler_index_iter_new (mDoc)) != NULL
             )
               {
-                mReady = walk_poppler_iter_index (NULL, iter);
+                mReady = walk_poppler_iter_index (NULL, mIndex);
               }
             else
               {
@@ -190,6 +191,11 @@ namespace apvlv
               delete info;
             }
           g_slist_free (mDirNodes);
+        }
+
+      if (mIndex != NULL)
+        {
+          poppler_index_iter_free (mIndex);
         }
 
       delete mStatus;
@@ -325,6 +331,8 @@ namespace apvlv
           {
             return false;
           }
+
+        gView->regloaded (ndoc);
 
         switch (key)
           {

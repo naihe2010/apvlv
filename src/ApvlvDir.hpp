@@ -116,6 +116,7 @@ private:
   gint mFirstSelTimer;
 
   PopplerDocument *mDoc;
+  PopplerIndexIter *mIndex;
 
   GSList *mDirNodes;
 
