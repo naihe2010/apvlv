@@ -45,7 +45,7 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="1"
 				TreatWChar_tAsBuiltInType="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -109,7 +109,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="msvc;msvc\poppler;&quot;poppler-0.10.0&quot;;&quot;poppler-0.10.0\goo&quot;;&quot;poppler-0.10.0\poppler&quot;;freetype231\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -126,6 +126,8 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="gtk-win32-2.0.lib glib-2.0.lib gobject-2.0.lib gio-2.0.lib gdk-win32-2.0.lib freetype231mt.lib jpeg.lib"
+				AdditionalLibraryDirectories="freetype231"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -405,11 +407,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\msvc\poppler\poppler-config.h"
+				RelativePath=".\poppler-0.10.0\poppler\poppler-config.h"
 				>
 			</File>
 			<File
-				RelativePath=".\poppler-0.10.0\poppler\poppler-config.h"
+				RelativePath=".\msvc\poppler\poppler-config.h"
 				>
 			</File>
 			<File

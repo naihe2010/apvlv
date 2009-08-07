@@ -15,31 +15,13 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_08C1DE4D5D1D7ED6933DC7DE92525CA4"
-        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_130CF9D324BF5926F28861A146061177"
-        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_161D2E372CF26E04CB2A90B16BE4E0E1"
-        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_1C2808948F6E4E7E85757D1133EB9FF1"
+        "MsmKey" = "8:_11016F23670841709B19FE251E977C9A"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_1CF9FE4D16CC4B189FA3C4DF3C19ECA3"
+        "MsmKey" = "8:_1C2808948F6E4E7E85757D1133EB9FF1"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -57,19 +39,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_32F0B7035EFC2B11576A19388D7C9FD1"
-        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
+        "MsmKey" = "8:_479C21E336BF43E984C28C7DB443E700"
+        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_37256D91C92A9067E34DA4989D1236C8"
-        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_5090EFD0126645A8A81C7B662DD46491"
+        "MsmKey" = "8:_4EA5A6735C114F6AAD2334C72E5F961F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -93,32 +69,26 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_6DC87530D3E05A7A0BF7D9889D4821F8"
-        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_6EA10F011BA342618220B7C6FD4A73E0"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
+        "MsmKey" = "8:_749F236726B049F3AD0D1BFA114FBF3A"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_78019D14842ED9BC9780B2967DAE5694"
-        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
+        "MsmKey" = "8:_7A5F92B89ADD45F696650978707DB89E"
+        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_839A7F6D8E94D178CBB2F48B0B7A1A96"
-        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
+        "MsmKey" = "8:_8462552460444388BC46FF62026A0BE0"
+        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -129,7 +99,19 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_8A8ABDE2163144308E889C3D6632ECDA"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_8B59DD06DDD746EC9A106611AA325134"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_91F5AD67B01144629C46BAAE5CA5E2A5"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -165,12 +147,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_E6AC4EC972B8CDD75868AAC571620A72"
-        "OwnerKey" = "8:_70BCC76FE5174E9D8EFFE07B604CE8D3"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_F94436E862DD4E4FBFEBA4996186D29D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -178,6 +154,12 @@
         "Entry"
         {
         "MsmKey" = "8:_F9B0D6270FF24EECAFE2AB8F1277B1E2"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_FF37D33BE5E14DAD93A323826CAF555F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -201,7 +183,7 @@
         "InstallerBootstrapper" = "3:2"
             "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
             {
-            "Enabled" = "11:TRUE"
+            "Enabled" = "11:FALSE"
             "PromptEnabled" = "11:TRUE"
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
@@ -228,7 +210,7 @@
         "InstallerBootstrapper" = "3:2"
             "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
             {
-            "Enabled" = "11:TRUE"
+            "Enabled" = "11:FALSE"
             "PromptEnabled" = "11:TRUE"
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
@@ -254,82 +236,14 @@
         {
             "LaunchCondition"
             {
-                "{A06ECF26-33A3-4562-8140-9B0E340D4F24}:_16010787CAAF41BDBE6527C3FC6F3981"
-                {
-                "Name" = "8:.NET Framework"
-                "Message" = "8:[VSDNETMSG]"
-                "Version" = "8:2.0.50727"
-                "AllowLaterVersions" = "11:FALSE"
-                "InstallUrl" = "8:http://go.microsoft.com/fwlink/?LinkId=9832"
-                }
             }
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_08C1DE4D5D1D7ED6933DC7DE92525CA4"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_11016F23670841709B19FE251E977C9A"
             {
-            "SourcePath" = "8:libgdk_pixbuf-2.0-0.dll"
-            "TargetName" = "8:libgdk_pixbuf-2.0-0.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_130CF9D324BF5926F28861A146061177"
-            {
-            "SourcePath" = "8:libgtk-win32-2.0-0.dll"
-            "TargetName" = "8:libgtk-win32-2.0-0.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_161D2E372CF26E04CB2A90B16BE4E0E1"
-            {
-            "SourcePath" = "8:pthreadVC2.dll"
-            "TargetName" = "8:pthreadVC2.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1C2808948F6E4E7E85757D1133EB9FF1"
-            {
-            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libpangocairo-1.0-0.dll"
-            "TargetName" = "8:libpangocairo-1.0-0.dll"
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libgmodule-2.0-0.dll"
+            "TargetName" = "8:libgmodule-2.0-0.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
@@ -346,10 +260,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1CF9FE4D16CC4B189FA3C4DF3C19ECA3"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1C2808948F6E4E7E85757D1133EB9FF1"
             {
-            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libgmodule-2.0-0.dll"
-            "TargetName" = "8:libgmodule-2.0-0.dll"
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libpangocairo-1.0-0.dll"
+            "TargetName" = "8:libpangocairo-1.0-0.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
@@ -406,10 +320,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_32F0B7035EFC2B11576A19388D7C9FD1"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_479C21E336BF43E984C28C7DB443E700"
             {
-            "SourcePath" = "8:MSVCP80D.dll"
-            "TargetName" = "8:MSVCP80D.dll"
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\jpeg62.dll"
+            "TargetName" = "8:jpeg62.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
@@ -423,33 +337,13 @@
             "PackageAs" = "3:1"
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
+            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_37256D91C92A9067E34DA4989D1236C8"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4EA5A6735C114F6AAD2334C72E5F961F"
             {
-            "SourcePath" = "8:libgobject-2.0-0.dll"
-            "TargetName" = "8:libgobject-2.0-0.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5090EFD0126645A8A81C7B662DD46491"
-            {
-            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\VC\\redist\\Debug_NonRedist\\x86\\Microsoft.VC80.DebugCRT\\Microsoft.VC80.DebugCRT.manifest"
-            "TargetName" = "8:Microsoft.VC80.DebugCRT.manifest"
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libglib-2.0-0.dll"
+            "TargetName" = "8:libglib-2.0-0.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
@@ -526,26 +420,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6DC87530D3E05A7A0BF7D9889D4821F8"
-            {
-            "SourcePath" = "8:MSVCR80D.dll"
-            "TargetName" = "8:MSVCR80D.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6EA10F011BA342618220B7C6FD4A73E0"
             {
             "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libpango-1.0-0.dll"
@@ -566,10 +440,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_78019D14842ED9BC9780B2967DAE5694"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_749F236726B049F3AD0D1BFA114FBF3A"
             {
-            "SourcePath" = "8:jpeg62.dll"
-            "TargetName" = "8:jpeg62.dll"
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libgdk_pixbuf-2.0-0.dll"
+            "TargetName" = "8:libgdk_pixbuf-2.0-0.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
@@ -583,12 +457,32 @@
             "PackageAs" = "3:1"
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
+            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_839A7F6D8E94D178CBB2F48B0B7A1A96"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7A5F92B89ADD45F696650978707DB89E"
             {
-            "SourcePath" = "8:libgdk-win32-2.0-0.dll"
+            "SourcePath" = "8:..\\Release\\apvlv.exe"
+            "TargetName" = "8:apvlv.exe"
+            "Tag" = "8:"
+            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8462552460444388BC46FF62026A0BE0"
+            {
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libgdk-win32-2.0-0.dll"
             "TargetName" = "8:libgdk-win32-2.0-0.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
@@ -603,7 +497,7 @@
             "PackageAs" = "3:1"
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
+            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_84FB7E030739419FAB4E7A4D3E4E79D8"
@@ -626,10 +520,50 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8A8ABDE2163144308E889C3D6632ECDA"
+            {
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libgobject-2.0-0.dll"
+            "TargetName" = "8:libgobject-2.0-0.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8B59DD06DDD746EC9A106611AA325134"
             {
             "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libcairo-2.dll"
             "TargetName" = "8:libcairo-2.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_91F5AD67B01144629C46BAAE5CA5E2A5"
+            {
+            "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libgtk-win32-2.0-0.dll"
+            "TargetName" = "8:libgtk-win32-2.0-0.dll"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
@@ -746,26 +680,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E6AC4EC972B8CDD75868AAC571620A72"
-            {
-            "SourcePath" = "8:libglib-2.0-0.dll"
-            "TargetName" = "8:libglib-2.0-0.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F94436E862DD4E4FBFEBA4996186D29D"
             {
             "SourcePath" = "8:C:\\Program Files\\Microsoft Visual Studio 8\\gtk+\\bin\\libpng12-0.dll"
@@ -790,6 +704,26 @@
             {
             "SourcePath" = "8:..\\..\\apvlvrc.example"
             "TargetName" = "8:apvlvrc.example"
+            "Tag" = "8:"
+            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FF37D33BE5E14DAD93A323826CAF555F"
+            {
+            "SourcePath" = "8:C:\\WINDOWS\\system32\\msiexec.exe"
+            "TargetName" = "8:Uninstall.exe"
             "Tag" = "8:"
             "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
@@ -844,6 +778,17 @@
             "Property" = "8:ProgramMenuFolder"
                 "Folders"
                 {
+                    "{9EF0B969-E518-4E46-987F-47570745A589}:_430C7255FB644F1BB64B876B1EAADC10"
+                    {
+                    "Name" = "8:apvlv"
+                    "AlwaysCreate" = "11:FALSE"
+                    "Condition" = "8:"
+                    "Transitive" = "11:FALSE"
+                    "Property" = "8:_DDF9E595C11E457E9FA43C1557E67FB1"
+                        "Folders"
+                        {
+                        }
+                    }
                 }
             }
         }
@@ -862,7 +807,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:apvlv"
         "ProductCode" = "8:{C706BF94-CDD3-445A-8821-B95744836B0C}"
-        "PackageCode" = "8:{CEDB4B7B-B1DB-451C-AEEA-C19902BD78C8}"
+        "PackageCode" = "8:{7FCE10EC-CA42-42F9-A2C7-ABDC47547945}"
         "UpgradeCode" = "8:{76BD4EC1-37A0-4C00-8E09-B513FE3D9B38}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
@@ -981,6 +926,48 @@
         }
         "Shortcut"
         {
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_3B1DE820EE5148E581149F08CB66DD60"
+            {
+            "Name" = "8:apvlv"
+            "Arguments" = "8:"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "IconIndex" = "3:0"
+            "Transitive" = "11:FALSE"
+            "Target" = "8:_7A5F92B89ADD45F696650978707DB89E"
+            "Folder" = "8:_430C7255FB644F1BB64B876B1EAADC10"
+            "WorkingFolder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
+            "Icon" = "8:"
+            "Feature" = "8:"
+            }
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_594E666E41464DAEB8AFEFC09B86C0E7"
+            {
+            "Name" = "8:Uninstall"
+            "Arguments" = "8:/x {C706BF94-CDD3-445A-8821-B95744836B0C}"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "IconIndex" = "3:0"
+            "Transitive" = "11:FALSE"
+            "Target" = "8:_FF37D33BE5E14DAD93A323826CAF555F"
+            "Folder" = "8:_430C7255FB644F1BB64B876B1EAADC10"
+            "WorkingFolder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
+            "Icon" = "8:"
+            "Feature" = "8:"
+            }
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_EAE94ED6F9E045878CD2450F51E98D86"
+            {
+            "Name" = "8:apvlv"
+            "Arguments" = "8:"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "IconIndex" = "3:0"
+            "Transitive" = "11:FALSE"
+            "Target" = "8:_7A5F92B89ADD45F696650978707DB89E"
+            "Folder" = "8:_70F16F4E95534CAAB3028BFF3B00B526"
+            "WorkingFolder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
+            "Icon" = "8:"
+            "Feature" = "8:"
+            }
         }
         "UserInterface"
         {
@@ -1380,34 +1367,6 @@
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_70BCC76FE5174E9D8EFFE07B604CE8D3"
-            {
-            "SourcePath" = "8:..\\debug\\apvlv.exe"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            "ProjectOutputGroupRegister" = "3:1"
-            "OutputConfiguration" = "8:"
-            "OutputGroupCanonicalName" = "8:Built"
-            "OutputProjectGuid" = "8:{7E7A2721-146E-4637-8781-60D7A842755B}"
-            "ShowKeyOutput" = "11:TRUE"
-                "ExcludeFilters"
-                {
-                }
-            }
         }
     }
 }
