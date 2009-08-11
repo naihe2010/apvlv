@@ -71,7 +71,7 @@ namespace apvlv
       }
     else
       {
-        gtk_widget_set_size_request (mMainWindow, w > 0 ? w : 800, h > 0 ? h: 600);
+        gtk_window_set_default_size (GTK_WINDOW (mMainWindow), w > 1 ? w : 800, h > 1 ? h: 600);
       }
 
     mWidth = w;
@@ -949,10 +949,11 @@ namespace apvlv
         int w, h;
 
         gtk_window_get_size (GTK_WINDOW (wid), &w, &h);
+        w -= 5;
+        h -= 5;
         if (w != view->mWidth
             || h != view->mHeight)
           {
-
             if (view->mHasCmd)
               gtk_widget_set_usize (view->mCommandBar, w, 20);
             else
@@ -1072,7 +1073,7 @@ namespace apvlv
         if (mHasCmd)
           adj += APVLV_CMD_BAR_HEIGHT;
 
-        return mHeight - adj;
+        return mHeight - adj - 5;
       }
 
   void

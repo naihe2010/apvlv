@@ -503,8 +503,8 @@ namespace apvlv
   void
     ApvlvWindow::setsize (int width, int height)
       {
-        mWidth = width;
-        mHeight = height;
+        mWidth = width - 2;
+        mHeight = height - 2;
         debug ("mWidth: %d, mHeight: %d", mWidth, mHeight);
 
         if (type == AW_CORE)
