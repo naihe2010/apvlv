@@ -149,7 +149,6 @@ namespace apvlv
         if (ret < 0)
           {
             errp ("stat error: %d:%s", errno, strerror (errno));
-            g_free (realpath);
             return false;
           }
 
