@@ -47,6 +47,7 @@ namespace apvlv
       push ("zoom", "fitwidth");
       push ("continuous", "yes");
       push ("autoscrollpage", "yes");
+      push ("continuouspad", "2");
       push ("width", "800");
       push ("height", "600");
       push ("content", "yes");

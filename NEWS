@@ -38,6 +38,8 @@
 
        * add mouse wheel scrollup and down support
 
+       * add a padding argument to continuous page
+
      Bug fix
 
        * fix the windows open bug
@@ -45,6 +47,8 @@
        * fix the keys can't work on 64bit platform
 
        * fix some segment fault
+
+       * change the width, height of apvlv can resize
 
 
     apvlv 0.0.5

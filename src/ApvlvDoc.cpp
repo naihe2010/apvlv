@@ -70,7 +70,17 @@ namespace apvlv
       mResults = NULL;
       mSearchstr = "";
 
-      GtkWidget *vbox = gtk_vbox_new (TRUE, 0);
+      GtkWidget *vbox;
+
+      if (gParams->valueb ("continuous")
+          && gParams->valuei ("continuouspad") > 0)
+        {
+          vbox = gtk_vbox_new (TRUE, gParams->valuei ("continuouspad"));
+        }
+      else
+        {
+          vbox = gtk_vbox_new (TRUE, 0);
+        }
       gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mScrollwin), vbox);
 
       mImage1 = gtk_image_new ();

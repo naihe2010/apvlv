@@ -35,5 +35,8 @@
 " make sure the autoscrollpage is set to "yes" if you want to set this to yes
 set continuous=yes
 
+" set a pad to continuous page
+set continuouspad=2
+
 " set if auto scroll page when at the end or begin of one pdf page
 set autoscrollpage=yes
