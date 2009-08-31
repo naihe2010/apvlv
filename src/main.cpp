@@ -96,12 +96,14 @@ main (int argc, char *argv[])
     }
 
   gchar *rpath = g_locale_to_utf8 (path, -1, NULL, NULL, NULL);
-  if (rpath != NULL)
+  if (rpath == NULL)
     {
-      path = absolutepath (rpath);
-      g_free (rpath);
+      return 1;
     }
-  else
+
+  path = absolutepath (rpath);
+  g_free (rpath);
+  if (path == NULL)
     {
       return 1;
     }
