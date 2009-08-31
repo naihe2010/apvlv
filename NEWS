@@ -40,6 +40,8 @@
 
        * add a padding argument to continuous page
 
+       * add :number to goto page
+
      Bug fix
 
        * fix the windows open bug

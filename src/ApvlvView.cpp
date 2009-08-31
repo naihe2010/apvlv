@@ -939,6 +939,22 @@ namespace apvlv
               {
                 switchtab (mCurrTabPos - 1);
               }
+            else 
+              {
+                bool isn = true;
+                for (size_t i = 0; i < cmd.length (); ++ i)
+                  {
+                    if (cmd[i] < '0' || cmd[i] > '9')
+                      {
+                        isn = false;
+                        break;
+                      }
+                  }
+                if (isn && crtadoc () && atoi (cmd.c_str ()) != crtadoc ()->pagenumber ())
+                  {
+                    crtadoc ()->showpage (atoi (cmd.c_str ()) - 1);
+                  }
+              }
           }
       }
 
