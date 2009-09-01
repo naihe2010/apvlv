@@ -347,6 +347,13 @@ namespace apvlv
   void ApvlvCore::setactive (bool act)
   {
     mActive = act;
+
+    if (mActive && filename () && gView)
+      {
+	gchar *base = g_path_get_basename (filename ());
+	gView->settitle (base);
+	g_free (base);
+      }
   }
 
   ApvlvCoreStatus::ApvlvCoreStatus ()

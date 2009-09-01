@@ -373,7 +373,6 @@ namespace apvlv
 					      filename ()) :
       g_strdup ("NONE");
     GtkWidget *tabname = gtk_label_new (base);
-    settitle (base);
     g_free (base);
 
     GtkWidget *parentbox = gtk_vbox_new (false, 0);
@@ -446,6 +445,13 @@ namespace apvlv
     mCurrTabPos = tabPos;
     mRootWindow = mTabList[tabPos].root;
     ApvlvWindow::setcurrentWindow (NULL, mTabList[tabPos].curr);
+
+    if (crtadoc () && crtadoc ()->filename ())
+      {
+	gchar *base = g_path_get_basename (crtadoc ()->filename ());
+	settitle (base);
+	g_free (base);
+      }
   }
 
   bool ApvlvView::loadfile (const char *filename)
