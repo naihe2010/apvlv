@@ -464,6 +464,23 @@ namespace apvlv
 
     mAdjInchg = true;
 
+    if (gParams->valueb ("autoscrollpage") && gParams->valueb ("continuous") 
+        && !gParams->valueb ("autoscrolldoc"))
+      {
+        int rp2 = convertindex (p + 1);
+        if (rp2 < 0)
+          {
+            if (rp == mPagenum + 1)
+              {
+                return;
+              }
+            else
+              {
+                rp --;
+              }
+          }
+      }
+
     mPagenum = rp;
 
     if (mZoominit == false)
