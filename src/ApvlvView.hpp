@@ -182,7 +182,7 @@ namespace apvlv
 
     ApvlvWindow *mRootWindow;
 
-    GSList *mDocs;
+      std::vector < ApvlvCore * >mDocs;
 
       std::vector < string > mCmdHistroy;
     int mCurrHistroy;

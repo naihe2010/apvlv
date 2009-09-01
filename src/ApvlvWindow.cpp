@@ -79,7 +79,12 @@ namespace apvlv
 	  }
       }
 
-    if (type == AW_SP || type == AW_VSP)
+    if (type == AW_CORE)
+      {
+	mCore->inuse (false);
+      }
+
+    else if (type == AW_SP || type == AW_VSP)
       {
 	if (m_son != NULL)
 	  {

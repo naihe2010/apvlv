@@ -415,25 +415,25 @@ namespace apvlv
   {
     if (mDoc != NULL)
       {
-        int c = poppler_document_get_n_pages (mDoc);
-        bool as = gParams->valueb ("autoscrolldoc");
+	int c = poppler_document_get_n_pages (mDoc);
+	bool as = gParams->valueb ("autoscrolldoc");
 
-        if (p >= 0 && p < c)
-          {
-            return p;
-          }
-        else if (p >= c && as)
-          {
-            return p % c;
-          }
-        else if (p < 0 && as)
-          {
-            return c + p;
-          }
-        else
-          {
-            return -1;
-          }
+	if (p >= 0 && p < c)
+	  {
+	    return p;
+	  }
+	else if (p >= c && as)
+	  {
+	    return p % c;
+	  }
+	else if (p < 0 && as)
+	  {
+	    return c + p;
+	  }
+	else
+	  {
+	    return -1;
+	  }
       }
     return -1;
   }
@@ -464,21 +464,21 @@ namespace apvlv
 
     mAdjInchg = true;
 
-    if (gParams->valueb ("autoscrollpage") && gParams->valueb ("continuous") 
-        && !gParams->valueb ("autoscrolldoc"))
+    if (gParams->valueb ("autoscrollpage") && gParams->valueb ("continuous")
+	&& !gParams->valueb ("autoscrolldoc"))
       {
-        int rp2 = convertindex (p + 1);
-        if (rp2 < 0)
-          {
-            if (rp == mPagenum + 1)
-              {
-                return;
-              }
-            else
-              {
-                rp --;
-              }
-          }
+	int rp2 = convertindex (p + 1);
+	if (rp2 < 0)
+	  {
+	    if (rp == mPagenum + 1)
+	      {
+		return;
+	      }
+	    else
+	      {
+		rp--;
+	      }
+	  }
       }
 
     mPagenum = rp;

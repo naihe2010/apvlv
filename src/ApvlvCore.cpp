@@ -27,6 +27,7 @@
 /* @date Created: 2009/01/04 09:34:51 Alf*/
 
 #include "ApvlvParams.hpp"
+#include "ApvlvView.hpp"
 #include "ApvlvCore.hpp"
 
 #include <stdlib.h>
@@ -35,7 +36,10 @@
 
 namespace apvlv
 {
-  ApvlvCore::ApvlvCore ()
+  class ApvlvView;
+  extern ApvlvView *gView;
+
+    ApvlvCore::ApvlvCore ()
   {
     mReady = false;
 
@@ -68,6 +72,12 @@ namespace apvlv
   void ApvlvCore::inuse (bool use)
   {
     mInuse = use;
+
+    if (mInuse == false && gView->hasloaded (filename (), type ()) == false)
+      {
+	debug ("core :%p is not needed, delete it\n", this);
+	delete this;
+      }
   }
 
   bool ApvlvCore::inuse ()

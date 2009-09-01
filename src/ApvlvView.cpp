@@ -57,8 +57,6 @@ namespace apvlv
   {
     mProCmd = 0;
 
-    mDocs = NULL;
-
     mHasFull = FALSE;
 
     mMainWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
@@ -116,12 +114,12 @@ namespace apvlv
 
   ApvlvView::~ApvlvView ()
   {
-    for (GSList * node = mDocs; node != NULL; node = g_slist_next (node))
+    size_t i;
+    for (i = 0; i < mDocs.size (); ++i)
       {
-	ApvlvCore *core = (ApvlvCore *) node->data;
+	ApvlvCore *core = (ApvlvCore *) mDocs[i];
 	delete core;
       }
-    g_slist_free (mDocs);
 
     for (int i = 0; i < (int) mTabList.size (); i++)
       {
@@ -480,11 +478,11 @@ namespace apvlv
 
   ApvlvCore *ApvlvView::hasloaded (const char *abpath, int type)
   {
-    GSList *node;
     ApvlvCore *core;
-    for (node = mDocs; node != NULL; node = g_slist_next (node))
+    size_t i;
+    for (i = 0; i < mDocs.size (); ++i)
       {
-	core = (ApvlvCore *) node->data;
+	core = (ApvlvCore *) mDocs[i];
 	if (core->inuse () == false
 	    && core->type () == type
 	    && strcmp (core->filename (), abpath) == 0)
@@ -497,7 +495,14 @@ namespace apvlv
 
   void ApvlvView::regloaded (ApvlvCore * core)
   {
-    mDocs = g_slist_append (mDocs, core);
+    if (mDocs.size () >= (size_t) gParams->valuei ("pdfcache"))
+      {
+	std::vector < ApvlvCore * >::iterator itr = mDocs.begin ();
+	debug ("to pdf cache size: %d, remove first: %p\n",
+	       gParams->valuei ("pdfcache"), *itr);
+	mDocs.erase (itr);
+      }
+    mDocs.push_back (core);
   }
 
   GCompletion *ApvlvView::filecompleteinit (const char *path)
@@ -618,10 +623,10 @@ namespace apvlv
       {
 	gcomp = g_completion_new (NULL);
 	GList *list = g_list_alloc ();
-	GSList *node;
-	for (node = mDocs; node != NULL; node = g_slist_next (node))
+	size_t i;
+	for (i = 0; i < mDocs.size (); ++i)
 	  {
-	    list->data = g_strdup (((ApvlvCore *) node->data)->filename ());
+	    list->data = g_strdup (((ApvlvCore *) mDocs[i])->filename ());
 	    g_completion_add_items (gcomp, list);
 	  }
 	g_free (list);
