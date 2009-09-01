@@ -40,7 +40,7 @@ namespace apvlv
 {
   class ApvlvDir;
   class ApvlvDirNode
-    {
+  {
   public:
     ApvlvDirNode (gint);
     ApvlvDirNode (bool isdir, const char *, const char *);
@@ -51,79 +51,80 @@ namespace apvlv
     bool dest (const char **realpath, int *pagenum);
 
   private:
-    gint mPagenum;      /* -1 means dir, 0 means file, > 0 means page num */
+      gint mPagenum;		/* -1 means dir, 0 means file, > 0 means page num */
     char filename[0x100];
     char *realname;
-    };
-
-  class ApvlvDir;
-  class ApvlvDirStatus: public ApvlvCoreStatus
-  {
-public:
-  ApvlvDirStatus (ApvlvDir *);
-
-  ~ApvlvDirStatus ();
-
-  void active (bool act);
-
-  void setsize (int, int);
-
-  void show ();
-
-private:
-  ApvlvDir *mDoc;
-#define AD_STATUS_SIZE   4
-  GtkWidget *mStlab[AD_STATUS_SIZE];
   };
 
-  class ApvlvDir: public ApvlvCore
+  class ApvlvDir;
+  class ApvlvDirStatus:public ApvlvCoreStatus
   {
-public:
-  ApvlvDir (int w, int h);
+  public:
+    ApvlvDirStatus (ApvlvDir *);
 
-  ~ApvlvDir ();
+    ~ApvlvDirStatus ();
 
-  bool loadfile (const char *file, bool check = true);
+    void active (bool act);
 
-  void setactive (bool act);
+    void setsize (int, int);
 
-  returnType process (int times, guint keyval);
+    void show ();
 
-private:
+  private:
+      ApvlvDir * mDoc;
+#define AD_STATUS_SIZE   4
+    GtkWidget *mStlab[AD_STATUS_SIZE];
+  };
 
-  returnType subprocess (int ct, guint key);
+  class ApvlvDir:public ApvlvCore
+  {
+  public:
+    ApvlvDir (int w, int h);
 
-  bool reload ();
+     ~ApvlvDir ();
 
-  bool enter (guint key);
+    bool loadfile (const char *file, bool check = true);
 
-  void scrollup (int times);
+    void setactive (bool act);
 
-  void scrolldown (int times);
+    returnType process (int times, guint keyval);
 
-  void scrollleft (int times);
+  private:
 
-  void scrollright (int times);
+      returnType subprocess (int ct, guint key);
 
-  static void apvlv_dir_on_changed (GtkTreeSelection *, ApvlvDir *);
+    bool reload ();
 
-  bool walk_poppler_iter_index (GtkTreeIter *titr, PopplerIndexIter *iter);
+    bool enter (guint key);
 
-  bool walk_dir_path_index (GtkTreeIter *titr, const char *path);
+    void scrollup (int times);
 
-  static gboolean apvlv_dir_first_select_cb (ApvlvDir *);
+    void scrolldown (int times);
 
-  gint mFirstSelTimer;
+    void scrollleft (int times);
 
-  PopplerDocument *mDoc;
-  PopplerIndexIter *mIndex;
+    void scrollright (int times);
 
-  GSList *mDirNodes;
+    static void apvlv_dir_on_changed (GtkTreeSelection *, ApvlvDir *);
 
-  GtkWidget *mDirView;
-  GtkTreeStore *mStore;
-  GtkTreeIter mPrevIter, mCurrentIter;
-  GtkTreeSelection *mSelection;
+    bool walk_poppler_iter_index (GtkTreeIter * titr,
+				  PopplerIndexIter * iter);
+
+    bool walk_dir_path_index (GtkTreeIter * titr, const char *path);
+
+    static gboolean apvlv_dir_first_select_cb (ApvlvDir *);
+
+    gint mFirstSelTimer;
+
+    PopplerDocument *mDoc;
+    PopplerIndexIter *mIndex;
+
+    GSList *mDirNodes;
+
+    GtkWidget *mDirView;
+    GtkTreeStore *mStore;
+    GtkTreeIter mPrevIter, mCurrentIter;
+    GtkTreeSelection *mSelection;
   };
 
 }

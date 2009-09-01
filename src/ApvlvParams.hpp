@@ -43,17 +43,17 @@ using namespace std;
 
 namespace apvlv
 {
-  typedef map <string, string> ApvlvParam;
+  typedef map < string, string > ApvlvParam;
 
   class ApvlvParams
-    {
+  {
   public:
     ApvlvParams ();
     ~ApvlvParams ();
 
     bool loadfile (const char *filename);
 
-    bool push (string &ch, string &str);
+    bool push (string & ch, string & str);
 
     bool push (const char *c, const char *s);
 
@@ -66,8 +66,8 @@ namespace apvlv
     bool valueb (const char *key);
 
   private:
-    ApvlvParam mSettings;
-    };
+      ApvlvParam mSettings;
+  };
 
   extern ApvlvParams *gParams;
 }

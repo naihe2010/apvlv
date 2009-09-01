@@ -50,22 +50,22 @@ using namespace std;
 namespace apvlv
 {
   struct PrintData
-    {
-      PopplerDocument *doc;
-      guint frmpn, endpn;
-    };
+  {
+    PopplerDocument *doc;
+    guint frmpn, endpn;
+  };
 
   struct ApvlvDocPosition
-    {
-      int pagenum;
-      double scrollrate;
-    };
+  {
+    int pagenum;
+    double scrollrate;
+  };
 
-  typedef map <char, ApvlvDocPosition> ApvlvDocPositionMap;
+  typedef map < char, ApvlvDocPosition > ApvlvDocPositionMap;
 
   class ApvlvDoc;
   class ApvlvDocCache
-    {
+  {
   public:
     ApvlvDocCache (ApvlvDoc *);
 
@@ -86,140 +86,137 @@ namespace apvlv
     GList *getlinks ();
 
   private:
-    ApvlvDoc *mDoc;
+      ApvlvDoc * mDoc;
     PopplerPage *mPage;
     GList *mLinkMappings;
     gint mPagenum;
     guchar *mData;
     GdkPixbuf *mBuf;
-    };
-
-  class ApvlvDocStatus: public ApvlvCoreStatus
-  {
-public:
-  ApvlvDocStatus (ApvlvDoc *);
-
-  ~ApvlvDocStatus ();
-
-  void active (bool act);
-
-  void setsize (int, int);
-
-  void show ();
-
-private:
-  ApvlvDoc *mDoc;
-#define AD_STATUS_SIZE   4
-  GtkWidget *mStlab[AD_STATUS_SIZE];
   };
 
-  class ApvlvDoc: public ApvlvCore
+  class ApvlvDocStatus:public ApvlvCoreStatus
   {
-public:
-  ApvlvDoc (int w, int h, const char *zm = "NORMAL", bool cache = false);
+  public:
+    ApvlvDocStatus (ApvlvDoc *);
 
-  ~ApvlvDoc ();
+    ~ApvlvDocStatus ();
 
-  void setactive (bool act);
+    void active (bool act);
 
-  bool hascontent ();
+    void setsize (int, int);
 
-  PopplerDocument *getdoc ();
+    void show ();
 
-  ApvlvDoc *copy ();
+  private:
+      ApvlvDoc * mDoc;
+#define AD_STATUS_SIZE   4
+    GtkWidget *mStlab[AD_STATUS_SIZE];
+  };
 
-  void getpagesize (PopplerPage *p, double *x, double *y);
+  class ApvlvDoc:public ApvlvCore
+  {
+  public:
+    ApvlvDoc (int w, int h, const char *zm = "NORMAL", bool cache = false);
 
-  bool getpagetext (PopplerPage *p, char **contents);
+     ~ApvlvDoc ();
 
-  gint pagesum ();
+    void setactive (bool act);
 
-  bool usecache ();
+    bool hascontent ();
 
-  void usecache (bool use);
+    PopplerDocument *getdoc ();
 
-  bool loadfile (string & filename, bool check = true);
+    ApvlvDoc *copy ();
 
-  bool loadfile (const char *src, bool check = true);
+    void getpagesize (PopplerPage * p, double *x, double *y);
 
-  bool print (int ct);
+    bool getpagetext (PopplerPage * p, char **contents);
 
-  bool totext (const char *name);
+    gint pagesum ();
 
-  bool rotate (int ct = 90);
+    bool usecache ();
 
-  void markposition (const char s);
+    void usecache (bool use);
 
-  void jump (const char s);
+    bool loadfile (string & filename, bool check = true);
 
-  void showpage (int p, double s = 0.00);
+    bool loadfile (const char *src, bool check = true);
 
-  void nextpage (int times = 1);
+    bool print (int ct);
 
-  void prepage (int times = 1);
+    bool totext (const char *name);
 
-  void halfnextpage (int times = 1);
+    bool rotate (int ct = 90);
 
-  void halfprepage (int times = 1);
+    void markposition (const char s);
 
-  void search (const char *str);
-  void backsearch (const char *str);
+    void jump (const char s);
 
-  returnType process (int times, guint keyval);
+    void showpage (int p, double s = 0.00);
 
-private:
-  returnType subprocess (int ct, guint key);
+    void nextpage (int times = 1);
 
-  bool status_show ();
+    void prepage (int times = 1);
 
-  int convertindex (int p);
+    void halfnextpage (int times = 1);
 
-  void markselection ();
+    void halfprepage (int times = 1);
 
-  bool needsearch (const char *str);
+    void search (const char *str);
+    void backsearch (const char *str);
 
-  GList * searchpage (int num);
+    returnType process (int times, guint keyval);
 
-  void gotolink (int ct);
+  private:
+      returnType subprocess (int ct, guint key);
 
-  void returnlink (int ct);
+    bool status_show ();
 
-  void refresh ();
+    int convertindex (int p);
 
-  bool reload ();
+    void markselection ();
 
-  bool savelastposition ();
+    bool needsearch (const char *str);
 
-  bool loadlastposition ();
+    GList *searchpage (int num);
 
-  static void apvlv_doc_on_mouse (GtkAdjustment *, ApvlvDoc *);
+    void gotolink (int ct);
 
-  static gboolean apvlv_doc_first_scroll_cb (gpointer);
+    void returnlink (int ct);
 
-  static gboolean apvlv_doc_first_copy_cb (gpointer);
+    void refresh ();
 
-  static void begin_print (GtkPrintOperation *operation,
-                           GtkPrintContext   *context,
-                           PrintData         *data);
-  static void draw_page (GtkPrintOperation *operation,
-                         GtkPrintContext   *context,
-                         gint               page_nr,
-                         PrintData         *data);
-  static void end_print (GtkPrintOperation *operation,
-                         GtkPrintContext   *context,
-                         PrintData         *data);
+    bool reload ();
 
-  PopplerDocument *mDoc;
+    bool savelastposition ();
 
-  ApvlvDocPositionMap mPositions;
-  vector <ApvlvDocPosition> mLinkPositions;
+    bool loadlastposition ();
 
-  ApvlvDocCache *mCurrentCache1, *mCurrentCache2;
-  ApvlvDocCache *newcache (int pagenum);
-  void deletecache (ApvlvDocCache *ac);
+    static void apvlv_doc_on_mouse (GtkAdjustment *, ApvlvDoc *);
 
-  // image viewer
-  GtkWidget *mImage1, *mImage2;
+    static gboolean apvlv_doc_first_scroll_cb (gpointer);
+
+    static gboolean apvlv_doc_first_copy_cb (gpointer);
+
+    static void begin_print (GtkPrintOperation * operation,
+			     GtkPrintContext * context, PrintData * data);
+    static void draw_page (GtkPrintOperation * operation,
+			   GtkPrintContext * context,
+			   gint page_nr, PrintData * data);
+    static void end_print (GtkPrintOperation * operation,
+			   GtkPrintContext * context, PrintData * data);
+
+    PopplerDocument *mDoc;
+
+    ApvlvDocPositionMap mPositions;
+      vector < ApvlvDocPosition > mLinkPositions;
+
+    ApvlvDocCache *mCurrentCache1, *mCurrentCache2;
+    ApvlvDocCache *newcache (int pagenum);
+    void deletecache (ApvlvDocCache * ac);
+
+    // image viewer
+    GtkWidget *mImage1, *mImage2;
   };
 
 }

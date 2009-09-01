@@ -41,186 +41,179 @@ namespace apvlv
 {
   ApvlvParams *gParams = NULL;
 
-  ApvlvParams::ApvlvParams ()
-    {
-      push ("fullscreen", "no");
-      push ("zoom", "fitwidth");
-      push ("continuous", "yes");
-      push ("autoscrollpage", "yes");
-      push ("continuouspad", "2");
-      push ("width", "800");
-      push ("height", "600");
-      push ("content", "yes");
-      push ("cache", "no");
-      push ("commandtimeout", "1000");
+    ApvlvParams::ApvlvParams ()
+  {
+    push ("fullscreen", "no");
+    push ("zoom", "fitwidth");
+    push ("continuous", "yes");
+    push ("autoscrollpage", "yes");
+    push ("continuouspad", "2");
+    push ("noinfo", "no");
+    push ("width", "800");
+    push ("height", "600");
+    push ("content", "yes");
+    push ("cache", "no");
+    push ("commandtimeout", "1000");
 #ifdef WIN32
-      push ("defaultdir", "C:\\");
+    push ("defaultdir", "C:\\");
 #else
-      push ("defaultdir", "/tmp");
+    push ("defaultdir", "/tmp");
 #endif
-    }
+  }
 
   ApvlvParams::~ApvlvParams ()
-    {
-      mSettings.clear ();
-    }
+  {
+    mSettings.clear ();
+  }
 
   bool ApvlvParams::loadfile (const char *filename)
-    {
-      string str;
-      fstream os (filename, ios::in);
+  {
+    string str;
+    fstream os (filename, ios::in);
 
-      if (! os.is_open ())
-        {
-          errp ("Open configure file %s error", filename);
-          return false;
-        }
-
-      while ((getline (os, str)) != NULL)
-        {
-          string argu, data, crap;
-          stringstream is (str);
-          // avoid commet line, continue next
-          is >> crap;
-          if (crap[0] == '\"' || crap == "")
-            {
-              continue;
-            }
-          // parse the line like "set fullscreen=yes" or set "set zoom=1.5"
-          else if (crap == "set")
-            {
-              is >> argu;
-              size_t off = argu.find ('=');
-              if (off == string::npos)
-                {
-                  is >> crap >> data;
-                  if (crap == "=" && data.length () > 0)
-                    {
-                      push (argu.c_str (), data.c_str ());
-                      continue;
-                    }
-                }
-              else if (off < 32)
-                {
-                  char k[32], v[32], *p;
-                  memcpy (k, argu.c_str (), off);
-                  k[off] = '\0';
-
-                  p = (char *) argu.c_str () + off + 1;
-                  while (isspace (*p))
-                    p ++;
-
-                  if (*p != '\0')
-                    {
-                      strncpy (v, p, 31);
-                      v[31] = '\0';
-                      push (k, v);
-                      continue;
-                    }
-                }
-
-              errp ("Syntax error: set: %s", str.c_str ());
-            }
-          // like "map n next-page"
-          else if (crap == "map")
-            {
-              is >> argu;
-
-              if (argu.length () == 0)
-                {
-                  errp ("map command not complete");
-                  continue;
-                }
-
-              getline (is, data);
-
-              while (data.length () > 0 && isspace (data[0]))
-                data.erase (0, 1);
-
-              if (argu.length () > 0 && data.length () > 0)
-                {
-                  gCmds->buildmap (argu.c_str (), data.c_str ());
-                }
-              else
-                {
-                  errp ("Syntax error: map: %s", str.c_str ());
-                }
-            }
-          else
-            {
-              errp ("Unknown rc command: %s: %s", crap.c_str (), str.c_str ());
-            }
-        }
-
-      return true;
-    }
-
-  bool
-    ApvlvParams::push (const char *c, const char *s)
+    if (!os.is_open ())
       {
-        string cs (c), ss (s);
-        mSettings[cs] = ss;
-        return true;
+	errp ("Open configure file %s error", filename);
+	return false;
       }
 
-  bool
-    ApvlvParams::push (string &ch, string &str)
+    while ((getline (os, str)) != NULL)
       {
-        mSettings[ch] = str;
-        return true;
+	string argu, data, crap;
+	stringstream is (str);
+	// avoid commet line, continue next
+	is >> crap;
+	if (crap[0] == '\"' || crap == "")
+	  {
+	    continue;
+	  }
+	// parse the line like "set fullscreen=yes" or set "set zoom=1.5"
+	else if (crap == "set")
+	  {
+	    is >> argu;
+	    size_t off = argu.find ('=');
+	    if (off == string::npos)
+	      {
+		is >> crap >> data;
+		if (crap == "=" && data.length () > 0)
+		  {
+		    push (argu.c_str (), data.c_str ());
+		    continue;
+		  }
+	      }
+	    else if (off < 32)
+	      {
+		char k[32], v[32], *p;
+		memcpy (k, argu.c_str (), off);
+		k[off] = '\0';
+
+		p = (char *) argu.c_str () + off + 1;
+		while (isspace (*p))
+		  p++;
+
+		if (*p != '\0')
+		  {
+		    strncpy (v, p, 31);
+		    v[31] = '\0';
+		    push (k, v);
+		    continue;
+		  }
+	      }
+
+	    errp ("Syntax error: set: %s", str.c_str ());
+	  }
+	// like "map n next-page"
+	else if (crap == "map")
+	  {
+	    is >> argu;
+
+	    if (argu.length () == 0)
+	      {
+		errp ("map command not complete");
+		continue;
+	      }
+
+	    getline (is, data);
+
+	    while (data.length () > 0 && isspace (data[0]))
+	      data.erase (0, 1);
+
+	    if (argu.length () > 0 && data.length () > 0)
+	      {
+		gCmds->buildmap (argu.c_str (), data.c_str ());
+	      }
+	    else
+	      {
+		errp ("Syntax error: map: %s", str.c_str ());
+	      }
+	  }
+	else
+	  {
+	    errp ("Unknown rc command: %s: %s", crap.c_str (), str.c_str ());
+	  }
       }
 
-  const char *
-    ApvlvParams::values (const char *s)
-      {
-        string ss (s);
-        map <string, string>::iterator it;
-        it = mSettings.find (ss);
-        if (it != mSettings.end ())
-          {
-            return it->second.c_str ();
-          }
-        return NULL;
-      }
+    return true;
+  }
 
-  int
-    ApvlvParams::valuei (const char *s)
-      {
-        string ss (s);
-        map <string, string>::iterator it;
-        it = mSettings.find (ss);
-        if (it != mSettings.end ())
-          {
-            return atoi (it->second.c_str ());
-          }
-        return -1;
-      }
+  bool ApvlvParams::push (const char *c, const char *s)
+  {
+    string cs (c), ss (s);
+    mSettings[cs] = ss;
+    return true;
+  }
 
-  double
-    ApvlvParams::valuef (const char *s)
-      {
-        string ss (s);
-        map <string, string>::iterator it;
-        it = mSettings.find (ss);
-        if (it != mSettings.end ())
-          {
-            return atof (it->second.c_str ());
-          }
-        return -1.0;
-      }
+  bool ApvlvParams::push (string & ch, string & str)
+  {
+    mSettings[ch] = str;
+    return true;
+  }
 
-  bool
-    ApvlvParams::valueb (const char *s)
+  const char *ApvlvParams::values (const char *s)
+  {
+    string ss (s);
+    map < string, string >::iterator it;
+    it = mSettings.find (ss);
+    if (it != mSettings.end ())
       {
-        string ss (s);
-        map <string, string>::iterator it;
-        it = mSettings.find (ss);
-        if (it != mSettings.end ()
-            && it->second.compare ("yes") == 0
-        )
-          {
-            return true;
-          }
-        return false;
+	return it->second.c_str ();
       }
+    return NULL;
+  }
+
+  int ApvlvParams::valuei (const char *s)
+  {
+    string ss (s);
+    map < string, string >::iterator it;
+    it = mSettings.find (ss);
+    if (it != mSettings.end ())
+      {
+	return atoi (it->second.c_str ());
+      }
+    return -1;
+  }
+
+  double ApvlvParams::valuef (const char *s)
+  {
+    string ss (s);
+    map < string, string >::iterator it;
+    it = mSettings.find (ss);
+    if (it != mSettings.end ())
+      {
+	return atof (it->second.c_str ());
+      }
+    return -1.0;
+  }
+
+  bool ApvlvParams::valueb (const char *s)
+  {
+    string ss (s);
+    map < string, string >::iterator it;
+    it = mSettings.find (ss);
+    if (it != mSettings.end () && it->second.compare ("yes") == 0)
+      {
+	return true;
+      }
+    return false;
+  }
 }

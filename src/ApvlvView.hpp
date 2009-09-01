@@ -45,21 +45,21 @@
 namespace apvlv
 {
   typedef enum
-    {
-      SEARCH = '/',
-      BACKSEARCH = '?',
-      COMMANDMODE = ':'
-    } cmd_mode_type;
+  {
+    SEARCH = '/',
+    BACKSEARCH = '?',
+    COMMANDMODE = ':'
+  } cmd_mode_type;
 
   class ApvlvDoc;
   class ApvlvWindow;
 
   class ApvlvView
-    {
+  {
   public:
     ApvlvView (const char *);
 
-    ~ApvlvView ();
+     ~ApvlvView ();
 
     void show ();
 
@@ -71,7 +71,7 @@ namespace apvlv
 
     void newtab (const char *filename);
 
-    void newtab (ApvlvCore *core);
+    void newtab (ApvlvCore * core);
 
     void promptcommand (char ch);
 
@@ -85,7 +85,7 @@ namespace apvlv
 
     bool loaddir (const char *path);
 
-    ApvlvCore * hasloaded (const char *filename, int type);
+    ApvlvCore *hasloaded (const char *filename, int type);
 
     void regloaded (ApvlvCore *);
 
@@ -112,7 +112,7 @@ namespace apvlv
     void settitle (const char *);
 
   private:
-    ApvlvDoc *crtadoc ();
+      ApvlvDoc * crtadoc ();
 
     void refresh ();
 
@@ -122,7 +122,7 @@ namespace apvlv
 
     void runcmd (const char *cmd);
 
-    int new_tabcontext (ApvlvCore *core, bool insertAfterCurr);
+    int new_tabcontext (ApvlvCore * core, bool insertAfterCurr);
 
     void delete_tabcontext (int tabPos);
 
@@ -148,42 +148,48 @@ namespace apvlv
 
     GtkWidget *mTabContainer;
 
-    struct TabEntry {
-        ApvlvWindow *root;
-        ApvlvWindow *curr;
+    struct TabEntry
+    {
+      ApvlvWindow *root;
+      ApvlvWindow *curr;
 
-        int numwindows;
-        TabEntry (ApvlvWindow *_r, ApvlvWindow *_c, int _n) 
-          : root(_r), curr(_c), numwindows(_n)
-          { }
+      int numwindows;
+        TabEntry (ApvlvWindow * _r, ApvlvWindow * _c, int _n):root (_r),
+	curr (_c), numwindows (_n)
+      {
+      }
     };
     // possibly use GArray instead
-    std::vector<TabEntry> mTabList;
+      std::vector < TabEntry > mTabList;
     int mCurrTabPos;
 
     gboolean mHasFull;
     int mWidth, mHeight;
 
     static void apvlv_view_delete_cb (GtkWidget * wid, GtkAllocation * al,
-                                      ApvlvView * view);
+				      ApvlvView * view);
     static void apvlv_view_resized_cb (GtkWidget * wid, GtkAllocation * al,
-                                       ApvlvView * view);
-    static gint apvlv_view_keypress_cb (GtkWidget * wid, GdkEvent * ev, ApvlvView * view);
+				       ApvlvView * view);
+    static gint apvlv_view_keypress_cb (GtkWidget * wid, GdkEvent * ev,
+					ApvlvView * view);
 
-    static gint apvlv_view_commandbar_cb (GtkWidget * wid, GdkEvent * ev, ApvlvView * view);
+    static gint apvlv_view_commandbar_cb (GtkWidget * wid, GdkEvent * ev,
+					  ApvlvView * view);
 
-    static void apvlv_notebook_switch_cb (GtkWidget * wid, GtkNotebookPage *page, guint num, ApvlvView *view);
+    static void apvlv_notebook_switch_cb (GtkWidget * wid,
+					  GtkNotebookPage * page, guint num,
+					  ApvlvView * view);
 
     ApvlvWindow *mRootWindow;
 
     GSList *mDocs;
 
-    std::vector<string> mCmdHistroy;
+      std::vector < string > mCmdHistroy;
     int mCurrHistroy;
     bool mInHistroy;
 
     static const int APVLV_CMD_BAR_HEIGHT, APVLV_TABS_HEIGHT;
-    };
+  };
 
   extern ApvlvView *gView;
 }

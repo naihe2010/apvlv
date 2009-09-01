@@ -36,358 +36,332 @@
 namespace apvlv
 {
   ApvlvCore::ApvlvCore ()
-    {
-      mReady = false;
+  {
+    mReady = false;
 
-      mProCmd = 0;
+    mProCmd = 0;
 
-      mRotatevalue = 0;
+    mRotatevalue = 0;
 
-      mResults = NULL;
-      mSearchstr = "";
+    mResults = NULL;
+    mSearchstr = "";
 
-      mVbox = gtk_vbox_new (FALSE, 0);
-      g_object_ref (mVbox);
+    mVbox = gtk_vbox_new (FALSE, 0);
+    g_object_ref (mVbox);
 
-      mScrollwin = gtk_scrolled_window_new (NULL, NULL);
-      gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin), GTK_POLICY_AUTOMATIC,
-                                      GTK_POLICY_AUTOMATIC);
+    mScrollwin = gtk_scrolled_window_new (NULL, NULL);
+    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin),
+				    GTK_POLICY_AUTOMATIC,
+				    GTK_POLICY_AUTOMATIC);
 
-      mVaj = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
-      mHaj = gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
-    }
+    mVaj =
+      gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
+    mHaj =
+      gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
+  }
 
   ApvlvCore::~ApvlvCore ()
-    {
-      g_object_unref (mVbox);
-    }
+  {
+    g_object_unref (mVbox);
+  }
 
-  void
-    ApvlvCore::inuse (bool use)
+  void ApvlvCore::inuse (bool use)
+  {
+    mInuse = use;
+  }
+
+  bool ApvlvCore::inuse ()
+  {
+    return mInuse;
+  }
+
+  int ApvlvCore::type ()
+  {
+    return mType;
+  }
+
+  returnType ApvlvCore::process (int ct, guint key)
+  {
+    return MATCH;
+  }
+
+  void ApvlvCore::setsize (int w, int h)
+  {
+    gtk_widget_set_usize (widget (), w, h);
+    gtk_widget_set_usize (mScrollwin, w, h - 20);
+    mStatus->setsize (w, 20);
+    mWidth = w;
+    mHeight = h;
+  }
+
+  ApvlvCore *ApvlvCore::copy ()
+  {
+    return NULL;
+  }
+
+  const char *ApvlvCore::filename ()
+  {
+    return mReady && mFilestr.length () > 0 ? mFilestr.c_str () : NULL;
+  }
+
+  void ApvlvCore::zoomin ()
+  {
+    mZoomrate *= 1.1;
+    refresh ();
+  }
+
+  void ApvlvCore::zoomout ()
+  {
+    if (mZoomrate >= 0.5)
       {
-        mInuse = use;
+	mZoomrate /= 1.1;
+	refresh ();
       }
+  }
 
-  bool
-    ApvlvCore::inuse ()
+  void ApvlvCore::setzoom (const char *z)
+  {
+    if (strcasecmp (z, "normal") == 0)
       {
-        return mInuse;
+	mZoommode = NORMAL;
       }
-
-  int
-    ApvlvCore::type ()
+    if (strcasecmp (z, "fitwidth") == 0)
       {
-        return mType;
+	mZoommode = FITWIDTH;
       }
-
-  returnType
-    ApvlvCore::process (int ct, guint key)
+    if (strcasecmp (z, "fitheight") == 0)
       {
-        return MATCH;
+	mZoommode = FITHEIGHT;
       }
-
-  void
-    ApvlvCore::setsize (int w, int h)
+    else
       {
-        gtk_widget_set_usize (widget (), w, h);
-        gtk_widget_set_usize (mScrollwin, w, h - 20);
-        mStatus->setsize (w, 20);
-        mWidth = w;
-        mHeight = h;
+	double d = atof (z);
+	if (d > 0)
+	  {
+	    mZoommode = CUSTOM;
+	    mZoomrate = d;
+	  }
       }
 
-  ApvlvCore *
-    ApvlvCore::copy ()
+    refresh ();
+  }
+
+  void ApvlvCore::setzoom (double d)
+  {
+    mZoommode = CUSTOM;
+    mZoomrate = d;
+    refresh ();
+  }
+
+  gint ApvlvCore::pagenumber ()
+  {
+    return mPagenum + 1;
+  }
+
+  gint ApvlvCore::getrotate ()
+  {
+    return mRotatevalue;
+  }
+
+  gint ApvlvCore::pagesum ()
+  {
+    return 1;
+  }
+
+  gdouble ApvlvCore::zoomvalue ()
+  {
+    return mZoomrate;
+  }
+
+  bool ApvlvCore::loadfile (const char *file, bool check)
+  {
+    return false;
+  }
+
+  GtkWidget *ApvlvCore::widget ()
+  {
+    return mVbox;
+  }
+
+  void ApvlvCore::showpage (gint p, gdouble s)
+  {
+  }
+
+  void ApvlvCore::refresh ()
+  {
+  }
+
+  double ApvlvCore::scrollrate ()
+  {
+    double maxv = mVaj->upper - mVaj->lower - mVaj->page_size;
+    double val = mVaj->value / maxv;
+    if (val > 1.0)
       {
-        return NULL;
+	return 1.00;
       }
-
-  const char *
-    ApvlvCore::filename () 
-      { 
-        return mReady && mFilestr.length () > 0? mFilestr.c_str (): NULL; 
-      }
-
-  void 
-    ApvlvCore::zoomin () 
-      { 
-        mZoomrate *= 1.1; 
-        refresh (); 
-      }
-
-  void 
-    ApvlvCore::zoomout () 
-      { 
-        if (mZoomrate >= 0.5)
-          {
-            mZoomrate /= 1.1; 
-            refresh (); 
-          }
-      }
-
-  void
-    ApvlvCore::setzoom (const char *z)
+    else if (val > 0.0)
       {
-        if (strcasecmp (z, "normal") == 0)
-          {
-            mZoommode = NORMAL;
-          }
-        if (strcasecmp (z, "fitwidth") == 0)
-          {
-            mZoommode = FITWIDTH;
-          }
-        if (strcasecmp (z, "fitheight") == 0)
-          {
-            mZoommode = FITHEIGHT;
-          }
-        else
-          {
-            double d = atof (z);
-            if (d > 0)
-              {
-                mZoommode = CUSTOM;
-                mZoomrate = d;
-              }
-          }
-
-        refresh ();
+	return val;
       }
-
-  void
-    ApvlvCore::setzoom (double d)
+    else
       {
-        mZoommode = CUSTOM;
-        mZoomrate = d;
-        refresh ();
+	return 0.00;
       }
+  }
 
-  gint 
-    ApvlvCore::pagenumber ()
-      { 
-        return mPagenum + 1; 
-      }
+  gboolean ApvlvCore::scrollto (double s)
+  {
+    if (!mReady)
+      return FALSE;
 
-  gint 
-    ApvlvCore::getrotate () 
-      { 
-        return mRotatevalue; 
-      }
-
-  gint 
-    ApvlvCore::pagesum () 
-      { 
-        return 1; 
-      }
-
-  gdouble 
-    ApvlvCore::zoomvalue () 
-      { 
-        return mZoomrate; 
-      }
-
-  bool 
-    ApvlvCore::loadfile (const char *file, bool check)
+    if (mVaj->upper != mVaj->lower)
       {
-        return false;
+	double maxv = mVaj->upper - mVaj->lower - mVaj->page_size;
+	double val = maxv * s;
+	gtk_adjustment_set_value (mVaj, val);
+	mStatus->show ();
+	return TRUE;
       }
-
-  GtkWidget *
-    ApvlvCore::widget ()
+    else
       {
-        return mVbox;
+	debug ("fatal a timer error, try again!");
+	return FALSE;
       }
+  }
 
-  void
-    ApvlvCore::showpage (gint p, gdouble s)
+  void ApvlvCore::scrollup (int times)
+  {
+    if (!mReady)
+      return;
+
+    gdouble val = gtk_adjustment_get_value (mVaj);
+    gdouble sub = mVaj->upper - mVaj->lower;
+    mVrate = sub / mLines;
+
+    if (val - mVrate * times > mVaj->lower)
       {
+	gtk_adjustment_set_value (mVaj, val - mVrate * times);
       }
-
-  void
-    ApvlvCore::refresh ()
+    else if (val > mVaj->lower)
       {
+	gtk_adjustment_set_value (mVaj, mVaj->lower);
       }
-
-  double
-    ApvlvCore::scrollrate ()
+    else
       {
-        double maxv = mVaj->upper - mVaj->lower - mVaj->page_size;
-        double val =  mVaj->value / maxv;
-        if (val > 1.0)
-          {
-            return 1.00;
-          }
-        else if (val > 0.0)
-          {
-            return val;
-          }
-        else
-          {
-            return 0.00;
-          }
+	if (gParams->valueb ("autoscrollpage"))
+	  {
+	    if (gParams->valueb ("continuous"))
+	      {
+		showpage (mPagenum - 1,
+			  mVaj->upper / (2 * sub - mVaj->page_size));
+	      }
+	    else
+	      {
+		showpage (mPagenum - 1, 1.0);
+	      }
+	  }
       }
 
-  gboolean
-    ApvlvCore::scrollto (double s)
+    mStatus->show ();
+  }
+
+  void ApvlvCore::scrolldown (int times)
+  {
+    if (!mReady)
+      return;
+
+    gdouble val = gtk_adjustment_get_value (mVaj);
+    gdouble sub = mVaj->upper - mVaj->lower;
+    mVrate = sub / mLines;
+
+    if (val + mVrate * times + mVaj->page_size < mVaj->upper)
       {
-        if (!mReady)
-          return FALSE;
-
-        if (mVaj->upper != mVaj->lower)
-          {
-            double maxv = mVaj->upper - mVaj->lower - mVaj->page_size;
-            double val = maxv * s;
-            gtk_adjustment_set_value (mVaj, val);
-            mStatus->show ();
-            return TRUE;
-          }
-        else
-          {
-            debug ("fatal a timer error, try again!");
-            return FALSE;
-          }
+	gtk_adjustment_set_value (mVaj, val + mVrate * times);
       }
-
-  void
-    ApvlvCore::scrollup (int times)
+    else if (val + mVaj->page_size < mVaj->upper)
       {
-        if (!mReady)
-          return;
-
-        gdouble val = gtk_adjustment_get_value (mVaj);
-        gdouble sub = mVaj->upper - mVaj->lower;
-        mVrate = sub / mLines;
-
-        if (val - mVrate * times > mVaj->lower)
-          {
-            gtk_adjustment_set_value (mVaj, val - mVrate * times);
-          }
-        else if (val > mVaj->lower)
-          {
-            gtk_adjustment_set_value (mVaj, mVaj->lower);
-          }
-        else
-          {
-            if (gParams->valueb ("autoscrollpage"))
-              {
-                if (gParams->valueb ("continuous"))
-                  {
-                    showpage (mPagenum - 1, mVaj->upper / (2 * sub - mVaj->page_size));
-                  }
-                else
-                  {
-                    showpage (mPagenum - 1, 1.0);
-                  }
-              }
-          }
-
-        mStatus->show ();
+	gtk_adjustment_set_value (mVaj, mVaj->upper - mVaj->page_size);
       }
-
-  void
-    ApvlvCore::scrolldown (int times)
+    else
       {
-        if (!mReady)
-          return;
-
-        gdouble val = gtk_adjustment_get_value (mVaj);
-        gdouble sub = mVaj->upper - mVaj->lower;
-        mVrate = sub / mLines;
-
-        if (val + mVrate * times + mVaj->page_size < mVaj->upper)
-          {
-            gtk_adjustment_set_value (mVaj, val + mVrate * times);
-          }
-        else if (val + mVaj->page_size < mVaj->upper)
-          {
-            gtk_adjustment_set_value (mVaj, mVaj->upper - mVaj->page_size);
-          }
-        else
-          {
-            if (gParams->valueb ("autoscrollpage"))
-              {
-                if (gParams->valueb ("continuous"))
-                  {
-                    showpage (mPagenum + 1, (sub - mVaj->page_size) / 2 / sub);
-                  }
-                else
-                  {
-                    showpage (mPagenum + 1, 0.0);
-                  }
-              }
-          }
-
-        mStatus->show ();
+	if (gParams->valueb ("autoscrollpage"))
+	  {
+	    if (gParams->valueb ("continuous"))
+	      {
+		showpage (mPagenum + 1, (sub - mVaj->page_size) / 2 / sub);
+	      }
+	    else
+	      {
+		showpage (mPagenum + 1, 0.0);
+	      }
+	  }
       }
 
-  void
-    ApvlvCore::scrollleft (int times)
+    mStatus->show ();
+  }
+
+  void ApvlvCore::scrollleft (int times)
+  {
+    if (!mReady)
+      return;
+
+    mHrate = (mHaj->upper - mHaj->lower) / mChars;
+    gdouble val = mHaj->value - mHrate * times;
+    if (val > mVaj->lower)
       {
-        if (!mReady)
-          return;
-
-        mHrate = (mHaj->upper - mHaj->lower) / mChars;
-        gdouble val = mHaj->value - mHrate * times;
-        if (val > mVaj->lower)
-          {
-            gtk_adjustment_set_value (mHaj, val);
-          }
-        else
-          {
-            gtk_adjustment_set_value (mHaj, mHaj->lower);
-          }
+	gtk_adjustment_set_value (mHaj, val);
       }
-
-  void
-    ApvlvCore::scrollright (int times)
+    else
       {
-        if (!mReady)
-          return;
-
-        mHrate = (mHaj->upper - mHaj->lower) / mChars;
-        gdouble val = mHaj->value + mHrate * times;
-        if (val + mHaj->page_size < mHaj->upper)
-          {
-            gtk_adjustment_set_value (mHaj, val);
-          }
-        else
-          {
-            gtk_adjustment_set_value (mHaj, mHaj->upper - mHaj->page_size);
-          }
+	gtk_adjustment_set_value (mHaj, mHaj->lower);
       }
+  }
 
-  void
-    ApvlvCore::setactive (bool act)
+  void ApvlvCore::scrollright (int times)
+  {
+    if (!mReady)
+      return;
+
+    mHrate = (mHaj->upper - mHaj->lower) / mChars;
+    gdouble val = mHaj->value + mHrate * times;
+    if (val + mHaj->page_size < mHaj->upper)
       {
-        mActive = act;
+	gtk_adjustment_set_value (mHaj, val);
       }
+    else
+      {
+	gtk_adjustment_set_value (mHaj, mHaj->upper - mHaj->page_size);
+      }
+  }
+
+  void ApvlvCore::setactive (bool act)
+  {
+    mActive = act;
+  }
 
   ApvlvCoreStatus::ApvlvCoreStatus ()
-    {
-      mHbox = gtk_hbox_new (FALSE, 0);
-    }
+  {
+    mHbox = gtk_hbox_new (FALSE, 0);
+  }
 
   ApvlvCoreStatus::~ApvlvCoreStatus ()
-    {
-    }
+  {
+  }
 
-  GtkWidget *
-    ApvlvCoreStatus::widget ()
-      {
-        return mHbox;
-      }
+  GtkWidget *ApvlvCoreStatus::widget ()
+  {
+    return mHbox;
+  }
 
-  void
-    ApvlvCoreStatus::active (bool act)
-      {
-      }
+  void ApvlvCoreStatus::active (bool act)
+  {
+  }
 
-  void
-    ApvlvCoreStatus::setsize (int w, int h)
-      {
-      }
+  void ApvlvCoreStatus::setsize (int w, int h)
+  {
+  }
 
-  void
-    ApvlvCoreStatus::show ()
-      {
-      }
+  void ApvlvCoreStatus::show ()
+  {
+  }
 }

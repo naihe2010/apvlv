@@ -42,22 +42,22 @@ using namespace std;
 
 namespace apvlv
 {
-  typedef enum 
-    {
-      CT_CMD,
-      CT_STRING,
-      CT_STRING_RETURN
-    } cmdType;
+  typedef enum
+  {
+    CT_CMD,
+    CT_STRING,
+    CT_STRING_RETURN
+  } cmdType;
 
-  typedef map <guint, const char *> KeyStringMap;
-  typedef map <const char *, guint> StringKeyMap;
+  typedef map < guint, const char *>KeyStringMap;
+  typedef map < const char *, guint > StringKeyMap;
 
   class ApvlvCmd;
-  typedef vector <guint> ApvlvCmdKeyv;
-  typedef map <ApvlvCmdKeyv, ApvlvCmd *> ApvlvCmdMap;
+  typedef vector < guint > ApvlvCmdKeyv;
+  typedef map < ApvlvCmdKeyv, ApvlvCmd * >ApvlvCmdMap;
 
   class ApvlvCmd
-    {
+  {
   public:
     ApvlvCmd ();
 
@@ -67,11 +67,11 @@ namespace apvlv
 
     void push (const char *s, cmdType type = CT_CMD);
 
-    bool append (GdkEventKey *key);
+    bool append (GdkEventKey * key);
 
     const char *append (const char *s);
 
-    bool cmp (ApvlvCmd &cmd);
+    bool cmp (ApvlvCmd & cmd);
 
     void type (cmdType type);
 
@@ -101,18 +101,18 @@ namespace apvlv
 
     gint keyval (guint id);
 
-    void next (ApvlvCmd *cmd);
+    void next (ApvlvCmd * cmd);
 
     ApvlvCmd *next ();
 
-    void origin (ApvlvCmd *cmd);
+    void origin (ApvlvCmd * cmd);
 
     ApvlvCmd *origin ();
 
   private:
 
     // command type
-    cmdType mType;
+      cmdType mType;
 
     // if cmd is be mapped
     bool mBeMap;
@@ -139,28 +139,28 @@ namespace apvlv
     // when a key is map to other, this is the origin cmd.
     // after a maped key was processed, return to this cmds
     ApvlvCmd *mOrigin;
-    };
+  };
 
   class ApvlvCmds
-    {
+  {
   public:
     ApvlvCmds ();
 
     ~ApvlvCmds ();
 
-    void append (GdkEventKey *gev);
+    void append (GdkEventKey * gev);
 
     bool buildmap (const char *os, const char *ms);
 
   private:
 
-    ApvlvCmd *process (ApvlvCmd *cmd);
+      ApvlvCmd * process (ApvlvCmd * cmd);
 
-    returnType ismap (ApvlvCmdKeyv *ack);
+    returnType ismap (ApvlvCmdKeyv * ack);
 
     ApvlvCmd *getmap (const char *os);
 
-    ApvlvCmd *getmap (ApvlvCmd *cmd);
+    ApvlvCmd *getmap (ApvlvCmd * cmd);
 
     static gboolean apvlv_cmds_timeout_cb (gpointer);
 
@@ -169,16 +169,16 @@ namespace apvlv
     ApvlvCmd *mCmdHead;
 
     enum cmdState
-      {
-        GETTING_COUNT,
-        GETTING_CMD,
-        CMD_OK,
-      } mState;
+    {
+      GETTING_COUNT,
+      GETTING_CMD,
+      CMD_OK,
+    } mState;
 
     gint mTimeoutTimer;
 
     string mCountString;
-    };
+  };
 
   extern ApvlvCmds *gCmds;
 }

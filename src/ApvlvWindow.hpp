@@ -46,9 +46,9 @@ namespace apvlv
   class ApvlvCore;
 
   class ApvlvWindow
-    {
+  {
   public:
-    ApvlvWindow (ApvlvCore *core);
+    ApvlvWindow (ApvlvCore * core);
     ~ApvlvWindow ();
 
     /* WE operate the AW_DOC window
@@ -56,9 +56,10 @@ namespace apvlv
      * AW_NONE is a empty window, need free
      * So, ANY user interface function can only get the AW_DOC window
      * */
-    enum windowType { AW_SP, AW_VSP, AW_CORE, AW_NONE } type;
+    enum windowType
+    { AW_SP, AW_VSP, AW_CORE, AW_NONE } type;
 
-    ApvlvWindow *birth (bool vsp, ApvlvCore *core = NULL);
+    ApvlvWindow *birth (bool vsp, ApvlvCore * core = NULL);
 
     ApvlvWindow *unbirth (ApvlvWindow *, ApvlvWindow *);
 
@@ -70,7 +71,7 @@ namespace apvlv
 
     ApvlvCore *getCore ();
 
-    void setCore (ApvlvCore *core);
+    void setCore (ApvlvCore * core);
 
     void getsize (int *w, int *h);
 
@@ -85,7 +86,7 @@ namespace apvlv
 
     returnType process (int times, guint keyval);
 
-    static void setcurrentWindow (ApvlvWindow *pre, ApvlvWindow *win);
+    static void setcurrentWindow (ApvlvWindow * pre, ApvlvWindow * win);
 
     static void delcurrentWindow ();
 
@@ -94,16 +95,16 @@ namespace apvlv
     ApvlvWindow *m_parent, *m_son, *m_daughter;
 
   private:
-    inline ApvlvWindow *getkj (int num, bool next);
+      inline ApvlvWindow * getkj (int num, bool next);
     inline ApvlvWindow *gethl (int num, bool next);
 
     inline gboolean resize_children ();
 
     static gboolean apvlv_window_resize_children_cb (gpointer data);
 
-    static gboolean apvlv_window_paned_resized_cb (GtkWidget      *wid,
-                                                   GdkEventButton *event,
-                                                   ApvlvWindow    *win);
+    static gboolean apvlv_window_paned_resized_cb (GtkWidget * wid,
+						   GdkEventButton * event,
+						   ApvlvWindow * win);
 
     static ApvlvWindow *m_curWindow;
 
@@ -113,7 +114,7 @@ namespace apvlv
     GtkWidget *mPaned;
 
     int mWidth, mHeight;
-    };
+  };
 
 }
 

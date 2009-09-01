@@ -41,7 +41,6 @@
 using namespace std;
 
 namespace apvlv
-
 {
   // Global files
   extern string helppdf;
@@ -69,17 +68,17 @@ namespace apvlv
 #define CORE_CONTENT    2
 #define CORE_DIR        3
 
-  GtkWidget *replace_widget (GtkWidget *owid, GtkWidget *nwid);
+  GtkWidget *replace_widget (GtkWidget * owid, GtkWidget * nwid);
 
-  PopplerDocument * file_to_popplerdoc (const char *filename);
+  PopplerDocument *file_to_popplerdoc (const char *filename);
 
   // function return type
   typedef enum
-    {
-      MATCH,
-      NEED_MORE,
-      NO_MATCH,
-    } returnType;
+  {
+    MATCH,
+    NEED_MORE,
+    NO_MATCH,
+  } returnType;
 
   // some windows macro
 #ifdef WIN32
@@ -91,7 +90,7 @@ namespace apvlv
 
 #ifndef S_ISDIR
 #define S_ISDIR(mode)  (((mode) & 0170000) == (0040000))
-#endif
+#endif				/*  */
 
 #endif
 
@@ -112,7 +111,8 @@ namespace apvlv
 #define info(...)       logv ("INFO", __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define warnp(...)      logv ("WARNNING", __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define errp(...)       logv ("ERROR", __FILE__, __LINE__, __func__, __VA_ARGS__)
-void logv (const char *, const char *, int, const char *, const char *, ...);
+  void logv (const char *, const char *, int, const char *, const char *,
+	     ...);
 
 // char macro
 // because every unsigned char is < 256, so use this marco to stand for Ctrl+char, Shift+char

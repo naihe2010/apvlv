@@ -45,11 +45,11 @@ namespace apvlv
 {
   class ApvlvCore;
   class ApvlvCoreStatus
-    {
+  {
   public:
     ApvlvCoreStatus ();
 
-    virtual ~ApvlvCoreStatus ();
+    virtual ~ ApvlvCoreStatus ();
 
     virtual GtkWidget *widget ();
 
@@ -60,15 +60,15 @@ namespace apvlv
     virtual void show ();
 
   protected:
-    GtkWidget *mHbox;
-    };
+      GtkWidget * mHbox;
+  };
 
   class ApvlvCore
-    {
+  {
   public:
     ApvlvCore ();
 
-    virtual ~ApvlvCore ();
+    virtual ~ ApvlvCore ();
 
     virtual void inuse (bool use);
 
@@ -114,10 +114,10 @@ namespace apvlv
 
     virtual void setsize (int wid, int hei);
 
-    virtual returnType process (int times, guint keyval); 
+    virtual returnType process (int times, guint keyval);
 
   protected:
-    bool mReady;
+      bool mReady;
 
     bool mInuse;
 
@@ -133,12 +133,12 @@ namespace apvlv
     string mSearchstr;
 
     enum
-      {
-        NORMAL,
-        FITWIDTH,
-        FITHEIGHT,
-        CUSTOM
-      } mZoommode;
+    {
+      NORMAL,
+      FITWIDTH,
+      FITHEIGHT,
+      CUSTOM
+    } mZoommode;
 
     double mZoomrate;
 
@@ -161,7 +161,7 @@ namespace apvlv
     GtkAdjustment *mVaj, *mHaj;
 
     // the main widget
-    GtkWidget *mVbox; 
+    GtkWidget *mVbox;
 
     // the document scrolled window
     GtkWidget *mScrollwin;
@@ -171,7 +171,7 @@ namespace apvlv
 
     // status bar
     ApvlvCoreStatus *mStatus;
-    };
+  };
 }
 
 #endif

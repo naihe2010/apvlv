@@ -1,115 +1,125 @@
-    apvlv 0.0.6
-    ============
+apvlv 0.0.7
+===========
 
-    News features
+News features
 
-       * Warnning !!! change 'goto' command's 'g' to 'G'
+   * add shell command line options, -h, -v and -c
 
-       * add continuous view of pdf page
-         set in .apvlvrc "set continuous=yes/no"
-
-       * add argument to support weather auto scroll page when k,j to page's end or head
-         set in .apvlvrc "set autoscrollpage=yes/no"
-
-       * add Up and Down key to get previous and next command in Command Prompt
-
-       * add tab view
-         add :tabnew and 'gt' 'gg' 'gT' 'g[n]' command to support tab switch, change goto page command from 'g' to 'G'
-
-       * add content view
-             * k, j to select up, down
-             * h, l to expand, collapase
-             * <CR> open selected page
-             * 'o' open selected page in split window
-             * 't' open selected page in new tab
-
-       * add direcotry view by command 'O'
-             * k, j to select up, down
-             * h, l to expand, collapase
-             * <CR> open selected file
-             * 'o' open selected file in split window
-             * 't' open selected file in new tab
-
-       * add <C-]> goto a heperlink and <C-t> to come back
-
-       * add open entrypted pdf with password support
-
-       * add open last directory
-
-       * add mouse wheel scrollup and down support
-
-       * add a padding argument to continuous page
-
-       * add :number to goto page
-
-     Bug fix
-
-       * fix the windows open bug
-
-       * fix the keys can't work on 64bit platform
-
-       * fix some segment fault
-
-       * change the width, height of apvlv can resize
+   * add options to disable ~/.apvlvinfo
 
 
-    apvlv 0.0.5
-    ============
+apvlv 0.0.6
+============
 
-    News features
+News features
 
-        * add cache module to make the display faster.
+   * Warnning !!! change 'goto' command's 'g' to 'G'
 
-        * add ':set [no]cache' to tell apvlv if use cache module.
+   * add continuous view of pdf page
+     set in .apvlvrc "set continuous=yes/no"
+
+   * add argument to support weather auto scroll page when k,j to page's end or head
+     set in .apvlvrc "set autoscrollpage=yes/no"
+
+   * add Up and Down key to get previous and next command in Command Prompt
+
+   * add tab view
+     add :tabnew and 'gt' 'gg' 'gT' 'g[n]' command to support tab switch, change goto page command from 'g' to 'G'
+
+   * add content view
+         * k, j to select up, down
+         * h, l to expand, collapase
+         * <CR> open selected page
+         * 'o' open selected page in split window
+         * 't' open selected page in new tab
+
+   * add direcotry view by command 'O'
+         * k, j to select up, down
+         * h, l to expand, collapase
+         * <CR> open selected file
+         * 'o' open selected file in split window
+         * 't' open selected file in new tab
+
+   * add <C-]> goto a heperlink and <C-t> to come back
+
+   * add open entrypted pdf with password support
+
+   * add open last directory
+
+   * add mouse wheel scrollup and down support
+
+   * add a padding argument to continuous page
+
+   * add :number to goto page
+
+ Bug fix
+
+   * fix the windows open bug
+
+   * fix the keys can't work on 64bit platform
+
+   * fix some segment fault
+
+   * change the width, height of apvlv can resize
 
 
-    apvlv 0.0.4
-    =============
+apvlv 0.0.5
+============
 
-    News features
+News features
 
-        * remove the status bar from the bottom, and add it to every window.
+    * add cache module to make the display faster.
 
-        * make the active window healight the status bar.
+    * add ':set [no]cache' to tell apvlv if use cache module.
 
-        * add 'r' command to rotate page.
 
-        * add ':TOtext' to translate pdf doc page to a text file.
+apvlv 0.0.4
+=============
 
-        * add ':pr[int]' to print the document.
+News features
 
-        * add ':open file' to open a PDF document.
+    * remove the status bar from the bottom, and add it to every window.
 
-        * add ':doc file' to set the doc to current window.
+    * make the active window healight the status bar.
 
-        * support open multiple PDF files once, and load them in cache. can be set by ':doc file'.
+    * add 'r' command to rotate page.
 
-    Bug Fix
+    * add ':TOtext' to translate pdf doc page to a text file.
+
+    * add ':pr[int]' to print the document.
+
+    * add ':open file' to open a PDF document.
+
+    * add ':doc file' to set the doc to current window.
+
+    * support open multiple PDF files once, and load them in cache. can be set by ':doc file'.
+
+Bug Fix
    
-        * fix the absolutepath () bug.
+    * fix the absolutepath () bug.
 
 
-    apvlv 0.0.3
-    ==============
+apvlv 0.0.3
+==============
 
-    News features
+News features
 
-        * Replace word which like 'C-a' to like '<C-a>' at every nessary place.
+    * Replace word which like 'C-a' to like '<C-a>' at every nessary place.
 
-        * Support 'H', 'M' and 'L' to scroll one PDF page.
+    * Support 'H', 'M' and 'L' to scroll one PDF page.
 
-        * Support multiple window view and support below command to control them.
-                0. ':sp', ':vsp', 'q', 'quit'
-                1. '<C-w> <C-Q>', '<C-w> q
-                2. '<C-w> k'
-                3. '<C-w> j'
-                4. '<C-w> h'
-                5. '<C-w> l'
-                6. '<C-w> <C-w>'
-                7. '<C-w> -'
-                8. '<C-w> +'
+    * Support multiple window view and support below command to control them.
+            0. ':sp', ':vsp', 'q', 'quit'
+            1. '<C-w> <C-Q>', '<C-w> q
+            2. '<C-w> k'
+            3. '<C-w> j'
+            4. '<C-w> h'
+            5. '<C-w> l'
+            6. '<C-w> <C-w>'
+            7. '<C-w> -'
+            8. '<C-w> +'
 
-        * Support multiple PDF Doc to be opened at the memory.
+    * Support multiple PDF Doc to be opened at the memory.
 
-        * Support map command mode
-                like 'map a :vsp'
+    * Support map command mode
+            like 'map a :vsp'
