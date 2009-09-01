@@ -115,11 +115,7 @@ namespace apvlv
   ApvlvView::~ApvlvView ()
   {
     size_t i;
-    for (i = 0; i < mDocs.size (); ++i)
-      {
-	ApvlvCore *core = (ApvlvCore *) mDocs[i];
-	delete core;
-      }
+
 
     for (int i = 0; i < (int) mTabList.size (); i++)
       {
@@ -128,6 +124,12 @@ namespace apvlv
     mTabList.clear ();
 
     mCmdHistroy.clear ();
+
+    for (i = 0; i < mDocs.size (); ++i)
+      {
+	ApvlvCore *core = (ApvlvCore *) mDocs[i];
+	delete core;
+      }
   }
 
   void ApvlvView::show ()

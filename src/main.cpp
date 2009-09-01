@@ -34,7 +34,9 @@
 #include <iostream>
 
 #include <locale.h>
+#ifndef WIN32
 #include <getopt.h>
+#endif
 #include <gtk/gtk.h>
 
 using namespace apvlv;
@@ -44,6 +46,7 @@ using namespace apvlv;
 #pragma comment (linker, "/ENTRY:mainCRTStartup")
 #endif
 
+#ifndef WIN32
 static void
 usage_exit ()
 {
@@ -64,12 +67,23 @@ version_exit ()
 	   "Please send bug report to %s\n"
 	   "\n", PACKAGE_NAME, PACKAGE_VERSION, RELEASE, PACKAGE_BUGREPORT);
 }
+#endif
 
 static int
 parse_options (int argc, char *argv[])
 {
-  int c, index;
   gchar *ini;
+
+#ifdef WIN32
+  ini = absolutepath (inifile.c_str ());
+  if (ini != NULL)
+    {
+      gParams->loadfile (ini);
+      g_free (ini);
+    }
+  return 1;
+#else
+  int c, index;
   static struct option long_options[] = {
     {"config", required_argument, NULL, 'c'},
     {"help", no_argument, NULL, 'h'},
@@ -109,14 +123,12 @@ parse_options (int argc, char *argv[])
   /* 
    * load the global sys conf file
    * */
-#ifndef WIN32
   gchar *sysini = g_strdup_printf ("%s/%s", SYSCONFDIR, "apvlvrc");
   if (sysini)
     {
       gParams->loadfile (sysini);
       g_free (sysini);
     }
-#endif
 
   if (ini != NULL)
     {
@@ -125,6 +137,7 @@ parse_options (int argc, char *argv[])
     }
 
   return optind;
+#endif
 }
 
 int
