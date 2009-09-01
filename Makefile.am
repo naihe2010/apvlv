@@ -8,3 +8,6 @@ EXTRA_DIST = apvlv.1 apvlvrc.example Startup.pdf icons/*
 pdf_DATA = Startup.pdf
 doc_DATA = apvlvrc.example icons/reg.png icons/dir.png icons/pdf.png
 man_MANS = apvlv.1
+
+install-exec-local:
+	$(INSTALL) -m 0644 apvlvrc.example $(sysconfdir)/apvlvrc

@@ -106,6 +106,18 @@ parse_options (int argc, char *argv[])
       ini = absolutepath (inifile.c_str ());
     }
 
+  /* 
+   * load the global sys conf file
+   * */
+#ifndef WIN32
+  gchar *sysini = g_strdup_printf ("%s/%s", SYSCONFDIR, "apvlvrc");
+  if (sysini)
+    {
+      gParams->loadfile (sysini);
+      g_free (sysini);
+    }
+#endif
+
   if (ini != NULL)
     {
       gParams->loadfile (ini);

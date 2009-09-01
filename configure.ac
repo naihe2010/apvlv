@@ -27,6 +27,12 @@ AC_PROG_CXX
 AC_PROG_LD
 AC_PROG_INSTALL
 
+if test "$sysconfdir" = "NONE"; then
+  sysconfdir="/etc/rc"
+fi
+
+AC_DEFINE_UNQUOTED(SYSCONFDIR, ["$sysconfdir"], [The System configuration path])
+
 if test "$prefix" = "NONE"; then
   prefix="/usr/local"
 fi

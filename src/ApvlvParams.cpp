@@ -70,6 +70,7 @@ namespace apvlv
 
   bool ApvlvParams::loadfile (const char *filename)
   {
+    debug ("load debug: %s\n", filename);
     string str;
     fstream os (filename, ios::in);
 
