@@ -41,5 +41,8 @@ set continuouspad=2
 " set if auto scroll page when at the end or begin of one pdf page
 set autoscrollpage=yes
 
+" set if auto scroll doc from 1st page when goto the last page
+set autoscrolldoc=yes
+
 " set if disable ~/.apvlvinfo, default is no
 set noinfo=no

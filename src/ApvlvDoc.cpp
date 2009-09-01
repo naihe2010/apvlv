@@ -415,15 +415,25 @@ namespace apvlv
   {
     if (mDoc != NULL)
       {
-	int c = poppler_document_get_n_pages (mDoc);
-	if (p >= 0)
-	  {
-	    return p % c;
-	  }
-	else if (p < 0)
-	  {
-	    return c + p;
-	  }
+        int c = poppler_document_get_n_pages (mDoc);
+        bool as = gParams->valueb ("autoscrolldoc");
+
+        if (p >= 0 && p < c)
+          {
+            return p;
+          }
+        else if (p >= c && as)
+          {
+            return p % c;
+          }
+        else if (p < 0 && as)
+          {
+            return c + p;
+          }
+        else
+          {
+            return -1;
+          }
       }
     return -1;
   }

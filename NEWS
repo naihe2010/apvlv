@@ -7,6 +7,8 @@ News features
 
    * add options to disable ~/.apvlvinfo
 
+   * add a option "set autoscrolldoc=yes/no" to toggle auto scroll a doc from end to 1st
+
 
 apvlv 0.0.6
 ============
