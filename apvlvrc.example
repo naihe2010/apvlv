@@ -46,3 +46,6 @@ set autoscrolldoc=yes
 
 " set if disable ~/.apvlvinfo, default is no
 set noinfo=no
+
+" set pdf object cache size
+set pdfcache = 4

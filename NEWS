@@ -9,6 +9,8 @@ News features
 
    * add a option "set autoscrolldoc=yes/no" to toggle auto scroll a doc from end to 1st
 
+   * add a option "set pdfcache=[number]" to set the cache size of pdf object
+
 
 apvlv 0.0.6
 ============

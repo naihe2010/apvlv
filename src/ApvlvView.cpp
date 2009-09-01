@@ -322,13 +322,43 @@ namespace apvlv
 
   void ApvlvView::newtab (const char *filename)
   {
-    ApvlvDoc *ndoc = new ApvlvDoc (mWidth, mHeight, gParams->values ("zoom"),
-				   gParams->valueb ("cache"));
-    if (ndoc->loadfile (filename))
+    ApvlvCore *ndoc;
+    ndoc = hasloaded (filename,
+		      gParams->valueb ("content") ? CORE_CONTENT : CORE_DOC);
+
+    if (ndoc == NULL)
       {
-	regloaded (ndoc);
+	if (gParams->valueb ("content"))
+	  {
+	    ndoc = new ApvlvDir (mWidth, mHeight);
+	    if (!ndoc->loadfile (filename))
+	      {
+		delete ndoc;
+		ndoc = NULL;
+	      }
+	  }
+
+	if (ndoc == NULL)
+	  {
+	    ndoc =
+	      new ApvlvDoc (mWidth, mHeight, gParams->values ("zoom"), false);
+	    if (!ndoc->loadfile (filename))
+	      {
+		delete ndoc;
+		ndoc = NULL;
+	      }
+	  }
+
+	if (ndoc)
+	  {
+	    regloaded (ndoc);
+	  }
       }
-    newtab (ndoc);
+
+    if (ndoc)
+      {
+	newtab (ndoc);
+      }
   }
 
   void ApvlvView::newtab (ApvlvCore * core)
