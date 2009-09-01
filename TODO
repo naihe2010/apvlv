@@ -1,9 +1,10 @@
-0.      Bug fix.
+.      Bug fix.
 
 .      Regex search, multiple search.
 
 .      Word moving, put a curcor in the document. and 'k','j' ... moves it.
-.1     Press 'v' to select a text area, and then TOtext them or copy them to clipboard.
+
+.      Press 'v' to select a text area, and then TOtext them or copy them to clipboard.
 
 .      Other document type, like .gv, word, ?????
 

@@ -346,7 +346,9 @@ namespace apvlv
 
         gchar *base = core->filename ()? g_path_get_basename (core->filename ()): g_strdup ("NONE");
         GtkWidget* tabname = gtk_label_new (base);
+        settitle (base);
         g_free (base);
+
         GtkWidget* parentbox = gtk_vbox_new (false, 0);
         gtk_container_add (GTK_CONTAINER(parentbox), mTabList[mCurrTabPos].root->widget());
 
@@ -784,6 +786,12 @@ namespace apvlv
           default:
             break;
           }
+      }
+
+  void 
+    ApvlvView::settitle (const char *title)
+      {
+        gtk_window_set_title (GTK_WINDOW (mMainWindow), title);
       }
 
   void

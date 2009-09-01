@@ -1,4 +1,4 @@
-AM_CXXFLAGS = -Wall -D_GNU_SOURCE
+AM_CPPFLAGS = -Wall -D_GNU_SOURCE
 
 HEAD = config.hpp \
        ApvlvUtil.hpp \

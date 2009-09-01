@@ -109,6 +109,8 @@ namespace apvlv
 
     void cmd_auto (const char *);
 
+    void settitle (const char *);
+
   private:
     ApvlvDoc *crtadoc ();
 
