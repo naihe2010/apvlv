@@ -10,4 +10,5 @@ doc_DATA = apvlvrc.example icons/reg.png icons/dir.png icons/pdf.png
 man_MANS = apvlv.1
 
 install-exec-local:
+	mkdir -p $(sysconfdir)
 	$(INSTALL) -m 0644 apvlvrc.example $(sysconfdir)/apvlvrc

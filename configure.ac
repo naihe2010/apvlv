@@ -2,7 +2,7 @@ dnl
 dnl APVLV - Alf's PDF Viewer Like Vim
 dnl
  
-AC_INIT(apvlv, 0.0.7.0, naihe2010@gmail.com)
+AC_INIT(apvlv, 0.0.7.1, naihe2010@gmail.com)
 AC_COPYRIGHT([Copyright (C) 2008 Alf's Software.])
 
 if test -e .svn; then
@@ -27,17 +27,23 @@ AC_PROG_CXX
 AC_PROG_LD
 AC_PROG_INSTALL
 
-if test "$sysconfdir" = "NONE"; then
-  sysconfdir="/etc/rc"
-fi
-
-AC_DEFINE_UNQUOTED(SYSCONFDIR, ["$sysconfdir"], [The System configuration path])
-
 if test "$prefix" = "NONE"; then
   prefix="/usr/local"
 fi
 
 AC_DEFINE_UNQUOTED(PREFIX, ["$prefix"], [The prefix path])
+
+sysconfdir="/etc"
+AC_ARG_WITH(sysconfdir,
+            [[  --with-sysconfdir=DIR       directory for system configuration of apvlv [/etc]]], 
+            [ case "$withval" in
+             yes|no) 
+             ;;
+             *) sysconfdir="$withval"
+             ;;
+           esac])
+AC_SUBST(SYSCONFDIR)
+AC_DEFINE_UNQUOTED(SYSCONFDIR, ["$sysconfdir"], [The system configuration directory])
 
 docdir="$prefix/share/doc/$PACKAGE_TARNAME"
 AC_ARG_WITH(docdir,
