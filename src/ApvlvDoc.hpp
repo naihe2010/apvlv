@@ -215,6 +215,10 @@ namespace apvlv
     ApvlvDocCache *newcache (int pagenum);
     void deletecache (ApvlvDocCache * ac);
 
+    bool mAutoScrollPage;
+    bool mAutoScrollDoc;
+    bool mContinuous;
+
     // image viewer
     GtkWidget *mImage1, *mImage2;
   };

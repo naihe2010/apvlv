@@ -70,15 +70,15 @@ namespace apvlv
   }
 
   void ApvlvCore::inuse (bool use)
-  {
-    mInuse = use;
+    {
+      mInuse = use;
 
-    if (mInuse == false && gView->hasloaded (filename (), type ()) == false)
-      {
-	debug ("core :%p is not needed, delete it\n", this);
-	delete this;
-      }
-  }
+      if (mInuse == false && gView->hasloaded (filename (), type ()) == false)
+        {
+          debug ("core :%p is not needed, delete it\n", this);
+          delete this;
+        }
+    }
 
   bool ApvlvCore::inuse ()
   {

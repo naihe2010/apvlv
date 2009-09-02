@@ -57,6 +57,10 @@ namespace apvlv
 
     mAdjInchg = false;
 
+    mAutoScrollPage = gParams->valueb ("autoscrollpage");
+    mAutoScrollDoc = gParams->valueb ("autoscrolldoc");;
+    mContinuous = gParams->valueb ("continuous");;
+
     mZoominit = false;
     mLines = 50;
     mChars = 80;
@@ -72,7 +76,7 @@ namespace apvlv
 
     GtkWidget *vbox;
 
-    if (gParams->valueb ("continuous")
+    if (mContinuous
 	&& gParams->valuei ("continuouspad") > 0)
       {
 	vbox = gtk_vbox_new (TRUE, gParams->valuei ("continuouspad"));
@@ -86,7 +90,7 @@ namespace apvlv
 
     mImage1 = gtk_image_new ();
     gtk_box_pack_start (GTK_BOX (vbox), mImage1, TRUE, TRUE, 0);
-    if (gParams->valueb ("autoscrollpage") && gParams->valueb ("continuous"))
+    if (mAutoScrollPage && mContinuous)
       {
 	mImage2 = gtk_image_new ();
 	gtk_box_pack_start (GTK_BOX (vbox), mImage2, TRUE, TRUE, 0);
@@ -401,6 +405,13 @@ namespace apvlv
 	setactive (true);
 
 	mReady = true;
+
+        if (poppler_document_get_n_pages (mDoc) <= 1)
+          {
+            mContinuous = false;
+            mAutoScrollDoc = false;
+            mAutoScrollPage = false;
+          }
       }
 
     return mDoc == NULL ? false : true;
@@ -416,17 +427,16 @@ namespace apvlv
     if (mDoc != NULL)
       {
 	int c = poppler_document_get_n_pages (mDoc);
-	bool as = gParams->valueb ("autoscrolldoc");
 
 	if (p >= 0 && p < c)
 	  {
 	    return p;
 	  }
-	else if (p >= c && as)
+	else if (p >= c && mAutoScrollDoc)
 	  {
 	    return p % c;
 	  }
-	else if (p < 0 && as)
+	else if (p < 0 && mAutoScrollDoc)
 	  {
 	    return c + p;
 	  }
@@ -464,8 +474,8 @@ namespace apvlv
 
     mAdjInchg = true;
 
-    if (gParams->valueb ("autoscrollpage") && gParams->valueb ("continuous")
-	&& !gParams->valueb ("autoscrolldoc"))
+    if (mAutoScrollPage && mContinuous
+	&& !mAutoScrollDoc)
       {
 	int rp2 = convertindex (p + 1);
 	if (rp2 < 0)
@@ -534,7 +544,7 @@ namespace apvlv
     mCurrentCache1->set (mPagenum, false);
     GdkPixbuf *buf = mCurrentCache1->getbuf (true);
     gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), buf);
-    if (gParams->valueb ("autoscrollpage") && gParams->valueb ("continuous"))
+    if (mAutoScrollPage && mContinuous)
       {
 	mCurrentCache2->set (convertindex (mPagenum + 1), false);
 	buf = mCurrentCache2->getbuf (true);
