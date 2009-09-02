@@ -332,7 +332,7 @@ namespace apvlv
       {
 	if (gParams->valueb ("content"))
 	  {
-	    ndoc = new ApvlvDir (mWidth, mHeight);
+	    ndoc = new ApvlvDir (mWidth, adjheight ());
 	    if (!ndoc->loadfile (filename))
 	      {
 		delete ndoc;
@@ -1114,7 +1114,7 @@ namespace apvlv
     if (mHasCmd)
       adj += APVLV_CMD_BAR_HEIGHT;
 
-    return mHeight - adj - 5;
+    return mHeight - adj;
   }
 
   void ApvlvView::switchtab (int tabPos)

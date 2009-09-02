@@ -578,13 +578,13 @@ namespace apvlv
       {
 	if (type == AW_SP)
 	  {
-	    mh1 = (mHeight * (mv - mi)) / ms;
-	    mh2 = mHeight - mh1;
+	    mh1 = (mHeight * (mv - mi)) / ms - 1;
+	    mh2 = mHeight - mh1 - 1;
 	  }
 	else if (type == AW_VSP)
 	  {
-	    mw1 = (mWidth * (mv - mi)) / ms;
-	    mw2 = mWidth - mw1;
+	    mw1 = (mWidth * (mv - mi)) / ms - 1;
+	    mw2 = mWidth - mw1 - 1;
 	  }
 
 	m_son->setsize (mw1, mh1);
