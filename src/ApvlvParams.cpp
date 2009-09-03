@@ -70,6 +70,12 @@ namespace apvlv
 
   bool ApvlvParams::loadfile (const char *filename)
   {
+    if (filename == NULL
+	|| g_file_test (filename, G_FILE_TEST_IS_REGULAR) == FALSE)
+      {
+	return false;
+      }
+
     debug ("load debug: %s\n", filename);
     string str;
     fstream os (filename, ios::in);

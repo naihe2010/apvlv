@@ -76,14 +76,13 @@ namespace apvlv
 
     GtkWidget *vbox;
 
-    if (mContinuous
-	&& gParams->valuei ("continuouspad") > 0)
+    if (mContinuous && gParams->valuei ("continuouspad") > 0)
       {
-	vbox = gtk_vbox_new (TRUE, gParams->valuei ("continuouspad"));
+	vbox = gtk_vbox_new (FALSE, gParams->valuei ("continuouspad"));
       }
     else
       {
-	vbox = gtk_vbox_new (TRUE, 0);
+	vbox = gtk_vbox_new (FALSE, 0);
       }
     gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mScrollwin),
 					   vbox);
@@ -336,8 +335,9 @@ namespace apvlv
 	os.close ();
       }
 
-    mScrollvalue = scrollr;
-    showpage (pagen);
+    // correctly check
+    mScrollvalue = scrollr >= 0 ? scrollr : 0;
+    showpage (pagen >= 0 ? pagen : 0);
 
     // Warning
     // I can't think a better way to scroll correctly when
@@ -390,13 +390,31 @@ namespace apvlv
       {
 	mFilestr = filename;
 
+	if (pagesum () <= 1)
+	  {
+	    debug ("pagesum () = %d", pagesum ());
+	    mContinuous = false;
+	    mAutoScrollDoc = false;
+	    mAutoScrollPage = false;
+	  }
+
 	if (mCurrentCache1 != NULL)
-	  delete mCurrentCache1;
+	  {
+	    delete mCurrentCache1;
+	    mCurrentCache2 = NULL;
+	  }
 	mCurrentCache1 = new ApvlvDocCache (this);
 
 	if (mCurrentCache2 != NULL)
-	  delete mCurrentCache2;
-	mCurrentCache2 = new ApvlvDocCache (this);
+	  {
+	    delete mCurrentCache2;
+	    mCurrentCache2 = NULL;
+	  }
+
+	if (mContinuous == true)
+	  {
+	    mCurrentCache2 = new ApvlvDocCache (this);
+	  }
 
 	loadlastposition ();
 
@@ -405,13 +423,6 @@ namespace apvlv
 	setactive (true);
 
 	mReady = true;
-
-        if (poppler_document_get_n_pages (mDoc) <= 1)
-          {
-            mContinuous = false;
-            mAutoScrollDoc = false;
-            mAutoScrollPage = false;
-          }
       }
 
     return mDoc == NULL ? false : true;
@@ -426,7 +437,7 @@ namespace apvlv
   {
     if (mDoc != NULL)
       {
-	int c = poppler_document_get_n_pages (mDoc);
+	int c = pagesum ();
 
 	if (p >= 0 && p < c)
 	  {
@@ -474,8 +485,7 @@ namespace apvlv
 
     mAdjInchg = true;
 
-    if (mAutoScrollPage && mContinuous
-	&& !mAutoScrollDoc)
+    if (mAutoScrollPage && mContinuous && !mAutoScrollDoc)
       {
 	int rp2 = convertindex (p + 1);
 	if (rp2 < 0)
@@ -546,6 +556,7 @@ namespace apvlv
     gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), buf);
     if (mAutoScrollPage && mContinuous)
       {
+	debug ("here ...\n");
 	mCurrentCache2->set (convertindex (mPagenum + 1), false);
 	buf = mCurrentCache2->getbuf (true);
 	gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), buf);
@@ -707,7 +718,7 @@ namespace apvlv
   {
     if (needsearch (str))
       {
-	int num = poppler_document_get_n_pages (mDoc);
+	int num = pagesum ();
 	int i = strlen (str) > 0 ? mPagenum - 1 : mPagenum;
 	while (i++ < num - 1)
 	  {
@@ -727,7 +738,6 @@ namespace apvlv
   {
     if (needsearch (str))
       {
-	poppler_document_get_n_pages (mDoc);
 	int i = strlen (str) > 0 ? mPagenum + 1 : mPagenum;
 	while (i-- > 0)
 	  {
@@ -1011,7 +1021,7 @@ namespace apvlv
 
   void ApvlvDocCache::load (ApvlvDocCache * ac)
   {
-    int c = poppler_document_get_n_pages (ac->mDoc->getdoc ());
+    int c = ac->mDoc->pagesum ();
     PopplerPage *tpage;
 
     if (ac->mPagenum < 0

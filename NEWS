@@ -11,6 +11,16 @@ News features
 
    * add a option "set pdfcache=[number]" to set the cache size of pdf object
 
+   * set pdfcache >= 2 limit for apvlv works correctly
+
+   * set no autoscroll and not continuous when pdf is a single page
+
+   * don't create ~/.apvlvrc automaticlly
+
+Bug Fix
+
+   * fix file is not exist segment fault
+
 
 apvlv 0.0.6
 ============

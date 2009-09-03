@@ -130,6 +130,9 @@ parse_options (int argc, char *argv[])
       g_free (sysini);
     }
 
+  /* 
+   * load the user conf file
+   * */
   if (ini != NULL)
     {
       gParams->loadfile (ini);
@@ -162,18 +165,6 @@ main (int argc, char *argv[])
   iconreg = temp;
   g_free (temp);
 #endif
-  /* 
-   * test ~/.apvlvrc is exist, if not, copy it
-   * */
-  gchar *ini = absolutepath (inifile.c_str ());
-  if (ini != NULL && g_file_test (ini, G_FILE_TEST_IS_REGULAR) == FALSE)
-    {
-      filecpy (inifile.c_str (), iniexam.c_str ());
-    }
-  if (ini != NULL)
-    {
-      g_free (ini);
-    }
 
   int opt = parse_options (argc, argv);
   if (opt < 0)
@@ -202,6 +193,12 @@ main (int argc, char *argv[])
   g_free (rpath);
   if (path == NULL)
     {
+      return 1;
+    }
+
+  if (g_file_test (path, G_FILE_TEST_IS_REGULAR) == FALSE)
+    {
+      g_free (path);
       return 1;
     }
 

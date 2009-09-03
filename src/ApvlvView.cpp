@@ -535,15 +535,15 @@ namespace apvlv
   {
     if (gParams->valuei ("pdfcache") < 2)
       {
-        gParams->push ("pdfcache", "2");
+	gParams->push ("pdfcache", "2");
       }
 
     if (mDocs.size () >= (size_t) gParams->valuei ("pdfcache"))
       {
-        std::vector < ApvlvCore * >::iterator itr = mDocs.begin ();
-        debug ("to pdf cache size: %d, remove first: %p\n",
-               gParams->valuei ("pdfcache"), *itr);
-        mDocs.erase (itr);
+	std::vector < ApvlvCore * >::iterator itr = mDocs.begin ();
+	debug ("to pdf cache size: %d, remove first: %p\n",
+	       gParams->valuei ("pdfcache"), *itr);
+	mDocs.erase (itr);
       }
     mDocs.push_back (core);
   }
