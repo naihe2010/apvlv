@@ -10,10 +10,10 @@
 "map I zi
 "map O zo
 
-" default fullscreen
-"set fullscreen=no
+" if start apvlv as fullscreen mode, default is no
+set fullscreen=no
 
-" default zoom
+" zoom value, default is fitwidth
 " zoom has 4 styles
 " a float type number
 " fitwidth

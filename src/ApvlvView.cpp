@@ -702,12 +702,12 @@ namespace apvlv
   {
     if (mHasFull == false)
       {
-	gtk_window_maximize (GTK_WINDOW (mMainWindow));
+	gtk_window_fullscreen (GTK_WINDOW (mMainWindow));
 	mHasFull = true;
       }
     else
       {
-	gtk_window_unmaximize (GTK_WINDOW (mMainWindow));
+	gtk_window_unfullscreen (GTK_WINDOW (mMainWindow));
 	mHasFull = false;
       }
   }
