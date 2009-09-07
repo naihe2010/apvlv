@@ -57,6 +57,8 @@ namespace apvlv
   {
     mProCmd = 0;
 
+    mCurrHistroy = -1;
+
     mHasFull = FALSE;
 
     mMainWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
@@ -1065,6 +1067,11 @@ namespace apvlv
 	  }
 	else if (gek->keyval == GDK_Up)
 	  {
+	    if (view->mCmdHistroy.size () == 0)
+	      {
+		return TRUE;
+	      }
+
 	    view->mInHistroy = true;
 	    gtk_entry_set_text (GTK_ENTRY (view->mCommandBar),
 				view->mCurrHistroy > 0 ?
@@ -1074,6 +1081,11 @@ namespace apvlv
 	  }
 	else if (gek->keyval == GDK_Down)
 	  {
+	    if (view->mCmdHistroy.size () == 0)
+	      {
+		return TRUE;
+	      }
+
 	    view->mInHistroy = true;
 	    gtk_entry_set_text (GTK_ENTRY (view->mCommandBar),
 				(size_t) view->mCurrHistroy <
