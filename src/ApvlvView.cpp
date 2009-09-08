@@ -1075,7 +1075,7 @@ namespace apvlv
 	    view->mInHistroy = true;
 	    gtk_entry_set_text (GTK_ENTRY (view->mCommandBar),
 				view->mCurrHistroy > 0 ?
-				view->mCmdHistroy[--view->mCurrHistroy].
+				view->mCmdHistroy[view->mCurrHistroy--].
 				c_str () : view->mCmdHistroy[0].c_str ());
 	    return TRUE;
 	  }

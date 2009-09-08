@@ -24,7 +24,6 @@ AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE
 
 AC_PROG_CXX
-AC_PROG_LD
 AC_PROG_INSTALL
 
 if test "$prefix" = "NONE"; then
@@ -76,11 +75,5 @@ fi
 
 PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.4.0, CPPFLAGS="$CPPFLAGS $GTK_CFLAGS"; LIBS="$LIBS $GTK_LIBS")
 PKG_CHECK_MODULES(POPPLER, poppler-glib >= 0.5.4, CPPFLAGS="$CPPFLAGS $POPPLER_CFLAGS"; LIBS="$LIBS $POPPLER_LIBS")
-
-dnl
-dnl check whether Startup.pdf should be created by self.
-dnl
-AC_PATH_PROG(latexpath, latex)
-AC_PATH_PROG(dvipdfpath, dvipdf)
 
 AC_OUTPUT(Makefile src/Makefile)
