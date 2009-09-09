@@ -1057,12 +1057,14 @@ namespace apvlv
 	    if (str == NULL || strlen (str) == 1)
 	      {
 		view->cmd_hide ();
+                view->mCurrHistroy = view->mCmdHistroy.size () - 1;
 		return TRUE;
 	      }
 	  }
 	else if (gek->keyval == GDK_Escape)
 	  {
 	    view->cmd_hide ();
+            view->mCurrHistroy = view->mCmdHistroy.size () - 1;
 	    return TRUE;
 	  }
 	else if (gek->keyval == GDK_Up)
