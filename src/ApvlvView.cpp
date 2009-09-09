@@ -68,16 +68,18 @@ namespace apvlv
 
     if (gParams->valueb ("fullscreen"))
       {
-	fullscreen ();
+	GdkScreen *scr = gdk_screen_get_default ();
+	  mWidth = gdk_screen_get_width (scr);
+	  mHeight = gdk_screen_get_height (scr);
+	  fullscreen ();
       }
     else
       {
+	mWidth = w;
+	mHeight = h;
 	gtk_window_set_default_size (GTK_WINDOW (mMainWindow),
 				     w > 1 ? w : 800, h > 1 ? h : 600);
       }
-
-    mWidth = w;
-    mHeight = h;
 
     GtkWidget *vbox = gtk_vbox_new (FALSE, 2);
     gtk_container_add (GTK_CONTAINER (mMainWindow), vbox);
@@ -1057,14 +1059,14 @@ namespace apvlv
 	    if (str == NULL || strlen (str) == 1)
 	      {
 		view->cmd_hide ();
-                view->mCurrHistroy = view->mCmdHistroy.size () - 1;
+		view->mCurrHistroy = view->mCmdHistroy.size () - 1;
 		return TRUE;
 	      }
 	  }
 	else if (gek->keyval == GDK_Escape)
 	  {
 	    view->cmd_hide ();
-            view->mCurrHistroy = view->mCmdHistroy.size () - 1;
+	    view->mCurrHistroy = view->mCmdHistroy.size () - 1;
 	    return TRUE;
 	  }
 	else if (gek->keyval == GDK_Up)

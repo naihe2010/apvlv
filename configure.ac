@@ -2,6 +2,7 @@ dnl
 dnl APVLV - Alf's PDF Viewer Like Vim
 dnl
  
+AC_PREREQ([2.63])
 AC_INIT(apvlv, 0.0.7.2, naihe2010@gmail.com)
 AC_COPYRIGHT([Copyright (C) 2008 Alf's Software.])
 
@@ -24,7 +25,23 @@ AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE
 
 AC_PROG_CXX
+AC_PROG_CC
 AC_PROG_INSTALL
+
+AC_CHECK_HEADERS([fcntl.h limits.h locale.h stddef.h stdlib.h string.h sys/time.h unistd.h])
+
+AC_HEADER_STDBOOL
+AC_C_INLINE
+AC_TYPE_SIZE_T
+AC_TYPE_UINT32_T
+
+AC_FUNC_ERROR_AT_LINE
+AC_FUNC_FSEEKO
+AC_FUNC_MALLOC
+AC_FUNC_MKTIME
+AC_FUNC_MMAP
+AC_FUNC_REALLOC
+AC_CHECK_FUNCS([floor getcwd getpagesize gettimeofday localtime_r memmove memset munmap pow realpath select setlocale sqrt strcasecmp strchr strcspn strdup strerror strncasecmp strrchr strstr strtol])
 
 if test "$prefix" = "NONE"; then
   prefix="/usr/local"
