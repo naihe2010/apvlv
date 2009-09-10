@@ -15,11 +15,17 @@ News features
 
    * set no autoscroll and not continuous when pdf is a single page
 
+   * add global /etc/apvlvrc
+
    * don't create ~/.apvlvrc automaticlly
+
+   * made fullscreen really works under some WM
 
 Bug Fix
 
    * fix file is not exist segment fault
+
+   * fix the command histroy segment fault
 
 
 apvlv 0.0.6
