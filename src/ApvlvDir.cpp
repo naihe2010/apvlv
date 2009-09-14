@@ -130,11 +130,11 @@ namespace apvlv
 
   bool ApvlvDir::loadfile (const char *path, bool check)
   {
-    gchar *realpath;
+    gchar *rpath;
 
     if (path == NULL
 	|| *path == '\0'
-	|| (realpath =
+	|| (rpath =
 	    g_locale_from_utf8 (path, -1, NULL, NULL, NULL)) == NULL)
       {
 	errp ("path error: %s", path ? path : "No path");
@@ -142,8 +142,8 @@ namespace apvlv
       }
 
     struct stat buf[1];
-    int ret = stat (realpath, buf);
-    g_free (realpath);
+    int ret = stat (rpath, buf);
+    g_free (rpath);
     if (ret < 0)
       {
 	errp ("stat error: %d:%s", errno, strerror (errno));

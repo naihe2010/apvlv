@@ -48,7 +48,7 @@ namespace apvlv
 
     //
     // Get the destination
-    bool dest (const char **realpath, int *pagenum);
+    bool dest (const char **rpath, int *pagenum);
 
   private:
       gint mPagenum;		/* -1 means dir, 0 means file, > 0 means page num */

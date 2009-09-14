@@ -59,6 +59,8 @@ namespace apvlv
 #define PATH_SEP_S  "/"
 #endif
 
+  int apvlv_system (const char *);
+
   char *absolutepath (const char *path);
 
   bool filecpy (const char *dst, const char *src);

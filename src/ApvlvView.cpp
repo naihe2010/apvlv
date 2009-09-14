@@ -829,7 +829,7 @@ namespace apvlv
   {
     if (*str == '!')
       {
-	system (str + 1);
+	apvlv_system (str + 1);
       }
     else
       {

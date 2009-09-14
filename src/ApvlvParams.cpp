@@ -122,10 +122,9 @@ namespace apvlv
 
 		if (*p != '\0')
 		  {
-		    strncpy (v, p, 31);
-		    v[31] = '\0';
-		    push (k, v);
-		    continue;
+                    snprintf (v, sizeof v, "%s", p);
+                    push (k, v);
+                    continue;
 		  }
 	      }
 
