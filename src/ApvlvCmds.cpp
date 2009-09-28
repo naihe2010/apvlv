@@ -109,7 +109,7 @@ namespace apvlv
 
     mNext = NULL;
 
-    if (*s == '-' || isdigit (*s))
+    if (isdigit (*s))
       {
 	mHasPreCount = true;
 	mPreCount = atoi (s);
@@ -420,7 +420,7 @@ namespace apvlv
 
     if (mState == CMD_OK)
       {
-	if (gev->keyval == '-' || (isdigit (gev->keyval)))
+	if (isdigit (gev->keyval))
 	  {
 	    char s[2] = { 0 };
 	    s[0] = gev->keyval;
@@ -433,7 +433,7 @@ namespace apvlv
 
     else if (mState == GETTING_COUNT)
       {
-	if (gev->keyval == '-' || (isdigit (gev->keyval)))
+	if (isdigit (gev->keyval))
 	  {
 	    char s[2] = { 0 };
 	    s[0] = gev->keyval;
