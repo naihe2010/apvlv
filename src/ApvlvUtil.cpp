@@ -91,9 +91,9 @@ namespace apvlv
     else
       {
 #ifdef WIN32
-        char cpath[PATH_MAX];
-        GetCurrentDirectoryA (sizeof cpath, sizeof cpath);
-        g_snprintf (abpath, sizeof abpath, "%s\\%s", cpath, path);
+	char cpath[PATH_MAX];
+	GetCurrentDirectoryA (sizeof cpath, sizeof cpath);
+	g_snprintf (abpath, sizeof abpath, "%s\\%s", cpath, path);
 #else
 	if (realpath (path, abpath) == NULL)
 	  {
@@ -241,42 +241,43 @@ namespace apvlv
     cerr << temp << p << endl;
   }
 
-  int 
-    apvlv_system (const char *str)
+  int apvlv_system (const char *str)
+  {
+    int ret;
+    pid_t pid;
+    int status;
+
+    pid = fork ();
+
+    ret = -1;
+    if (pid < 0)
       {
-	int ret;
-	pid_t pid;
-	int status;
-
-	pid = fork();
-
-        ret = -1;
-        if (pid < 0)
-          {
-            errp ("Can't fork\n");
-          }
-        else if (pid == 0)
-          {
-            gchar **argv;
-
-            while (! isalnum (*str)) str ++;
-
-            argv = g_strsplit_set (str, " \t", 0);
-            if (argv == NULL)
-              {
-                exit (1);
-              }
-
-            debug ("Exec path: (%s) argument [%d]\n", argv[0], g_strv_length (argv));
-            ret = execvp (argv[0], argv);
-            g_strfreev (argv);
-            errp ("Exec error\n");
-	}
-        else
-          {
-            ret = wait4(pid, &status, 0, NULL);
-          }
-
-        return ret;
+	errp ("Can't fork\n");
       }
+    else if (pid == 0)
+      {
+	gchar **argv;
+
+	while (!isalnum (*str))
+	  str++;
+
+	argv = g_strsplit_set (str, " \t", 0);
+	if (argv == NULL)
+	  {
+	    exit (1);
+	  }
+
+	debug ("Exec path: (%s) argument [%d]\n", argv[0],
+	       g_strv_length (argv));
+	ret = execvp (argv[0], argv);
+	g_strfreev (argv);
+	errp ("Exec error\n");
+      }
+    else
+      {
+	ret = wait4 (pid, &status, 0, NULL);
+      }
+
+    return ret;
+  }
 }

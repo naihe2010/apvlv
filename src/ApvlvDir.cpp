@@ -134,8 +134,7 @@ namespace apvlv
 
     if (path == NULL
 	|| *path == '\0'
-	|| (rpath =
-	    g_locale_from_utf8 (path, -1, NULL, NULL, NULL)) == NULL)
+	|| (rpath = g_locale_from_utf8 (path, -1, NULL, NULL, NULL)) == NULL)
       {
 	errp ("path error: %s", path ? path : "No path");
 	return false;

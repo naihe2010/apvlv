@@ -993,7 +993,7 @@ namespace apvlv
 
     gtk_window_get_size (GTK_WINDOW (wid), &w, &h);
     w -= 5;
-    h -= 5;
+    h -= 8;
     if (w != view->mWidth || h != view->mHeight)
       {
 	if (view->mHasCmd)
