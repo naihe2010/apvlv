@@ -118,6 +118,8 @@ Bug Fix
    
     * fix the absolutepath () bug.
 
+    * add document of / and ? key which appear from 0.0.3
+
 
 apvlv 0.0.3
 ==============

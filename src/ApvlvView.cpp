@@ -917,7 +917,7 @@ namespace apvlv
 	else if ((cmd == "help" || cmd == "h") && subcmd == "setting")
 	  {
 	    crtadoc ()->loadfile (helppdf);
-	    crtadoc ()->showpage (7);
+	    crtadoc ()->showpage (8);
 	  }
 	else if ((cmd == "help" || cmd == "h") && subcmd == "prompt")
 	  {
