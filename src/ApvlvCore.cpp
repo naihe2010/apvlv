@@ -97,9 +97,9 @@ namespace apvlv
 
   void ApvlvCore::setsize (int w, int h)
   {
-    gtk_widget_set_usize (widget (), w, h);
-    gtk_widget_set_usize (mScrollwin, w, h - 20);
-    mStatus->setsize (w, 20);
+    gtk_widget_set_size_request (widget (), w, h);
+    gtk_widget_set_size_request (mScrollwin, w, h - 16);
+    mStatus->setsize (w, 15);
     mWidth = w;
     mHeight = h;
   }

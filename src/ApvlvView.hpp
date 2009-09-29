@@ -139,14 +139,16 @@ namespace apvlv
     void windowadded ();
 
     void updatetabname ();
-    bool mHasCmd, mHasTabs;
+    bool mHasCmd;
 
     guint mProCmd;
 
-    GtkWidget *mCommandBar;
     GtkWidget *mMainWindow;
 
+    GtkWidget *mViewBox;
+
     GtkWidget *mTabContainer;
+    GtkWidget *mCommandBar;
 
     struct TabEntry
     {

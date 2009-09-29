@@ -605,7 +605,7 @@ namespace apvlv
     sw[3] = sw[1] >> 1;
     for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
       {
-	gtk_widget_set_usize (mStlab[i], sw[i], h);
+	gtk_widget_set_size_request (mStlab[i], sw[i], h);
       }
   }
 

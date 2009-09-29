@@ -52,8 +52,7 @@ namespace apvlv
   const int ApvlvView::APVLV_CMD_BAR_HEIGHT = 20;
   const int ApvlvView::APVLV_TABS_HEIGHT = 30;
 
-    ApvlvView::ApvlvView (const char *filename):mHasTabs (false),
-    mCurrTabPos (-1)
+    ApvlvView::ApvlvView (const char *filename):mCurrTabPos (-1)
   {
     mProCmd = 0;
 
@@ -81,18 +80,18 @@ namespace apvlv
 				     w > 1 ? w : 800, h > 1 ? h : 600);
       }
 
-    GtkWidget *vbox = gtk_vbox_new (FALSE, 2);
-    gtk_container_add (GTK_CONTAINER (mMainWindow), vbox);
+    mViewBox = gtk_vbox_new (FALSE, 0);
+    gtk_container_add (GTK_CONTAINER (mMainWindow), mViewBox);
 
     mTabContainer = gtk_notebook_new ();
     gtk_notebook_set_show_tabs (GTK_NOTEBOOK (mTabContainer), FALSE);
     gtk_notebook_set_scrollable (GTK_NOTEBOOK (mTabContainer), TRUE);
-    gtk_box_pack_start (GTK_BOX (vbox), mTabContainer, FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (mViewBox), mTabContainer, TRUE, TRUE, 0);
 
     newtab (filename);
 
     mCommandBar = gtk_entry_new ();
-    gtk_box_pack_end (GTK_BOX (vbox), mCommandBar, FALSE, FALSE, 0);
+    gtk_box_pack_end (GTK_BOX (mViewBox), mCommandBar, TRUE, TRUE, 0);
 
     g_signal_connect (G_OBJECT (mMainWindow), "size-allocate",
 		      G_CALLBACK (apvlv_view_resized_cb), this);
@@ -408,7 +407,6 @@ namespace apvlv
 
     if (mTabList.size () > 1)
       {
-	mHasTabs = true;
 	gtk_notebook_set_show_tabs (GTK_NOTEBOOK (mTabContainer), TRUE);
       }
 
@@ -437,7 +435,6 @@ namespace apvlv
     if ((int) mTabList.size () <= 1)
       {
 	gtk_notebook_set_show_tabs (GTK_NOTEBOOK (mTabContainer), FALSE);
-	mHasTabs = false;
       }
   }
 
@@ -630,9 +627,9 @@ namespace apvlv
 
     mHasCmd = TRUE;
 
-    gtk_widget_set_usize (mCommandBar, mWidth, APVLV_CMD_BAR_HEIGHT);
     mRootWindow->setsize (mWidth, adjheight ());
 
+    gtk_widget_show (mCommandBar);
     gtk_widget_grab_focus (mCommandBar);
     gtk_entry_set_position (GTK_ENTRY (mCommandBar), -1);
   }
@@ -643,7 +640,7 @@ namespace apvlv
       return;
     mHasCmd = FALSE;
 
-    gtk_widget_set_usize (mCommandBar, mWidth, 1);
+    gtk_widget_hide (mCommandBar);
     mRootWindow->setsize (mWidth, adjheight ());
 
     gtk_widget_grab_focus (mMainWindow);
@@ -991,16 +988,10 @@ namespace apvlv
   {
     int w, h;
 
-    gtk_window_get_size (GTK_WINDOW (wid), &w, &h);
-    w -= 5;
-    h -= 8;
+    w = view->mViewBox->allocation.width - 12;
+    h = view->mViewBox->allocation.height - 12;
     if (w != view->mWidth || h != view->mHeight)
       {
-	if (view->mHasCmd)
-	  gtk_widget_set_usize (view->mCommandBar, w, 20);
-	else
-	  gtk_widget_set_usize (view->mCommandBar, w, 1);
-
 	view->mWidth = w;
 	view->mHeight = h;
 	view->mRootWindow->setsize (w, view->adjheight ());
@@ -1130,7 +1121,7 @@ namespace apvlv
   int ApvlvView::adjheight ()
   {
     int adj = 0;
-    if (mHasTabs)
+    if (gtk_notebook_get_show_tabs (GTK_NOTEBOOK (mTabContainer)))
       adj += APVLV_TABS_HEIGHT;
     if (mHasCmd)
       adj += APVLV_CMD_BAR_HEIGHT;
