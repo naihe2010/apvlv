@@ -248,6 +248,14 @@ namespace apvlv
 	mProCmd = key;
 	return NEED_MORE;
 	break;
+      case 'n':
+        markposition ('\'');
+        search ("");
+        break;
+      case 'N':
+        markposition ('\'');
+        backsearch ("");
+        break;
       default:
 	return NO_MATCH;
 	break;

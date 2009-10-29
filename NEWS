@@ -27,6 +27,8 @@ News features
 
    * made fullscreen really works under some WM
 
+   * add key 'n' and 'N' to search and back search
+
 Bug Fix
 
    * fix file is not exist segment fault
