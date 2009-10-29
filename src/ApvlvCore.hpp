@@ -38,6 +38,7 @@
 #include <gtk/gtk.h>
 
 #include <iostream>
+#include <map>
 
 using namespace std;
 
@@ -129,7 +130,9 @@ namespace apvlv
 
     double mScrollvalue;
 
-    GList *mResults;
+    double mSearchZoom;
+    guint mSearchSelect;
+    GList *mSearchResults;
     string mSearchstr;
 
     enum

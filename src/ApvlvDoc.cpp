@@ -71,7 +71,8 @@ namespace apvlv
 
     mDoc = NULL;
 
-    mResults = NULL;
+    mSearchResults = NULL;
+    mSearchSelect = 0;
     mSearchstr = "";
 
     GtkWidget *vbox;
@@ -617,15 +618,8 @@ namespace apvlv
 
   void ApvlvDoc::markselection ()
   {
-    PopplerRectangle *rect = (PopplerRectangle *) mResults->data;
-
-    gchar *txt = poppler_page_get_text (mCurrentCache1->getpage (),
-					POPPLER_SELECTION_GLYPH, rect);
-    if (txt == NULL)
-      {
-	debug ("no search result");
-	return;
-      }
+    GList *selist = g_list_nth (mSearchResults, mSearchSelect);
+    PopplerRectangle *rect = (PopplerRectangle *) selist->data;
 
     // Caculate the correct position
     gint x1 = (gint) ((rect->x1) * mZoomrate);
@@ -661,24 +655,46 @@ namespace apvlv
 	gtk_adjustment_set_value (mHaj, mHaj->lower);
       }
 
+    mCurrentCache1->set (mPagenum);
     guchar *pagedata = mCurrentCache1->getdata (true);
     GdkPixbuf *pixbuf = mCurrentCache1->getbuf (true);
-    // change the back color of the selection
+
+    // heightlight the selection
     for (gint y = y1; y < y2; y++)
       {
-	for (gint x = x1; x < x2; x++)
-	  {
-	    gint p = (gint) (y * 3 * mPagex * mZoomrate + (x * 3));
-	    pagedata[p + 0] = 0xFF - pagedata[p + 0];
-	    pagedata[p + 1] = 0xFF - pagedata[p + 0];
-	    pagedata[p + 2] = 0xFF - pagedata[p + 0];
-	  }
+        for (gint x = x1; x < x2; x++)
+          {
+            gint p = (gint) (y * 3 * mPagex * mZoomrate + (x * 3));
+            pagedata[p + 0] = 0xFF - pagedata[p + 0];
+            pagedata[p + 1] = 0xFF - pagedata[p + 0];
+            pagedata[p + 2] = 0xFF - pagedata[p + 0];
+          }
+      }
+ 
+    // change the back color of the selection
+    for (selist = mSearchResults; selist != NULL; selist = g_list_next (selist))
+      {
+        PopplerRectangle *rect = (PopplerRectangle *) selist->data;
+
+        // Caculate the correct position
+        gint x1 = (gint) ((rect->x1) * mZoomrate);
+        gint y1 = (gint) ((mPagey - rect->y2) * mZoomrate);
+        gint x2 = (gint) ((rect->x2) * mZoomrate);
+        gint y2 = (gint) ((mPagey - rect->y1) * mZoomrate);
+
+        for (gint y = y1; y < y2; y++)
+          {
+            for (gint x = x1; x < x2; x++)
+              {
+                gint p = (gint) (y * 3 * mPagex * mZoomrate + (x * 3));
+                pagedata[p + 0] = 0xFF - pagedata[p + 0];
+                pagedata[p + 1] = 0xFF - pagedata[p + 0];
+                pagedata[p + 2] = 0xFF - pagedata[p + 0];
+              }
+          }
       }
 
     gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), pixbuf);
-
-    g_free (rect);
-    mResults = g_list_remove (mResults, rect);
   }
 
   GList *ApvlvDoc::searchpage (int num)
@@ -701,8 +717,9 @@ namespace apvlv
 
     if (strlen (str) > 0)
       {
-	g_list_free (mResults);
-	mResults = NULL;
+	g_list_free (mSearchResults);
+	mSearchResults = NULL;
+        mSearchSelect = 0;
 
 	mSearchstr = str;
 
@@ -710,14 +727,22 @@ namespace apvlv
       }
     else
       {
-	if (mResults != NULL)
+	if (mSearchResults != NULL
+            && mSearchSelect < g_list_length (mSearchResults) - 1)
 	  {
-	    markselection ();
-	    return false;
+            mSearchSelect ++;
+            markselection ();
+            return false;
 	  }
 	else
 	  {
-	    return true;
+            if (mSearchResults != NULL)
+              {
+                g_list_free (mSearchResults);
+                mSearchResults = NULL;
+                mSearchSelect = 0;
+              }
+            return true;
 	  }
       }
   }
@@ -730,8 +755,8 @@ namespace apvlv
 	int i = strlen (str) > 0 ? mPagenum - 1 : mPagenum;
 	while (i++ < num - 1)
 	  {
-	    mResults = searchpage (i);
-	    if (mResults != NULL)
+	    mSearchResults = searchpage (i);
+	    if (mSearchResults != NULL)
 	      {
 		showpage (i);
 		markselection ();
@@ -749,8 +774,8 @@ namespace apvlv
 	int i = strlen (str) > 0 ? mPagenum + 1 : mPagenum;
 	while (i-- > 0)
 	  {
-	    mResults = g_list_reverse (searchpage (i));
-	    if (mResults != NULL)
+	    mSearchResults = g_list_reverse (searchpage (i));
+	    if (mSearchResults != NULL)
 	      {
 		showpage (i);
 		markselection ();
