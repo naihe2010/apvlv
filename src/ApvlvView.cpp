@@ -193,8 +193,8 @@ namespace apvlv
 						  GTK_RESPONSE_ACCEPT,
 						  NULL);
     dirname =
-      lastfile ? g_dirname (lastfile) : g_strdup (gParams->
-						  values ("defaultdir"));
+      lastfile ? g_dirname (lastfile) :
+      g_strdup (gParams->values ("defaultdir"));
     gchar *realdir = absolutepath (dirname);
     g_free (dirname);
     debug ("lastfile: [%s], dirname: [%s]", lastfile, realdir);
@@ -255,8 +255,8 @@ namespace apvlv
 						  GTK_RESPONSE_ACCEPT,
 						  NULL);
     dirname =
-      lastfile ? g_dirname (lastfile) : g_strdup (gParams->
-						  values ("defaultdir"));
+      lastfile ? g_dirname (lastfile) :
+      g_strdup (gParams->values ("defaultdir"));
     gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dia), dirname);
     g_free (dirname);
 
@@ -374,8 +374,7 @@ namespace apvlv
     mRootWindow->setsize (mWidth, adjheight ());
 
     gchar *base =
-      core->filename ()? g_path_get_basename (core->
-					      filename ()) :
+      core->filename ()? g_path_get_basename (core->filename ()) :
       g_strdup ("NONE");
     GtkWidget *tabname = gtk_label_new (base);
     g_free (base);
@@ -805,7 +804,7 @@ namespace apvlv
 
       case BACKSEARCH:
 	crtadoc ()->markposition ('\'');
-	crtadoc ()->backsearch (str + 1);
+	crtadoc ()->search (str + 1, true);
 	break;
 
       case COMMANDMODE:

@@ -48,7 +48,7 @@ namespace apvlv
     mRotatevalue = 0;
 
     mSearchResults = NULL;
-    mSearchstr = "";
+    mSearchStr = "";
 
     mVbox = gtk_vbox_new (FALSE, 0);
     g_object_ref (mVbox);

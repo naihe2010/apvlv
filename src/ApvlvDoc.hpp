@@ -162,8 +162,7 @@ namespace apvlv
 
     void halfprepage (int times = 1);
 
-    void search (const char *str);
-    void backsearch (const char *str);
+    void search (const char *str, bool reverse = false);
 
     returnType process (int times, guint keyval);
 
@@ -176,9 +175,9 @@ namespace apvlv
 
     void markselection ();
 
-    bool needsearch (const char *str);
+    bool needsearch (const char *str, bool reverse = false);
 
-    GList *searchpage (int num);
+    GList *searchpage (int num, bool reverse = false);
 
     void gotolink (int ct);
 

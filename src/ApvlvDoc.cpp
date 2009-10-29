@@ -72,8 +72,7 @@ namespace apvlv
     mDoc = NULL;
 
     mSearchResults = NULL;
-    mSearchSelect = 0;
-    mSearchstr = "";
+    mSearchStr = "";
 
     GtkWidget *vbox;
 
@@ -250,13 +249,13 @@ namespace apvlv
 	return NEED_MORE;
 	break;
       case 'n':
-        markposition ('\'');
-        search ("");
-        break;
+	markposition ('\'');
+	search ("");
+	break;
       case 'N':
-        markposition ('\'');
-        backsearch ("");
-        break;
+	markposition ('\'');
+	search ("", true);
+	break;
       default:
 	return NO_MATCH;
 	break;
@@ -618,7 +617,9 @@ namespace apvlv
 
   void ApvlvDoc::markselection ()
   {
+    debug ("mSelect: %d.\n", mSearchSelect);
     GList *selist = g_list_nth (mSearchResults, mSearchSelect);
+    debug ("selist: %p.\n", selist);
     PopplerRectangle *rect = (PopplerRectangle *) selist->data;
 
     // Caculate the correct position
@@ -662,42 +663,43 @@ namespace apvlv
     // heightlight the selection
     for (gint y = y1; y < y2; y++)
       {
-        for (gint x = x1; x < x2; x++)
-          {
-            gint p = (gint) (y * 3 * mPagex * mZoomrate + (x * 3));
-            pagedata[p + 0] = 0xFF - pagedata[p + 0];
-            pagedata[p + 1] = 0xFF - pagedata[p + 0];
-            pagedata[p + 2] = 0xFF - pagedata[p + 0];
-          }
+	for (gint x = x1; x < x2; x++)
+	  {
+	    gint p = (gint) (y * 3 * mPagex * mZoomrate + (x * 3));
+	    pagedata[p + 0] = 0xFF - pagedata[p + 0];
+	    pagedata[p + 1] = 0xFF - pagedata[p + 0];
+	    pagedata[p + 2] = 0xFF - pagedata[p + 0];
+	  }
       }
- 
+
     // change the back color of the selection
-    for (selist = mSearchResults; selist != NULL; selist = g_list_next (selist))
+    for (selist = mSearchResults; selist != NULL;
+	 selist = g_list_next (selist))
       {
-        PopplerRectangle *rect = (PopplerRectangle *) selist->data;
+	PopplerRectangle *rect = (PopplerRectangle *) selist->data;
 
-        // Caculate the correct position
-        gint x1 = (gint) ((rect->x1) * mZoomrate);
-        gint y1 = (gint) ((mPagey - rect->y2) * mZoomrate);
-        gint x2 = (gint) ((rect->x2) * mZoomrate);
-        gint y2 = (gint) ((mPagey - rect->y1) * mZoomrate);
+	// Caculate the correct position
+	gint x1 = (gint) ((rect->x1) * mZoomrate);
+	gint y1 = (gint) ((mPagey - rect->y2) * mZoomrate);
+	gint x2 = (gint) ((rect->x2) * mZoomrate);
+	gint y2 = (gint) ((mPagey - rect->y1) * mZoomrate);
 
-        for (gint y = y1; y < y2; y++)
-          {
-            for (gint x = x1; x < x2; x++)
-              {
-                gint p = (gint) (y * 3 * mPagex * mZoomrate + (x * 3));
-                pagedata[p + 0] = 0xFF - pagedata[p + 0];
-                pagedata[p + 1] = 0xFF - pagedata[p + 0];
-                pagedata[p + 2] = 0xFF - pagedata[p + 0];
-              }
-          }
+	for (gint y = y1; y < y2; y++)
+	  {
+	    for (gint x = x1; x < x2; x++)
+	      {
+		gint p = (gint) (y * 3 * mPagex * mZoomrate + (x * 3));
+		pagedata[p + 0] = 0xFF - pagedata[p + 0];
+		pagedata[p + 1] = 0xFF - pagedata[p + 0];
+		pagedata[p + 2] = 0xFF - pagedata[p + 0];
+	      }
+	  }
       }
 
     gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), pixbuf);
   }
 
-  GList *ApvlvDoc::searchpage (int num)
+  GList *ApvlvDoc::searchpage (int num, bool reverse)
   {
     PopplerPage *page = poppler_document_get_page (mDoc, num);
 
@@ -707,79 +709,125 @@ namespace apvlv
 	return NULL;
       }
 
-    return poppler_page_find_text (page, mSearchstr.c_str ());
+    GList *list = poppler_page_find_text (page, mSearchStr.c_str ());
+    if (reverse)
+      {
+	list = g_list_reverse (list);
+      }
+
+    mSearchReverse = reverse;
+    mSearchZoom = mZoomrate;
+
+    return list;
   }
 
-  bool ApvlvDoc::needsearch (const char *str)
+  bool ApvlvDoc::needsearch (const char *str, bool reverse)
   {
     if (mDoc == NULL)
       return false;
 
-    if (strlen (str) > 0)
+    // search a different string
+    if (strlen (str) > 0 && strcmp (str, mSearchStr.c_str ()) != 0)
       {
-	g_list_free (mSearchResults);
-	mSearchResults = NULL;
-        mSearchSelect = 0;
-
-	mSearchstr = str;
-
+	debug ("different string.\n");
+	mSearchSelect = 0;
+	mSearchStr = str;
 	return true;
       }
+
+    else if (mSearchResults == NULL)
+      {
+	debug ("no result.\n");
+	mSearchSelect = 0;
+	return true;
+      }
+
+    // same string, but need to search next page
+    else
+      if (((mSearchReverse == reverse)
+	   && mSearchSelect == g_list_length (mSearchResults) - 1)
+	  || ((mSearchReverse != reverse) && mSearchSelect == 0))
+      {
+	debug
+	  ("same, but need next string: S: %d, s: %d, sel: %d, max: %d.\n",
+	   mSearchReverse, reverse, mSearchSelect,
+	   g_list_length (mSearchResults));
+	mSearchSelect = 0;
+	return true;
+      }
+
+    // same string, not need search, but has zoomed
     else
       {
-	if (mSearchResults != NULL
-            && mSearchSelect < g_list_length (mSearchResults) - 1)
+	debug
+	  ("same, not need next string, if zoomed return true. sel: %d, max: %u\n",
+	   mSearchSelect, g_list_length (mSearchResults));
+	if (mSearchReverse == reverse)
 	  {
-            mSearchSelect ++;
-            markselection ();
-            return false;
+	    mSearchSelect++;
 	  }
 	else
 	  {
-            if (mSearchResults != NULL)
-              {
-                g_list_free (mSearchResults);
-                mSearchResults = NULL;
-                mSearchSelect = 0;
-              }
-            return true;
+	    mSearchSelect--;
+	  }
+
+	if (mSearchZoom != mZoomrate)
+	  {
+	    return true;
+	  }
+	else
+	  {
+	    markselection ();
+	    return false;
 	  }
       }
   }
 
-  void ApvlvDoc::search (const char *str)
+  void ApvlvDoc::search (const char *str, bool reverse)
   {
-    if (needsearch (str))
+    if (needsearch (str, reverse))
       {
-	int num = pagesum ();
-	int i = strlen (str) > 0 ? mPagenum - 1 : mPagenum;
-	while (i++ < num - 1)
+	if (mSearchResults != NULL)
 	  {
-	    mSearchResults = searchpage (i);
-	    if (mSearchResults != NULL)
+	    while (mSearchResults != NULL)
 	      {
-		showpage (i);
-		markselection ();
-		break;
+		PopplerRectangle *rect =
+		  (PopplerRectangle *) mSearchResults->data;
+		g_free (rect);
+		mSearchResults = g_list_next (mSearchResults);
 	      }
-	    i++;
+	    g_list_free (mSearchResults);
+	    mSearchResults = NULL;
 	  }
-      }
-  }
 
-  void ApvlvDoc::backsearch (const char *str)
-  {
-    if (needsearch (str))
-      {
-	int i = strlen (str) > 0 ? mPagenum + 1 : mPagenum;
-	while (i-- > 0)
+	if (reverse == false)
 	  {
-	    mSearchResults = g_list_reverse (searchpage (i));
-	    if (mSearchResults != NULL)
+	    int num = pagesum ();
+	    int i = strlen (str) > 0 ? mPagenum - 1 : mPagenum;
+	    while (i++ < num - 1)
 	      {
-		showpage (i);
-		markselection ();
-		break;
+		mSearchResults = searchpage (i);
+		if (mSearchResults != NULL)
+		  {
+		    showpage (i);
+		    markselection ();
+		    break;
+		  }
+		i++;
+	      }
+	  }
+	else
+	  {
+	    int i = strlen (str) > 0 ? mPagenum + 1 : mPagenum;
+	    while (i-- > 0)
+	      {
+		mSearchResults = g_list_reverse (searchpage (i));
+		if (mSearchResults != NULL)
+		  {
+		    showpage (i);
+		    markselection ();
+		    break;
+		  }
 	      }
 	  }
       }

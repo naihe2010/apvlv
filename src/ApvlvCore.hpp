@@ -130,10 +130,11 @@ namespace apvlv
 
     double mScrollvalue;
 
+    bool mSearchReverse;
     double mSearchZoom;
     guint mSearchSelect;
     GList *mSearchResults;
-    string mSearchstr;
+    string mSearchStr;
 
     enum
     {
