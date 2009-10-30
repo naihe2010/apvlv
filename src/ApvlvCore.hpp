@@ -131,7 +131,6 @@ namespace apvlv
     double mScrollvalue;
 
     bool mSearchReverse;
-    double mSearchZoom;
     guint mSearchSelect;
     GList *mSearchResults;
     string mSearchStr;

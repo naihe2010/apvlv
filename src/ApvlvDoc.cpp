@@ -525,8 +525,8 @@ namespace apvlv
 	    mZoomrate = 1.2;
 	    break;
 	  case FITWIDTH:
-	    debug ("mWidth: %d, zoom rate: %f", mWidth, mZoomrate);
 	    mZoomrate = ((double) (mWidth - 26)) / mPagex;
+	    debug ("mWidth: %d, zoom rate: %f", mWidth, mZoomrate);
 	    break;
 	  case FITHEIGHT:
 	    mZoomrate = ((double) (mHeight - 26)) / mPagey;
@@ -619,14 +619,17 @@ namespace apvlv
   {
     debug ("mSelect: %d.", mSearchSelect);
     GList *selist = g_list_nth (mSearchResults, mSearchSelect);
-    debug ("selist: %p.", selist);
     PopplerRectangle *rect = (PopplerRectangle *) selist->data;
 
+    debug ("zoomrate: %f", mZoomrate);
+
     // Caculate the correct position
+    //debug ("pagex: %f, pagey: %f, x1: %f, y1: %f, x2: %f, y2: %f", mPagex, mPagey, rect->x1, rect->y1, rect->x2, rect->y2);
     gint x1 = (gint) ((rect->x1) * mZoomrate);
-    gint y1 = (gint) ((mPagey - rect->y2) * mZoomrate);
     gint x2 = (gint) ((rect->x2) * mZoomrate);
+    gint y1 = (gint) ((mPagey - rect->y2) * mZoomrate);
     gint y2 = (gint) ((mPagey - rect->y1) * mZoomrate);
+    debug ("x1: %d, y1: %d, x2: %d, y2: %d", x1, y1, x2, y2);
 
     // make the selection at the page center
     gdouble val = ((y1 + y2) - mVaj->page_size) / 2;
@@ -648,7 +651,7 @@ namespace apvlv
     else
       {
         debug ("set value: %f", mVaj->lower + 5);
-	gtk_adjustment_set_value (mVaj, mVaj->lower + 5);	/* same as above */
+	gtk_adjustment_set_value (mVaj, mVaj->lower + 5);	/* avoid auto scroll page */
       }
 
     val = ((x1 + x2) - mHaj->page_size) / 2;
@@ -675,35 +678,37 @@ namespace apvlv
 	for (gint x = x1; x < x2; x++)
 	  {
 	    gint p = (gint) (y * 3 * mPagex * mZoomrate + (x * 3));
-	    pagedata[p + 0] = 0xFF - pagedata[p + 0];
-	    pagedata[p + 1] = 0xFF - pagedata[p + 0];
-	    pagedata[p + 2] = 0xFF - pagedata[p + 0];
+	    pagedata[p + 0] = 0xff - pagedata[p + 0];
+	    pagedata[p + 1] = 0xff - pagedata[p + 0];
+	    pagedata[p + 2] = 0xff - pagedata[p + 0];
 	  }
       }
 
     // change the back color of the selection
+#if 0
     for (selist = mSearchResults; selist != NULL;
 	 selist = g_list_next (selist))
       {
 	PopplerRectangle *rect = (PopplerRectangle *) selist->data;
 
 	// Caculate the correct position
-	gint x1 = (gint) ((rect->x1) * mZoomrate);
-	gint y1 = (gint) ((mPagey - rect->y2) * mZoomrate);
-	gint x2 = (gint) ((rect->x2) * mZoomrate);
-	gint y2 = (gint) ((mPagey - rect->y1) * mZoomrate);
+	x1 = (gint) ((rect->x1) * mZoomrate);
+	x2 = (gint) ((rect->x2) * mZoomrate);
+	y1 = (gint) ((mPagey - rect->y2) * mZoomrate);
+	y2 = (gint) ((mPagey - rect->y1) * mZoomrate);
 
 	for (gint y = y1; y < y2; y++)
 	  {
 	    for (gint x = x1; x < x2; x++)
 	      {
 		gint p = (gint) (y * 3 * mPagex * mZoomrate + (x * 3));
-		pagedata[p + 0] = 0xFF - pagedata[p + 0];
-		pagedata[p + 1] = 0xFF - pagedata[p + 0];
-		pagedata[p + 2] = 0xFF - pagedata[p + 0];
+		pagedata[p + 0] = 0xff - pagedata[p + 0];
+		pagedata[p + 1] = 0xff - pagedata[p + 0];
+		pagedata[p + 2] = 0xff - pagedata[p + 0];
 	      }
 	  }
       }
+#endif
 
     gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), pixbuf);
     debug ("helight num: %d", mPagenum);
@@ -712,7 +717,7 @@ namespace apvlv
   GList *ApvlvDoc::searchpage (int num, bool reverse)
   {
     debug ("search num: %d", num);
-    PopplerPage *page = poppler_document_get_page (mDoc, num);
+    PopplerPage *page;
 
     if (mDoc == NULL
 	|| (page = poppler_document_get_page (mDoc, num)) == NULL)
@@ -727,7 +732,6 @@ namespace apvlv
       }
 
     mSearchReverse = reverse;
-    mSearchZoom = mZoomrate;
 
     return list;
   }
@@ -771,7 +775,7 @@ namespace apvlv
     else
       {
 	debug
-	  ("same, not need next string, if zoomed return true. sel: %d, max: %u",
+	  ("same, not need next string. sel: %d, max: %u",
 	   mSearchSelect, g_list_length (mSearchResults));
 	if (mSearchReverse == reverse)
 	  {
@@ -780,17 +784,10 @@ namespace apvlv
 	else
 	  {
 	    mSearchSelect--;
-	  }
+          }
 
-	if (mSearchZoom != mZoomrate)
-	  {
-	    return true;
-	  }
-	else
-	  {
-	    markselection ();
-	    return false;
-	  }
+        markselection ();
+        return false;
       }
   }
 
@@ -1025,12 +1022,10 @@ namespace apvlv
 
     if (adj->upper - adj->lower == adj->page_size + adj->value)
       {
-        debug ("fuck");
 	doc->scrolldown (1);
       }
     else if (adj->value == 0)
       {
-        debug ("fuck");
 	doc->scrollup (1);
       }
   }
@@ -1151,7 +1146,7 @@ namespace apvlv
       }
     ac->mLinkMappings =
       g_list_reverse (poppler_page_get_link_mapping (tpage));
-    //        debug ("has mLinkMappings: %p", ac->mLinkMappings);
+    debug ("has mLinkMappings: %p", ac->mLinkMappings);
 
     ac->mPage = tpage;
     ac->mData = dat;
