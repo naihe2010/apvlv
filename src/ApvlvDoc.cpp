@@ -491,6 +491,7 @@ namespace apvlv
     if (rp < 0)
       return;
 
+    debug ("show page: %d", rp);
     mAdjInchg = true;
 
     if (mAutoScrollPage && mContinuous && !mAutoScrollDoc)
@@ -564,7 +565,6 @@ namespace apvlv
     gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), buf);
     if (mAutoScrollPage && mContinuous)
       {
-	debug ("here ...\n");
 	mCurrentCache2->set (convertindex (mPagenum + 1), false);
 	buf = mCurrentCache2->getbuf (true);
 	gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), buf);
@@ -617,9 +617,9 @@ namespace apvlv
 
   void ApvlvDoc::markselection ()
   {
-    debug ("mSelect: %d.\n", mSearchSelect);
+    debug ("mSelect: %d.", mSearchSelect);
     GList *selist = g_list_nth (mSearchResults, mSearchSelect);
-    debug ("selist: %p.\n", selist);
+    debug ("selist: %p.", selist);
     PopplerRectangle *rect = (PopplerRectangle *) selist->data;
 
     // Caculate the correct position
@@ -630,18 +630,27 @@ namespace apvlv
 
     // make the selection at the page center
     gdouble val = ((y1 + y2) - mVaj->page_size) / 2;
-    if (val + mVaj->page_size > mVaj->upper)
+    debug ("upper: %f, lower: %f, page_size: %f, val: %f",
+           mVaj->upper,
+           mVaj->lower,
+           mVaj->page_size,
+           val);
+    if (val + mVaj->page_size > mVaj->upper - mVaj->lower - 5)
       {
-	gtk_adjustment_set_value (mVaj, mVaj->upper);
+        debug ("set value: %f", mVaj->upper - mVaj->lower - mVaj->page_size - 5);
+	gtk_adjustment_set_value (mVaj, mVaj->upper - mVaj->lower - mVaj->page_size - 5);	/* just for avoid the auto scroll page */
       }
-    else if (val > 0)
+    else if (val > 5)
       {
+        debug ("set value: %f", val);
 	gtk_adjustment_set_value (mVaj, val);
       }
     else
       {
-	gtk_adjustment_set_value (mVaj, mVaj->lower);
+        debug ("set value: %f", mVaj->lower + 5);
+	gtk_adjustment_set_value (mVaj, mVaj->lower + 5);	/* same as above */
       }
+
     val = ((x1 + x2) - mHaj->page_size) / 2;
     if (val + mHaj->page_size > mHaj->upper)
       {
@@ -653,7 +662,7 @@ namespace apvlv
       }
     else
       {
-	gtk_adjustment_set_value (mHaj, mHaj->lower);
+	gtk_adjustment_set_value (mHaj, mHaj->lower);	
       }
 
     mCurrentCache1->set (mPagenum);
@@ -697,10 +706,12 @@ namespace apvlv
       }
 
     gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), pixbuf);
+    debug ("helight num: %d", mPagenum);
   }
 
   GList *ApvlvDoc::searchpage (int num, bool reverse)
   {
+    debug ("search num: %d", num);
     PopplerPage *page = poppler_document_get_page (mDoc, num);
 
     if (mDoc == NULL
@@ -729,7 +740,7 @@ namespace apvlv
     // search a different string
     if (strlen (str) > 0 && strcmp (str, mSearchStr.c_str ()) != 0)
       {
-	debug ("different string.\n");
+	debug ("different string.");
 	mSearchSelect = 0;
 	mSearchStr = str;
 	return true;
@@ -737,7 +748,7 @@ namespace apvlv
 
     else if (mSearchResults == NULL)
       {
-	debug ("no result.\n");
+	debug ("no result.");
 	mSearchSelect = 0;
 	return true;
       }
@@ -749,7 +760,7 @@ namespace apvlv
 	  || ((mSearchReverse != reverse) && mSearchSelect == 0))
       {
 	debug
-	  ("same, but need next string: S: %d, s: %d, sel: %d, max: %d.\n",
+	  ("same, but need next string: S: %d, s: %d, sel: %d, max: %d.",
 	   mSearchReverse, reverse, mSearchSelect,
 	   g_list_length (mSearchResults));
 	mSearchSelect = 0;
@@ -760,7 +771,7 @@ namespace apvlv
     else
       {
 	debug
-	  ("same, not need next string, if zoomed return true. sel: %d, max: %u\n",
+	  ("same, not need next string, if zoomed return true. sel: %d, max: %u",
 	   mSearchSelect, g_list_length (mSearchResults));
 	if (mSearchReverse == reverse)
 	  {
@@ -785,50 +796,48 @@ namespace apvlv
 
   void ApvlvDoc::search (const char *str, bool reverse)
   {
-    if (needsearch (str, reverse))
+    if (!needsearch (str, reverse))
       {
+	return;
+      }
+
+    if (mSearchResults != NULL)
+      {
+	while (mSearchResults != NULL)
+	  {
+	    PopplerRectangle *rect =
+	      (PopplerRectangle *) mSearchResults->data;
+	    g_free (rect);
+	    mSearchResults = g_list_next (mSearchResults);
+	  }
+	g_list_free (mSearchResults);
+	mSearchResults = NULL;
+      }
+
+    int i =
+      strlen (str) > 0 ? mPagenum : reverse ? mPagenum - 1 : mPagenum + 1;
+    int sum = pagesum (), from = i;
+    while (1)
+      {
+	mSearchResults = searchpage ((i + sum) % sum, reverse);
 	if (mSearchResults != NULL)
 	  {
-	    while (mSearchResults != NULL)
-	      {
-		PopplerRectangle *rect =
-		  (PopplerRectangle *) mSearchResults->data;
-		g_free (rect);
-		mSearchResults = g_list_next (mSearchResults);
-	      }
-	    g_list_free (mSearchResults);
-	    mSearchResults = NULL;
+	    showpage ((i + sum) % sum, 0.5);
+	    markselection ();
+	    break;
 	  }
 
-	if (reverse == false)
+	if (!reverse && i < from + sum)
 	  {
-	    int num = pagesum ();
-	    int i = strlen (str) > 0 ? mPagenum - 1 : mPagenum;
-	    while (i++ < num - 1)
-	      {
-		mSearchResults = searchpage (i);
-		if (mSearchResults != NULL)
-		  {
-		    showpage (i);
-		    markselection ();
-		    break;
-		  }
-		i++;
-	      }
+	    i++;
+	  }
+	else if (reverse && i > from - sum)
+	  {
+	    i--;
 	  }
 	else
 	  {
-	    int i = strlen (str) > 0 ? mPagenum + 1 : mPagenum;
-	    while (i-- > 0)
-	      {
-		mSearchResults = g_list_reverse (searchpage (i));
-		if (mSearchResults != NULL)
-		  {
-		    showpage (i);
-		    markselection ();
-		    break;
-		  }
-	      }
+	    break;
 	  }
       }
   }
@@ -1016,10 +1025,12 @@ namespace apvlv
 
     if (adj->upper - adj->lower == adj->page_size + adj->value)
       {
+        debug ("fuck");
 	doc->scrolldown (1);
       }
     else if (adj->value == 0)
       {
+        debug ("fuck");
 	doc->scrollup (1);
       }
   }
