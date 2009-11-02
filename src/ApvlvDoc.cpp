@@ -311,6 +311,7 @@ namespace apvlv
 
     if (gParams->valueb ("noinfo"))
       {
+	showpage (0);
 	return false;
       }
 
@@ -634,23 +635,21 @@ namespace apvlv
     // make the selection at the page center
     gdouble val = ((y1 + y2) - mVaj->page_size) / 2;
     debug ("upper: %f, lower: %f, page_size: %f, val: %f",
-           mVaj->upper,
-           mVaj->lower,
-           mVaj->page_size,
-           val);
+	   mVaj->upper, mVaj->lower, mVaj->page_size, val);
     if (val + mVaj->page_size > mVaj->upper - mVaj->lower - 5)
       {
-        debug ("set value: %f", mVaj->upper - mVaj->lower - mVaj->page_size - 5);
+	debug ("set value: %f",
+	       mVaj->upper - mVaj->lower - mVaj->page_size - 5);
 	gtk_adjustment_set_value (mVaj, mVaj->upper - mVaj->lower - mVaj->page_size - 5);	/* just for avoid the auto scroll page */
       }
     else if (val > 5)
       {
-        debug ("set value: %f", val);
+	debug ("set value: %f", val);
 	gtk_adjustment_set_value (mVaj, val);
       }
     else
       {
-        debug ("set value: %f", mVaj->lower + 5);
+	debug ("set value: %f", mVaj->lower + 5);
 	gtk_adjustment_set_value (mVaj, mVaj->lower + 5);	/* avoid auto scroll page */
       }
 
@@ -665,7 +664,7 @@ namespace apvlv
       }
     else
       {
-	gtk_adjustment_set_value (mHaj, mHaj->lower);	
+	gtk_adjustment_set_value (mHaj, mHaj->lower);
       }
 
     mCurrentCache1->set (mPagenum);
@@ -685,7 +684,6 @@ namespace apvlv
       }
 
     // change the back color of the selection
-#if 0
     for (selist = mSearchResults; selist != NULL;
 	 selist = g_list_next (selist))
       {
@@ -708,7 +706,6 @@ namespace apvlv
 	      }
 	  }
       }
-#endif
 
     gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), pixbuf);
     debug ("helight num: %d", mPagenum);
@@ -784,10 +781,10 @@ namespace apvlv
 	else
 	  {
 	    mSearchSelect--;
-          }
+	  }
 
-        markselection ();
-        return false;
+	markselection ();
+	return false;
       }
   }
 
