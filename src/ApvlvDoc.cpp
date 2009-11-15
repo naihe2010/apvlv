@@ -733,6 +733,11 @@ namespace apvlv
     return list;
   }
 
+  bool ApvlvDoc::continuous ()
+  {
+    return mContinuous;
+  }
+
   bool ApvlvDoc::needsearch (const char *str, bool reverse)
   {
     if (mDoc == NULL)
@@ -922,8 +927,7 @@ namespace apvlv
 	    if (pd->type == POPPLER_DEST_NAMED)
 	      {
 		PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								   pd->
-								   named_dest);
+								   pd->named_dest);
 		if (destnew != NULL)
 		  {
 		    nn = destnew->page_num - 1;
@@ -1252,12 +1256,18 @@ namespace apvlv
   {
     if (mDoc->filename ())
       {
+	gint pn = mDoc->pagenumber ();
+
+	if (mDoc->continuous () && mDoc->scrollrate () > 0.5)
+	  {
+	    pn++;
+	  }
+
 	char temp[AD_STATUS_SIZE][256];
 	gchar *bn;
 	bn = g_path_get_basename (mDoc->filename ());
 	g_snprintf (temp[0], sizeof temp[0], "%s", bn);
-	g_snprintf (temp[1], sizeof temp[1], "%d/%d", mDoc->pagenumber (),
-		    mDoc->pagesum ());
+	g_snprintf (temp[1], sizeof temp[1], "%d/%d", pn, mDoc->pagesum ());
 	g_snprintf (temp[2], sizeof temp[2], "%d%%",
 		    (int) (mDoc->zoomvalue () * 100));
 	g_snprintf (temp[3], sizeof temp[3], "%d%%",

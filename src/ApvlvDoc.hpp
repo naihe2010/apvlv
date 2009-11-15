@@ -164,6 +164,8 @@ namespace apvlv
 
     void search (const char *str, bool reverse = false);
 
+    bool continuous ();
+
     returnType process (int times, guint keyval);
 
   private:
