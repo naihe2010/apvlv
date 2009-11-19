@@ -203,8 +203,10 @@ namespace apvlv
 
     GtkFileFilter *filter = gtk_file_filter_new ();
     gtk_file_filter_add_mime_type (filter, "PDF File");
+    gtk_file_filter_add_mime_type (filter, "DJVU File");
     gtk_file_filter_add_pattern (filter, "*.pdf");
     gtk_file_filter_add_pattern (filter, "*.PDF");
+    gtk_file_filter_add_pattern (filter, "*.djvu");
     gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dia), filter);
 
     gint ret = gtk_dialog_run (GTK_DIALOG (dia));

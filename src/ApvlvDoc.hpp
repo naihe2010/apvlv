@@ -40,6 +40,10 @@
 #include <glib/poppler.h>
 #include <stdlib.h>
 
+#ifdef HAVE_LIBDJVU
+# include <libdjvu/ddjvuapi.h>
+#endif
+
 #include <iostream>
 #include <vector>
 #include <map>
@@ -124,13 +128,20 @@ namespace apvlv
 
     bool hascontent ();
 
-    PopplerDocument *getdoc ();
+    void *getdoc ();
 
     ApvlvDoc *copy ();
 
     void getpagesize (PopplerPage * p, double *x, double *y);
 
+    void getpagesize (int, double *x, double *y);
+
     bool getpagetext (PopplerPage * p, char **contents);
+
+    int doctype ()
+    {
+      return mDocType;
+    }
 
     gint pagesum ();
 
@@ -207,7 +218,13 @@ namespace apvlv
     static void end_print (GtkPrintOperation * operation,
 			   GtkPrintContext * context, PrintData * data);
 
-    PopplerDocument *mDoc;
+    int mDocType;
+
+    PopplerDocument *mPDFDoc;
+#ifdef HAVE_LIBDJVU
+    ddjvu_context_t *mDjvuContext;
+    ddjvu_document_t *mDjvuDoc;
+#endif
 
     ApvlvDocPositionMap mPositions;
       vector < ApvlvDocPosition > mLinkPositions;

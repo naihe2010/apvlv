@@ -41,15 +41,42 @@
 #include <gtk/gtkprintoperation.h>
 #include <glib/poppler.h>
 
+#include <libdjvu/ddjvuapi.h>
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
 namespace apvlv
 {
+#ifdef HAVE_LIBDJVU
+  void handle_ddjvu_messages (ddjvu_context_t * ctx, int wait)
+  {
+    const ddjvu_message_t *msg;
+    if (wait)
+        ddjvu_message_wait (ctx);
+    while ((msg = ddjvu_message_peek (ctx)))
+      {
+	debug ("tag: %d", msg->m_any.tag);
+	switch (msg->m_any.tag)
+	  {
+	  case DDJVU_ERROR:
+	    break;
+	    case DDJVU_INFO:break;
+	    case DDJVU_PAGEINFO:break;
+	    default:break;
+	  }
+	ddjvu_message_pop (ctx);
+      }
+  }
+#endif
+
+  enum
+  { AD_NONE, AD_PDF, AD_DJVU };
+
   static GtkPrintSettings *settings = NULL;
 
-    ApvlvDoc::ApvlvDoc (int w, int h, const char *zm, bool cache)
+  ApvlvDoc::ApvlvDoc (int w, int h, const char *zm, bool cache)
   {
     mCurrentCache1 = mCurrentCache2 = NULL;
 
@@ -69,7 +96,10 @@ namespace apvlv
 
     mRotatevalue = 0;
 
-    mDoc = NULL;
+    mPDFDoc = NULL;
+    mDjvuDoc = NULL;
+
+    mDocType = AD_NONE;
 
     mSearchResults = NULL;
     mSearchStr = "";
@@ -123,11 +153,11 @@ namespace apvlv
 
     delete mStatus;
 
-    if (mDoc)
+    if (mPDFDoc)
       {
 	debug ("Free the PopplerDocument");
 	debug ("And, Maybe there is some bugs in poppler-glib libiray");
-	g_object_unref (mDoc);
+	g_object_unref (mPDFDoc);
       }
   }
 
@@ -274,9 +304,10 @@ namespace apvlv
     return ndoc;
   }
 
-  PopplerDocument *ApvlvDoc::getdoc ()
+  void *ApvlvDoc::getdoc ()
   {
-    return mDoc;
+    return mDocType == AD_PDF ? (void *) mPDFDoc :
+      mDocType == AD_DJVU ? (void *) mDjvuDoc : NULL;
   }
 
   bool ApvlvDoc::savelastposition ()
@@ -394,8 +425,41 @@ namespace apvlv
 
     mReady = false;
 
-    mDoc = file_to_popplerdoc (filename);
-    if (mDoc != NULL)
+
+    mPDFDoc = file_to_popplerdoc (filename);
+    if (mPDFDoc != NULL)
+      {
+	mDocType = AD_PDF;
+      }
+
+#ifdef HAVE_LIBDJVU
+    if (mDocType == AD_NONE)
+      {
+	mDjvuContext = ddjvu_context_create ("apvlv");
+	if (mDjvuContext)
+	  {
+	    mDjvuDoc =
+	      ddjvu_document_create_by_filename (mDjvuContext, filename,
+						 FALSE);
+	  }
+
+	if (mDjvuDoc != NULL)
+	  {
+	    if (ddjvu_document_get_type (mDjvuDoc) != DDJVU_DOCTYPE_UNKNOWN)
+	      {
+		debug ("type: %d", ddjvu_document_get_type (mDjvuDoc));
+		mDocType = AD_DJVU;
+	      }
+	    else
+	      {
+		ddjvu_document_release (mDjvuDoc);
+		ddjvu_context_release (mDjvuContext);
+		mDjvuDoc = NULL;
+	      }
+	  }
+      }
+#endif
+    if (mDocType != AD_NONE)
       {
 	mFilestr = filename;
 
@@ -406,6 +470,8 @@ namespace apvlv
 	    mAutoScrollDoc = false;
 	    mAutoScrollPage = false;
 	  }
+
+	debug ("pagesum () = %d", pagesum ());
 
 	if (mCurrentCache1 != NULL)
 	  {
@@ -434,17 +500,18 @@ namespace apvlv
 	mReady = true;
       }
 
-    return mDoc == NULL ? false : true;
+    return mDocType == AD_NONE ? false : true;
   }
 
   gint ApvlvDoc::pagesum ()
   {
-    return mDoc ? poppler_document_get_n_pages (mDoc) : 0;
+    return mPDFDoc ? poppler_document_get_n_pages (mPDFDoc) :
+      mDjvuDoc ? ddjvu_document_get_pagenum (mDjvuDoc) : 0;
   }
 
   int ApvlvDoc::convertindex (int p)
   {
-    if (mDoc != NULL)
+    if (mDocType != AD_NONE)
       {
 	int c = pagesum ();
 
@@ -517,8 +584,31 @@ namespace apvlv
       {
 	mZoominit = true;
 
-	PopplerPage *mPage = poppler_document_get_page (mDoc, rp);
-	getpagesize (mPage, &mPagex, &mPagey);
+	if (mDocType == AD_PDF)
+	  {
+	    PopplerPage *mPage = poppler_document_get_page (mPDFDoc, rp);
+	    getpagesize (mPage, &mPagex, &mPagey);
+	  }
+#ifdef HAVE_LIBDJVU
+	else if (mDocType == AD_DJVU)
+	  {
+	    ddjvu_status_t t;
+	    ddjvu_pageinfo_t info[1];
+	    while ((t =
+		    ddjvu_document_get_pageinfo (mDjvuDoc, 0,
+						 info)) < DDJVU_JOB_OK)
+	      {
+		handle_ddjvu_messages (mDjvuContext, true);
+	      }
+
+	    if (t == DDJVU_JOB_OK)
+	      {
+		mPagex = info->width;
+		mPagey = info->height;
+		debug ("djvu page 1: %f-%f", mPagex, mPagey);
+	      }
+	  }
+#endif
 
 	switch (mZoommode)
 	  {
@@ -558,7 +648,7 @@ namespace apvlv
 
   void ApvlvDoc::refresh ()
   {
-    if (mDoc == NULL)
+    if (mDocType == AD_NONE)
       return;
 
     mCurrentCache1->set (mPagenum, false);
@@ -716,8 +806,8 @@ namespace apvlv
     debug ("search num: %d", num);
     PopplerPage *page;
 
-    if (mDoc == NULL
-	|| (page = poppler_document_get_page (mDoc, num)) == NULL)
+    if (mDocType == AD_NONE
+	|| (page = poppler_document_get_page (mPDFDoc, num)) == NULL)
       {
 	return NULL;
       }
@@ -740,7 +830,7 @@ namespace apvlv
 
   bool ApvlvDoc::needsearch (const char *str, bool reverse)
   {
-    if (mDoc == NULL)
+    if (mDocType == AD_NONE)
       return false;
 
     // search a different string
@@ -853,6 +943,30 @@ namespace apvlv
       }
   }
 
+  void ApvlvDoc::getpagesize (int pn, double *x, double *y)
+  {
+#ifdef HAVE_LIBDJVU
+    if (mDocType == AD_DJVU)
+      {
+	ddjvu_status_t t;
+	ddjvu_pageinfo_t info[1];
+	while ((t =
+		ddjvu_document_get_pageinfo (mDjvuDoc, 0,
+					     info)) < DDJVU_JOB_OK)
+	  {
+	    handle_ddjvu_messages (mDjvuContext, true);
+	  }
+
+	if (t == DDJVU_JOB_OK)
+	  {
+	    *x = info->width;
+	    *y = info->height;
+	    debug ("djvu page %d: %f-%f", pn, *x, *y);
+	  }
+      }
+#endif
+  }
+
   bool ApvlvDoc::getpagetext (PopplerPage * page, char **text)
   {
     double x, y;
@@ -868,7 +982,7 @@ namespace apvlv
 
   bool ApvlvDoc::totext (const char *file)
   {
-    if (mDoc == NULL)
+    if (mDocType == AD_NONE)
       return false;
 
     PopplerPage *page = mCurrentCache1->getpage ();
@@ -926,8 +1040,9 @@ namespace apvlv
 	    PopplerDest *pd = ((PopplerActionGotoDest *) act)->dest;
 	    if (pd->type == POPPLER_DEST_NAMED)
 	      {
-		PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								   pd->named_dest);
+		PopplerDest *destnew = poppler_document_find_dest (mPDFDoc,
+								   pd->
+								   named_dest);
 		if (destnew != NULL)
 		  {
 		    nn = destnew->page_num - 1;
@@ -982,7 +1097,7 @@ namespace apvlv
     gtk_print_operation_set_show_progress (print, TRUE);
 
     PrintData *data = new PrintData;
-    data->doc = mDoc;
+    data->doc = mPDFDoc;
     data->frmpn = mPagenum;
     data->endpn = mPagenum;
 
@@ -1110,48 +1225,113 @@ namespace apvlv
   void ApvlvDocCache::load (ApvlvDocCache * ac)
   {
     int c = ac->mDoc->pagesum ();
-    PopplerPage *tpage;
 
-    if (ac->mPagenum < 0
-	|| ac->mPagenum >= c
-	|| (tpage =
-	    poppler_document_get_page (ac->mDoc->getdoc (),
-				       ac->mPagenum)) == NULL)
+    if (ac->mDoc->doctype () == AD_PDF)
       {
-	debug ("no this page: %d", ac->mPagenum);
-	return;
+	PopplerPage *tpage;
+
+	if (ac->mPagenum < 0
+	    || ac->mPagenum >= c
+	    || (tpage =
+		poppler_document_get_page ((PopplerDocument *) ac->
+					   mDoc->getdoc (),
+					   ac->mPagenum)) == NULL)
+	  {
+	    debug ("no this page: %d", ac->mPagenum);
+	    return;
+	  }
+
+	double tpagex, tpagey;
+	ac->mDoc->getpagesize (tpage, &tpagex, &tpagey);
+
+	int ix = (int) (tpagex * ac->mDoc->zoomvalue ()), iy =
+	  (int) (tpagey * ac->mDoc->zoomvalue ());
+
+	guchar *dat = new guchar[ix * iy * 3];
+
+	GdkPixbuf *bu = gdk_pixbuf_new_from_data (dat, GDK_COLORSPACE_RGB,
+						  FALSE,
+						  8,
+						  ix, iy,
+						  3 * ix,
+						  NULL, NULL);
+
+	poppler_page_render_to_pixbuf (tpage, 0, 0, ix, iy,
+				       ac->mDoc->zoomvalue (),
+				       ac->mDoc->getrotate (), bu);
+
+	if (ac->mLinkMappings)
+	  {
+	    poppler_page_free_link_mapping (ac->mLinkMappings);
+	  }
+	ac->mLinkMappings =
+	  g_list_reverse (poppler_page_get_link_mapping (tpage));
+	debug ("has mLinkMappings: %p", ac->mLinkMappings);
+
+	ac->mPage = tpage;
+	ac->mData = dat;
+	ac->mBuf = bu;
       }
-
-    double tpagex, tpagey;
-    ac->mDoc->getpagesize (tpage, &tpagex, &tpagey);
-
-    int ix = (int) (tpagex * ac->mDoc->zoomvalue ()), iy =
-      (int) (tpagey * ac->mDoc->zoomvalue ());
-
-    guchar *dat = new guchar[ix * iy * 3];
-
-    GdkPixbuf *bu = gdk_pixbuf_new_from_data (dat, GDK_COLORSPACE_RGB,
-					      FALSE,
-					      8,
-					      ix, iy,
-					      3 * ix,
-					      NULL, NULL);
-
-    poppler_page_render_to_pixbuf (tpage, 0, 0, ix, iy,
-				   ac->mDoc->zoomvalue (),
-				   ac->mDoc->getrotate (), bu);
-
-    if (ac->mLinkMappings)
+#ifdef HAVE_LIBDJVU
+    else if (ac->mDoc->doctype () == AD_DJVU)
       {
-	poppler_page_free_link_mapping (ac->mLinkMappings);
-      }
-    ac->mLinkMappings =
-      g_list_reverse (poppler_page_get_link_mapping (tpage));
-    debug ("has mLinkMappings: %p", ac->mLinkMappings);
+	ddjvu_page_t *tpage;
 
-    ac->mPage = tpage;
-    ac->mData = dat;
-    ac->mBuf = bu;
+	if (ac->mPagenum < 0
+	    || ac->mPagenum >= c
+	    || (tpage =
+		ddjvu_page_create_by_pageno ((ddjvu_document_t *) ac->
+					     mDoc->getdoc (),
+					     ac->mPagenum)) == NULL)
+	  {
+	    debug ("no this page: %d", ac->mPagenum);
+	    return;
+	  }
+
+	double tpagex, tpagey;
+	ac->mDoc->getpagesize (ac->mPagenum, &tpagex, &tpagey);
+
+	int ix = (int) (tpagex * ac->mDoc->zoomvalue ()), iy =
+	  (int) (tpagey * ac->mDoc->zoomvalue ());
+
+	char *dat = new char[ix * iy * 3];
+
+	GdkPixbuf *bu =
+	  gdk_pixbuf_new_from_data ((guchar *) dat, GDK_COLORSPACE_RGB,
+				    FALSE,
+				    8,
+				    ix, iy,
+				    3 * ix,
+				    NULL, NULL);
+
+	ddjvu_rect_t prect[1] = { {0, 0, tpagex, tpagey} };
+	ddjvu_rect_t rrect[1] = { {0, 0, ix, iy} };
+	debug ("for fender: ");
+	ddjvu_format_t *format =
+	  ddjvu_format_create (DDJVU_FORMAT_RGB24, 0, NULL);
+	ddjvu_format_set_row_order (format, TRUE);
+	while (ddjvu_page_render
+	       (tpage, DDJVU_RENDER_COLOR, prect, rrect, format, 3 * ix,
+		dat) == FALSE)
+	  {
+	    debug ("fender failed");
+	  }
+
+	/*  
+	   if (ac->mLinkMappings)
+	   {
+	   poppler_page_free_link_mapping (ac->mLinkMappings);
+	   }
+	   ac->mLinkMappings =
+	   g_list_reverse (poppler_page_get_link_mapping (tpage));
+	   debug ("has mLinkMappings: %p", ac->mLinkMappings); */
+
+	debug ("for fender: ");
+	ac->mPage = (PopplerPage *) tpage;
+	ac->mData = (guchar *) dat;
+	ac->mBuf = bu;
+      }
+#endif
   }
 
   ApvlvDocCache::~ApvlvDocCache ()
