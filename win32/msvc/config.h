@@ -32,13 +32,13 @@
 #define PACKAGE_NAME "poppler"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "poppler 0.10.0"
+#define PACKAGE_STRING "poppler 0.12.2"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "poppler"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.10.0"
+#define PACKAGE_VERSION "0.12.2"
 
 /* Poppler data dir */
 #define POPPLER_DATADIR "poppler-data"
@@ -53,7 +53,7 @@
 /* #undef USE_EXCEPTIONS */
 
 /* Version number of package */
-#define VERSION "0.10.0"
+#define VERSION "0.12.2"
 
 #define snprintf _snprintf
 #define unlink _unlink

@@ -41,7 +41,9 @@
 #include <gtk/gtkprintoperation.h>
 #include <glib/poppler.h>
 
+#ifdef HAVE_LIBDJVU
 #include <libdjvu/ddjvuapi.h>
+#endif
 
 #include <iostream>
 #include <fstream>
@@ -97,7 +99,10 @@ namespace apvlv
     mRotatevalue = 0;
 
     mPDFDoc = NULL;
-    mDjvuDoc = NULL;
+#ifdef HAVE_LIBDJVU
+    mDjvuContext = NULL;
+	mDjvuDoc = NULL;
+#endif
 
     mDocType = AD_NONE;
 
@@ -306,8 +311,12 @@ namespace apvlv
 
   void *ApvlvDoc::getdoc ()
   {
+#ifdef HAVE_LIBDJVU
     return mDocType == AD_PDF ? (void *) mPDFDoc :
       mDocType == AD_DJVU ? (void *) mDjvuDoc : NULL;
+#else
+	  return mDocType == AD_PDF ? (void *) mPDFDoc : NULL;
+#endif
   }
 
   bool ApvlvDoc::savelastposition ()
@@ -505,8 +514,12 @@ namespace apvlv
 
   gint ApvlvDoc::pagesum ()
   {
+#ifdef HAVE_LIBDJVU
     return mPDFDoc ? poppler_document_get_n_pages (mPDFDoc) :
       mDjvuDoc ? ddjvu_document_get_pagenum (mDjvuDoc) : 0;
+#else
+	  return mPDFDoc ? poppler_document_get_n_pages (mPDFDoc) : 0;
+#endif
   }
 
   int ApvlvDoc::convertindex (int p)
