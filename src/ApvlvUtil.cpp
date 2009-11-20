@@ -29,7 +29,9 @@
 #include "ApvlvUtil.hpp"
 
 #include <stdlib.h>
+#ifndef WIN32
 #include <wait.h>
+#endif
 #include <sys/stat.h>
 #include <gtk/gtk.h>
 
@@ -92,7 +94,7 @@ namespace apvlv
       {
 #ifdef WIN32
 	char cpath[PATH_MAX];
-	GetCurrentDirectoryA (sizeof cpath, sizeof cpath);
+	GetCurrentDirectoryA (sizeof cpath, cpath);
 	g_snprintf (abpath, sizeof abpath, "%s\\%s", cpath, path);
 #else
 	if (realpath (path, abpath) == NULL)
@@ -243,6 +245,7 @@ namespace apvlv
 
   int apvlv_system (const char *str)
   {
+#ifndef WIN32
     int ret;
     pid_t pid;
     int status;
@@ -279,5 +282,8 @@ namespace apvlv
       }
 
     return ret;
+#else
+	  return system (str);
+#endif
   }
 }

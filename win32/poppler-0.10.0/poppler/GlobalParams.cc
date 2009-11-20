@@ -670,41 +670,52 @@ GlobalParams::GlobalParams() {
   scanEncodingDirs();
 }
 
+#ifdef _WIN32
+#define SEP		"\\"
+#else
+#define SEP		"/"
+#endif
+
 void GlobalParams::scanEncodingDirs() {
   GDir *dir;
   GDirEntry *entry;
 
-  dir = new GDir(POPPLER_DATADIR "/nameToUnicode", gTrue);
+  dir = new GDir(POPPLER_DATADIR SEP "nameToUnicode", gTrue);
   while (entry = dir->getNextEntry(), entry != NULL) {
     if (!entry->isDir()) {
+		printf ("entry: %s\n", entry->getFullPath ());
       parseNameToUnicode(entry->getFullPath());
     }
     delete entry;
   }
   delete dir;
 
-  dir = new GDir(POPPLER_DATADIR "/cidToUnicode", gFalse);
+  dir = new GDir(POPPLER_DATADIR SEP "cidToUnicode", gFalse);
   while (entry = dir->getNextEntry(), entry != NULL) {
+		printf ("entry: %s\n", entry->getFullPath ());
     addCIDToUnicode(entry->getName(), entry->getFullPath());
     delete entry;
   }
   delete dir;
 
-  dir = new GDir(POPPLER_DATADIR "/unicodeMap", gFalse);
+  dir = new GDir(POPPLER_DATADIR SEP "unicodeMap", gFalse);
   while (entry = dir->getNextEntry(), entry != NULL) {
+		printf ("entry: %s\n", entry->getFullPath ());
     addUnicodeMap(entry->getName(), entry->getFullPath());
     delete entry;
   }
   delete dir;
 
-  dir = new GDir(POPPLER_DATADIR "/cMap", gFalse);
+  dir = new GDir(POPPLER_DATADIR SEP "cMap", gFalse);
   while (entry = dir->getNextEntry(), entry != NULL) {
+		printf ("entry: %s\n", entry->getFullPath ());
     addCMapDir(entry->getName(), entry->getFullPath());
     toUnicodeDirs->append(entry->getFullPath()->copy());
     delete entry;
   }
   delete dir;
 }
+#undef SEP
 
 void GlobalParams::parseNameToUnicode(GooString *name) {
   char *tok1, *tok2;

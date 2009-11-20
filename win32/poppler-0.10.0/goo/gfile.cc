@@ -657,8 +657,13 @@ GDir::GDir(char *name, GBool doStatA) {
   GooString *tmp;
 
   tmp = path->copy();
-  tmp->append("/*.*");
-  hnd = FindFirstFile((LPCWSTR) tmp->getCString(), &ffd);
+  tmp->append("\\*");
+  hnd = FindFirstFileA((LPCSTR) tmp->getCString (), &ffd);
+  if (hnd == INVALID_HANDLE_VALUE) 
+  {
+	  int err = GetLastError ();
+	  printf ("find [%s] error is [%d:%s]\n", tmp->getCString (), err, strerror (err));
+  }
   delete tmp;
 #elif defined(ACORN)
 #elif defined(MACOS)
@@ -688,10 +693,10 @@ GDir::~GDir() {
 GDirEntry *GDir::getNextEntry() {
   GDirEntry *e;
 
-#if defined(WIN32)
+#if defined (WIN32)
   if (hnd != INVALID_HANDLE_VALUE) {
     e = new GDirEntry(path->getCString(), (char *) ffd.cFileName, doStat);
-    if (!FindNextFile(hnd, &ffd)) {
+    if (!FindNextFileA(hnd, &ffd)) {
       FindClose(hnd);
       hnd = INVALID_HANDLE_VALUE;
     }
@@ -739,7 +744,7 @@ void GDir::rewind() {
     FindClose(hnd);
   tmp = path->copy();
   tmp->append("/*.*");
-  hnd = FindFirstFile((LPCWSTR) tmp->getCString(), &ffd);
+  hnd = FindFirstFileA ((LPCSTR) tmp->getCString(), &ffd);
   delete tmp;
 #elif defined(ACORN)
 #elif defined(MACOS)

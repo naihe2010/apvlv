@@ -41,7 +41,7 @@
 #define PACKAGE_VERSION "0.10.0"
 
 /* Poppler data dir */
-#define POPPLER_DATADIR "/usr/local/share/poppler"
+#define POPPLER_DATADIR "poppler-data"
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
