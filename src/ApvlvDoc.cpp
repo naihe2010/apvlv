@@ -101,7 +101,7 @@ namespace apvlv
     mPDFDoc = NULL;
 #ifdef HAVE_LIBDJVU
     mDjvuContext = NULL;
-	mDjvuDoc = NULL;
+    mDjvuDoc = NULL;
 #endif
 
     mDocType = AD_NONE;
@@ -315,7 +315,7 @@ namespace apvlv
     return mDocType == AD_PDF ? (void *) mPDFDoc :
       mDocType == AD_DJVU ? (void *) mDjvuDoc : NULL;
 #else
-	  return mDocType == AD_PDF ? (void *) mPDFDoc : NULL;
+    return mDocType == AD_PDF ? (void *) mPDFDoc : NULL;
 #endif
   }
 
@@ -518,7 +518,7 @@ namespace apvlv
     return mPDFDoc ? poppler_document_get_n_pages (mPDFDoc) :
       mDjvuDoc ? ddjvu_document_get_pagenum (mDjvuDoc) : 0;
 #else
-	  return mPDFDoc ? poppler_document_get_n_pages (mPDFDoc) : 0;
+    return mPDFDoc ? poppler_document_get_n_pages (mPDFDoc) : 0;
 #endif
   }
 
@@ -1054,8 +1054,7 @@ namespace apvlv
 	    if (pd->type == POPPLER_DEST_NAMED)
 	      {
 		PopplerDest *destnew = poppler_document_find_dest (mPDFDoc,
-								   pd->
-								   named_dest);
+								   pd->named_dest);
 		if (destnew != NULL)
 		  {
 		    nn = destnew->page_num - 1;
@@ -1246,9 +1245,8 @@ namespace apvlv
 	if (ac->mPagenum < 0
 	    || ac->mPagenum >= c
 	    || (tpage =
-		poppler_document_get_page ((PopplerDocument *) ac->
-					   mDoc->getdoc (),
-					   ac->mPagenum)) == NULL)
+		poppler_document_get_page ((PopplerDocument *) ac->mDoc->
+					   getdoc (), ac->mPagenum)) == NULL)
 	  {
 	    debug ("no this page: %d", ac->mPagenum);
 	    return;
@@ -1293,8 +1291,8 @@ namespace apvlv
 	if (ac->mPagenum < 0
 	    || ac->mPagenum >= c
 	    || (tpage =
-		ddjvu_page_create_by_pageno ((ddjvu_document_t *) ac->
-					     mDoc->getdoc (),
+		ddjvu_page_create_by_pageno ((ddjvu_document_t *) ac->mDoc->
+					     getdoc (),
 					     ac->mPagenum)) == NULL)
 	  {
 	    debug ("no this page: %d", ac->mPagenum);

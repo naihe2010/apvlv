@@ -499,7 +499,9 @@ namespace apvlv
 		if (pagd->dest->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pagd->dest->named_dest);
+								       pagd->
+								       dest->
+								       named_dest);
 		    int pn = 1;
 		    if (destnew != NULL)
 		      {
