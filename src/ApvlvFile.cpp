@@ -93,17 +93,18 @@ namespace apvlv
 
     g_free (wfilename);
 
-    mDoc = poppler_document_new_from_data (mRawdata, filelen, NULL, NULL);
+    GError *error = NULL;
+    mDoc = poppler_document_new_from_data (mRawdata, filelen, NULL, &error);
 
-    if (mDoc == NULL
-	//            && POPPLER_ERROR == POPPLER_ERROR_ENCRYPTED) /* fix this later */
-      )
+    if (mDoc == NULL && error && error->code == POPPLER_ERROR_ENCRYPTED)
       {
+        g_error_free (error);
+
 	GtkWidget *dia = gtk_message_dialog_new (NULL,
 						 GTK_DIALOG_DESTROY_WITH_PARENT,
 						 GTK_MESSAGE_QUESTION,
 						 GTK_BUTTONS_OK_CANCEL,
-						 "Maybe this PDF file is encrypted, please input a password:");
+						 error->message);
 
 	GtkWidget *entry = gtk_entry_new ();
 	gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dia)->vbox), entry, TRUE,
@@ -221,19 +222,18 @@ namespace apvlv
 		if (pd->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pd->
-								       named_dest);
+								       pd->named_dest);
 		    if (destnew != NULL)
 		      {
 			ApvlvLink link = { "", destnew->page_num - 1 };
-			links->push_back (link);
+			links->insert (links->begin (), link);
 			poppler_dest_free (destnew);
 		      }
 		  }
 		else
 		  {
 		    ApvlvLink link = { "", pd->page_num - 1 };
-		    links->push_back (link);
+		    links->insert (links->begin (), link);
 		  }
 	      }
 	  }
@@ -282,7 +282,9 @@ namespace apvlv
 		if (pagd->dest->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pagd->dest->named_dest);
+								       pagd->
+								       dest->
+								       named_dest);
 		    int pn = 1;
 		    if (destnew != NULL)
 		      {
