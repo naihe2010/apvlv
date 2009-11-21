@@ -452,6 +452,15 @@ namespace apvlv
     return mFile == NULL ? false : true;
   }
 
+  bool ApvlvDoc::writefile (const char *name)
+  {
+    if (mFile != NULL)
+      {
+	return mFile->writefile (name ? name : filename ());
+      }
+    return false;
+  }
+
   int ApvlvDoc::convertindex (int p)
   {
     if (mFile != NULL)

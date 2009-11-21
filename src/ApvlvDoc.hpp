@@ -126,6 +126,8 @@ namespace apvlv
       return mFile;
     }
 
+    bool writefile (const char *);
+
     void setactive (bool act);
 
     bool hascontent ();

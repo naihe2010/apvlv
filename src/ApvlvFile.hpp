@@ -82,6 +82,8 @@ namespace apvlv
 
       virtual ~ ApvlvFile ();
 
+    virtual bool writefile (const char *filename) = 0;
+
     virtual bool pagesize (int page, int rot, double *x, double *y) = 0;
 
     virtual int pagesum () = 0;
@@ -113,6 +115,8 @@ namespace apvlv
 
      ~ApvlvPDF ();
 
+    bool writefile (const char *filename);
+
     bool pagesize (int page, int rot, double *x, double *y);
 
     int pagesum ();
@@ -142,6 +146,8 @@ namespace apvlv
     ApvlvDJVU (const char *filename, bool check = true);
 
      ~ApvlvDJVU ();
+
+    bool writefile (const char *filename);
 
     bool pagesize (int page, int rot, double *x, double *y);
 

@@ -95,10 +95,7 @@ namespace apvlv
 	GetCurrentDirectoryA (sizeof cpath, cpath);
 	g_snprintf (abpath, sizeof abpath, "%s\\%s", cpath, path);
 #else
-	if (realpath (path, abpath) == NULL)
-	  {
-	    return NULL;
-	  }
+	snprintf (abpath, sizeof abpath, "%s/%s", getenv ("PWD"), path);
 #endif
       }
 

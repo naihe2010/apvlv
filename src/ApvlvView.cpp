@@ -963,6 +963,11 @@ namespace apvlv
 	  {
 	    switchtab (mCurrTabPos - 1);
 	  }
+	else if (cmd == "w" || cmd == "write")
+	  {
+	    crtadoc ()->writefile (subcmd.size () >
+				   0 ? subcmd.c_str () : NULL);
+	  }
 	else
 	  {
 	    bool isn = true;
@@ -1071,8 +1076,9 @@ namespace apvlv
 	    view->mInHistroy = true;
 	    gtk_entry_set_text (GTK_ENTRY (view->mCommandBar),
 				view->mCurrHistroy > 0 ?
-				view->mCmdHistroy[view->mCurrHistroy--].
-				c_str () : view->mCmdHistroy[0].c_str ());
+				view->mCmdHistroy[view->
+						  mCurrHistroy--].c_str () :
+				view->mCmdHistroy[0].c_str ());
 	    return TRUE;
 	  }
 	else if (gek->keyval == GDK_Down)
@@ -1086,11 +1092,10 @@ namespace apvlv
 	    gtk_entry_set_text (GTK_ENTRY (view->mCommandBar),
 				(size_t) view->mCurrHistroy <
 				view->mCmdHistroy.size () -
-				1 ? view->mCmdHistroy[++view->mCurrHistroy].
-				c_str () : view->mCmdHistroy[view->
-							     mCmdHistroy.
-							     size () -
-							     1].c_str ());
+				1 ? view->mCmdHistroy[++view->
+						      mCurrHistroy].c_str () :
+				view->mCmdHistroy[view->mCmdHistroy.size () -
+						  1].c_str ());
 	    return TRUE;
 	  }
 

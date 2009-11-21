@@ -1,3 +1,19 @@
+apvlv 0.0.8
+===========
+
+News features
+
+   * add DJVU format document viewing support 
+
+   * add poppler-data support in Windows version
+
+   * add :w[rite] filename to save document
+
+Bug Fix
+
+   * If a pdf file is not entrypted, not ask password when can't open it
+
+
 apvlv 0.0.7
 ===========
 

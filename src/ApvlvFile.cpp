@@ -31,6 +31,7 @@
 #include <iostream>
 #include <fstream>
 
+#include <stdio.h>
 #include <sys/stat.h>
 #include <glib.h>
 #include <glib/poppler.h>
@@ -98,7 +99,7 @@ namespace apvlv
 
     if (mDoc == NULL && error && error->code == POPPLER_ERROR_ENCRYPTED)
       {
-        g_error_free (error);
+	g_error_free (error);
 
 	GtkWidget *dia = gtk_message_dialog_new (NULL,
 						 GTK_DIALOG_DESTROY_WITH_PARENT,
@@ -140,6 +141,35 @@ namespace apvlv
 	debug ("And, Maybe there is some bugs in poppler-glib libiray");
 	g_object_unref (mDoc);
       }
+  }
+
+  bool ApvlvPDF::writefile (const char *filename)
+  {
+    gchar *path = absolutepath (filename);
+    if (path == NULL)
+      {
+	debug ("filename error: %s", filename);
+	return false;
+      }
+
+    GError *error = NULL;
+    gchar *uri = g_filename_to_uri (path, NULL, &error);
+    g_free (path);
+    if (uri == NULL && error)
+      {
+	debug ("%d: %s", error->code, error->message);
+	return false;
+      }
+
+
+    if (mDoc && uri != NULL)
+      {
+	gboolean ret = poppler_document_save (mDoc, uri, NULL);
+	debug ("write pdf: %p to %s, return %d", mDoc, uri, ret);
+	g_free (uri);
+	return ret == TRUE ? true : false;
+      }
+    return false;
   }
 
   bool ApvlvPDF::pagesize (int pn, int rot, double *x, double *y)
@@ -222,7 +252,8 @@ namespace apvlv
 		if (pd->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pd->named_dest);
+								       pd->
+								       named_dest);
 		    if (destnew != NULL)
 		      {
 			ApvlvLink link = { "", destnew->page_num - 1 };
@@ -282,9 +313,7 @@ namespace apvlv
 		if (pagd->dest->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pagd->
-								       dest->
-								       named_dest);
+								       pagd->dest->named_dest);
 		    int pn = 1;
 		    if (destnew != NULL)
 		      {
@@ -362,6 +391,7 @@ namespace apvlv
   ApvlvDJVU::ApvlvDJVU (const char *filename, bool check):ApvlvFile (filename,
 								     check)
   {
+#ifdef HAVE_LIBDJVU
     mContext = ddjvu_context_create ("apvlv");
     if (mContext)
       {
@@ -389,10 +419,14 @@ namespace apvlv
 	mContext = NULL;
 	throw std::bad_alloc ();
       }
+#else
+    throw std::bad_alloc ();
+#endif
   }
 
   ApvlvDJVU::~ApvlvDJVU ()
   {
+#ifdef HAVE_LIBDJVU
     if (mContext)
       {
 	ddjvu_context_release (mContext);
@@ -402,10 +436,32 @@ namespace apvlv
       {
 	ddjvu_document_release (mDoc);
       }
+#endif
+  }
+
+  bool ApvlvDJVU::writefile (const char *filename)
+  {
+#ifdef HAVE_LIBDJVU
+    FILE *fp = fopen (filename, "wb");
+    if (fp != NULL)
+      {
+	ddjvu_job_t *job = ddjvu_document_save (mDoc, fp, 0, NULL);
+	while (!ddjvu_job_done (job))
+	  {
+	    handle_ddjvu_messages (mContext, TRUE);
+	  }
+	fclose (fp);
+	return true;
+      }
+    return false;
+#else
+    return false;
+#endif
   }
 
   bool ApvlvDJVU::pagesize (int pn, int rot, double *x, double *y)
   {
+#ifdef HAVE_LIBDJVU
     ddjvu_status_t t;
     ddjvu_pageinfo_t info[1];
     while ((t = ddjvu_document_get_pageinfo (mDoc, 0, info)) < DDJVU_JOB_OK)
@@ -420,11 +476,18 @@ namespace apvlv
 	debug ("djvu page 1: %f-%f", *x, *y);
       }
     return true;
+#else
+    return false;
+#endif
   }
 
   int ApvlvDJVU::pagesum ()
   {
+#ifdef HAVE_LIBDJVU
     return mDoc ? ddjvu_document_get_pagenum (mDoc) : 0;
+#else
+    return 0;
+#endif
   }
 
   bool ApvlvDJVU::render (int pn, int ix, int iy, double zm, int rot,
@@ -443,7 +506,6 @@ namespace apvlv
     };
     ddjvu_rect_t rrect[1] = { {0, 0, ix, iy}
     };
-    debug ("for fender: ");
     ddjvu_format_t *format =
       ddjvu_format_create (DDJVU_FORMAT_RGB24, 0, NULL);
     ddjvu_format_set_row_order (format, TRUE);
@@ -451,7 +513,8 @@ namespace apvlv
 	   (tpage, DDJVU_RENDER_COLOR, prect, rrect, format, 3 * ix,
 	    (char *) buffer) == FALSE)
       {
-	debug ("fender failed");
+	usleep (50 * 1000);
+	debug ("fender failed, retry");
       }
 
     /*  
@@ -463,7 +526,6 @@ namespace apvlv
        g_list_reverse (poppler_page_get_link_mapping (tpage));
        debug ("has mLinkMappings: %p", ac->mLinkMappings); */
 
-    debug ("for fender: ");
     return true;
 #else
     return false;
@@ -493,5 +555,4 @@ namespace apvlv
   void ApvlvDJVU::free_index (ApvlvFileIndex * index)
   {
   }
-
 }

@@ -33,7 +33,6 @@
 # include "config.hpp"
 #endif
 
-#include <glib/poppler.h>
 #include <gtk/gtk.h>
 #include <string.h>
 
@@ -71,8 +70,6 @@ namespace apvlv
 #define CORE_DIR        3
 
   GtkWidget *replace_widget (GtkWidget * owid, GtkWidget * nwid);
-
-  PopplerDocument *file_to_popplerdoc (const char *filename);
 
   // function return type
   typedef enum
