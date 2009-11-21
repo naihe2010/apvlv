@@ -155,10 +155,29 @@ namespace apvlv
       }
     else
       {
-	mDoc = file_to_popplerdoc (path);
-	if (mDoc != NULL && (mIndex = poppler_index_iter_new (mDoc)) != NULL)
+	try
+	{
+	  mFile = new ApvlvPDF (path);
+	}
+	catch (bad_alloc)
+	{
+	  delete mFile;
+
+	  try
 	  {
-	    mReady = walk_poppler_iter_index (NULL, mIndex);
+	    mFile = new ApvlvDJVU (path);
+	  }
+	  catch (bad_alloc)
+	  {
+	    delete mFile;
+	    mFile = NULL;
+	  }
+	}
+
+	if (mFile != NULL && (mIndex = mFile->new_index ()) != NULL)
+	  {
+	    ApvlvFileIndexIter itr = mIndex->children.begin ();
+	    mReady = walk_file_index (NULL, itr);
 	  }
 	else
 	  {
@@ -192,7 +211,7 @@ namespace apvlv
 
     if (mIndex != NULL)
       {
-	poppler_index_iter_free (mIndex);
+	mFile->free_index (mIndex);
       }
 
     delete mStatus;
@@ -480,74 +499,44 @@ namespace apvlv
     mActive = act;
   }
 
-  bool
-    ApvlvDir::walk_poppler_iter_index (GtkTreeIter * titr,
-				       PopplerIndexIter * iter)
+  bool ApvlvDir::walk_file_index (GtkTreeIter * titr, ApvlvFileIndexIter iter)
   {
     bool has = false;
-    do
-      {
-	GtkTreeIter nitr[1];
+    for (; iter != mIndex->children.end (); ++iter);
+    {
+      GtkTreeIter nitr[1];
 
-	PopplerAction *act = poppler_index_iter_get_action (iter);
-	if (act)
-	  {
-	    if (*(PopplerActionType *) act == POPPLER_ACTION_GOTO_DEST)
-	      {
-		PopplerActionGotoDest *pagd = (PopplerActionGotoDest *) act;
-		ApvlvDirNode *node = NULL;
-		if (pagd->dest->type == POPPLER_DEST_NAMED)
-		  {
-		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pagd->
-								       dest->
-								       named_dest);
-		    int pn = 1;
-		    if (destnew != NULL)
-		      {
-			pn = destnew->page_num - 1;
-			poppler_dest_free (destnew);
-		      }
-		    node = new ApvlvDirNode (pn);
-		  }
-		else
-		  {
-		    node = new ApvlvDirNode (pagd->dest->page_num - 1);
-		  }
+      ApvlvDirNode *node = NULL;
+      node = new ApvlvDirNode (iter->page);
 
-		if (node != NULL)
-		  {
-		    mDirNodes = g_slist_append (mDirNodes, node);
-		    has = true;
-		    gtk_tree_store_append (mStore, nitr, titr);
-		    GdkPixbuf *pix =
-		      gdk_pixbuf_new_from_file_at_size (iconreg.c_str (), 40,
-							20, NULL);
-		    if (pix)
-		      {
-			gtk_tree_store_set (mStore, nitr, 0, node, 1, pix, 2,
-					    pagd->title, -1);
-			g_object_unref (pix);
-		      }
-		    else
-		      {
-			gtk_tree_store_set (mStore, nitr, 0, node, 2,
-					    pagd->title, -1);
-		      }
-		  }
-	      }
-	    poppler_action_free (act);
-	  }
+      if (node != NULL)
+	{
+	  mDirNodes = g_slist_append (mDirNodes, node);
+	  has = true;
+	  gtk_tree_store_append (mStore, nitr, titr);
+	  GdkPixbuf *pix =
+	    gdk_pixbuf_new_from_file_at_size (iconreg.c_str (), 40,
+					      20, NULL);
+	  if (pix)
+	    {
+	      gtk_tree_store_set (mStore, nitr, 0, node, 1, pix, 2,
+				  iter->title.c_str (), -1);
+	      g_object_unref (pix);
+	    }
+	  else
+	    {
+	      gtk_tree_store_set (mStore, nitr, 0, node, 2,
+				  iter->title.c_str (), -1);
+	    }
+	}
 
-	PopplerIndexIter *child = poppler_index_iter_get_child (iter);
-	if (child)
-	  {
-	    bool chas = walk_poppler_iter_index (has ? nitr : NULL, child);
-	    has = has ? has : chas;
-	    poppler_index_iter_free (child);
-	  }
-      }
-    while (poppler_index_iter_next (iter));
+      if (iter->children.size () > 0)
+	{
+	  bool chas =
+	    walk_file_index (has ? nitr : NULL, iter->children.begin ());
+	  has = has ? has : chas;
+	}
+    }
     return has;
   }
 
@@ -617,8 +606,7 @@ namespace apvlv
 	gchar *bn;
 	bn = g_path_get_basename (mDoc->filename ());
 	g_snprintf (temp[0], sizeof temp[0], "%s", bn);
-	g_snprintf (temp[1], sizeof temp[1], "%d/%d", mDoc->pagenumber (),
-		    mDoc->pagesum ());
+	g_snprintf (temp[1], sizeof temp[1], "apvlv");
 	g_snprintf (temp[2], sizeof temp[2], "%d%%",
 		    (int) (mDoc->zoomvalue () * 100));
 	g_snprintf (temp[3], sizeof temp[3], "%d%%",

@@ -33,16 +33,12 @@
 # include "config.hpp"
 #endif
 
+#include "ApvlvFile.hpp"
 #include "ApvlvCore.hpp"
 #include "ApvlvUtil.hpp"
 
 #include <gtk/gtk.h>
-#include <glib/poppler.h>
 #include <stdlib.h>
-
-#ifdef HAVE_LIBDJVU
-# include <libdjvu/ddjvuapi.h>
-#endif
 
 #include <iostream>
 #include <vector>
@@ -55,7 +51,7 @@ namespace apvlv
 {
   struct PrintData
   {
-    PopplerDocument *doc;
+    ApvlvFile *file;
     guint frmpn, endpn;
   };
 
@@ -71,11 +67,11 @@ namespace apvlv
   class ApvlvDocCache
   {
   public:
-    ApvlvDocCache (ApvlvDoc *);
+    ApvlvDocCache (ApvlvFile *);
 
     ~ApvlvDocCache ();
 
-    void set (guint p, bool delay = true);
+    void set (guint p, double zm, guint rot, bool delay = true);
 
     static void load (ApvlvDocCache *);
 
@@ -87,12 +83,13 @@ namespace apvlv
 
     GdkPixbuf *getbuf (bool wait);
 
-    GList *getlinks ();
+    ApvlvLinks *getlinks ();
 
   private:
-      ApvlvDoc * mDoc;
-    PopplerPage *mPage;
-    GList *mLinkMappings;
+      ApvlvFile * mFile;
+    ApvlvLinks *mLinks;
+    double mZoom;
+    double mRotate;
     gint mPagenum;
     guchar *mData;
     GdkPixbuf *mBuf;
@@ -124,26 +121,16 @@ namespace apvlv
 
      ~ApvlvDoc ();
 
+    ApvlvFile *file ()
+    {
+      return mFile;
+    }
+
     void setactive (bool act);
 
     bool hascontent ();
 
-    void *getdoc ();
-
     ApvlvDoc *copy ();
-
-    void getpagesize (PopplerPage * p, double *x, double *y);
-
-    void getpagesize (int, double *x, double *y);
-
-    bool getpagetext (PopplerPage * p, char **contents);
-
-    int doctype ()
-    {
-      return mDocType;
-    }
-
-    gint pagesum ();
 
     bool usecache ();
 
@@ -190,8 +177,6 @@ namespace apvlv
 
     bool needsearch (const char *str, bool reverse = false);
 
-    GList *searchpage (int num, bool reverse = false);
-
     void gotolink (int ct);
 
     void returnlink (int ct);
@@ -218,13 +203,7 @@ namespace apvlv
     static void end_print (GtkPrintOperation * operation,
 			   GtkPrintContext * context, PrintData * data);
 
-    int mDocType;
-
-    PopplerDocument *mPDFDoc;
-#ifdef HAVE_LIBDJVU
-    ddjvu_context_t *mDjvuContext;
-    ddjvu_document_t *mDjvuDoc;
-#endif
+    ApvlvFile *mFile;
 
     ApvlvDocPositionMap mPositions;
       vector < ApvlvDocPosition > mLinkPositions;

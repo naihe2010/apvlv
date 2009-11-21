@@ -32,7 +32,6 @@
 #ifndef WIN32
 #include <wait.h>
 #endif
-#include <sys/stat.h>
 #include <gtk/gtk.h>
 
 #ifdef WIN32
@@ -41,7 +40,6 @@
 
 #include <string>
 #include <iostream>
-#include <fstream>
 using namespace std;
 
 namespace apvlv
@@ -139,91 +137,6 @@ namespace apvlv
     gtk_container_add (GTK_CONTAINER (parent), nwid);
     gtk_widget_show_all (parent);
     return parent;
-  }
-
-  // get a PopplerDocument from a given file
-  // return the pointer
-  PopplerDocument *file_to_popplerdoc (const char *filename)
-  {
-    static gchar *mRawdata = NULL;
-    static guint mRawdatasize = 0;
-    gchar *wfilename;
-
-    if (filename == NULL
-	|| *filename == '\0'
-	|| g_file_test (filename, G_FILE_TEST_IS_REGULAR) == FALSE
-	|| (wfilename =
-	    g_locale_from_utf8 (filename, -1, NULL, NULL, NULL)) == NULL)
-      {
-	errp ("filename error: %s", filename ? filename : "No name");
-	return NULL;
-      }
-
-    size_t filelen;
-    struct stat sbuf;
-    int rt = stat (wfilename, &sbuf);
-    if (rt < 0)
-      {
-	errp ("Can't stat the PDF file: %s.", filename);
-	return NULL;
-      }
-    filelen = sbuf.st_size;
-
-    if (mRawdata != NULL && mRawdatasize < filelen)
-      {
-	delete[]mRawdata;
-	mRawdata = NULL;
-      }
-
-    if (mRawdata == NULL)
-      {
-	mRawdata = new char[filelen];
-	mRawdatasize = filelen;
-      }
-
-    ifstream ifs (wfilename, ios::binary);
-    if (ifs.is_open ())
-      {
-	ifs.read (mRawdata, filelen);
-	ifs.close ();
-      }
-
-    g_free (wfilename);
-
-    PopplerDocument *doc =
-      poppler_document_new_from_data (mRawdata, filelen, NULL, NULL);
-
-    if (doc == NULL
-	//            && POPPLER_ERROR == POPPLER_ERROR_ENCRYPTED) /* fix this later */
-      )
-      {
-	GtkWidget *dia = gtk_message_dialog_new (NULL,
-						 GTK_DIALOG_DESTROY_WITH_PARENT,
-						 GTK_MESSAGE_QUESTION,
-						 GTK_BUTTONS_OK_CANCEL,
-						 "Maybe this PDF file is encrypted, please input a password:");
-
-	GtkWidget *entry = gtk_entry_new ();
-	gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dia)->vbox), entry, TRUE,
-			    TRUE, 10);
-	gtk_widget_show (entry);
-
-	int ret = gtk_dialog_run (GTK_DIALOG (dia));
-	if (ret == GTK_RESPONSE_OK)
-	  {
-	    gchar *ans = (gchar *) gtk_entry_get_text (GTK_ENTRY (entry));
-	    if (ans != NULL)
-	      {
-		doc =
-		  poppler_document_new_from_data (mRawdata, filelen, ans,
-						  NULL);
-	      }
-	  }
-
-	gtk_widget_destroy (dia);
-      }
-
-    return doc;
   }
 
   void

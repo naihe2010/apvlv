@@ -173,11 +173,6 @@ namespace apvlv
     return mRotatevalue;
   }
 
-  gint ApvlvCore::pagesum ()
-  {
-    return 1;
-  }
-
   gdouble ApvlvCore::zoomvalue ()
   {
     return mZoomrate;

@@ -107,8 +107,7 @@ namespace apvlv
 
     static void apvlv_dir_on_changed (GtkTreeSelection *, ApvlvDir *);
 
-    bool walk_poppler_iter_index (GtkTreeIter * titr,
-				  PopplerIndexIter * iter);
+    bool walk_file_index (GtkTreeIter * titr, ApvlvFileIndexIter iter);
 
     bool walk_dir_path_index (GtkTreeIter * titr, const char *path);
 
@@ -116,8 +115,8 @@ namespace apvlv
 
     gint mFirstSelTimer;
 
-    PopplerDocument *mDoc;
-    PopplerIndexIter *mIndex;
+    ApvlvFile *mFile;
+    ApvlvFileIndex *mIndex;
 
     GSList *mDirNodes;
 

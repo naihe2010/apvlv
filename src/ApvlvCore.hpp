@@ -33,6 +33,7 @@
 # include "config.hpp"
 #endif
 
+#include "ApvlvFile.hpp"
 #include "ApvlvUtil.hpp"
 
 #include <gtk/gtk.h>
@@ -89,8 +90,6 @@ namespace apvlv
 
     virtual gint pagenumber ();
 
-    virtual gint pagesum ();
-
     virtual void showpage (gint, gdouble);
     virtual void refresh ();
 
@@ -132,7 +131,7 @@ namespace apvlv
 
     bool mSearchReverse;
     guint mSearchSelect;
-    GList *mSearchResults;
+    ApvlvPoses *mSearchResults;
     string mSearchStr;
 
     enum

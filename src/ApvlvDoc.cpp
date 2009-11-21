@@ -51,34 +51,9 @@
 
 namespace apvlv
 {
-#ifdef HAVE_LIBDJVU
-  void handle_ddjvu_messages (ddjvu_context_t * ctx, int wait)
-  {
-    const ddjvu_message_t *msg;
-    if (wait)
-        ddjvu_message_wait (ctx);
-    while ((msg = ddjvu_message_peek (ctx)))
-      {
-	debug ("tag: %d", msg->m_any.tag);
-	switch (msg->m_any.tag)
-	  {
-	  case DDJVU_ERROR:
-	    break;
-	    case DDJVU_INFO:break;
-	    case DDJVU_PAGEINFO:break;
-	    default:break;
-	  }
-	ddjvu_message_pop (ctx);
-      }
-  }
-#endif
-
-  enum
-  { AD_NONE, AD_PDF, AD_DJVU };
-
   static GtkPrintSettings *settings = NULL;
 
-  ApvlvDoc::ApvlvDoc (int w, int h, const char *zm, bool cache)
+    ApvlvDoc::ApvlvDoc (int w, int h, const char *zm, bool cache)
   {
     mCurrentCache1 = mCurrentCache2 = NULL;
 
@@ -98,13 +73,7 @@ namespace apvlv
 
     mRotatevalue = 0;
 
-    mPDFDoc = NULL;
-#ifdef HAVE_LIBDJVU
-    mDjvuContext = NULL;
-    mDjvuDoc = NULL;
-#endif
-
-    mDocType = AD_NONE;
+    mFile = NULL;
 
     mSearchResults = NULL;
     mSearchStr = "";
@@ -157,13 +126,6 @@ namespace apvlv
     mPositions.clear ();
 
     delete mStatus;
-
-    if (mPDFDoc)
-      {
-	debug ("Free the PopplerDocument");
-	debug ("And, Maybe there is some bugs in poppler-glib libiray");
-	g_object_unref (mPDFDoc);
-      }
   }
 
   returnType ApvlvDoc::subprocess (int ct, guint key)
@@ -309,16 +271,6 @@ namespace apvlv
     return ndoc;
   }
 
-  void *ApvlvDoc::getdoc ()
-  {
-#ifdef HAVE_LIBDJVU
-    return mDocType == AD_PDF ? (void *) mPDFDoc :
-      mDocType == AD_DJVU ? (void *) mDjvuDoc : NULL;
-#else
-    return mDocType == AD_PDF ? (void *) mPDFDoc : NULL;
-#endif
-  }
-
   bool ApvlvDoc::savelastposition ()
   {
     if (filename () == NULL || gParams->valueb ("noinfo"))
@@ -434,60 +386,48 @@ namespace apvlv
 
     mReady = false;
 
+    try
+    {
+      mFile = new ApvlvPDF (filename);
+    }
 
-    mPDFDoc = file_to_popplerdoc (filename);
-    if (mPDFDoc != NULL)
+    catch (bad_alloc e)
+    {
+      delete mFile;
+
+      try
       {
-	mDocType = AD_PDF;
+	mFile = new ApvlvDJVU (filename);
       }
-
-#ifdef HAVE_LIBDJVU
-    if (mDocType == AD_NONE)
+      catch (bad_alloc e)
       {
-	mDjvuContext = ddjvu_context_create ("apvlv");
-	if (mDjvuContext)
-	  {
-	    mDjvuDoc =
-	      ddjvu_document_create_by_filename (mDjvuContext, filename,
-						 FALSE);
-	  }
-
-	if (mDjvuDoc != NULL)
-	  {
-	    if (ddjvu_document_get_type (mDjvuDoc) != DDJVU_DOCTYPE_UNKNOWN)
-	      {
-		debug ("type: %d", ddjvu_document_get_type (mDjvuDoc));
-		mDocType = AD_DJVU;
-	      }
-	    else
-	      {
-		ddjvu_document_release (mDjvuDoc);
-		ddjvu_context_release (mDjvuContext);
-		mDjvuDoc = NULL;
-	      }
-	  }
+	debug ("");
+	mFile = NULL;
+	delete mFile;
       }
-#endif
-    if (mDocType != AD_NONE)
+    }
+
+    debug ("mFile = %p", mFile);
+    if (mFile != NULL)
       {
 	mFilestr = filename;
 
-	if (pagesum () <= 1)
+	if (mFile->pagesum () <= 1)
 	  {
-	    debug ("pagesum () = %d", pagesum ());
+	    debug ("pagesum () = %d", mFile->pagesum ());
 	    mContinuous = false;
 	    mAutoScrollDoc = false;
 	    mAutoScrollPage = false;
 	  }
 
-	debug ("pagesum () = %d", pagesum ());
+	debug ("pagesum () = %d", mFile->pagesum ());
 
 	if (mCurrentCache1 != NULL)
 	  {
 	    delete mCurrentCache1;
 	    mCurrentCache2 = NULL;
 	  }
-	mCurrentCache1 = new ApvlvDocCache (this);
+	mCurrentCache1 = new ApvlvDocCache (mFile);
 
 	if (mCurrentCache2 != NULL)
 	  {
@@ -497,7 +437,7 @@ namespace apvlv
 
 	if (mContinuous == true)
 	  {
-	    mCurrentCache2 = new ApvlvDocCache (this);
+	    mCurrentCache2 = new ApvlvDocCache (mFile);
 	  }
 
 	loadlastposition ();
@@ -509,24 +449,14 @@ namespace apvlv
 	mReady = true;
       }
 
-    return mDocType == AD_NONE ? false : true;
-  }
-
-  gint ApvlvDoc::pagesum ()
-  {
-#ifdef HAVE_LIBDJVU
-    return mPDFDoc ? poppler_document_get_n_pages (mPDFDoc) :
-      mDjvuDoc ? ddjvu_document_get_pagenum (mDjvuDoc) : 0;
-#else
-    return mPDFDoc ? poppler_document_get_n_pages (mPDFDoc) : 0;
-#endif
+    return mFile == NULL ? false : true;
   }
 
   int ApvlvDoc::convertindex (int p)
   {
-    if (mDocType != AD_NONE)
+    if (mFile != NULL)
       {
-	int c = pagesum ();
+	int c = mFile->pagesum ();
 
 	if (p >= 0 && p < c)
 	  {
@@ -597,31 +527,7 @@ namespace apvlv
       {
 	mZoominit = true;
 
-	if (mDocType == AD_PDF)
-	  {
-	    PopplerPage *mPage = poppler_document_get_page (mPDFDoc, rp);
-	    getpagesize (mPage, &mPagex, &mPagey);
-	  }
-#ifdef HAVE_LIBDJVU
-	else if (mDocType == AD_DJVU)
-	  {
-	    ddjvu_status_t t;
-	    ddjvu_pageinfo_t info[1];
-	    while ((t =
-		    ddjvu_document_get_pageinfo (mDjvuDoc, 0,
-						 info)) < DDJVU_JOB_OK)
-	      {
-		handle_ddjvu_messages (mDjvuContext, true);
-	      }
-
-	    if (t == DDJVU_JOB_OK)
-	      {
-		mPagex = info->width;
-		mPagey = info->height;
-		debug ("djvu page 1: %f-%f", mPagex, mPagey);
-	      }
-	  }
-#endif
+	mFile->pagesize (0, mRotatevalue, &mPagex, &mPagey);
 
 	switch (mZoommode)
 	  {
@@ -661,15 +567,16 @@ namespace apvlv
 
   void ApvlvDoc::refresh ()
   {
-    if (mDocType == AD_NONE)
+    if (mFile == NULL)
       return;
 
-    mCurrentCache1->set (mPagenum, false);
+    mCurrentCache1->set (mPagenum, mZoomrate, mRotatevalue, false);
     GdkPixbuf *buf = mCurrentCache1->getbuf (true);
     gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), buf);
     if (mAutoScrollPage && mContinuous)
       {
-	mCurrentCache2->set (convertindex (mPagenum + 1), false);
+	mCurrentCache2->set (convertindex (mPagenum + 1), mZoomrate,
+			     mRotatevalue, false);
 	buf = mCurrentCache2->getbuf (true);
 	gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), buf);
       }
@@ -722,17 +629,16 @@ namespace apvlv
   void ApvlvDoc::markselection ()
   {
     debug ("mSelect: %d.", mSearchSelect);
-    GList *selist = g_list_nth (mSearchResults, mSearchSelect);
-    PopplerRectangle *rect = (PopplerRectangle *) selist->data;
+    ApvlvPos rect = (*mSearchResults)[mSearchSelect];
 
     debug ("zoomrate: %f", mZoomrate);
 
     // Caculate the correct position
     //debug ("pagex: %f, pagey: %f, x1: %f, y1: %f, x2: %f, y2: %f", mPagex, mPagey, rect->x1, rect->y1, rect->x2, rect->y2);
-    gint x1 = (gint) ((rect->x1) * mZoomrate);
-    gint x2 = (gint) ((rect->x2) * mZoomrate);
-    gint y1 = (gint) ((mPagey - rect->y2) * mZoomrate);
-    gint y2 = (gint) ((mPagey - rect->y1) * mZoomrate);
+    gint x1 = (gint) ((rect.x) * mZoomrate);
+    gint x2 = (gint) ((rect.w) * mZoomrate);
+    gint y1 = (gint) ((mPagey - rect.h) * mZoomrate);
+    gint y2 = (gint) ((mPagey - rect.y) * mZoomrate);
     debug ("x1: %d, y1: %d, x2: %d, y2: %d", x1, y1, x2, y2);
 
     // make the selection at the page center
@@ -770,7 +676,7 @@ namespace apvlv
 	gtk_adjustment_set_value (mHaj, mHaj->lower);
       }
 
-    mCurrentCache1->set (mPagenum);
+    mCurrentCache1->set (mPagenum, mZoomrate, mRotatevalue);
     guchar *pagedata = mCurrentCache1->getdata (true);
     GdkPixbuf *pixbuf = mCurrentCache1->getbuf (true);
 
@@ -787,16 +693,14 @@ namespace apvlv
       }
 
     // change the back color of the selection
-    for (selist = mSearchResults; selist != NULL;
-	 selist = g_list_next (selist))
+    for (ApvlvPoses::const_iterator itr = mSearchResults->begin ();
+	 itr != mSearchResults->end (); itr++)
       {
-	PopplerRectangle *rect = (PopplerRectangle *) selist->data;
-
 	// Caculate the correct position
-	x1 = (gint) ((rect->x1) * mZoomrate);
-	x2 = (gint) ((rect->x2) * mZoomrate);
-	y1 = (gint) ((mPagey - rect->y2) * mZoomrate);
-	y2 = (gint) ((mPagey - rect->y1) * mZoomrate);
+	x1 = (gint) ((itr->x) * mZoomrate);
+	x2 = (gint) ((itr->w) * mZoomrate);
+	y1 = (gint) ((mPagey - itr->h) * mZoomrate);
+	y2 = (gint) ((mPagey - itr->y) * mZoomrate);
 
 	for (gint y = y1; y < y2; y++)
 	  {
@@ -814,28 +718,6 @@ namespace apvlv
     debug ("helight num: %d", mPagenum);
   }
 
-  GList *ApvlvDoc::searchpage (int num, bool reverse)
-  {
-    debug ("search num: %d", num);
-    PopplerPage *page;
-
-    if (mDocType == AD_NONE
-	|| (page = poppler_document_get_page (mPDFDoc, num)) == NULL)
-      {
-	return NULL;
-      }
-
-    GList *list = poppler_page_find_text (page, mSearchStr.c_str ());
-    if (reverse)
-      {
-	list = g_list_reverse (list);
-      }
-
-    mSearchReverse = reverse;
-
-    return list;
-  }
-
   bool ApvlvDoc::continuous ()
   {
     return mContinuous;
@@ -843,7 +725,7 @@ namespace apvlv
 
   bool ApvlvDoc::needsearch (const char *str, bool reverse)
   {
-    if (mDocType == AD_NONE)
+    if (mFile == NULL)
       return false;
 
     // search a different string
@@ -865,13 +747,12 @@ namespace apvlv
     // same string, but need to search next page
     else
       if (((mSearchReverse == reverse)
-	   && mSearchSelect == g_list_length (mSearchResults) - 1)
+	   && mSearchSelect == mSearchResults->size () - 1)
 	  || ((mSearchReverse != reverse) && mSearchSelect == 0))
       {
 	debug
 	  ("same, but need next string: S: %d, s: %d, sel: %d, max: %d.",
-	   mSearchReverse, reverse, mSearchSelect,
-	   g_list_length (mSearchResults));
+	   mSearchReverse, reverse, mSearchSelect, mSearchResults->size ());
 	mSearchSelect = 0;
 	return true;
       }
@@ -881,7 +762,7 @@ namespace apvlv
       {
 	debug
 	  ("same, not need next string. sel: %d, max: %u",
-	   mSearchSelect, g_list_length (mSearchResults));
+	   mSearchSelect, mSearchResults->size ());
 	if (mSearchReverse == reverse)
 	  {
 	    mSearchSelect++;
@@ -905,23 +786,16 @@ namespace apvlv
 
     if (mSearchResults != NULL)
       {
-	while (mSearchResults != NULL)
-	  {
-	    PopplerRectangle *rect =
-	      (PopplerRectangle *) mSearchResults->data;
-	    g_free (rect);
-	    mSearchResults = g_list_next (mSearchResults);
-	  }
-	g_list_free (mSearchResults);
+	delete mSearchResults;
 	mSearchResults = NULL;
       }
 
     int i =
       strlen (str) > 0 ? mPagenum : reverse ? mPagenum - 1 : mPagenum + 1;
-    int sum = pagesum (), from = i;
+    int sum = mFile->pagesum (), from = i;
     while (1)
       {
-	mSearchResults = searchpage ((i + sum) % sum, reverse);
+	mSearchResults = mFile->pagesearch ((i + sum) % sum, reverse);
 	if (mSearchResults != NULL)
 	  {
 	    showpage ((i + sum) % sum, 0.5);
@@ -944,63 +818,13 @@ namespace apvlv
       }
   }
 
-  void ApvlvDoc::getpagesize (PopplerPage * p, double *x, double *y)
-  {
-    if (mRotatevalue == 90 || mRotatevalue == 270)
-      {
-	poppler_page_get_size (p, y, x);
-      }
-    else
-      {
-	poppler_page_get_size (p, x, y);
-      }
-  }
-
-  void ApvlvDoc::getpagesize (int pn, double *x, double *y)
-  {
-#ifdef HAVE_LIBDJVU
-    if (mDocType == AD_DJVU)
-      {
-	ddjvu_status_t t;
-	ddjvu_pageinfo_t info[1];
-	while ((t =
-		ddjvu_document_get_pageinfo (mDjvuDoc, 0,
-					     info)) < DDJVU_JOB_OK)
-	  {
-	    handle_ddjvu_messages (mDjvuContext, true);
-	  }
-
-	if (t == DDJVU_JOB_OK)
-	  {
-	    *x = info->width;
-	    *y = info->height;
-	    debug ("djvu page %d: %f-%f", pn, *x, *y);
-	  }
-      }
-#endif
-  }
-
-  bool ApvlvDoc::getpagetext (PopplerPage * page, char **text)
-  {
-    double x, y;
-    getpagesize (page, &x, &y);
-    PopplerRectangle rect = { 0, 0, x, y };
-    *text = poppler_page_get_text (page, POPPLER_SELECTION_WORD, &rect);
-    if (*text != NULL)
-      {
-	return true;
-      }
-    return false;
-  }
-
   bool ApvlvDoc::totext (const char *file)
   {
-    if (mDocType == AD_NONE)
+    if (mFile == NULL)
       return false;
 
-    PopplerPage *page = mCurrentCache1->getpage ();
     char *txt;
-    bool ret = getpagetext (page, &txt);
+    bool ret = mFile->pagetext (mPagenum, &txt);
     if (ret == true)
       {
 	g_file_set_contents (file, txt, -1, NULL);
@@ -1038,46 +862,16 @@ namespace apvlv
 
   void ApvlvDoc::gotolink (int ct)
   {
-    int nn = -1;
+    ApvlvLinks *links = mCurrentCache1->getlinks ();
 
-    PopplerLinkMapping *map =
-      (PopplerLinkMapping *) g_list_nth_data (mCurrentCache1->getlinks (),
-					      ct - 1);
-
-    debug ("Ctrl-] %d", ct);
-    if (map)
-      {
-	PopplerAction *act = map->action;
-	if (act && *(PopplerActionType *) act == POPPLER_ACTION_GOTO_DEST)
-	  {
-	    PopplerDest *pd = ((PopplerActionGotoDest *) act)->dest;
-	    if (pd->type == POPPLER_DEST_NAMED)
-	      {
-		PopplerDest *destnew = poppler_document_find_dest (mPDFDoc,
-								   pd->named_dest);
-		if (destnew != NULL)
-		  {
-		    nn = destnew->page_num - 1;
-		    debug ("nn: %d", nn);
-		    poppler_dest_free (destnew);
-		  }
-	      }
-	    else
-	      {
-		nn = pd->page_num - 1;
-		debug ("nn: %d", nn);
-	      }
-	  }
-      }
-
-    if (nn >= 0)
+    if (ct > 0 && ct < (int) links->size ())
       {
 	markposition ('\'');
 
 	ApvlvDocPosition p = { mPagenum, scrollrate () };
 	mLinkPositions.push_back (p);
 
-	showpage (nn);
+	showpage ((*links)[ct].mPage);
       }
   }
 
@@ -1109,7 +903,7 @@ namespace apvlv
     gtk_print_operation_set_show_progress (print, TRUE);
 
     PrintData *data = new PrintData;
-    data->doc = mPDFDoc;
+    data->file = mFile;
     data->frmpn = mPagenum;
     data->endpn = mPagenum;
 
@@ -1185,6 +979,7 @@ namespace apvlv
 			 GtkPrintContext * context,
 			 gint page_nr, PrintData * data)
   {
+#if 0
     cairo_t *cr = gtk_print_context_get_cairo_context (context);
     PopplerPage *page =
       poppler_document_get_page (data->doc, data->frmpn + page_nr);
@@ -1193,6 +988,7 @@ namespace apvlv
     PangoLayout *layout = gtk_print_context_create_pango_layout (context);
     pango_cairo_show_layout (cr, layout);
     g_object_unref (layout);
+#endif
   }
 
   void
@@ -1203,18 +999,21 @@ namespace apvlv
   }
 #endif
 
-  ApvlvDocCache::ApvlvDocCache (ApvlvDoc * dc)
+  ApvlvDocCache::ApvlvDocCache (ApvlvFile * file)
   {
-    mDoc = dc;
+    mFile = file;
     mPagenum = -1;
     mData = NULL;
     mBuf = NULL;
-    mLinkMappings = NULL;
+    mLinks = NULL;
   }
 
-  void ApvlvDocCache::set (guint p, bool delay)
+  void ApvlvDocCache::set (guint p, double zm, guint rot, bool delay)
   {
     mPagenum = p;
+    mZoom = zm;
+    mRotate = rot;
+
     if (mData != NULL)
       {
 	delete[]mData;
@@ -1225,10 +1024,10 @@ namespace apvlv
 	g_object_unref (mBuf);
 	mBuf = NULL;
       }
-    if (mLinkMappings != NULL)
+    if (mLinks != NULL)
       {
-	g_list_free (mLinkMappings);
-	mLinkMappings = NULL;
+	delete mLinks;
+	mLinks = NULL;
       }
 
     load (this);
@@ -1236,131 +1035,52 @@ namespace apvlv
 
   void ApvlvDocCache::load (ApvlvDocCache * ac)
   {
-    int c = ac->mDoc->pagesum ();
+    int c = ac->mFile->pagesum ();
 
-    if (ac->mDoc->doctype () == AD_PDF)
+    if (ac->mPagenum < 0 || ac->mPagenum >= c)
       {
-	PopplerPage *tpage;
-
-	if (ac->mPagenum < 0
-	    || ac->mPagenum >= c
-	    || (tpage =
-		poppler_document_get_page ((PopplerDocument *) ac->mDoc->
-					   getdoc (), ac->mPagenum)) == NULL)
-	  {
-	    debug ("no this page: %d", ac->mPagenum);
-	    return;
-	  }
-
-	double tpagex, tpagey;
-	ac->mDoc->getpagesize (tpage, &tpagex, &tpagey);
-
-	int ix = (int) (tpagex * ac->mDoc->zoomvalue ()), iy =
-	  (int) (tpagey * ac->mDoc->zoomvalue ());
-
-	guchar *dat = new guchar[ix * iy * 3];
-
-	GdkPixbuf *bu = gdk_pixbuf_new_from_data (dat, GDK_COLORSPACE_RGB,
-						  FALSE,
-						  8,
-						  ix, iy,
-						  3 * ix,
-						  NULL, NULL);
-
-	poppler_page_render_to_pixbuf (tpage, 0, 0, ix, iy,
-				       ac->mDoc->zoomvalue (),
-				       ac->mDoc->getrotate (), bu);
-
-	if (ac->mLinkMappings)
-	  {
-	    poppler_page_free_link_mapping (ac->mLinkMappings);
-	  }
-	ac->mLinkMappings =
-	  g_list_reverse (poppler_page_get_link_mapping (tpage));
-	debug ("has mLinkMappings: %p", ac->mLinkMappings);
-
-	ac->mPage = tpage;
-	ac->mData = dat;
-	ac->mBuf = bu;
+	debug ("no this page: %d", ac->mPagenum);
+	return;
       }
-#ifdef HAVE_LIBDJVU
-    else if (ac->mDoc->doctype () == AD_DJVU)
+
+    double tpagex, tpagey;
+    ac->mFile->pagesize (ac->mPagenum, ac->mRotate, &tpagex, &tpagey);
+
+    int ix = (int) (tpagex * ac->mZoom), iy = (int) (tpagey * ac->mZoom);
+
+    guchar *dat = new guchar[ix * iy * 3];
+
+    GdkPixbuf *bu = gdk_pixbuf_new_from_data (dat, GDK_COLORSPACE_RGB,
+					      FALSE,
+					      8,
+					      ix, iy,
+					      3 * ix,
+					      NULL, NULL);
+    ac->mFile->render (ac->mPagenum, ix, iy, ac->mZoom, ac->mRotate, bu,
+		       (char *) dat);
+
+    if (ac->mLinks)
       {
-	ddjvu_page_t *tpage;
-
-	if (ac->mPagenum < 0
-	    || ac->mPagenum >= c
-	    || (tpage =
-		ddjvu_page_create_by_pageno ((ddjvu_document_t *) ac->mDoc->
-					     getdoc (),
-					     ac->mPagenum)) == NULL)
-	  {
-	    debug ("no this page: %d", ac->mPagenum);
-	    return;
-	  }
-
-	double tpagex, tpagey;
-	ac->mDoc->getpagesize (ac->mPagenum, &tpagex, &tpagey);
-
-	int ix = (int) (tpagex * ac->mDoc->zoomvalue ()), iy =
-	  (int) (tpagey * ac->mDoc->zoomvalue ());
-
-	char *dat = new char[ix * iy * 3];
-
-	GdkPixbuf *bu =
-	  gdk_pixbuf_new_from_data ((guchar *) dat, GDK_COLORSPACE_RGB,
-				    FALSE,
-				    8,
-				    ix, iy,
-				    3 * ix,
-				    NULL, NULL);
-
-	ddjvu_rect_t prect[1] = { {0, 0, tpagex, tpagey} };
-	ddjvu_rect_t rrect[1] = { {0, 0, ix, iy} };
-	debug ("for fender: ");
-	ddjvu_format_t *format =
-	  ddjvu_format_create (DDJVU_FORMAT_RGB24, 0, NULL);
-	ddjvu_format_set_row_order (format, TRUE);
-	while (ddjvu_page_render
-	       (tpage, DDJVU_RENDER_COLOR, prect, rrect, format, 3 * ix,
-		dat) == FALSE)
-	  {
-	    debug ("fender failed");
-	  }
-
-	/*  
-	   if (ac->mLinkMappings)
-	   {
-	   poppler_page_free_link_mapping (ac->mLinkMappings);
-	   }
-	   ac->mLinkMappings =
-	   g_list_reverse (poppler_page_get_link_mapping (tpage));
-	   debug ("has mLinkMappings: %p", ac->mLinkMappings); */
-
-	debug ("for fender: ");
-	ac->mPage = (PopplerPage *) tpage;
-	ac->mData = (guchar *) dat;
-	ac->mBuf = bu;
+	delete ac->mLinks;
       }
-#endif
+    ac->mLinks = ac->mFile->getlinks (ac->mPagenum);
+    debug ("has mLinkMappings: %p", ac->mLinks);
+
+    ac->mData = dat;
+    ac->mBuf = bu;
   }
 
   ApvlvDocCache::~ApvlvDocCache ()
   {
-    if (mLinkMappings)
+    if (mLinks)
       {
-	poppler_page_free_link_mapping (mLinkMappings);
+	delete mLinks;
       }
 
     if (mData != NULL)
       delete[]mData;
     if (mBuf != NULL)
       g_object_unref (mBuf);
-  }
-
-  PopplerPage *ApvlvDocCache::getpage ()
-  {
-    return mPage;
   }
 
   guint ApvlvDocCache::getpagenum ()
@@ -1388,9 +1108,9 @@ namespace apvlv
     return mBuf;
   }
 
-  GList *ApvlvDocCache::getlinks ()
+  ApvlvLinks *ApvlvDocCache::getlinks ()
   {
-    return mLinkMappings;
+    return mLinks;
   }
 
   ApvlvDocStatus::ApvlvDocStatus (ApvlvDoc * doc)
@@ -1458,7 +1178,8 @@ namespace apvlv
 	gchar *bn;
 	bn = g_path_get_basename (mDoc->filename ());
 	g_snprintf (temp[0], sizeof temp[0], "%s", bn);
-	g_snprintf (temp[1], sizeof temp[1], "%d/%d", pn, mDoc->pagesum ());
+	g_snprintf (temp[1], sizeof temp[1], "%d/%d", pn,
+		    mDoc->file ()->pagesum ());
 	g_snprintf (temp[2], sizeof temp[2], "%d%%",
 		    (int) (mDoc->zoomvalue () * 100));
 	g_snprintf (temp[3], sizeof temp[3], "%d%%",
