@@ -77,9 +77,9 @@ namespace apvlv
   class ApvlvFile
   {
   public:
-    ApvlvFile (const char *filename, bool check);
+    virtual ~ ApvlvFile ();
 
-      virtual ~ ApvlvFile ();
+    static ApvlvFile *newfile (const char *filename, bool check = false);
 
     virtual bool writefile (const char *filename) = 0;
 
@@ -107,9 +107,7 @@ namespace apvlv
 
   protected:
 
-    double mWidth, mHeight;
-    gint mPagesum;
-    ApvlvFileIndex *mIndex;
+      ApvlvFileIndex * mIndex;
   };
 
   class ApvlvPDF:public ApvlvFile

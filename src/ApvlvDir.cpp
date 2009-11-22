@@ -38,7 +38,6 @@
 
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
-#include <glib/poppler.h>
 #include <glib/gstdio.h>
 
 #include <iostream>
@@ -699,7 +698,9 @@ namespace apvlv
 		  }
 	      }
 	    else if (g_ascii_strncasecmp (name + strlen (name) - 4, ".pdf", 4)
-		     == 0)
+		     == 0
+		     || g_ascii_strncasecmp (name + strlen (name) - 5,
+					     ".djvu", 5) == 0)
 	      {
 		node = new ApvlvDirNode (false, realname, name);
 

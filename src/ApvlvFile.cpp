@@ -34,7 +34,6 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <glib.h>
-#include <glib/poppler.h>
 
 namespace apvlv
 {
@@ -42,16 +41,38 @@ namespace apvlv
 #define MAX(a,b)        ((a) > (b) ? (a) : (b))
 #endif
 
-  ApvlvFile::ApvlvFile (const char *filename, bool check)
-  {
-  }
-
   ApvlvFile::~ApvlvFile ()
   {
   }
 
-  ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
-								   check)
+  ApvlvFile *ApvlvFile::newfile (const char *filename, bool check)
+  {
+    ApvlvFile *file = NULL;
+
+    try
+    {
+      file = new ApvlvPDF (filename);
+    }
+
+    catch (bad_alloc e)
+    {
+      delete file;
+
+      try
+      {
+	file = new ApvlvDJVU (filename);
+      }
+      catch (bad_alloc e)
+      {
+	file = NULL;
+	delete file;
+      }
+    }
+
+    return file;
+  }
+
+  ApvlvPDF::ApvlvPDF (const char *filename, bool check)
   {
     static gchar *mRawdata = NULL;
     static guint mRawdatasize = 0;
@@ -472,8 +493,7 @@ namespace apvlv
   }
 #endif
 
-  ApvlvDJVU::ApvlvDJVU (const char *filename, bool check):ApvlvFile (filename,
-								     check)
+  ApvlvDJVU::ApvlvDJVU (const char *filename, bool check)
   {
 #ifdef HAVE_LIBDJVU
     mContext = ddjvu_context_create ("apvlv");
@@ -593,22 +613,15 @@ namespace apvlv
     ddjvu_format_t *format =
       ddjvu_format_create (DDJVU_FORMAT_RGB24, 0, NULL);
     ddjvu_format_set_row_order (format, TRUE);
-    while (ddjvu_page_render
+
+    gint retry = 0;
+    while (retry <= 20 && ddjvu_page_render
 	   (tpage, DDJVU_RENDER_COLOR, prect, rrect, format, 3 * ix,
 	    (char *) buffer) == FALSE)
       {
 	usleep (50 * 1000);
-	debug ("fender failed, retry");
+	debug ("fender failed, retry %d", ++retry);
       }
-
-    /*  
-       if (ac->mLinkMappings)
-       {
-       poppler_page_free_link_mapping (ac->mLinkMappings);
-       }
-       ac->mLinkMappings =
-       g_list_reverse (poppler_page_get_link_mapping (tpage));
-       debug ("has mLinkMappings: %p", ac->mLinkMappings); */
 
     return true;
 #else

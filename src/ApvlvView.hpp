@@ -69,9 +69,9 @@ namespace apvlv
 
     void delcurrentWindow ();
 
-    void newtab (const char *filename);
+    bool newtab (const char *filename);
 
-    void newtab (ApvlvCore * core);
+    bool newtab (ApvlvCore * core);
 
     void promptcommand (char ch);
 

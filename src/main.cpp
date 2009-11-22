@@ -212,7 +212,16 @@ main (int argc, char *argv[])
   while (opt < argc)
     {
       path = absolutepath (argv[opt++]);
-      gView->loadfile (path);
+      if (path == NULL)
+	{
+	  continue;
+	}
+
+      if (gView->loadfile (path) == false)
+	{
+	  errp ("Can't open document: %s", path);
+	}
+
       g_free (path);
     }
 

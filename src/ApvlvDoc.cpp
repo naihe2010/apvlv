@@ -39,11 +39,6 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtkprintoperation.h>
-#include <glib/poppler.h>
-
-#ifdef HAVE_LIBDJVU
-#include <libdjvu/ddjvuapi.h>
-#endif
 
 #include <iostream>
 #include <fstream>
@@ -386,26 +381,7 @@ namespace apvlv
 
     mReady = false;
 
-    try
-    {
-      mFile = new ApvlvPDF (filename);
-    }
-
-    catch (bad_alloc e)
-    {
-      delete mFile;
-
-      try
-      {
-	mFile = new ApvlvDJVU (filename);
-      }
-      catch (bad_alloc e)
-      {
-	debug ("");
-	mFile = NULL;
-	delete mFile;
-      }
-    }
+    mFile = ApvlvFile::newfile (filename);
 
     debug ("mFile = %p", mFile);
     if (mFile != NULL)

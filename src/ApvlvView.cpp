@@ -88,7 +88,21 @@ namespace apvlv
     gtk_notebook_set_scrollable (GTK_NOTEBOOK (mTabContainer), TRUE);
     gtk_box_pack_start (GTK_BOX (mViewBox), mTabContainer, TRUE, TRUE, 0);
 
-    newtab (filename);
+    if (newtab (filename) == false)
+      {
+	bool ret = false;
+	gchar *rpath = absolutepath (helppdf.c_str ());
+	if (rpath)
+	  {
+	    ret = newtab (rpath);
+	    g_free (rpath);
+	  }
+
+	if (ret == false)
+	  {
+	    exit (1);
+	  }
+      }
 
     mCommandBar = gtk_entry_new ();
     gtk_box_pack_end (GTK_BOX (mViewBox), mCommandBar, TRUE, TRUE, 0);
@@ -327,7 +341,7 @@ namespace apvlv
     mRootWindow->setsize (mWidth, adjheight ());
   }
 
-  void ApvlvView::newtab (const char *filename)
+  bool ApvlvView::newtab (const char *filename)
   {
     ApvlvCore *ndoc;
     ndoc = hasloaded (filename,
@@ -365,10 +379,15 @@ namespace apvlv
     if (ndoc)
       {
 	newtab (ndoc);
+	return true;
+      }
+    else
+      {
+	return false;
       }
   }
 
-  void ApvlvView::newtab (ApvlvCore * core)
+  bool ApvlvView::newtab (ApvlvCore * core)
   {
     int pos = new_tabcontext (core, true);
 
@@ -390,6 +409,7 @@ namespace apvlv
 
     gtk_widget_show_all (parentbox);
     gtk_notebook_set_current_page (GTK_NOTEBOOK (mTabContainer), mCurrTabPos);
+    return true;
   }
 
   int ApvlvView::new_tabcontext (ApvlvCore * core, bool insertAfterCurr)
@@ -466,54 +486,56 @@ namespace apvlv
       }
 
     char *abpath = absolutepath (filename);
-    if (abpath != NULL)
+    if (abpath == NULL)
       {
-	ApvlvWindow *win = ApvlvWindow::currentWindow ();
-	ApvlvCore *ndoc;
+	return false;
+      }
 
-	ndoc =
-	  hasloaded (abpath,
-		     gParams->valueb ("content") ? CORE_CONTENT : CORE_DOC);
+    ApvlvWindow *win = ApvlvWindow::currentWindow ();
+    ApvlvCore *ndoc;
+
+    ndoc =
+      hasloaded (abpath,
+		 gParams->valueb ("content") ? CORE_CONTENT : CORE_DOC);
+
+    if (ndoc == NULL)
+      {
+	int w, h;
+	win->getsize (&w, &h);
+	if (gParams->valueb ("content"))
+	  {
+	    ndoc = new ApvlvDir (w, h);
+	    if (!ndoc->loadfile (abpath))
+	      {
+		delete ndoc;
+		ndoc = NULL;
+	      }
+	  }
 
 	if (ndoc == NULL)
 	  {
-	    int w, h;
-	    win->getsize (&w, &h);
-	    if (gParams->valueb ("content"))
+	    ndoc = new ApvlvDoc (w, h, gParams->values ("zoom"), false);
+	    if (!ndoc->loadfile (filename))
 	      {
-		ndoc = new ApvlvDir (w, h);
-		if (!ndoc->loadfile (abpath))
-		  {
-		    delete ndoc;
-		    ndoc = NULL;
-		  }
-	      }
-
-	    if (ndoc == NULL)
-	      {
-		ndoc = new ApvlvDoc (w, h, gParams->values ("zoom"), false);
-		if (!ndoc->loadfile (filename))
-		  {
-		    delete ndoc;
-		    ndoc = NULL;
-		  }
-	      }
-
-	    if (ndoc)
-	      {
-		regloaded (ndoc);
+		delete ndoc;
+		ndoc = NULL;
 	      }
 	  }
 
 	if (ndoc != NULL)
 	  {
-	    win->setCore (ndoc);
+	    regloaded (ndoc);
 	  }
-	g_free (abpath);
       }
 
-    updatetabname ();
-    return true;
+    if (ndoc != NULL)
+      {
+	win->setCore (ndoc);
+	updatetabname ();
+      }
+    g_free (abpath);
+
+    return ndoc != NULL ? true : false;
   }
 
   ApvlvCore *ApvlvView::hasloaded (const char *abpath, int type)
