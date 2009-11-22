@@ -60,8 +60,7 @@ namespace apvlv
   //
   struct ApvlvPos
   {
-    int x, y;
-    int w, h;
+    double x1, x2, y1, y2;
   };
 
   typedef vector < ApvlvPos > ApvlvPoses;
@@ -93,7 +92,12 @@ namespace apvlv
     virtual bool render (int, int, int, double, int, GdkPixbuf *,
 			 char *buffer = NULL) = 0;
 
-    virtual ApvlvPoses *pagesearch (int pn, bool reverse = false) = 0;
+    virtual ApvlvPoses *pagesearch (int pn, const char *str, bool reverse =
+				    false) = 0;
+
+    virtual bool pageselectsearch (int, double, double, double, int,
+				   GdkPixbuf *, char *, int, ApvlvPoses *) =
+      0;
 
     virtual ApvlvLinks *getlinks (int pn) = 0;
 
@@ -125,7 +129,10 @@ namespace apvlv
 
     bool render (int, int, int, double, int, GdkPixbuf *, char *);
 
-    ApvlvPoses *pagesearch (int pn, bool reverse = false);
+    bool pageselectsearch (int, double, double, double, int, GdkPixbuf *,
+			   char *, int, ApvlvPoses *);
+
+    ApvlvPoses *pagesearch (int pn, const char *s, bool reverse = false);
 
     ApvlvLinks *getlinks (int pn);
 
@@ -157,7 +164,10 @@ namespace apvlv
 
     bool render (int, int, int, double, int, GdkPixbuf *, char *);
 
-    ApvlvPoses *pagesearch (int pn, bool reverse = false);
+    bool pageselectsearch (int, double, double, double, int, GdkPixbuf *,
+			   char *, int, ApvlvPoses *);
+
+    ApvlvPoses *pagesearch (int pn, const char *s, bool reverse = false);
 
     ApvlvLinks *getlinks (int pn);
 

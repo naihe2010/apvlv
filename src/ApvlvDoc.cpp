@@ -638,16 +638,16 @@ namespace apvlv
   void ApvlvDoc::markselection ()
   {
     debug ("mSelect: %d.", mSearchSelect);
-    ApvlvPos rect = (*mSearchResults)[mSearchSelect];
-
     debug ("zoomrate: %f", mZoomrate);
+
+    ApvlvPos rect = (*mSearchResults)[mSearchSelect];
 
     // Caculate the correct position
     //debug ("pagex: %f, pagey: %f, x1: %f, y1: %f, x2: %f, y2: %f", mPagex, mPagey, rect->x1, rect->y1, rect->x2, rect->y2);
-    gint x1 = (gint) ((rect.x) * mZoomrate);
-    gint x2 = (gint) ((rect.w) * mZoomrate);
-    gint y1 = (gint) ((mPagey - rect.h) * mZoomrate);
-    gint y2 = (gint) ((mPagey - rect.y) * mZoomrate);
+    gint x1 = (gint) ((rect.x1) * mZoomrate);
+    gint x2 = (gint) ((rect.x2) * mZoomrate);
+    gint y1 = (gint) ((mPagey - rect.y2) * mZoomrate);
+    gint y2 = (gint) ((mPagey - rect.y1) * mZoomrate);
     debug ("x1: %d, y1: %d, x2: %d, y2: %d", x1, y1, x2, y2);
 
     // make the selection at the page center
@@ -689,40 +689,9 @@ namespace apvlv
     guchar *pagedata = mCurrentCache1->getdata (true);
     GdkPixbuf *pixbuf = mCurrentCache1->getbuf (true);
 
-    // heightlight the selection
-    for (gint y = y1; y < y2; y++)
-      {
-	for (gint x = x1; x < x2; x++)
-	  {
-	    gint p = (gint) (y * 3 * mPagex * mZoomrate + (x * 3));
-	    pagedata[p + 0] = 0xff - pagedata[p + 0];
-	    pagedata[p + 1] = 0xff - pagedata[p + 0];
-	    pagedata[p + 2] = 0xff - pagedata[p + 0];
-	  }
-      }
-
-    // change the back color of the selection
-    for (ApvlvPoses::const_iterator itr = mSearchResults->begin ();
-	 itr != mSearchResults->end (); itr++)
-      {
-	// Caculate the correct position
-	x1 = (gint) ((itr->x) * mZoomrate);
-	x2 = (gint) ((itr->w) * mZoomrate);
-	y1 = (gint) ((mPagey - itr->h) * mZoomrate);
-	y2 = (gint) ((mPagey - itr->y) * mZoomrate);
-
-	for (gint y = y1; y < y2; y++)
-	  {
-	    for (gint x = x1; x < x2; x++)
-	      {
-		gint p = (gint) (y * 3 * mPagex * mZoomrate + (x * 3));
-		pagedata[p + 0] = 0xff - pagedata[p + 0];
-		pagedata[p + 1] = 0xff - pagedata[p + 0];
-		pagedata[p + 2] = 0xff - pagedata[p + 0];
-	      }
-	  }
-      }
-
+    mFile->pageselectsearch (mPagenum, mPagex, mPagey, mZoomrate,
+			     mRotatevalue, pixbuf, (char *) pagedata,
+			     mSearchSelect, mSearchResults);
     gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), pixbuf);
     debug ("helight num: %d", mPagenum);
   }
@@ -804,7 +773,9 @@ namespace apvlv
     int sum = mFile->pagesum (), from = i;
     while (1)
       {
-	mSearchResults = mFile->pagesearch ((i + sum) % sum, reverse);
+	mSearchResults =
+	  mFile->pagesearch ((i + sum) % sum, mSearchStr.c_str (), reverse);
+	mSearchReverse = reverse;
 	if (mSearchResults != NULL)
 	  {
 	    showpage ((i + sum) % sum, 0.5);

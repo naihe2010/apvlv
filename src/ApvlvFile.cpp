@@ -195,9 +195,38 @@ namespace apvlv
     return mDoc ? poppler_document_get_n_pages (mDoc) : 0;
   }
 
-  ApvlvPoses *ApvlvPDF::pagesearch (int pn, bool reverse)
+  ApvlvPoses *ApvlvPDF::pagesearch (int pn, const char *str, bool reverse)
   {
-    return NULL;
+    PopplerPage *page = poppler_document_get_page (mDoc, pn);
+    if (page == NULL)
+      {
+	return NULL;
+      }
+
+    debug ("search %s", str);
+
+    GList *list = poppler_page_find_text (page, str);
+    if (list == NULL)
+      {
+	return NULL;
+      }
+
+    if (reverse)
+      {
+	list = g_list_reverse (list);
+      }
+
+    ApvlvPoses *poses = new ApvlvPoses;
+    for (GList * tmp = list; tmp != NULL; tmp = g_list_next (tmp))
+      {
+	PopplerRectangle *rect = (PopplerRectangle *) tmp->data;
+	debug ("results: %f-%f,%f-%f", rect->x1, rect->x2, rect->y1,
+	       rect->y2);
+	ApvlvPos pos = { rect->x1, rect->x2, rect->y1, rect->y2 };
+	poses->push_back (pos);
+      }
+
+    return poses;
   }
 
   bool ApvlvPDF::pagetext (int pn, char **out)
@@ -229,6 +258,57 @@ namespace apvlv
     return true;
   }
 
+  bool ApvlvPDF::pageselectsearch (int pn, double pagex, double pagey,
+				   double zm, int rot, GdkPixbuf * pix,
+				   char *buffer, int sel, ApvlvPoses * poses)
+  {
+    ApvlvPos rect = (*poses)[sel];
+
+    // Caculate the correct position
+    //debug ("pagex: %f, pagey: %f, x1: %f, y1: %f, x2: %f, y2: %f", pagex, pagey, rect->x1, rect->y1, rect->x2, rect->y2);
+    gint x1 = (gint) ((rect.x1) * zm);
+    gint x2 = (gint) ((rect.x2) * zm);
+    gint y1 = (gint) ((pagey - rect.y2) * zm);
+    gint y2 = (gint) ((pagey - rect.y1) * zm);
+    debug ("x1: %d, y1: %d, x2: %d, y2: %d", x1, y1, x2, y2);
+
+    // heightlight the selection
+    for (gint y = y1; y < y2; y++)
+      {
+	for (gint x = x1; x < x2; x++)
+	  {
+	    gint p = (gint) (y * 3 * pagex * zm + (x * 3));
+	    buffer[p + 0] = 0xff - buffer[p + 0];
+	    buffer[p + 1] = 0xff - buffer[p + 0];
+	    buffer[p + 2] = 0xff - buffer[p + 0];
+	  }
+      }
+
+    // change the back color of the selection
+    for (ApvlvPoses::const_iterator itr = poses->begin ();
+	 itr != poses->end (); itr++)
+      {
+	// Caculate the correct position
+	x1 = (gint) ((itr->x1) * zm);
+	x2 = (gint) ((itr->x2) * zm);
+	y1 = (gint) ((pagey - itr->y2) * zm);
+	y2 = (gint) ((pagey - itr->y1) * zm);
+
+	for (gint y = y1; y < y2; y++)
+	  {
+	    for (gint x = x1; x < x2; x++)
+	      {
+		gint p = (gint) (y * 3 * pagex * zm + (x * 3));
+		buffer[p + 0] = 0xff - buffer[p + 0];
+		buffer[p + 1] = 0xff - buffer[p + 0];
+		buffer[p + 2] = 0xff - buffer[p + 0];
+	      }
+	  }
+      }
+
+    return true;
+  }
+
   ApvlvLinks *ApvlvPDF::getlinks (int pn)
   {
     PopplerPage *page = poppler_document_get_page (mDoc, pn);
@@ -252,8 +332,7 @@ namespace apvlv
 		if (pd->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pd->
-								       named_dest);
+								       pd->named_dest);
 		    if (destnew != NULL)
 		      {
 			ApvlvLink link = { "", destnew->page_num - 1 };
@@ -313,7 +392,9 @@ namespace apvlv
 		if (pagd->dest->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pagd->dest->named_dest);
+								       pagd->
+								       dest->
+								       named_dest);
 		    int pn = 1;
 		    if (destnew != NULL)
 		      {
@@ -532,7 +613,14 @@ namespace apvlv
 #endif
   }
 
-  ApvlvPoses *ApvlvDJVU::pagesearch (int pn, bool reverse)
+  bool ApvlvDJVU::pageselectsearch (int pn, double ix, double iy, double zm,
+				    int rot, GdkPixbuf * pix, char *buffer,
+				    int sel, ApvlvPoses * poses)
+  {
+    return false;
+  }
+
+  ApvlvPoses *ApvlvDJVU::pagesearch (int pn, const char *str, bool reverse)
   {
     return NULL;
   }
