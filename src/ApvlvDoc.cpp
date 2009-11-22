@@ -862,7 +862,11 @@ namespace apvlv
     PrintData *data = new PrintData;
     data->file = mFile;
     data->frmpn = mPagenum;
-    data->endpn = mPagenum;
+    data->endpn = mPagenum + ct;
+    if ((int) data->endpn >= mFile->pagesum ())
+      {
+	data->endpn = mFile->pagesum () - 1;
+      }
 
     g_signal_connect (G_OBJECT (print), "begin-print",
 		      G_CALLBACK (begin_print), data);
@@ -936,16 +940,11 @@ namespace apvlv
 			 GtkPrintContext * context,
 			 gint page_nr, PrintData * data)
   {
-#if 0
     cairo_t *cr = gtk_print_context_get_cairo_context (context);
-    PopplerPage *page =
-      poppler_document_get_page (data->doc, data->frmpn + page_nr);
-    poppler_page_render_for_printing (page, cr);
-
+    data->file->pageprint (data->frmpn + page_nr, cr);
     PangoLayout *layout = gtk_print_context_create_pango_layout (context);
     pango_cairo_show_layout (cr, layout);
     g_object_unref (layout);
-#endif
   }
 
   void

@@ -363,7 +363,8 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 		if (pd->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pd->named_dest);
+								       pd->
+								       named_dest);
 		    if (destnew != NULL)
 		      {
 			ApvlvLink link = { "", destnew->page_num - 1 };
@@ -427,9 +428,7 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 		if (pagd->dest->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pagd->
-								       dest->
-								       named_dest);
+								       pagd->dest->named_dest);
 		    int pn = 1;
 		    if (destnew != NULL)
 		      {
@@ -468,6 +467,20 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
       }
     while (poppler_index_iter_next (iter));
     return has;
+  }
+
+  bool ApvlvPDF::pageprint (int pn, cairo_t * cr)
+  {
+    PopplerPage *page = poppler_document_get_page (mDoc, pn);
+    if (page != NULL)
+      {
+	poppler_page_render_for_printing (page, cr);
+	return true;
+      }
+    else
+      {
+	return false;
+      }
   }
 
 #ifdef HAVE_LIBDJVU
@@ -661,5 +674,10 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 
   void ApvlvDJVU::free_index (ApvlvFileIndex * index)
   {
+  }
+
+  bool ApvlvDJVU::pageprint (int pn, cairo_t * cr)
+  {
+    return false;
   }
 }

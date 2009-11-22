@@ -107,6 +107,8 @@ namespace apvlv
 
     virtual void free_index (ApvlvFileIndex *) = 0;
 
+    virtual bool pageprint (int pn, cairo_t * cr) = 0;
+
   protected:
 
       ApvlvFileIndex * mIndex;
@@ -140,6 +142,8 @@ namespace apvlv
     ApvlvFileIndex *new_index ();
 
     void free_index (ApvlvFileIndex *);
+
+    bool pageprint (int pn, cairo_t * cr);
 
   private:
       bool walk_poppler_index_iter (ApvlvFileIndex * titr,
@@ -175,6 +179,8 @@ namespace apvlv
     ApvlvFileIndex *new_index ();
 
     void free_index (ApvlvFileIndex *);
+
+    bool pageprint (int pn, cairo_t * cr);
 
   private:
 #ifdef HAVE_LIBDJVU
