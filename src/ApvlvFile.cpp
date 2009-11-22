@@ -177,6 +177,7 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 
   bool ApvlvPDF::writefile (const char *filename)
   {
+    debug ("write %p to %s", this, filename);
     gchar *path = absolutepath (filename);
     if (path == NULL)
       {
@@ -363,8 +364,7 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 		if (pd->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pd->
-								       named_dest);
+								       pd->named_dest);
 		    if (destnew != NULL)
 		      {
 			ApvlvLink link = { "", destnew->page_num - 1 };
@@ -428,7 +428,9 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 		if (pagd->dest->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pagd->dest->named_dest);
+								       pagd->
+								       dest->
+								       named_dest);
 		    int pn = 1;
 		    if (destnew != NULL)
 		      {

@@ -428,15 +428,6 @@ namespace apvlv
     return mFile == NULL ? false : true;
   }
 
-  bool ApvlvDoc::writefile (const char *name)
-  {
-    if (mFile != NULL)
-      {
-	return mFile->writefile (name ? name : filename ());
-      }
-    return false;
-  }
-
   int ApvlvDoc::convertindex (int p)
   {
     if (mFile != NULL)
@@ -862,7 +853,7 @@ namespace apvlv
     PrintData *data = new PrintData;
     data->file = mFile;
     data->frmpn = mPagenum;
-    data->endpn = mPagenum + ct;
+    data->endpn = mPagenum + (ct > 0 ? ct : 1) - 1;
     if ((int) data->endpn >= mFile->pagesum ())
       {
 	data->endpn = mFile->pagesum () - 1;

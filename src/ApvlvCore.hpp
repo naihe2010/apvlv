@@ -82,9 +82,13 @@ namespace apvlv
 
     virtual ApvlvCore *copy ();
 
+    virtual ApvlvFile *file ();
+
     virtual bool loadfile (const char *file, bool check = true);
 
     virtual const char *filename ();
+
+    virtual bool writefile (const char *);
 
     virtual gint getrotate ();
 
@@ -117,7 +121,9 @@ namespace apvlv
     virtual returnType process (int times, guint keyval);
 
   protected:
-      bool mReady;
+      ApvlvFile * mFile;
+
+    bool mReady;
 
     bool mInuse;
 

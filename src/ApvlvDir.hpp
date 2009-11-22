@@ -115,7 +115,6 @@ namespace apvlv
 
     gint mFirstSelTimer;
 
-    ApvlvFile *mFile;
     ApvlvFileIndex *mIndex;
 
     GSList *mDirNodes;

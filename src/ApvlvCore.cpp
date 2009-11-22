@@ -178,6 +178,21 @@ namespace apvlv
     return mZoomrate;
   }
 
+  ApvlvFile *ApvlvCore::file ()
+  {
+    return mFile;
+  }
+
+  bool ApvlvCore::writefile (const char *name)
+  {
+    if (mFile != NULL)
+      {
+	debug ("write %p to %s", mFile, name);
+	return mFile->writefile (name ? name : filename ());
+      }
+    return false;
+  }
+
   bool ApvlvCore::loadfile (const char *file, bool check)
   {
     return false;

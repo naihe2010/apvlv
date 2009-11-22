@@ -127,13 +127,6 @@ namespace apvlv
 
      ~ApvlvDoc ();
 
-    ApvlvFile *file ()
-    {
-      return mFile;
-    }
-
-    bool writefile (const char *);
-
     void setactive (bool act);
 
     bool hascontent ();
@@ -210,8 +203,6 @@ namespace apvlv
 			   gint page_nr, PrintData * data);
     static void end_print (GtkPrintOperation * operation,
 			   GtkPrintContext * context, PrintData * data);
-
-    ApvlvFile *mFile;
 
     ApvlvDocPositionMap mPositions;
       vector < ApvlvDocPosition > mLinkPositions;
