@@ -689,7 +689,8 @@ namespace apvlv
     guchar *pagedata = mCurrentCache1->getdata (true);
     GdkPixbuf *pixbuf = mCurrentCache1->getbuf (true);
 
-    mFile->pageselectsearch (mPagenum, mPagex, mPagey, mZoomrate,
+    mFile->pageselectsearch (mPagenum, mCurrentCache1->getwidth (),
+			     mCurrentCache1->getheight (), mZoomrate,
 			     mRotatevalue, pixbuf, (char *) pagedata,
 			     mSearchSelect, mSearchResults);
     gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), pixbuf);
@@ -1026,18 +1027,19 @@ namespace apvlv
     double tpagex, tpagey;
     ac->mFile->pagesize (ac->mPagenum, ac->mRotate, &tpagex, &tpagey);
 
-    int ix = (int) (tpagex * ac->mZoom), iy = (int) (tpagey * ac->mZoom);
+    ac->mWidth = MAX ((tpagex * ac->mZoom + 0.5), 1);
+    ac->mHeight = MAX ((tpagey * ac->mZoom + 0.5), 1);
 
-    guchar *dat = new guchar[ix * iy * 3];
+    guchar *dat = new guchar[ac->mWidth * ac->mHeight * 3];
 
     GdkPixbuf *bu = gdk_pixbuf_new_from_data (dat, GDK_COLORSPACE_RGB,
 					      FALSE,
 					      8,
-					      ix, iy,
-					      3 * ix,
+					      ac->mWidth, ac->mHeight,
+					      3 * ac->mWidth,
 					      NULL, NULL);
-    ac->mFile->render (ac->mPagenum, ix, iy, ac->mZoom, ac->mRotate, bu,
-		       (char *) dat);
+    ac->mFile->render (ac->mPagenum, ac->mWidth, ac->mHeight, ac->mZoom,
+		       ac->mRotate, bu, (char *) dat);
 
     if (ac->mLinks)
       {
@@ -1086,6 +1088,16 @@ namespace apvlv
   GdkPixbuf *ApvlvDocCache::getbuf (bool wait)
   {
     return mBuf;
+  }
+
+  double ApvlvDocCache::getwidth ()
+  {
+    return mWidth;
+  }
+
+  double ApvlvDocCache::getheight ()
+  {
+    return mHeight;
   }
 
   ApvlvLinks *ApvlvDocCache::getlinks ()

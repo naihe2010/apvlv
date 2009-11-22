@@ -38,6 +38,10 @@
 
 namespace apvlv
 {
+#ifndef MAX
+#define MAX(a,b)        ((a) > (b) ? (a) : (b))
+#endif
+
   ApvlvFile::ApvlvFile (const char *filename, bool check)
   {
   }
@@ -258,7 +262,7 @@ namespace apvlv
     return true;
   }
 
-  bool ApvlvPDF::pageselectsearch (int pn, double pagex, double pagey,
+  bool ApvlvPDF::pageselectsearch (int pn, int ix, int iy,
 				   double zm, int rot, GdkPixbuf * pix,
 				   char *buffer, int sel, ApvlvPoses * poses)
   {
@@ -266,10 +270,10 @@ namespace apvlv
 
     // Caculate the correct position
     //debug ("pagex: %f, pagey: %f, x1: %f, y1: %f, x2: %f, y2: %f", pagex, pagey, rect->x1, rect->y1, rect->x2, rect->y2);
-    gint x1 = (gint) ((rect.x1) * zm);
-    gint x2 = (gint) ((rect.x2) * zm);
-    gint y1 = (gint) ((pagey - rect.y2) * zm);
-    gint y2 = (gint) ((pagey - rect.y1) * zm);
+    gint x1 = MAX (rect.x1 * zm + 0.5, 0);
+    gint x2 = MAX (rect.x2 * zm - 0.5, 1);
+    gint y1 = MAX ((iy - rect.y2 * zm) + 0.5, 0);
+    gint y2 = MAX ((iy - rect.y1 * zm) - 0.5, 1);
     debug ("x1: %d, y1: %d, x2: %d, y2: %d", x1, y1, x2, y2);
 
     // heightlight the selection
@@ -277,7 +281,7 @@ namespace apvlv
       {
 	for (gint x = x1; x < x2; x++)
 	  {
-	    gint p = (gint) (y * 3 * pagex * zm + (x * 3));
+	    gint p = (gint) (y * ix * 3 + (x * 3));
 	    buffer[p + 0] = 0xff - buffer[p + 0];
 	    buffer[p + 1] = 0xff - buffer[p + 0];
 	    buffer[p + 2] = 0xff - buffer[p + 0];
@@ -289,16 +293,16 @@ namespace apvlv
 	 itr != poses->end (); itr++)
       {
 	// Caculate the correct position
-	x1 = (gint) ((itr->x1) * zm);
-	x2 = (gint) ((itr->x2) * zm);
-	y1 = (gint) ((pagey - itr->y2) * zm);
-	y2 = (gint) ((pagey - itr->y1) * zm);
+	x1 = (gint) (itr->x1 * zm);
+	x2 = (gint) (itr->x2 * zm);
+	y1 = (gint) (iy - itr->y2 * zm);
+	y2 = (gint) (iy - itr->y1 * zm);
 
 	for (gint y = y1; y < y2; y++)
 	  {
 	    for (gint x = x1; x < x2; x++)
 	      {
-		gint p = (gint) (y * 3 * pagex * zm + (x * 3));
+		gint p = (gint) (y * 3 * ix + (x * 3));
 		buffer[p + 0] = 0xff - buffer[p + 0];
 		buffer[p + 1] = 0xff - buffer[p + 0];
 		buffer[p + 2] = 0xff - buffer[p + 0];
@@ -332,7 +336,8 @@ namespace apvlv
 		if (pd->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pd->named_dest);
+								       pd->
+								       named_dest);
 		    if (destnew != NULL)
 		      {
 			ApvlvLink link = { "", destnew->page_num - 1 };
@@ -392,9 +397,7 @@ namespace apvlv
 		if (pagd->dest->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pagd->
-								       dest->
-								       named_dest);
+								       pagd->dest->named_dest);
 		    int pn = 1;
 		    if (destnew != NULL)
 		      {
@@ -613,7 +616,7 @@ namespace apvlv
 #endif
   }
 
-  bool ApvlvDJVU::pageselectsearch (int pn, double ix, double iy, double zm,
+  bool ApvlvDJVU::pageselectsearch (int pn, int ix, int iy, double zm,
 				    int rot, GdkPixbuf * pix, char *buffer,
 				    int sel, ApvlvPoses * poses)
   {

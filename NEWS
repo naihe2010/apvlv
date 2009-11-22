@@ -13,6 +13,8 @@ Bug Fix
 
    * If a pdf file is not entrypted, not ask password when can't open it
 
+   * heightlight correcly after zoom in or zoom out
+
 
 apvlv 0.0.7
 ===========

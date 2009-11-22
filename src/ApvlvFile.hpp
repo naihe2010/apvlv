@@ -95,7 +95,7 @@ namespace apvlv
     virtual ApvlvPoses *pagesearch (int pn, const char *str, bool reverse =
 				    false) = 0;
 
-    virtual bool pageselectsearch (int, double, double, double, int,
+    virtual bool pageselectsearch (int, int, int, double, int,
 				   GdkPixbuf *, char *, int, ApvlvPoses *) =
       0;
 
@@ -129,7 +129,7 @@ namespace apvlv
 
     bool render (int, int, int, double, int, GdkPixbuf *, char *);
 
-    bool pageselectsearch (int, double, double, double, int, GdkPixbuf *,
+    bool pageselectsearch (int, int, int, double, int, GdkPixbuf *,
 			   char *, int, ApvlvPoses *);
 
     ApvlvPoses *pagesearch (int pn, const char *s, bool reverse = false);
@@ -164,7 +164,7 @@ namespace apvlv
 
     bool render (int, int, int, double, int, GdkPixbuf *, char *);
 
-    bool pageselectsearch (int, double, double, double, int, GdkPixbuf *,
+    bool pageselectsearch (int, int, int, double, int, GdkPixbuf *,
 			   char *, int, ApvlvPoses *);
 
     ApvlvPoses *pagesearch (int pn, const char *s, bool reverse = false);

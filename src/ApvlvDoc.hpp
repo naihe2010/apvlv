@@ -83,6 +83,10 @@ namespace apvlv
 
     GdkPixbuf *getbuf (bool wait);
 
+    double getwidth ();
+
+    double getheight ();
+
     ApvlvLinks *getlinks ();
 
   private:
@@ -93,6 +97,8 @@ namespace apvlv
     gint mPagenum;
     guchar *mData;
     GdkPixbuf *mBuf;
+    gint mWidth;
+    gint mHeight;
   };
 
   class ApvlvDocStatus:public ApvlvCoreStatus
