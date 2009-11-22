@@ -77,7 +77,9 @@ namespace apvlv
   class ApvlvFile
   {
   public:
-    virtual ~ ApvlvFile ();
+    ApvlvFile (const char *filename, bool check);
+
+      virtual ~ ApvlvFile ();
 
     static ApvlvFile *newfile (const char *filename, bool check = false);
 
@@ -108,6 +110,7 @@ namespace apvlv
   protected:
 
       ApvlvFileIndex * mIndex;
+    unsigned short mIndexRef;
   };
 
   class ApvlvPDF:public ApvlvFile

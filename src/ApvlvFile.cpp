@@ -41,6 +41,11 @@ namespace apvlv
 #define MAX(a,b)        ((a) > (b) ? (a) : (b))
 #endif
 
+  ApvlvFile::ApvlvFile (const char *filename, bool check)
+  {
+    mIndex = NULL;
+  }
+
   ApvlvFile::~ApvlvFile ()
   {
   }
@@ -69,10 +74,12 @@ namespace apvlv
       }
     }
 
+    debug ("new a file: %p", file);
     return file;
   }
 
-  ApvlvPDF::ApvlvPDF (const char *filename, bool check)
+ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
+	     check)
   {
     static gchar *mRawdata = NULL;
     static guint mRawdatasize = 0;
@@ -124,13 +131,13 @@ namespace apvlv
 
     if (mDoc == NULL && error && error->code == POPPLER_ERROR_ENCRYPTED)
       {
-	g_error_free (error);
-
 	GtkWidget *dia = gtk_message_dialog_new (NULL,
 						 GTK_DIALOG_DESTROY_WITH_PARENT,
 						 GTK_MESSAGE_QUESTION,
 						 GTK_BUTTONS_OK_CANCEL,
 						 error->message);
+	g_error_free (error);
+
 
 	GtkWidget *entry = gtk_entry_new ();
 	gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dia)->vbox), entry, TRUE,
@@ -185,7 +192,6 @@ namespace apvlv
 	debug ("%d: %s", error->code, error->message);
 	return false;
       }
-
 
     if (mDoc && uri != NULL)
       {
@@ -357,8 +363,7 @@ namespace apvlv
 		if (pd->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pd->
-								       named_dest);
+								       pd->named_dest);
 		    if (destnew != NULL)
 		      {
 			ApvlvLink link = { "", destnew->page_num - 1 };
@@ -382,17 +387,20 @@ namespace apvlv
   {
     if (mIndex != NULL)
       {
+	debug ("file %p has index: %p, return", this, mIndex);
 	return mIndex;
       }
 
     PopplerIndexIter *itr = poppler_index_iter_new (mDoc);
     if (itr == NULL)
       {
+	debug ("no index.");
 	return NULL;
       }
 
     mIndex = new ApvlvFileIndex;
-    walk_poppler_index_iter (NULL, itr);
+    walk_poppler_index_iter (mIndex, itr);
+    poppler_index_iter_free (itr);
 
     return mIndex;
   }
@@ -407,6 +415,7 @@ namespace apvlv
     bool has = false;
     do
       {
+	has = false;
 	ApvlvFileIndex *index = NULL;
 
 	PopplerAction *act = poppler_index_iter_get_action (iter);
@@ -418,7 +427,9 @@ namespace apvlv
 		if (pagd->dest->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pagd->dest->named_dest);
+								       pagd->
+								       dest->
+								       named_dest);
 		    int pn = 1;
 		    if (destnew != NULL)
 		      {
@@ -431,26 +442,17 @@ namespace apvlv
 		else
 		  {
 		    index = new ApvlvFileIndex;
-		    index->page = pagd->dest->page_num;
+		    index->page = pagd->dest->page_num - 1;
 		  }
 
 		if (index != NULL)
 		  {
 		    has = true;
 		    index->title = pagd->title;
-		    if (titr != NULL)
-		      {
-			titr->children.push_back (*index);
-			delete index;
-			index = &(titr->children[titr->children.size () - 1]);
-		      }
-		    else
-		      {
-			mIndex->children.push_back (*index);
-			delete index;
-			index =
-			  &(mIndex->children[titr->children.size () - 1]);
-		      }
+		    titr->children.push_back (*index);
+		    delete index;
+		    index = &(titr->children[titr->children.size () - 1]);
+		    debug ("titr: %p, index: %p", titr, index);
 		  }
 	      }
 	    poppler_action_free (act);
@@ -459,7 +461,7 @@ namespace apvlv
 	PopplerIndexIter *child = poppler_index_iter_get_child (iter);
 	if (child)
 	  {
-	    bool chas = walk_poppler_index_iter (has ? index : NULL, child);
+	    bool chas = walk_poppler_index_iter (has ? index : titr, child);
 	    has = has ? has : chas;
 	    poppler_index_iter_free (child);
 	  }
@@ -493,7 +495,8 @@ namespace apvlv
   }
 #endif
 
-  ApvlvDJVU::ApvlvDJVU (const char *filename, bool check)
+  ApvlvDJVU::ApvlvDJVU (const char *filename, bool check):ApvlvFile (filename,
+								     check)
   {
 #ifdef HAVE_LIBDJVU
     mContext = ddjvu_context_create ("apvlv");

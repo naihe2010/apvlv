@@ -154,29 +154,19 @@ namespace apvlv
       }
     else
       {
-	try
-	{
-	  mFile = new ApvlvPDF (path);
-	}
-	catch (bad_alloc)
-	{
-	  delete mFile;
-
-	  try
-	  {
-	    mFile = new ApvlvDJVU (path);
-	  }
-	  catch (bad_alloc)
-	  {
-	    delete mFile;
-	    mFile = NULL;
-	  }
-	}
+	mFile = ApvlvFile::newfile (path);
 
 	if (mFile != NULL && (mIndex = mFile->new_index ()) != NULL)
 	  {
-	    ApvlvFileIndexIter itr = mIndex->children.begin ();
-	    mReady = walk_file_index (NULL, itr);
+	    for (ApvlvFileIndexIter itr = mIndex->children.begin ();
+		 itr != mIndex->children.end (); ++itr)
+	      {
+		bool ready = walk_file_index (NULL, itr);
+		if (mReady == false)
+		  {
+		    mReady = ready;
+		  }
+	      }
 	  }
 	else
 	  {
@@ -211,6 +201,11 @@ namespace apvlv
     if (mIndex != NULL)
       {
 	mFile->free_index (mIndex);
+      }
+
+    if (mFile != NULL)
+      {
+	delete mFile;
       }
 
     delete mStatus;
@@ -501,41 +496,43 @@ namespace apvlv
   bool ApvlvDir::walk_file_index (GtkTreeIter * titr, ApvlvFileIndexIter iter)
   {
     bool has = false;
-    for (; iter != mIndex->children.end (); ++iter);
-    {
-      GtkTreeIter nitr[1];
 
-      ApvlvDirNode *node = NULL;
-      node = new ApvlvDirNode (iter->page);
+    GtkTreeIter nitr[1];
 
-      if (node != NULL)
-	{
-	  mDirNodes = g_slist_append (mDirNodes, node);
-	  has = true;
-	  gtk_tree_store_append (mStore, nitr, titr);
-	  GdkPixbuf *pix =
-	    gdk_pixbuf_new_from_file_at_size (iconreg.c_str (), 40,
-					      20, NULL);
-	  if (pix)
-	    {
-	      gtk_tree_store_set (mStore, nitr, 0, node, 1, pix, 2,
-				  iter->title.c_str (), -1);
-	      g_object_unref (pix);
-	    }
-	  else
-	    {
-	      gtk_tree_store_set (mStore, nitr, 0, node, 2,
-				  iter->title.c_str (), -1);
-	    }
-	}
+    ApvlvDirNode *node = NULL;
+    node = new ApvlvDirNode (iter->page);
 
-      if (iter->children.size () > 0)
-	{
-	  bool chas =
-	    walk_file_index (has ? nitr : NULL, iter->children.begin ());
-	  has = has ? has : chas;
-	}
-    }
+    if (node != NULL)
+      {
+	mDirNodes = g_slist_append (mDirNodes, node);
+	has = true;
+	gtk_tree_store_append (mStore, nitr, titr);
+	GdkPixbuf *pix =
+	  gdk_pixbuf_new_from_file_at_size (iconreg.c_str (), 40,
+					    20, NULL);
+	if (pix)
+	  {
+	    gtk_tree_store_set (mStore, nitr, 0, node, 1, pix, 2,
+				iter->title.c_str (), -1);
+	    g_object_unref (pix);
+	  }
+	else
+	  {
+	    gtk_tree_store_set (mStore, nitr, 0, node, 2,
+				iter->title.c_str (), -1);
+	  }
+      }
+
+    for (ApvlvFileIndexIter itr = iter->children.begin ();
+	 itr != iter->children.end (); ++itr)
+      {
+	bool chas = walk_file_index (has ? nitr : titr, itr);
+	if (has == false)
+	  {
+	    has = chas;
+	  }
+      }
+
     return has;
   }
 
