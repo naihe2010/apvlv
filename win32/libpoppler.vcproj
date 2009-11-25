@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				UseUnicodeResponseFiles="false"
 				Optimization="0"
-				AdditionalIncludeDirectories="msvc;msvc\poppler;&quot;poppler-src&quot;;&quot;poppler-src\goo&quot;;&quot;poppler-src\poppler&quot;;freetype231\include"
+				AdditionalIncludeDirectories="msvc;&quot;poppler-src&quot;;&quot;poppler-src\goo&quot;;&quot;poppler-src\poppler&quot;;freetype231\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -158,7 +158,71 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\poppler-src\poppler\Annot.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Array.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\BuiltinFont.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\BuiltinFontTables.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Catalog.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\CharCodeToUnicode.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\CharTypes.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\CMap.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\CompactFontTables.h"
+				>
+			</File>
+			<File
 				RelativePath=".\msvc\config.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\DateInfo.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\DCTStream.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Decrypt.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Dict.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Error.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\ErrorCodes.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\FileSpec.h"
 				>
 			</File>
 			<File
@@ -186,7 +250,43 @@
 				>
 			</File>
 			<File
+				RelativePath=".\poppler-src\poppler\FontEncodingTables.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\FontInfo.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Form.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Function.h"
+				>
+			</File>
+			<File
 				RelativePath=".\poppler-src\goo\gfile.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Gfx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\GfxFont.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\GfxState.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\GfxState_helpers.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\GlobalParams.h"
 				>
 			</File>
 			<File
@@ -226,6 +326,74 @@
 				>
 			</File>
 			<File
+				RelativePath=".\poppler-src\poppler\JArithmeticDecoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\JPXStream.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Lexer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Link.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Movie.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\NameToCharCode.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\NameToUnicodeTable.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Object.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\OptionalContent.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Outline.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\OutputDev.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Page.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\PageLabelInfo.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\PageTransition.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Parser.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\PDFDoc.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\PDFDocEncoding.h"
+				>
+			</File>
+			<File
 				RelativePath=".\poppler-src\goo\PNGWriter.h"
 				>
 			</File>
@@ -242,7 +410,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\msvc\poppler\poppler-config.h"
+				RelativePath=".\poppler-src\poppler\poppler-config.h"
 				>
 			</File>
 			<File
@@ -279,6 +447,86 @@
 			</File>
 			<File
 				RelativePath=".\poppler-src\glib\poppler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\PopplerCache.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\PreScanOutputDev.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\ProfileData.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\PSOutputDev.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\PSTokenizer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\SecurityHandler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Sound.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\SplashOutputDev.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Stream-CCITT.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\Stream.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\TextOutputDev.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\UnicodeCClassTables.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\UnicodeCompTables.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\UnicodeDecompTables.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\UnicodeMap.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\UnicodeMapTables.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\UnicodeTypeTable.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\UTF8.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\XpdfPluginAPI.h"
+				>
+			</File>
+			<File
+				RelativePath=".\poppler-src\poppler\XRef.h"
 				>
 			</File>
 		</Filter>
