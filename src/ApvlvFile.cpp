@@ -474,7 +474,7 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
   bool ApvlvPDF::pageprint (int pn, cairo_t * cr)
   {
 #ifdef WIN32
-	  return false;
+    return false;
 #else
     PopplerPage *page = poppler_document_get_page (mDoc, pn);
     if (page != NULL)

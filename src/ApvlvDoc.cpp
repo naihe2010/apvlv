@@ -810,16 +810,36 @@ namespace apvlv
 
   void ApvlvDoc::gotolink (int ct)
   {
-    ApvlvLinks *links = mCurrentCache1->getlinks ();
+    ApvlvLinks *links1 = mCurrentCache1->getlinks ();
+    ApvlvLinks *links2 = mCurrentCache2 ? mCurrentCache2->getlinks () : NULL;
 
-    if (ct > 0 && ct < (int) links->size ())
+    int siz = links1 ? links1->size () : 0;
+    siz += links2 ? links2->size () : 0;
+
+    ct--;
+
+    if (ct >= 0 && ct < siz)
       {
 	markposition ('\'');
 
 	ApvlvDocPosition p = { mPagenum, scrollrate () };
 	mLinkPositions.push_back (p);
 
-	showpage ((*links)[ct].mPage);
+	if (links1 == NULL)
+	  {
+	    showpage ((*links2)[ct].mPage);
+	  }
+	else
+	  {
+	    if (ct < (int) links1->size ())
+	      {
+		showpage ((*links1)[ct].mPage);
+	      }
+	    else
+	      {
+		showpage ((*links2)[ct - links1->size ()].mPage);
+	      }
+	  }
       }
   }
 
