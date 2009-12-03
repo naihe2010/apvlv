@@ -50,7 +50,7 @@ description for all fonts available in Windows. That's how MuPDF works.
 #  define unlockCMapCache
 #endif
 
-#define DEFAULT_SUBSTITUTE_FONT "SimHei"
+#define DEFAULT_SUBSTITUTE_FONT "Helvetica"
 
 static struct {
     char *name;
@@ -141,9 +141,9 @@ static struct {
     {"Georgia-Italic", NULL, "georgiai.ttf"},
     {"Georgia-BoldItalic", NULL, "georgiaz.ttf"},
 
-	{"KaiTi_GB2312", NULL, "simkai.ttf"},
+/*	{"KaiTi_GB2312", NULL, "simkai.ttf"},
 	{"SimSun", NULL, "simsun.ttc"},
-	{"SimHei", NULL, "simhei.ttf"},
+	{"SimHei", NULL, "simhei.ttf"},*/
 
     {NULL}
 };
