@@ -697,7 +697,9 @@ namespace apvlv
 	    else if (g_ascii_strncasecmp (name + strlen (name) - 4, ".pdf", 4)
 		     == 0
 		     || g_ascii_strncasecmp (name + strlen (name) - 5,
-					     ".djvu", 5) == 0)
+					     ".djvu", 5) == 0
+		     || g_ascii_strncasecmp (name + strlen (name) - 4, ".djv",
+					     4) == 0)
 	      {
 		node = new ApvlvDirNode (false, realname, name);
 
