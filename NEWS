@@ -9,11 +9,15 @@ News features
 
    * add :w[rite] filename to save document
 
+   * add zw to fitwidth and zh to fitheight
+
 Bug Fix
 
    * If a pdf file is not entrypted, not ask password when can't open it
 
    * heightlight correcly after zoom in or zoom out
+
+   * :z[oom] fitwidth or :z[oom] fitheight works
 
 
 apvlv 0.0.7

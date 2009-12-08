@@ -99,12 +99,6 @@ namespace apvlv
 
     virtual gdouble zoomvalue ();
 
-    virtual void setzoom (const char *s);
-    virtual void setzoom (double d);
-
-    virtual void zoomin ();
-    virtual void zoomout ();
-
     virtual void setactive (bool act);
 
     virtual gdouble scrollrate ();

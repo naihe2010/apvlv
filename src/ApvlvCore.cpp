@@ -114,55 +114,6 @@ namespace apvlv
     return mReady && mFilestr.length () > 0 ? mFilestr.c_str () : NULL;
   }
 
-  void ApvlvCore::zoomin ()
-  {
-    mZoomrate *= 1.1;
-    refresh ();
-  }
-
-  void ApvlvCore::zoomout ()
-  {
-    if (mZoomrate >= 0.5)
-      {
-	mZoomrate /= 1.1;
-	refresh ();
-      }
-  }
-
-  void ApvlvCore::setzoom (const char *z)
-  {
-    if (strcasecmp (z, "normal") == 0)
-      {
-	mZoommode = NORMAL;
-      }
-    if (strcasecmp (z, "fitwidth") == 0)
-      {
-	mZoommode = FITWIDTH;
-      }
-    if (strcasecmp (z, "fitheight") == 0)
-      {
-	mZoommode = FITHEIGHT;
-      }
-    else
-      {
-	double d = atof (z);
-	if (d > 0)
-	  {
-	    mZoommode = CUSTOM;
-	    mZoomrate = d;
-	  }
-      }
-
-    refresh ();
-  }
-
-  void ApvlvCore::setzoom (double d)
-  {
-    mZoommode = CUSTOM;
-    mZoomrate = d;
-    refresh ();
-  }
-
   gint ApvlvCore::pagenumber ()
   {
     return mPagenum + 1;

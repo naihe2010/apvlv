@@ -139,9 +139,25 @@ namespace apvlv
 
       case 'z':
 	if (key == 'i')
-	  zoomin ();
+	  {
+	    char temp[0x10];
+	    g_snprintf (temp, sizeof temp, "%f", mZoomrate * 1.1);
+	    setzoom (temp);
+	  }
 	else if (key == 'o')
-	  zoomout ();
+	  {
+	    char temp[0x10];
+	    g_snprintf (temp, sizeof temp, "%f", mZoomrate / 1.1);
+	    setzoom (temp);
+	  }
+	else if (key == 'h')
+	  {
+	    setzoom ("fitheight");
+	  }
+	else if (key == 'w')
+	  {
+	    setzoom ("fitwidth");
+	  }
 	break;
 
       default:
@@ -264,6 +280,51 @@ namespace apvlv
     ndoc->loadfile (mFilestr, false);
     ndoc->showpage (mPagenum, scrollrate ());
     return ndoc;
+  }
+
+  void ApvlvDoc::setzoom (const char *z)
+  {
+    if (z != NULL)
+      {
+	if (strcasecmp (z, "normal") == 0)
+	  {
+	    mZoommode = NORMAL;
+	    mZoomrate = 1.2;
+	  }
+	if (strcasecmp (z, "fitwidth") == 0)
+	  {
+	    mZoommode = FITWIDTH;
+	  }
+	if (strcasecmp (z, "fitheight") == 0)
+	  {
+	    mZoommode = FITHEIGHT;
+	  }
+	else
+	  {
+	    double d = atof (z);
+	    if (d > 0)
+	      {
+		mZoommode = CUSTOM;
+		mZoomrate = d;
+	      }
+	  }
+      }
+
+    if (mFile != NULL)
+      {
+	mFile->pagesize (0, mRotatevalue, &mPagex, &mPagey);
+
+	if (mZoommode == FITWIDTH)
+	  {
+	    mZoomrate = ((double) (mWidth - 26)) / mPagex;
+	  }
+	else if (mZoommode == FITHEIGHT)
+	  {
+	    mZoomrate = ((double) (mHeight - 26)) / mPagey;
+	  }
+
+	refresh ();
+      }
   }
 
   bool ApvlvDoc::savelastposition ()
@@ -502,27 +563,7 @@ namespace apvlv
     if (mZoominit == false)
       {
 	mZoominit = true;
-
-	mFile->pagesize (0, mRotatevalue, &mPagex, &mPagey);
-
-	switch (mZoommode)
-	  {
-	  case NORMAL:
-	    mZoomrate = 1.2;
-	    break;
-	  case FITWIDTH:
-	    mZoomrate = ((double) (mWidth - 26)) / mPagex;
-	    debug ("mWidth: %d, zoom rate: %f", mWidth, mZoomrate);
-	    break;
-	  case FITHEIGHT:
-	    mZoomrate = ((double) (mHeight - 26)) / mPagey;
-	    break;
-	  case CUSTOM:
-	    break;
-	  default:
-	    break;
-	  }
-
+	setzoom (NULL);
 	debug ("zoom rate: %f", mZoomrate);
       }
 

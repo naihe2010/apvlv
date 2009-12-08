@@ -149,6 +149,8 @@ namespace apvlv
 
     void markposition (const char s);
 
+    void setzoom (const char *z);
+
     void jump (const char s);
 
     void showpage (int p, double s = 0.00);
