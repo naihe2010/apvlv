@@ -11,6 +11,8 @@ News features
 
    * add zw to fitwidth and zh to fitheight
 
+   * made the scrollbar as a option in $HOME/.apvlvrc
+
 Bug Fix
 
    * If a pdf file is not entrypted, not ask password when can't open it

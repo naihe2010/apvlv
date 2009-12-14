@@ -55,6 +55,7 @@ namespace apvlv
     push ("content", "yes");
     push ("cache", "no");
     push ("pdfcache", "4");
+    push ("scrollbar", "no");
     push ("commandtimeout", "1000");
 #ifdef WIN32
     push ("defaultdir", "C:\\");

@@ -52,3 +52,6 @@ set noinfo=no
 
 " set pdf object cache size
 set pdfcache = 4
+
+" set if use right and bottom scrollbar
+set scrollbar = no
