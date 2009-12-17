@@ -90,12 +90,16 @@ if test x$apvlv_debug = xyes; then
             [Define if you want to enable apvlv debug features. ]) 
 fi
 
-AC_CHECK_HEADER([libdjvu/ddjvuapi.h],[
-                 AC_CHECK_LIB(djvulibre, [ddjvu_document_create_by_filename],
+AC_ARG_WITH([djvu], AS_HELP_STRING([--without-djvu], [Build without djvu support]))
+
+if test "x$with_djvu" != "xno"; then
+AC_CHECK_HEADER([libdjvu/ddjvuapi.h],
+		[AC_CHECK_LIB(djvulibre, [ddjvu_document_create_by_filename],
                               AC_DEFINE([HAVE_LIBDJVU], 1, [Define to 1 if you have libdjvu]) 
                               LIBS="-ldjvulibre $LIBS"
                               , AC_MSG_WARN(Libdjvu library was not found))
                  ], )
+fi
 
 PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.4.0, CPPFLAGS="$CPPFLAGS $GTK_CFLAGS"; LIBS="$LIBS $GTK_LIBS")
 PKG_CHECK_MODULES(POPPLER, poppler-glib >= 0.5.4, CPPFLAGS="$CPPFLAGS $POPPLER_CFLAGS"; LIBS="$LIBS $POPPLER_LIBS")
