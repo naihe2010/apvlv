@@ -89,7 +89,7 @@ namespace apvlv
 
     virtual int pagesum () = 0;
 
-    virtual bool pagetext (int, char **) = 0;
+    virtual bool pagetext (int, int, int, int, int, char **) = 0;
 
     virtual bool render (int, int, int, double, int, GdkPixbuf *,
 			 char *buffer = NULL) = 0;
@@ -128,7 +128,7 @@ namespace apvlv
 
     int pagesum ();
 
-    bool pagetext (int, char **);
+    bool pagetext (int, int, int, int, int, char **);
 
     bool render (int, int, int, double, int, GdkPixbuf *, char *);
 
@@ -165,7 +165,7 @@ namespace apvlv
 
     int pagesum ();
 
-    bool pagetext (int, char **);
+    bool pagetext (int, int, int, int, int, char **);
 
     bool render (int, int, int, double, int, GdkPixbuf *, char *);
 

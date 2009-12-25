@@ -261,11 +261,9 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     return poses;
   }
 
-  bool ApvlvPDF::pagetext (int pn, char **out)
+  bool ApvlvPDF::pagetext (int pn, int x1, int y1, int x2, int y2, char **out)
   {
-    double x, y;
-    pagesize (pn, 0, &x, &y);
-    PopplerRectangle rect = { 0, 0, x, y };
+    PopplerRectangle rect = { x1, y1, x2, y2 };
     PopplerPage *page = poppler_document_get_page (mDoc, pn);
     *out = poppler_page_get_text (page, POPPLER_SELECTION_WORD, &rect);
     if (*out != NULL)
@@ -364,7 +362,8 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 		if (pd->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pd->named_dest);
+								       pd->
+								       named_dest);
 		    if (destnew != NULL)
 		      {
 			ApvlvLink link = { "", destnew->page_num - 1 };
@@ -428,9 +427,7 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 		if (pagd->dest->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pagd->
-								       dest->
-								       named_dest);
+								       pagd->dest->named_dest);
 		    int pn = 1;
 		    if (destnew != NULL)
 		      {
@@ -668,7 +665,8 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     return NULL;
   }
 
-  bool ApvlvDJVU::pagetext (int pn, char **out)
+  bool ApvlvDJVU::pagetext (int pn, int x1, int y1, int x2, int y2,
+			    char **out)
   {
     return false;
   }

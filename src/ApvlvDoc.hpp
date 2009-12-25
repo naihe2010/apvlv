@@ -178,7 +178,12 @@ namespace apvlv
   private:
     void blank (int x, int y);
 
+    void blankarea (int x1, int y1, int x2, int y2, guchar *, int width,
+		    int height);
+
     void togglevisual (int type);
+
+    int yank (int times);
 
     returnType subprocess (int ct, guint key);
 
@@ -221,6 +226,7 @@ namespace apvlv
     gint mInVisual;
     gint mBlankx1, mBlanky1;
     gint mBlankx2, mBlanky2;
+    gint mCurx, mCury;
 
     ApvlvDocPositionMap mPositions;
       vector < ApvlvDocPosition > mLinkPositions;

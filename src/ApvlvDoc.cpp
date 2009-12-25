@@ -124,6 +124,31 @@ namespace apvlv
     delete mStatus;
   }
 
+  void ApvlvDoc::blankarea (int x1, int y1, int x2, int y2, guchar * buffer,
+			    int width, int height)
+  {
+    debug ("x1: %d, y1: %d, x2: %d, y2:%d", x1, y1, x2, y2);
+    if (x2 > width)
+      {
+	x2 = width;
+      }
+    if (y2 > height)
+      {
+	y2 = height;
+      }
+
+    for (gint y = y1; y < y2; y++)
+      {
+	for (gint x = x1; x < x2; x++)
+	  {
+	    gint p = (gint) (y * width * 3 + (x * 3));
+	    buffer[p + 0] = 0xff - buffer[p + 0];
+	    buffer[p + 1] = 0xff - buffer[p + 1];
+	    buffer[p + 2] = 0xff - buffer[p + 2];
+	  }
+      }
+  }
+
   void ApvlvDoc::blank (int bx, int by)
   {
     debug ("bx: %d, by: %d", bx, by);
@@ -157,43 +182,134 @@ namespace apvlv
 	bx = cache->getwidth () - 10;
       }
 
+    mCurx = bx;
+    mCury = by;
+
     if (mInVisual == VISUAL_V)
       {
-      }
-    else if (mInVisual == VISUAL_CTRL_V)
-      {
-      }
-    else
-      {
-	mBlankx1 = bx;
-	mBlanky1 = by;
-
+	debug ("");
+	mBlankx2 = bx;
+	mBlanky2 = by;
 	if (cache == mCurrentCache2)
 	  {
 	    by -=
 	      mCurrentCache1->getheight () + gParams->valuei ("continouspad");
 	  }
-	debug ("bx: %d, by: %d", bx, by);
 	guchar *buffer = cache->getdata (true);
 	GdkPixbuf *pixbuf = cache->getbuf (true);
 
 	if (buffer && pixbuf)
 	  {
-	    gint x1 = MAX (bx + 0.5, 0);
-	    gint x2 = MAX ((bx + 10) - 0.5, 1);
-	    gint y1 = MAX (by + 0.5, 0);
-	    gint y2 = MAX ((by + rate) - 0.5, 1);
-
-	    for (gint y = y1; y < y2; y++)
+	    gint y1 = mBlanky1, y2 = mBlanky2;
+	    if (y1 > y2)
 	      {
-		for (gint x = x1; x < x2; x++)
+		y1 = mBlanky2;
+		y2 = mBlanky1;
+	      }
+	    gint x1 = mBlankx1, x2 = mBlankx2;
+	    if (x1 > x2)
+	      {
+		x1 = mBlankx2;
+		x2 = mBlankx1;
+	      }
+	    if (y1 == y2)
+	      {
+		blankarea (x1, y1, x2 + 10, y2 + rate, buffer,
+			   cache->getwidth (), cache->getheight ());
+	      }
+	    else
+	      {
+		blankarea (x1, y1, cache->getwidth (), y1 + rate, buffer,
+			   cache->getwidth (), cache->getheight ());
+		blankarea (0, y1 + rate, cache->getwidth (), y2, buffer,
+			   cache->getwidth (), cache->getheight ());
+		blankarea (0, y2, x2 + 10, y2 + rate, buffer,
+			   cache->getwidth (), cache->getheight ());
+	      }
+
+	    if (cache == mCurrentCache1)
+	      {
+		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), pixbuf);
+		if (mCurrentCache2 != NULL)
 		  {
-		    gint p = (gint) (y * cache->getwidth () * 3 + (x * 3));
-		    buffer[p + 0] = 0xff - buffer[p + 0];
-		    buffer[p + 1] = 0xff - buffer[p + 1];
-		    buffer[p + 2] = 0xff - buffer[p + 2];
+		    mCurrentCache2->getdata (true);
+		    GdkPixbuf *p = mCurrentCache2->getbuf (true);
+		    gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), p);
 		  }
 	      }
+	    else
+	      {
+		mCurrentCache1->getdata (true);
+		GdkPixbuf *p = mCurrentCache1->getbuf (true);
+		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), p);
+		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), pixbuf);
+	      }
+	  }
+      }
+    else if (mInVisual == VISUAL_CTRL_V)
+      {
+	debug ("");
+	mBlankx2 = bx;
+	mBlanky2 = by;
+	if (cache == mCurrentCache2)
+	  {
+	    by -=
+	      mCurrentCache1->getheight () + gParams->valuei ("continouspad");
+	  }
+	guchar *buffer = cache->getdata (true);
+	GdkPixbuf *pixbuf = cache->getbuf (true);
+
+	if (buffer && pixbuf)
+	  {
+	    gint y1 = mBlanky1, y2 = mBlanky2;
+	    if (y1 > y2)
+	      {
+		y1 = mBlanky2;
+		y2 = mBlanky1;
+	      }
+	    gint x1 = mBlankx1, x2 = mBlankx2;
+	    if (x1 > x2)
+	      {
+		x1 = mBlankx2;
+		x2 = mBlankx1;
+	      }
+	    blankarea (x1, y1, x2 + 10, y2 + rate, buffer, cache->getwidth (),
+		       cache->getheight ());
+
+	    if (cache == mCurrentCache1)
+	      {
+		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), pixbuf);
+		if (mCurrentCache2 != NULL)
+		  {
+		    mCurrentCache2->getdata (true);
+		    GdkPixbuf *p = mCurrentCache2->getbuf (true);
+		    gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), p);
+		  }
+	      }
+	    else
+	      {
+		mCurrentCache1->getdata (true);
+		GdkPixbuf *p = mCurrentCache1->getbuf (true);
+		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), p);
+		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), pixbuf);
+	      }
+	  }
+      }
+    else
+      {
+	debug ("");
+	if (cache == mCurrentCache2)
+	  {
+	    by -=
+	      mCurrentCache1->getheight () + gParams->valuei ("continouspad");
+	  }
+	guchar *buffer = cache->getdata (true);
+	GdkPixbuf *pixbuf = cache->getbuf (true);
+
+	if (buffer && pixbuf)
+	  {
+	    blankarea (bx, by, bx + 10, by + rate, buffer, cache->getwidth (),
+		       cache->getheight ());
 
 	    if (cache == mCurrentCache1)
 	      {
@@ -216,23 +332,83 @@ namespace apvlv
       }
   }
 
-  void ApvlvDoc::togglevisual (int type)
+  void ApvlvDoc::togglevisual (int key)
   {
     if (gParams->valueb ("visualmode") == false)
       {
 	return;
       }
 
+    if (mInVisual == VISUAL_NONE)
+      {
+	mBlankx1 = mCurx;
+	mBlanky1 = mCury;
+      }
+
+    int type = key == 'v' ? VISUAL_V : VISUAL_CTRL_V;
     if (mInVisual == type)
       {
 	mInVisual = VISUAL_NONE;
+	blank (mCurx, mCury);
       }
     else
       {
 	mInVisual = type;
       }
+  }
 
-    blank (mBlankx2, mBlanky2);
+  int ApvlvDoc::yank (int times)
+  {
+    char *txt1, *txt2, *txt3;
+
+    gint y1 = mBlanky1, y2 = mBlanky2;
+    if (y1 > y2)
+      {
+	y1 = mBlanky2;
+	y2 = mBlanky1;
+      }
+    gint x1 = mBlankx1, x2 = mBlankx2;
+    if (x1 > x2)
+      {
+	x1 = mBlankx2;
+	x2 = mBlankx1;
+      }
+    if (y1 == y2 || mInVisual == VISUAL_CTRL_V)
+      {
+	mFile->pagetext (mPagenum, x1, y1, x2 + 10, y2 + mVrate, &txt1);
+      }
+    else
+      {
+	mFile->pagetext (mPagenum, x1, y1, (int) mCurrentCache1->getwidth (),
+			 (int) (y1 + mVrate), &txt1);
+	mFile->pagetext (mPagenum, 0, y1 + mVrate,
+			 (int) mCurrentCache1->getwidth (), y2, &txt2);
+	mFile->pagetext (mPagenum, 0, y2, x2 + 10, y2 + mVrate, &txt3);
+      }
+
+    GtkClipboard *cb = gtk_clipboard_get (NULL);
+    string text = "";
+    if (txt1 != NULL)
+      {
+	text += txt1;
+	g_free (txt1);
+      }
+    if (txt2 != NULL)
+      {
+	text += txt2;
+	g_free (txt2);
+      }
+    if (txt3 != NULL)
+      {
+	text += txt3;
+	g_free (txt3);
+      }
+    gtk_clipboard_set_text (cb, text.c_str (), text.length ());
+
+    mInVisual = VISUAL_NONE;
+    blank (mCurx, mCury);
+
+    return 0;
   }
 
   returnType ApvlvDoc::subprocess (int ct, guint key)
@@ -388,6 +564,9 @@ namespace apvlv
       case CTRL ('v'):
       case 'v':
 	togglevisual (key);
+	break;
+      case ('y'):
+	yank (ct);
 	break;
       default:
 	return NO_MATCH;
@@ -853,7 +1032,7 @@ namespace apvlv
     gdouble sub = mVaj->upper - mVaj->lower;
     mVrate = sub / mLines;
 
-    gint ny1 = mBlanky1 - mVrate * times;
+    gint ny1 = mCury - mVrate * times;
     if (ny1 < mVaj->value)
       {
 	ApvlvCore::scrollup (times);
@@ -862,7 +1041,7 @@ namespace apvlv
 
     if (npage == opage)
       {
-	blank (mBlankx1, ny1);
+	blank (mCurx, ny1);
       }
     else
       {
@@ -884,7 +1063,7 @@ namespace apvlv
     mVrate = sub / mLines;
 
     gint opage = mPagenum, npage = mPagenum;
-    gint ny1 = mBlanky1 + mVrate * times;
+    gint ny1 = mCury + mVrate * times;
     if (ny1 > mVaj->page_size)
       {
 	ApvlvCore::scrolldown (times);
@@ -893,7 +1072,7 @@ namespace apvlv
 
     if (npage == opage)
       {
-	blank (mBlankx1, ny1);
+	blank (mCurx, ny1);
       }
     else
       {
@@ -914,12 +1093,12 @@ namespace apvlv
     gdouble sub = mHaj->upper - mHaj->lower;
     mHrate = sub / mChars;
 
-    gint nx1 = mBlankx1 - mHrate * times;
+    gint nx1 = mCurx - mHrate * times;
     if (nx1 < mHaj->upper - mHaj->page_size)
       {
 	ApvlvCore::scrollleft (times);
       }
-    blank (nx1, mBlanky1);
+    blank (nx1, mCury);
   }
 
   void ApvlvDoc::scrollright (int times)
@@ -936,12 +1115,12 @@ namespace apvlv
     gdouble sub = mHaj->upper - mHaj->lower;
     mHrate = sub / mChars;
 
-    gint nx1 = mBlankx1 + mHrate * times;
+    gint nx1 = mCurx + mHrate * times;
     if (nx1 > mHaj->page_size)
       {
 	ApvlvCore::scrollright (times);
       }
-    blank (nx1, mBlanky1);
+    blank (nx1, mCury);
   }
 
   bool ApvlvDoc::needsearch (const char *str, bool reverse)
@@ -1047,7 +1226,9 @@ namespace apvlv
       return false;
 
     char *txt;
-    bool ret = mFile->pagetext (mPagenum, &txt);
+    bool ret =
+      mFile->pagetext (mPagenum, 0, 0, mCurrentCache1->getwidth (),
+		       mCurrentCache1->getheight (), &txt);
     if (ret == true)
       {
 	g_file_set_contents (file, txt, -1, NULL);
