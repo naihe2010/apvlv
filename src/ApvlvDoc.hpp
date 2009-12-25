@@ -96,6 +96,7 @@ namespace apvlv
     double mRotate;
     gint mPagenum;
     guchar *mData;
+    gint mSize;
     GdkPixbuf *mBuf;
     gint mWidth;
     gint mHeight;
@@ -163,6 +164,11 @@ namespace apvlv
 
     void halfprepage (int times = 1);
 
+    void scrollup (int times);
+    void scrolldown (int times);
+    void scrollleft (int times);
+    void scrollright (int times);
+
     void search (const char *str, bool reverse = false);
 
     bool continuous ();
@@ -170,7 +176,11 @@ namespace apvlv
     returnType process (int times, guint keyval);
 
   private:
-      returnType subprocess (int ct, guint key);
+    void blank (int x, int y);
+
+    void togglevisual (int type);
+
+    returnType subprocess (int ct, guint key);
 
     bool status_show ();
 
@@ -205,6 +215,12 @@ namespace apvlv
 			   gint page_nr, PrintData * data);
     static void end_print (GtkPrintOperation * operation,
 			   GtkPrintContext * context, PrintData * data);
+
+    enum
+    { VISUAL_NONE, VISUAL_V, VISUAL_CTRL_V };
+    gint mInVisual;
+    gint mBlankx1, mBlanky1;
+    gint mBlankx2, mBlanky2;
 
     ApvlvDocPositionMap mPositions;
       vector < ApvlvDocPosition > mLinkPositions;

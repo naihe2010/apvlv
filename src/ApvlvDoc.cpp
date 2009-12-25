@@ -61,6 +61,7 @@ namespace apvlv
     mContinuous = gParams->valueb ("continuous");;
 
     mZoominit = false;
+
     mLines = 50;
     mChars = 80;
 
@@ -121,6 +122,117 @@ namespace apvlv
     mPositions.clear ();
 
     delete mStatus;
+  }
+
+  void ApvlvDoc::blank (int bx, int by)
+  {
+    debug ("bx: %d, by: %d", bx, by);
+    if (bx < 0)
+      {
+	bx = 0;
+      }
+    if (by < 0)
+      {
+	by = 0;
+      }
+
+    ApvlvDocCache *cache = mCurrentCache1;
+    gint rate = cache->getheight () / mLines;
+
+    if (by + rate >= cache->getheight ())
+      {
+	if (mCurrentCache2 == NULL)
+	  {
+	    by = cache->getheight () - rate;
+	  }
+	else
+	  {
+	    cache = mCurrentCache2;
+	    rate = cache->getheight () / mLines;
+	  }
+      }
+
+    if (bx + 10 >= cache->getwidth ())
+      {
+	bx = cache->getwidth () - 10;
+      }
+
+    if (mInVisual == VISUAL_V)
+      {
+      }
+    else if (mInVisual == VISUAL_CTRL_V)
+      {
+      }
+    else
+      {
+	mBlankx1 = bx;
+	mBlanky1 = by;
+
+	if (cache == mCurrentCache2)
+	  {
+	    by -=
+	      mCurrentCache1->getheight () + gParams->valuei ("continouspad");
+	  }
+	debug ("bx: %d, by: %d", bx, by);
+	guchar *buffer = cache->getdata (true);
+	GdkPixbuf *pixbuf = cache->getbuf (true);
+
+	if (buffer && pixbuf)
+	  {
+	    gint x1 = MAX (bx + 0.5, 0);
+	    gint x2 = MAX ((bx + 10) - 0.5, 1);
+	    gint y1 = MAX (by + 0.5, 0);
+	    gint y2 = MAX ((by + rate) - 0.5, 1);
+
+	    for (gint y = y1; y < y2; y++)
+	      {
+		for (gint x = x1; x < x2; x++)
+		  {
+		    gint p = (gint) (y * cache->getwidth () * 3 + (x * 3));
+		    buffer[p + 0] = 0xff - buffer[p + 0];
+		    buffer[p + 1] = 0xff - buffer[p + 1];
+		    buffer[p + 2] = 0xff - buffer[p + 2];
+		  }
+	      }
+
+	    if (cache == mCurrentCache1)
+	      {
+		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), pixbuf);
+		if (mCurrentCache2 != NULL)
+		  {
+		    mCurrentCache2->getdata (true);
+		    GdkPixbuf *p = mCurrentCache2->getbuf (true);
+		    gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), p);
+		  }
+	      }
+	    else
+	      {
+		mCurrentCache1->getdata (true);
+		GdkPixbuf *p = mCurrentCache1->getbuf (true);
+		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), p);
+		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), pixbuf);
+	      }
+	  }
+      }
+  }
+
+  void ApvlvDoc::togglevisual (int type)
+  {
+    if (gParams->valueb ("visualmode") == false)
+      {
+	return;
+      }
+
+    if (mInVisual == type)
+      {
+	mInVisual = VISUAL_NONE;
+      }
+    else
+      {
+	mInVisual = type;
+      }
+
+    blank (mBlankx2, mBlanky2);
   }
 
   returnType ApvlvDoc::subprocess (int ct, guint key)
@@ -198,12 +310,21 @@ namespace apvlv
 	return NEED_MORE;
       case 'H':
 	scrollto (0.0);
+	blank (0, 0);
 	break;
       case 'M':
 	scrollto (0.5);
+	blank (0, mVaj->upper / 2);
 	break;
       case 'L':
 	scrollto (1.0);
+	blank (0, mVaj->upper);
+	break;
+      case '0':
+	scrollleft (mChars);
+	break;
+      case '$':
+	scrollright (mChars);
 	break;
       case CTRL ('p'):
       case GDK_Up:
@@ -263,6 +384,10 @@ namespace apvlv
       case 'N':
 	markposition ('\'');
 	search ("", true);
+	break;
+      case CTRL ('v'):
+      case 'v':
+	togglevisual (key);
 	break;
       default:
 	return NO_MATCH;
@@ -484,6 +609,7 @@ namespace apvlv
 	setactive (true);
 
 	mReady = true;
+	mInVisual = VISUAL_NONE;
       }
 
     return mFile == NULL ? false : true;
@@ -570,6 +696,7 @@ namespace apvlv
     refresh ();
 
     scrollto (s);
+    blank (0, mCurrentCache1->getheight () * s);
   }
 
   void ApvlvDoc::nextpage (int times)
@@ -590,6 +717,7 @@ namespace apvlv
     mCurrentCache1->set (mPagenum, mZoomrate, mRotatevalue, false);
     GdkPixbuf *buf = mCurrentCache1->getbuf (true);
     gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), buf);
+
     if (mAutoScrollPage && mContinuous)
       {
 	mCurrentCache2->set (convertindex (mPagenum + 1), mZoomrate,
@@ -708,6 +836,112 @@ namespace apvlv
   bool ApvlvDoc::continuous ()
   {
     return mContinuous;
+  }
+
+  void ApvlvDoc::scrollup (int times)
+  {
+    if (!mReady)
+      return;
+
+    if (gParams->valueb ("visualmode") == false)
+      {
+	ApvlvCore::scrollup (times);
+	return;
+      }
+
+    gint opage = mPagenum, npage = mPagenum;
+    gdouble sub = mVaj->upper - mVaj->lower;
+    mVrate = sub / mLines;
+
+    gint ny1 = mBlanky1 - mVrate * times;
+    if (ny1 < mVaj->value)
+      {
+	ApvlvCore::scrollup (times);
+	npage = mPagenum;
+      }
+
+    if (npage == opage)
+      {
+	blank (mBlankx1, ny1);
+      }
+    else
+      {
+      }
+  }
+
+  void ApvlvDoc::scrolldown (int times)
+  {
+    if (!mReady)
+      return;
+
+    if (gParams->valueb ("visualmode") == false)
+      {
+	ApvlvCore::scrolldown (times);
+	return;
+      }
+
+    gdouble sub = mVaj->upper - mVaj->lower;
+    mVrate = sub / mLines;
+
+    gint opage = mPagenum, npage = mPagenum;
+    gint ny1 = mBlanky1 + mVrate * times;
+    if (ny1 > mVaj->page_size)
+      {
+	ApvlvCore::scrolldown (times);
+	npage = mPagenum;
+      }
+
+    if (npage == opage)
+      {
+	blank (mBlankx1, ny1);
+      }
+    else
+      {
+      }
+  }
+
+  void ApvlvDoc::scrollleft (int times)
+  {
+    if (!mReady)
+      return;
+
+    if (gParams->valueb ("visualmode") == false)
+      {
+	ApvlvCore::scrollleft (times);
+	return;
+      }
+
+    gdouble sub = mHaj->upper - mHaj->lower;
+    mHrate = sub / mChars;
+
+    gint nx1 = mBlankx1 - mHrate * times;
+    if (nx1 < mHaj->upper - mHaj->page_size)
+      {
+	ApvlvCore::scrollleft (times);
+      }
+    blank (nx1, mBlanky1);
+  }
+
+  void ApvlvDoc::scrollright (int times)
+  {
+    if (!mReady)
+      return;
+
+    if (gParams->valueb ("visualmode") == false)
+      {
+	ApvlvCore::scrollright (times);
+	return;
+      }
+
+    gdouble sub = mHaj->upper - mHaj->lower;
+    mHrate = sub / mChars;
+
+    gint nx1 = mBlankx1 + mHrate * times;
+    if (nx1 > mHaj->page_size)
+      {
+	ApvlvCore::scrollright (times);
+      }
+    blank (nx1, mBlanky1);
   }
 
   bool ApvlvDoc::needsearch (const char *str, bool reverse)
@@ -1012,6 +1246,7 @@ namespace apvlv
     mFile = file;
     mPagenum = -1;
     mData = NULL;
+    mSize = 0;
     mBuf = NULL;
     mLinks = NULL;
   }
@@ -1057,7 +1292,10 @@ namespace apvlv
     ac->mWidth = MAX ((tpagex * ac->mZoom + 0.5), 1);
     ac->mHeight = MAX ((tpagey * ac->mZoom + 0.5), 1);
 
-    guchar *dat = new guchar[ac->mWidth * ac->mHeight * 3];
+    // this is very import to get the double times size data
+    // the 2ed chunk data will be for output
+    ac->mSize = ac->mWidth * ac->mHeight * 3;
+    guchar *dat = new guchar[2 * ac->mSize];
 
     GdkPixbuf *bu = gdk_pixbuf_new_from_data (dat, GDK_COLORSPACE_RGB,
 					      FALSE,
@@ -1067,6 +1305,8 @@ namespace apvlv
 					      NULL, NULL);
     ac->mFile->render (ac->mPagenum, ac->mWidth, ac->mHeight, ac->mZoom,
 		       ac->mRotate, bu, (char *) dat);
+    // backup the pixbuf data
+    memcpy (dat + ac->mSize, dat, ac->mSize);
 
     if (ac->mLinks)
       {
@@ -1104,6 +1344,7 @@ namespace apvlv
    * */
   guchar *ApvlvDocCache::getdata (bool wait)
   {
+    memcpy (mData, mData + mSize, mSize);
     return mData;
   }
 

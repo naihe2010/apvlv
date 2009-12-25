@@ -3,10 +3,10 @@ contributions:
 
         - Andrew Kudryashov <andrewinsilenthill@gmail.com>, for his help about Startup.pdf
         - Adam <jiang.adam@gmail.com>, for his test and bug fix.
-        - Stefan Ritter <xeno@thehappy.de>, for his man page of apvlv and his careful test.
+        - Stefan Ritter <xeno@thehappy.de>, for his man page of apvlv, his careful test and pack on Debian
 
         - Robert Smolinski <scottymcribs@gmail.com>, for his vimlike tabs code contribution. 
-          And, he is a developer of apvlv now.
+          And, he is a developer of apvlv then.
 
         - Robby Workman <rworkman@slackbuilds.org>, for his bug fix about doc directory
         - grandpa <lxdjob.gmail.com>, for his test on windows

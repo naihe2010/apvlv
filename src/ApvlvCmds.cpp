@@ -420,7 +420,7 @@ namespace apvlv
 
     if (mState == CMD_OK)
       {
-	if (isdigit (gev->keyval))
+	if (isdigit (gev->keyval) && gev->keyval != '0')
 	  {
 	    char s[2] = { 0 };
 	    s[0] = gev->keyval;
