@@ -57,6 +57,7 @@ namespace apvlv
     push ("pdfcache", "4");
     push ("scrollbar", "no");
     push ("visualmode", "no");
+    push ("warpscan", "yes");
     push ("commandtimeout", "1000");
 #ifdef WIN32
     push ("defaultdir", "C:\\");

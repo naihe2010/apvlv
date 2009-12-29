@@ -1190,27 +1190,37 @@ namespace apvlv
 	mSearchResults = NULL;
       }
 
-    int i =
-      strlen (str) > 0 ? mPagenum : reverse ? mPagenum - 1 : mPagenum + 1;
+    bool wrap = gParams->valueb ("wrapscan");
+
+    int i = mPagenum;
     int sum = mFile->pagesum (), from = i;
+    bool search = false;
     while (1)
       {
-	mSearchResults =
-	  mFile->pagesearch ((i + sum) % sum, mSearchStr.c_str (), reverse);
-	mSearchReverse = reverse;
-	if (mSearchResults != NULL)
+	if (*str != 0 || search)
 	  {
-	    showpage ((i + sum) % sum, 0.5);
-	    markselection ();
-	    break;
+	    mSearchResults =
+	      mFile->pagesearch ((i + sum) % sum, mSearchStr.c_str (),
+				 reverse);
+	    mSearchReverse = reverse;
+	    if (mSearchResults != NULL)
+	      {
+		showpage ((i + sum) % sum, 0.5);
+		markselection ();
+		break;
+	      }
 	  }
 
-	if (!reverse && i < from + sum)
+	search = true;
+
+	if (!reverse && i < (wrap ? (from + sum) : (sum - 1)))
 	  {
+	    debug ("wrap: %d, i++:", wrap, i, i + 1);
 	    i++;
 	  }
-	else if (reverse && i > from - sum)
+	else if (reverse && i > (wrap ? (from - sum) : 0))
 	  {
+	    debug ("wrap: %d, i--:", wrap, i, i - 1);
 	    i--;
 	  }
 	else
@@ -1226,9 +1236,8 @@ namespace apvlv
       return false;
 
     char *txt;
-    bool ret =
-      mFile->pagetext (mPagenum, 0, 0, mCurrentCache1->getwidth (),
-		       mCurrentCache1->getheight (), &txt);
+    bool ret = mFile->pagetext (mPagenum, 0, 0, mCurrentCache1->getwidth (),
+				mCurrentCache1->getheight (), &txt);
     if (ret == true)
       {
 	g_file_set_contents (file, txt, -1, NULL);
