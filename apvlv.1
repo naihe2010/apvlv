@@ -1,253 +1,222 @@
-.TH "apvlv" "1" "0.0.9" "Alf" "text"
-.SH "NAME"
-.LP 
-.br
-apvlv \- PDF viewer with Vim\-like behaviour
-.SH "SYNOPSIS"
-.LP 
-.br
-apvlv [file]
-.SH "DESCRIPTION"
-.LP 
-.br
-apvlv is a PDF viewer, which behave like Vim.
-.SH "OPTIONS"
-.LP
-.br
-\-c	specify a custom configuration file
-.br
-\-h	show help messages and exist
-.br
-\-v	show version of apvlv and exist
-.SH "COMMANDS"
-.LP 
-.br
-o	display a file chooser dialog to select a PDF file to open
-.br
-O	select a directory to display
-.br
-R	reload the file which was be read
-.br
-r [count]	
-.br
-	rotate the document page view
-.br
-G [count]	
-.br
-	page show
-.br
-gt	next tab show
-.br
-gT	previous tab show
-.br
-PageDown, C\-f	[count]          
-.br
-	forward page
-.br
-PageUp, C\-b [count]	
-.br
-	preward page
-.br
-C\-d [count]	
-.br
-	half forward page
-.br
-C\-u [count] half	
-.br
-	previous page
-.br
-H	scroll to head
-.br
-M	scroll to middle
-.br
-L	scroll to last
-.br
-C\-p, Up, k [count]	
-.br
-	page scroll up
-.br
-C\-n, Down, C\-j, j [count]	
-.br
-	page scroll down
-.br
-BackSpace, Left, h [count]	
-.br
-	page scroll left
-.br
-Space, C\-l, l [count]	
-.br
-	page scroll right
-.br
-/	search a string
-.br
-?	back search a string
-.br
-f	If Apvlv is in full screen mode, switch to normal mode. Other 
-.br
-	wise, switch to full screen.
-.br
-zi	zoom in page
-.br
-zo	zoom out page
-.br
-zw	zoom to fit width
-.br
-zh	zoom to fit height
-.br
-m	Mark the read position to the followed char.
-.br
-	That is, press 'ma' will mark the current position to a, and you 
-.br
-	can return here by press 'a'.
-.br
-q	Close the current window.
-.br
-.SH "SETTINGS"
-.LP 
-.br
-This settings can be set in ~/.apvlvrc:
-.br
-fullscreen=yes/no	
-.br
-	If set yes, apvlv will start in full screen mode.
-.br
-width=<int>	
-.br
-	If fullscreen is not set to yes, this is the window width.
-.br
-height=<int>	
-.br
-	If fullscreen is not set to yes, this is the window height.
-.br
-defaultdir=<path>	
-.br
-	When display the open dialog, this is the default directory.
-.br
-zoom
-.br
-	normal		The default zoom value will be set by the application itself.
-.br 
-.br
-	fitwidth		The default zoom value will let the page width eque to the window width.
-.br 
-.br
-	fitheight		The default zoom value will let the page height eque to the window height.
-.br 
-.br
-	custom		Set a custom value like zoom=1.0, zoom=1.2, zoom=0.8.
-.br 
-.br
-content=yes/no	
-.br
-	Set if use content view as first
-.br
-continuous=yes/no	
-.br
-	Set a pdf page continuous or not. This value will be avoid when the 
-.br
-	autoscrollpage is set to no.
-.br
-continuouspad=2	
-.br
-	Set a padding in the continuous view of page
-.br
-autoscrollpage=yes/no	
-.br
-	Set weather auto scroll page when k,j to a page's tail or head
-.br
-noinfo=yes/no	
-.br
-	Set if disable the ~/.apvlvinfo
-.br
-pdfcache=4	
-.br
-	Set pdf object cache size
-scrollbar=no
-.br
-	Set not show scrollbar or do
-visualmode=no
-.br
-	Set not use visual mode to select and copy text or do
-wrapscan=yes
-.br
-	Set wrapscan to search text or not
-.br
-.SH "PROMPT"
-.LP 
-.br
-:h[elp]	display the help pdf document
-.br
-:h[elp] info	
-.br
-	display the help pdf document about the introduction
-.br
-:h[elp] command	
-.br
-	display the help pdf document about the command
-.br
-:h[elp] setting	
-.br
-	display the help pdf document about the setting in the .apvlvrc
-.br
-:h[elp] prompt	
-.br
-	display the help pdf document about the prompt command
-.br
-:q[uit]	close the current window. If the window is the top level window, quit the 
-.br
-	program.
-.br
-:o[pen] 'filename'	
-.br
-	open a file which named 'filename'
-.br
-:doc 'filename'	
-.br
-	load the 'filename' to current window
-.br
-:TOtext	translate the current page to a text file
-.br
-:TOtext 'filename'	
-.br
-	translate the current page to a text file named 'filename'
-.br
-:pr[int]	
-.br
-	print the current document
-.br
-:tabnew	create a new tab
-.br
-:sp	split the current window into two windows
-.br
-:vsp	split the current window into two horizon windows
-.br
-:fp, :forwardpage	
-.br
-	go forward some pages
-.br
-:bp, :prewardpage	
-.br
-	go preward some pages
-.br
-:g, :goto	
-.br
-	go to a page
-.br
-:set [no]cache	
-.br
-	set if use cache module. If you don't feel scroll slowly, you don't need set this to on.
-.br
-:z[oom] fitwidth/fitheight/value	
-.br
-	zoom to fit width/fit height/custom value
-.br
-:[number]	
-.br
-	goto a page number
-.br
-.SH "AUTHORS"
-.LP 
-.br
+.Dd December 24, 2009
+.Dt apvlv 1
+.Os
+.Sh NAME
+.Nm apvlv
+.Nd PDF viewer with vim-like behaviour
+.Sh SYNOPSIS
+.Nm
+.Op options
+.Op file
+.Sh DESCRIPTION
+apvlv is a PDF viewer, which behaves like vim.
+.Sh OPTIONS
+.Bl -tag -width "v"
+.It Fl c Ar file
+Load configuration from
+.Ar file
+instead of the default
+.Pa ~/.apvlvrc
+.It Fl h
+Show help message and exit
+.It Fl v
+Show version and exit
+.El
+.Sh COMMANDS
+The following command keys can be used inside apvlv.
+Some of them may be prefixed by a number (as in pressing "13G"),
+this is indicated by a
+.Ar count
+in their description.  Unless noted otherwise, the default value for the
+number is 1.
+.Bl -tag -width "indent"
+.It o
+Display file chooser to open a PDF file
+.It O
+Select a directory to display
+.It R
+Reload the current file
+.It r
+Rotate the document clockwise by 90 degrees
+.It G
+Show page number
+.Ar count
+.It gt
+Show next tab
+.It gT
+Show previous tab
+.It PageDown, C-f
+Go forward
+.Ar count
+pages
+.It PageUp, C-b
+Go backward
+.Ar count
+pages
+.It C-d
+Go forward
+.Ar count
+half pages
+.It C-u
+Go backward
+.Ar count
+half pages
+.It H
+Scroll to page head
+.It M
+Scroll to page middle
+.It L
+Scroll to page bottom
+.It C-p, Up, k
+Scroll up
+.Ar count
+units
+.It C-n, Down, h
+Scroll down
+.Ar count
+units
+.It Backspace, Left, h
+Scroll left
+.Ar count
+units
+.It Space, Right, l
+Scroll right
+.Ar count
+units
+.It / Ar string
+Search forwards for
+.Ar string
+.It ? Ar string
+Search backwards for
+.Ar string
+.It f
+Toggle between fullscreen and window mode
+.It zi
+Zoom in
+.It zo
+Zoom out
+.It zw
+Zoom to fit window width
+.It zh
+Zoom to fit window height
+.It m Ar char
+Mark the current position to
+.Ar char ,
+so that it can be recalled by pressing
+.Ar char
+.It ' Ar char
+Return to the mark position 
+.Ar char
+.It ''
+Return to the last position
+.It q
+Close the current window
+.It v
+Select a area
+.It C-v
+Select a rectange area
+.It y
+copy the select area text to clipboard
+.El
+.Sh SETTINGS
+These can be set in ~/.apvlvrc with
+.Qq set Ar setting Op = Ar value .
+.Bl -tag -width "indent"
+.It fullscreen = yes/no
+Enable/Disable fullscreen
+.It width = Ar int
+Default window width
+.It height = Ar int
+Default window height
+.It defaultdir = Ar path
+Default directory for the open dialogue
+.It zoom = Ar mode
+Set default zoom level
+.Bl -tag -width "indent"
+.It normal
+The application sets the default zoom value
+.It fitwidth
+Fit pages to window width
+.It fitheight
+Fit pages to window height
+.It Ar float
+1.0 for 100%, 2.0 for 200%, etc.
+.El
+.It content = yes/no
+Show content view first
+.It continuous = yes/no
+Show PDF pages continuously or not.
+.It continuouspad = Ar int
+Padding betwen pages for continuous = yes
+.It autoscrollpage = yes/no
+Enable/Disable scrolling the pages when hitting a page tail/head
+.It noinfo = yes/no
+Disable/Enable the usage of ~/.apvlvinfo
+.It pdfcache = Ar int
+Set pdf cache size
+.It [no]cache
+Disable/Enable cache
+.It scrollbar = yes/no
+Set show scrollbar or not
+.It visualmode = yes/no
+Set use visual mode to select and copy text or not
+.It wrapscan =yes/no
+Set wrapscan to search text or not
+.El
+.Sh PROMPT
+Like the COMMANDS, but prefixed with a colon:
+.Bl -tag -width "indent"
+.It :h[elp]
+Display the help document
+.It :h[elp] info
+Display the help document (section "introduction")
+.It :h[elp] command
+Display the help document (section "command")
+.It :h[elp] setting
+Display the help document (section "setting")
+.It :h[elp] prompt
+Display the help document (section "prompt")
+.It :q[uit]
+Close the current window
+.It :o[pen] Ar file
+Open
+.Ar file
+.It :doc Ar file
+Load
+.Ar file
+into the current window
+.It :TOtext Op Ar file
+Translate
+.Ar file
+(or the current page) to a text file
+.It :pr[int]
+Print the current document
+.It :tabnew
+Create a new tab
+.It :sp
+Horizontally split the current window
+.It :vsp
+Vertically split the current window
+.It :fp, :forwardpage Op Ar int
+Go forward
+.Ar int
+pages (1 by default)
+.It :bp, :prewardpage Op Ar int
+Go backward
+.Ar int
+pages (1 by default)
+.It :g, :goto Ar int
+Go to page
+.Ar int
+.It :z[oom] Ar mode
+Set zoom to
+.Ar mode
+(see "set zoom" in SETTINGS)
+.It : Ns Ar int
+Go to page
+.Ar int
+.El
+.Sh AUTHORS
 apvlv was written by Alf <naihe2010@gmail.com>.
-.br
-This manual page was written by Stefan Ritter <xeno@thehappy.de>, for the Debian project (but may be used by others).
+.Pp
+This manual page was originally written by Stefan Ritter <xeno@thehappy.de> for the Debian project (but may be used by others), and was rewritten more beautifully by Daniel Friesel <foobar@derf.homelinux.org>.
