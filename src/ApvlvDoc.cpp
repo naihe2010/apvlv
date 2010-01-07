@@ -845,7 +845,6 @@ namespace apvlv
     refresh ();
 
     scrollto (s);
-    blank (0, mCurrentCache1->getheight () * s);
   }
 
   void ApvlvDoc::nextpage (int times)
@@ -998,9 +997,9 @@ namespace apvlv
 	return;
       }
 
-    gint opage = mPagenum, npage = mPagenum;
     gdouble sub = mVaj->upper - mVaj->lower;
     mVrate = sub / mLines;
+    gint opage = mPagenum, npage = mPagenum;
 
     gint ny1 = mCury - mVrate * times;
     if (ny1 < mVaj->value)
@@ -1015,6 +1014,14 @@ namespace apvlv
       }
     else
       {
+	if (gParams->valueb ("continuous") == false)
+	  {
+	    blank (mCurx, mScrollvalue * mCurrentCache1->getheight ());
+	  }
+	else
+	  {
+	    blank (mCurx, mVaj->upper / 2);
+	  }
       }
   }
 
@@ -1031,10 +1038,10 @@ namespace apvlv
 
     gdouble sub = mVaj->upper - mVaj->lower;
     mVrate = sub / mLines;
-
     gint opage = mPagenum, npage = mPagenum;
+
     gint ny1 = mCury + mVrate * times;
-    if (ny1 > mVaj->page_size)
+    if (ny1 - mVaj->value > mVaj->page_size)
       {
 	ApvlvCore::scrolldown (times);
 	npage = mPagenum;
@@ -1046,6 +1053,14 @@ namespace apvlv
       }
     else
       {
+	if (gParams->valueb ("continuous") == false)
+	  {
+	    blank (mCurx, mScrollvalue * mCurrentCache1->getheight ());
+	  }
+	else
+	  {
+	    blank (mCurx, mVaj->upper / 2);
+	  }
       }
   }
 
@@ -1365,7 +1380,9 @@ namespace apvlv
     gboolean retry = doc->scrollto (doc->mScrollvalue) == TRUE ? FALSE : TRUE;
     if (!retry)
       {
-	doc->blank (0, doc->mScrollvalue * doc->mCurrentCache1->getheight ());
+	doc->blank (0,
+		    doc->mScrollvalue * (doc->mVaj->upper - doc->mVaj->lower -
+					 doc->mVaj->page_size));
       }
     return retry;
   }
