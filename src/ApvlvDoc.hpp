@@ -216,6 +216,9 @@ namespace apvlv
     static void apvlv_doc_button_event (GtkEventBox * box,
 					GdkEventButton * ev, ApvlvDoc *);
 
+    static void apvlv_doc_motion_event (GtkWidget *, GdkEventMotion *,
+					ApvlvDoc *);
+
     static void apvlv_doc_copytoclipboard_cb (GtkMenuItem * item, ApvlvDoc *);
 
     static void begin_print (GtkPrintOperation * operation,

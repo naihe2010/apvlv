@@ -92,8 +92,8 @@ namespace apvlv
     gtk_container_add (GTK_CONTAINER (ebox), mImage1);
     g_signal_connect (G_OBJECT (ebox), "button-press-event",
 		      G_CALLBACK (apvlv_doc_button_event), this);
-    g_signal_connect (G_OBJECT (ebox), "button-release-event",
-		      G_CALLBACK (apvlv_doc_button_event), this);
+    g_signal_connect (G_OBJECT (ebox), "motion-notify-event",
+		      G_CALLBACK (apvlv_doc_motion_event), this);
     gtk_box_pack_start (GTK_BOX (vbox), ebox, TRUE, TRUE, 0);
     if (mAutoScrollPage && mContinuous)
       {
@@ -102,8 +102,8 @@ namespace apvlv
 	gtk_container_add (GTK_CONTAINER (ebox), mImage2);
 	g_signal_connect (G_OBJECT (ebox), "button-press-event",
 			  G_CALLBACK (apvlv_doc_button_event), this);
-	g_signal_connect (G_OBJECT (ebox), "button-release-event",
-			  G_CALLBACK (apvlv_doc_button_event), this);
+	g_signal_connect (G_OBJECT (ebox), "motion-notify-event",
+			  G_CALLBACK (apvlv_doc_motion_event), this);
 	gtk_box_pack_start (GTK_BOX (vbox), ebox, TRUE, TRUE, 0);
       }
 
@@ -417,9 +417,6 @@ namespace apvlv
       }
     gtk_clipboard_set_text (cb, text.c_str (), text.length ());
 
-    mInVisual = VISUAL_NONE;
-    blank (mCurx, mCury);
-
     return 0;
   }
 
@@ -579,6 +576,8 @@ namespace apvlv
 	break;
       case ('y'):
 	yank (ct);
+	mInVisual = VISUAL_NONE;
+	blank (mCurx, mCury);
 	break;
       default:
 	return NO_MATCH;
@@ -1404,7 +1403,12 @@ namespace apvlv
   gboolean ApvlvDoc::apvlv_doc_first_scroll_cb (gpointer data)
   {
     ApvlvDoc *doc = (ApvlvDoc *) data;
-    return doc->scrollto (doc->mScrollvalue) == TRUE ? FALSE : TRUE;
+    gboolean retry = doc->scrollto (doc->mScrollvalue) == TRUE ? FALSE : TRUE;
+    if (!retry)
+      {
+	doc->blank (0, doc->mScrollvalue * doc->mCurrentCache1->getheight ());
+      }
+    return retry;
   }
 
   gboolean ApvlvDoc::apvlv_doc_first_copy_cb (gpointer data)
@@ -1453,17 +1457,18 @@ namespace apvlv
 	  {
 	    doc->mBlankx1 = button->x;
 	    doc->mBlanky1 = button->y;
-	    doc->mInVisual = VISUAL_V;
-	  }
-	else if (button->type == GDK_BUTTON_RELEASE)
-	  {
-	    doc->mBlankx2 = button->x;
-	    doc->mBlanky2 = button->y;
-	    doc->blank (doc->mBlankx2, doc->mBlanky2);
+	    doc->blank (button->x, button->y);
 	  }
       }
     else if (button->button == 3)
       {
+	if (doc->mInVisual == VISUAL_NONE)
+	  {
+	    return;
+	  }
+
+	doc->mInVisual = VISUAL_NONE;
+
 	GtkWidget *menu, *item;
 
 	menu = gtk_menu_new ();
@@ -1485,6 +1490,14 @@ namespace apvlv
 					    ApvlvDoc * doc)
   {
     doc->yank (1);
+  }
+
+  void
+    ApvlvDoc::apvlv_doc_motion_event (GtkWidget * box,
+				      GdkEventMotion * motion, ApvlvDoc * doc)
+  {
+    doc->mInVisual = VISUAL_V;
+    doc->blank (motion->x, motion->y);
   }
 
   ApvlvDocCache::ApvlvDocCache (ApvlvFile * file)
