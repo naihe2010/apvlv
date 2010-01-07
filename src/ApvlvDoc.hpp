@@ -213,6 +213,11 @@ namespace apvlv
 
     static gboolean apvlv_doc_first_copy_cb (gpointer);
 
+    static void apvlv_doc_button_event (GtkEventBox * box,
+					GdkEventButton * ev, ApvlvDoc *);
+
+    static void apvlv_doc_copytoclipboard_cb (GtkMenuItem * item, ApvlvDoc *);
+
     static void begin_print (GtkPrintOperation * operation,
 			     GtkPrintContext * context, PrintData * data);
     static void draw_page (GtkPrintOperation * operation,

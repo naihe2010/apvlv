@@ -74,7 +74,7 @@ namespace apvlv
     mSearchResults = NULL;
     mSearchStr = "";
 
-    GtkWidget *vbox;
+    GtkWidget *vbox, *ebox;
 
     if (mContinuous && gParams->valuei ("continuouspad") > 0)
       {
@@ -88,11 +88,23 @@ namespace apvlv
 					   vbox);
 
     mImage1 = gtk_image_new ();
-    gtk_box_pack_start (GTK_BOX (vbox), mImage1, TRUE, TRUE, 0);
+    ebox = gtk_event_box_new ();
+    gtk_container_add (GTK_CONTAINER (ebox), mImage1);
+    g_signal_connect (G_OBJECT (ebox), "button-press-event",
+		      G_CALLBACK (apvlv_doc_button_event), this);
+    g_signal_connect (G_OBJECT (ebox), "button-release-event",
+		      G_CALLBACK (apvlv_doc_button_event), this);
+    gtk_box_pack_start (GTK_BOX (vbox), ebox, TRUE, TRUE, 0);
     if (mAutoScrollPage && mContinuous)
       {
 	mImage2 = gtk_image_new ();
-	gtk_box_pack_start (GTK_BOX (vbox), mImage2, TRUE, TRUE, 0);
+	ebox = gtk_event_box_new ();
+	gtk_container_add (GTK_CONTAINER (ebox), mImage2);
+	g_signal_connect (G_OBJECT (ebox), "button-press-event",
+			  G_CALLBACK (apvlv_doc_button_event), this);
+	g_signal_connect (G_OBJECT (ebox), "button-release-event",
+			  G_CALLBACK (apvlv_doc_button_event), this);
+	gtk_box_pack_start (GTK_BOX (vbox), ebox, TRUE, TRUE, 0);
       }
 
     g_signal_connect (G_OBJECT (mVaj), "value-changed",
@@ -349,12 +361,12 @@ namespace apvlv
     if (mInVisual == type)
       {
 	mInVisual = VISUAL_NONE;
-	blank (mCurx, mCury);
       }
     else
       {
 	mInVisual = type;
       }
+    blank (mCurx, mCury);
   }
 
   int ApvlvDoc::yank (int times)
@@ -1430,6 +1442,50 @@ namespace apvlv
     delete data;
   }
 #endif
+
+  void
+    ApvlvDoc::apvlv_doc_button_event (GtkEventBox * box,
+				      GdkEventButton * button, ApvlvDoc * doc)
+  {
+    if (button->button == 1)
+      {
+	if (button->type == GDK_BUTTON_PRESS)
+	  {
+	    doc->mBlankx1 = button->x;
+	    doc->mBlanky1 = button->y;
+	    doc->mInVisual = VISUAL_V;
+	  }
+	else if (button->type == GDK_BUTTON_RELEASE)
+	  {
+	    doc->mBlankx2 = button->x;
+	    doc->mBlanky2 = button->y;
+	    doc->blank (doc->mBlankx2, doc->mBlanky2);
+	  }
+      }
+    else if (button->button == 3)
+      {
+	GtkWidget *menu, *item;
+
+	menu = gtk_menu_new ();
+	gtk_menu_attach_to_widget (GTK_MENU (menu), GTK_WIDGET (box), NULL);
+
+	item = gtk_image_menu_item_new_with_label ("Copy to Clipboard");
+	gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
+	gtk_widget_show (item);
+
+	g_signal_connect (item, "activate",
+			  G_CALLBACK (apvlv_doc_copytoclipboard_cb), doc);
+
+	gtk_menu_popup (GTK_MENU (menu), NULL, NULL, NULL, NULL, 0, 0);
+      }
+  }
+
+  void
+    ApvlvDoc::apvlv_doc_copytoclipboard_cb (GtkMenuItem * item,
+					    ApvlvDoc * doc)
+  {
+    doc->yank (1);
+  }
 
   ApvlvDocCache::ApvlvDocCache (ApvlvFile * file)
   {
