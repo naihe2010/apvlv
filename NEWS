@@ -3,7 +3,9 @@ apvlv 0.0.9
 
 News features
 
-   * add select area by pressing 'v' or <C-v> and copy area by press 'y'
+   * Mouse Copy Support: add left drag to select area, and right click to popup menu to copy to clipboard
+
+   * Key Copy Support: add select area by pressing 'v' or <C-v> and copy area by press 'y'
 
    * add 'wrapscan' options in $HOME/.apvlvrc
 

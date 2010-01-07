@@ -48,6 +48,8 @@ namespace apvlv
 {
   static GtkPrintSettings *settings = NULL;
 
+  const int APVLV_DOC_CURSOR_WIDTH = 10;
+
     ApvlvDoc::ApvlvDoc (int w, int h, const char *zm, bool cache)
   {
     mCurrentCache1 = mCurrentCache2 = NULL;
@@ -84,27 +86,22 @@ namespace apvlv
       {
 	vbox = gtk_vbox_new (FALSE, 0);
       }
-    gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mScrollwin),
-					   vbox);
 
-    mImage1 = gtk_image_new ();
     ebox = gtk_event_box_new ();
-    gtk_container_add (GTK_CONTAINER (ebox), mImage1);
+    gtk_container_add (GTK_CONTAINER (ebox), vbox);
     g_signal_connect (G_OBJECT (ebox), "button-press-event",
 		      G_CALLBACK (apvlv_doc_button_event), this);
     g_signal_connect (G_OBJECT (ebox), "motion-notify-event",
 		      G_CALLBACK (apvlv_doc_motion_event), this);
-    gtk_box_pack_start (GTK_BOX (vbox), ebox, TRUE, TRUE, 0);
+    gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mScrollwin),
+					   ebox);
+
+    mImage1 = gtk_image_new ();
+    gtk_box_pack_start (GTK_BOX (vbox), mImage1, TRUE, TRUE, 0);
     if (mAutoScrollPage && mContinuous)
       {
 	mImage2 = gtk_image_new ();
-	ebox = gtk_event_box_new ();
-	gtk_container_add (GTK_CONTAINER (ebox), mImage2);
-	g_signal_connect (G_OBJECT (ebox), "button-press-event",
-			  G_CALLBACK (apvlv_doc_button_event), this);
-	g_signal_connect (G_OBJECT (ebox), "motion-notify-event",
-			  G_CALLBACK (apvlv_doc_motion_event), this);
-	gtk_box_pack_start (GTK_BOX (vbox), ebox, TRUE, TRUE, 0);
+	gtk_box_pack_start (GTK_BOX (vbox), mImage2, TRUE, TRUE, 0);
       }
 
     g_signal_connect (G_OBJECT (mVaj), "value-changed",
@@ -164,18 +161,11 @@ namespace apvlv
   void ApvlvDoc::blank (int bx, int by)
   {
     debug ("bx: %d, by: %d", bx, by);
-    if (bx < 0)
-      {
-	bx = 0;
-      }
-    if (by < 0)
-      {
-	by = 0;
-      }
 
     ApvlvDocCache *cache = mCurrentCache1;
     gint rate = cache->getheight () / mLines;
 
+    // get the right cache, 1 or 2
     if (by + rate >= cache->getheight ())
       {
 	if (mCurrentCache2 == NULL)
@@ -189,158 +179,125 @@ namespace apvlv
 	  }
       }
 
-    if (bx + 10 >= cache->getwidth ())
+    // fix the width and height value
+    if (bx + APVLV_DOC_CURSOR_WIDTH >= cache->getwidth ())
       {
-	bx = cache->getwidth () - 10;
+	bx = cache->getwidth () - APVLV_DOC_CURSOR_WIDTH;
+      }
+    if (bx < 0)
+      {
+	bx = 0;
+      }
+    if (by < 0)
+      {
+	by = 0;
       }
 
+    // remember the position
     mCurx = bx;
     mCury = by;
+
+    guchar *buffer = cache->getdata (true);
+    GdkPixbuf *pixbuf = cache->getbuf (true);
+
+    if (buffer == NULL || pixbuf == NULL)
+      {
+	debug ("pixbuf data or structure error");
+	return;
+      }
+
+    mBlankx2 = bx;
+    mBlanky2 = by;
+
+    gint y1 = mBlanky1, y2 = mBlanky2;
+    if (y1 > y2)
+      {
+	y1 = mBlanky2;
+	y2 = mBlanky1;
+      }
+    gint x1 = mBlankx1, x2 = mBlankx2;
+    if (x1 > x2)
+      {
+	x1 = mBlankx2;
+	x2 = mBlankx1;
+      }
+
+    // fix the height value
+    // corret to the cache's height
+    // if the height > cache1, the minus it
+    if (cache == mCurrentCache2)
+      {
+	by -=
+	  mCurrentCache1->getheight () - gParams->valuei ("continuouspad");
+	y1 -=
+	  mCurrentCache1->getheight () - gParams->valuei ("continuouspad");
+	y2 -=
+	  mCurrentCache1->getheight () - gParams->valuei ("continuouspad");
+      }
+
+    if (by < 0)
+      {
+	by = 0;
+      }
+    if (y1 < 0)
+      {
+	y1 = 0;
+      }
+    if (y2 < 0)
+      {
+	y2 = 0;
+      }
 
     if (mInVisual == VISUAL_V)
       {
 	debug ("");
-	mBlankx2 = bx;
-	mBlanky2 = by;
-	if (cache == mCurrentCache2)
+	if (y1 == y2)
 	  {
-	    by -=
-	      mCurrentCache1->getheight () + gParams->valuei ("continouspad");
+	    blankarea (x1, y1, x2 + APVLV_DOC_CURSOR_WIDTH, y2 + rate,
+		       buffer, cache->getwidth (), cache->getheight ());
 	  }
-	guchar *buffer = cache->getdata (true);
-	GdkPixbuf *pixbuf = cache->getbuf (true);
-
-	if (buffer && pixbuf)
+	else
 	  {
-	    gint y1 = mBlanky1, y2 = mBlanky2;
-	    if (y1 > y2)
-	      {
-		y1 = mBlanky2;
-		y2 = mBlanky1;
-	      }
-	    gint x1 = mBlankx1, x2 = mBlankx2;
-	    if (x1 > x2)
-	      {
-		x1 = mBlankx2;
-		x2 = mBlankx1;
-	      }
-	    if (y1 == y2)
-	      {
-		blankarea (x1, y1, x2 + 10, y2 + rate, buffer,
-			   cache->getwidth (), cache->getheight ());
-	      }
-	    else
-	      {
-		blankarea (x1, y1, cache->getwidth (), y1 + rate, buffer,
-			   cache->getwidth (), cache->getheight ());
-		blankarea (0, y1 + rate, cache->getwidth (), y2, buffer,
-			   cache->getwidth (), cache->getheight ());
-		blankarea (0, y2, x2 + 10, y2 + rate, buffer,
-			   cache->getwidth (), cache->getheight ());
-	      }
-
-	    if (cache == mCurrentCache1)
-	      {
-		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), pixbuf);
-		if (mCurrentCache2 != NULL)
-		  {
-		    mCurrentCache2->getdata (true);
-		    GdkPixbuf *p = mCurrentCache2->getbuf (true);
-		    gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), p);
-		  }
-	      }
-	    else
-	      {
-		mCurrentCache1->getdata (true);
-		GdkPixbuf *p = mCurrentCache1->getbuf (true);
-		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), p);
-		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), pixbuf);
-	      }
+	    blankarea (x1, y1, cache->getwidth (), y1 + rate, buffer,
+		       cache->getwidth (), cache->getheight ());
+	    blankarea (0, y1 + rate, cache->getwidth (), y2, buffer,
+		       cache->getwidth (), cache->getheight ());
+	    blankarea (0, y2, x2 + APVLV_DOC_CURSOR_WIDTH, y2 + rate,
+		       buffer, cache->getwidth (), cache->getheight ());
 	  }
       }
     else if (mInVisual == VISUAL_CTRL_V)
       {
 	debug ("");
-	mBlankx2 = bx;
-	mBlanky2 = by;
-	if (cache == mCurrentCache2)
-	  {
-	    by -=
-	      mCurrentCache1->getheight () + gParams->valuei ("continouspad");
-	  }
-	guchar *buffer = cache->getdata (true);
-	GdkPixbuf *pixbuf = cache->getbuf (true);
-
-	if (buffer && pixbuf)
-	  {
-	    gint y1 = mBlanky1, y2 = mBlanky2;
-	    if (y1 > y2)
-	      {
-		y1 = mBlanky2;
-		y2 = mBlanky1;
-	      }
-	    gint x1 = mBlankx1, x2 = mBlankx2;
-	    if (x1 > x2)
-	      {
-		x1 = mBlankx2;
-		x2 = mBlankx1;
-	      }
-	    blankarea (x1, y1, x2 + 10, y2 + rate, buffer, cache->getwidth (),
-		       cache->getheight ());
-
-	    if (cache == mCurrentCache1)
-	      {
-		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), pixbuf);
-		if (mCurrentCache2 != NULL)
-		  {
-		    mCurrentCache2->getdata (true);
-		    GdkPixbuf *p = mCurrentCache2->getbuf (true);
-		    gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), p);
-		  }
-	      }
-	    else
-	      {
-		mCurrentCache1->getdata (true);
-		GdkPixbuf *p = mCurrentCache1->getbuf (true);
-		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), p);
-		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), pixbuf);
-	      }
-	  }
+	blankarea (x1, y1, x2 + APVLV_DOC_CURSOR_WIDTH, y2 + rate, buffer,
+		   cache->getwidth (), cache->getheight ());
       }
     else
       {
 	debug ("");
-	if (cache == mCurrentCache2)
-	  {
-	    by -=
-	      mCurrentCache1->getheight () + gParams->valuei ("continouspad");
-	  }
-	guchar *buffer = cache->getdata (true);
-	GdkPixbuf *pixbuf = cache->getbuf (true);
+	blankarea (bx, by, bx + APVLV_DOC_CURSOR_WIDTH, by + rate, buffer,
+		   cache->getwidth (), cache->getheight ());
+      }
 
-	if (buffer && pixbuf)
+    // reset the pixbuf to image container
+    if (cache == mCurrentCache1)
+      {
+	if (mCurrentCache2 != NULL)
 	  {
-	    blankarea (bx, by, bx + 10, by + rate, buffer, cache->getwidth (),
-		       cache->getheight ());
-
-	    if (cache == mCurrentCache1)
-	      {
-		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), pixbuf);
-		if (mCurrentCache2 != NULL)
-		  {
-		    mCurrentCache2->getdata (true);
-		    GdkPixbuf *p = mCurrentCache2->getbuf (true);
-		    gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), p);
-		  }
-	      }
-	    else
-	      {
-		mCurrentCache1->getdata (true);
-		GdkPixbuf *p = mCurrentCache1->getbuf (true);
-		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), p);
-		gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), pixbuf);
-	      }
+	    mCurrentCache2->getdata (true);
+	    GdkPixbuf *p = mCurrentCache2->getbuf (true);
+	    gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), p);
 	  }
+
+	gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), pixbuf);
+      }
+    else
+      {
+	mCurrentCache1->getdata (true);
+	GdkPixbuf *p = mCurrentCache1->getbuf (true);
+	gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), p);
+
+	gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), pixbuf);
       }
   }
 
@@ -387,7 +344,8 @@ namespace apvlv
       }
     if (y1 == y2 || mInVisual == VISUAL_CTRL_V)
       {
-	mFile->pagetext (mPagenum, x1, y1, x2 + 10, y2 + mVrate, &txt1);
+	mFile->pagetext (mPagenum, x1, y1, x2 + APVLV_DOC_CURSOR_WIDTH,
+			 y2 + mVrate, &txt1);
       }
     else
       {
@@ -395,7 +353,8 @@ namespace apvlv
 			 (int) (y1 + mVrate), &txt1);
 	mFile->pagetext (mPagenum, 0, y1 + mVrate,
 			 (int) mCurrentCache1->getwidth (), y2, &txt2);
-	mFile->pagetext (mPagenum, 0, y2, x2 + 10, y2 + mVrate, &txt3);
+	mFile->pagetext (mPagenum, 0, y2, x2 + APVLV_DOC_CURSOR_WIDTH,
+			 y2 + mVrate, &txt3);
       }
 
     GtkClipboard *cb = gtk_clipboard_get (NULL);
@@ -1457,6 +1416,7 @@ namespace apvlv
 	  {
 	    doc->mBlankx1 = button->x;
 	    doc->mBlanky1 = button->y;
+	    doc->mInVisual = VISUAL_NONE;
 	    doc->blank (button->x, button->y);
 	  }
       }
