@@ -185,6 +185,8 @@ namespace apvlv
 
     int yank (int times);
 
+    void eventpos (double x, double y, double *rx, double *ry);
+
     returnType subprocess (int ct, guint key);
 
     bool status_show ();

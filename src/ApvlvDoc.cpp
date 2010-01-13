@@ -1434,7 +1434,9 @@ namespace apvlv
 	    doc->mBlankx1 = button->x;
 	    doc->mBlanky1 = button->y;
 	    doc->mInVisual = VISUAL_NONE;
-	    doc->blank (button->x, button->y);
+	    double rx, ry;
+	    doc->eventpos (button->x, button->y, &rx, &ry);
+	    doc->blank (rx, ry);
 	  }
       }
     else if (button->button == 3)
@@ -1474,7 +1476,35 @@ namespace apvlv
 				      GdkEventMotion * motion, ApvlvDoc * doc)
   {
     doc->mInVisual = VISUAL_V;
-    doc->blank (motion->x, motion->y);
+    double rx, ry;
+    doc->eventpos (motion->x, motion->y, &rx, &ry);
+    doc->blank (rx, ry);
+  }
+
+  void ApvlvDoc::eventpos (double x, double y, double *rx, double *ry)
+  {
+    int dw, dh;
+    if (rx != NULL)
+      {
+	dw = mPagex * mZoomrate - mScrollwin->allocation.width;
+	dw = dw >> 1;
+	if (dw >= 0)
+	  {
+	    dw = 0;
+	  }
+	*rx = x + dw;
+      }
+
+    if (ry != NULL)
+      {
+	dh = mPagey * mZoomrate - mScrollwin->allocation.height;
+	dh = dh >> 1;
+	if (dh >= 0)
+	  {
+	    dh = 0;
+	  }
+	*ry = y + dh;
+      }
   }
 
   ApvlvDocCache::ApvlvDocCache (ApvlvFile * file)
