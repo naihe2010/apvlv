@@ -48,7 +48,7 @@ namespace apvlv
 {
   static GtkPrintSettings *settings = NULL;
 
-  const int APVLV_DOC_CURSOR_WIDTH = 10;
+  const int APVLV_DOC_CURSOR_WIDTH = 1;
 
     ApvlvDoc::ApvlvDoc (int w, int h, const char *zm, bool cache)
   {
@@ -251,25 +251,34 @@ namespace apvlv
     if (mInVisual == VISUAL_V)
       {
 	debug ("");
-	if (y1 == y2)
+	if (y1 + rate >= y2)
 	  {
-	    blankarea (x1, y1, x2 + APVLV_DOC_CURSOR_WIDTH, y2 + rate,
+	    blankarea (x1, y1, x2 + APVLV_DOC_CURSOR_WIDTH,
+		       y1 == y2 ? y1 + rate : y2, buffer, cache->getwidth (),
+		       cache->getheight ());
+	  }
+	else if (y1 + rate * 2 >= y2)
+	  {
+	    blankarea (x1, y1, cache->getwidth (), y1 + rate, buffer,
+		       cache->getwidth (), cache->getheight ());
+	    blankarea (0, y1 + rate, x2 + APVLV_DOC_CURSOR_WIDTH, y2,
 		       buffer, cache->getwidth (), cache->getheight ());
 	  }
 	else
 	  {
 	    blankarea (x1, y1, cache->getwidth (), y1 + rate, buffer,
 		       cache->getwidth (), cache->getheight ());
-	    blankarea (0, y1 + rate, cache->getwidth (), y2, buffer,
+	    blankarea (0, y1 + rate, cache->getwidth (), y2 - rate, buffer,
 		       cache->getwidth (), cache->getheight ());
-	    blankarea (0, y2, x2 + APVLV_DOC_CURSOR_WIDTH, y2 + rate,
+	    blankarea (0, y2 - rate, x2 + APVLV_DOC_CURSOR_WIDTH, y2,
 		       buffer, cache->getwidth (), cache->getheight ());
 	  }
       }
     else if (mInVisual == VISUAL_CTRL_V)
       {
 	debug ("");
-	blankarea (x1, y1, x2 + APVLV_DOC_CURSOR_WIDTH, y2 + rate, buffer,
+	blankarea (x1, y1, x2 + APVLV_DOC_CURSOR_WIDTH,
+		   y1 + rate > y2 ? y1 + rate : y2, buffer,
 		   cache->getwidth (), cache->getheight ());
       }
     else
