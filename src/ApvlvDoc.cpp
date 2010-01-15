@@ -158,50 +158,88 @@ namespace apvlv
       }
   }
 
-  void ApvlvDoc::blankword (double x, double y)
-    {
-      ApvlvLine *line;
+  void ApvlvDoc::blankaction (double x, double y)
+  {
+    ApvlvDocCache *cache;
+    ApvlvPos pos = { x, y, x, y };
 
-      if (x < 0)
-        {
-          x = 0;
-        }
-      if (y < 0)
-        {
-          y = 0;
-        }
+    if (x < 0)
+      {
+	x = 0;
+      }
+    if (y < 0)
+      {
+	y = 0;
+      }
 
-      if (x > mCurrentCache1->getwidth ())
-        {
-          x = mCurrentCache1->getwidth ();
-        }
+    cache = mCurrentCache1;
+    if (x > cache->getwidth ())
+      {
+	x = cache->getwidth ();
+      }
 
-      if (y > mCurrentCache1->getheight ())
-        {
-          if (mCurrentCache2 != NULL)
-            {
-              line = mCurrentCache2->getline (x, y - mCurrentCache1->getheight
-                                              () - gParams->valuei
-                                              ("continuouspad"));
-            }
-          else
-            {
-              line = NULL;
-            }
-        }
-      else
-        {
-          line = mCurrentCache1->getline (x, y);
-        }
+    if (y > cache->getheight ())
+      {
+	if (mCurrentCache2 != NULL)
+	  {
+	    cache = mCurrentCache2;
+	  }
+	else
+	  {
+	    cache = NULL;
+	  }
+      }
 
-      if (line != NULL)
-        {
-          mInVisual = VISUAL_CTRL_V;
-          mBlankx1 = line->pos.x1;
-          mBlanky1 = line->pos.y1;
-          blank (line->pos.x2, line->pos.y2);
-        }
-    }
+    if (cache == NULL)
+      {
+	return;
+      }
+
+    if (strcasecmp (gParams->values ("doubleclick"), "word") == 0)
+      {
+	ApvlvWord *word;
+	word =
+	  cache->getword (x,
+			  cache ==
+			  mCurrentCache2 ? y - mCurrentCache1->getheight () -
+			  gParams->valuei ("continuouspad") : y);
+	if (word != NULL)
+	  {
+	    pos = word->pos;
+	  }
+      }
+    else if (strcasecmp (gParams->values ("doubleclick"), "line") == 0)
+      {
+	ApvlvLine *line;
+	line =
+	  cache->getline (x,
+			  cache ==
+			  mCurrentCache2 ? y - mCurrentCache1->getheight () -
+			  gParams->valuei ("continuouspad") : y);
+	if (line != NULL)
+	  {
+	    pos = line->pos;
+	  }
+      }
+    else if (strcasecmp (gParams->values ("doubleclick"), "page") == 0)
+      {
+	pos.x1 = 0;
+	pos.x2 = cache->getwidth ();
+	pos.y1 = 0;
+	pos.y2 = cache->getheight ();
+      }
+    else
+      {
+	return;
+      }
+
+    mInVisual = VISUAL_CTRL_V;
+    mBlankx1 = pos.x1;
+    mBlanky1 = pos.y1;
+    blank (pos.x2, pos.y2);
+
+//    yank (1);
+  }
 
   void ApvlvDoc::blank (int bx, int by)
   {
@@ -321,10 +359,12 @@ namespace apvlv
       }
     else if (mInVisual == VISUAL_CTRL_V)
       {
-        debug ("");
-        blankarea (x1, y1, x1 + APVLV_DOC_CURSOR_WIDTH > x2 ? x1 + APVLV_DOC_CURSOR_WIDTH : x2,
-                   y1 + rate > y2 ? y1 + rate : y2, buffer,
-                   cache->getwidth (), cache->getheight ());
+	debug ("");
+	blankarea (x1, y1,
+		   x1 + APVLV_DOC_CURSOR_WIDTH >
+		   x2 ? x1 + APVLV_DOC_CURSOR_WIDTH : x2,
+		   y1 + rate > y2 ? y1 + rate : y2, buffer,
+		   cache->getwidth (), cache->getheight ());
       }
     else
       {
@@ -1485,27 +1525,27 @@ namespace apvlv
       {
 	if (button->type == GDK_BUTTON_PRESS)
 	  {
-            // this is a manual method to test double click
-            // I think, a normal user double click will in 500 millseconds
-            if (button->time - doc->mLastpress < 500)
-              {
-                doc->mInVisual = VISUAL_NONE;
-                double rx, ry;
-                doc->eventpos (button->x, button->y, &rx, &ry);
-                doc->blankword (rx, ry);
-              }
-            else
-              {
-                doc->mBlankx1 = button->x;
-                doc->mBlanky1 = button->y;
-                doc->mInVisual = VISUAL_NONE;
-                double rx, ry;
-                doc->eventpos (button->x, button->y, &rx, &ry);
-                doc->blank (rx, ry);
-              }
+	    // this is a manual method to test double click
+	    // I think, a normal user double click will in 500 millseconds
+	    if (button->time - doc->mLastpress < 500)
+	      {
+		doc->mInVisual = VISUAL_NONE;
+		double rx, ry;
+		doc->eventpos (button->x, button->y, &rx, &ry);
+		doc->blankaction (rx, ry);
+	      }
+	    else
+	      {
+		doc->mBlankx1 = button->x;
+		doc->mBlanky1 = button->y;
+		doc->mInVisual = VISUAL_NONE;
+		double rx, ry;
+		doc->eventpos (button->x, button->y, &rx, &ry);
+		doc->blank (rx, ry);
+	      }
 
-            doc->mLastpress = button->time;
-          }
+	    doc->mLastpress = button->time;
+	  }
       }
     else if (button->button == 3)
       {
@@ -1537,6 +1577,8 @@ namespace apvlv
 					    ApvlvDoc * doc)
   {
     doc->yank (1);
+    doc->mInVisual = VISUAL_NONE;
+    doc->blank (doc->mCurx, doc->mCury);
   }
 
   void
@@ -1594,8 +1636,8 @@ namespace apvlv
 
     if (mLines != NULL)
       {
-        delete mLines;
-        mLines = NULL;
+	delete mLines;
+	mLines = NULL;
       }
 
     if (mData != NULL)
@@ -1671,17 +1713,17 @@ namespace apvlv
 
     if (mLines != NULL)
       {
-        delete mLines;
+	delete mLines;
       }
 
     if (mData != NULL)
       {
-      delete[]mData;
+	delete[]mData;
       }
 
     if (mBuf != NULL)
       {
-      g_object_unref (mBuf);
+	g_object_unref (mBuf);
       }
   }
 
@@ -1727,144 +1769,146 @@ namespace apvlv
   }
 
   bool ApvlvDocCache::canselect ()
-    {
-      return mLines != NULL? true: false;
-    }
+  {
+    return mLines != NULL ? true : false;
+  }
 
   ApvlvWord *ApvlvDocCache::getword (int x, int y)
-    {
-      vector <ApvlvLine>::iterator itr;
-      return NULL;
-    }
+  {
+    ApvlvLine *line;
+
+    line = getline (x, y);
+    if (line != NULL)
+      {
+	vector < ApvlvWord >::iterator itr;
+	for (itr = line->mWords.begin (); itr != line->mWords.end (); itr++)
+	  {
+	    debug ("itr: %f,%f", itr->pos.y1, itr->pos.y2);
+	    if (x > itr->pos.x1 && x < itr->pos.x2)
+	      {
+		return &(*itr);
+	      }
+	  }
+      }
+    return NULL;
+  }
 
   ApvlvLine *ApvlvDocCache::getline (double x, double y)
-    {
-      debug ("getline: %f", y);
+  {
+    debug ("getline: %f", y);
 
-      vector <ApvlvLine>::iterator itr;
-      for (itr = mLines->begin ();
-           itr != mLines->end ();
-           itr ++)
-        {
-          debug ("itr: %f,%f", itr->pos.y1, itr->pos.y2);
-          if (y > itr->pos.y2
-              && y < itr->pos.y1
-          )
-            {
-              return &(*itr);
-            }
-        }
-      return NULL;
-    }
+    vector < ApvlvLine >::iterator itr;
+    for (itr = mLines->begin (); itr != mLines->end (); itr++)
+      {
+	debug ("itr: %f,%f", itr->pos.y1, itr->pos.y2);
+	if (y > itr->pos.y2 && y < itr->pos.y1)
+	  {
+	    return &(*itr);
+	  }
+      }
+    return NULL;
+  }
 
-  void ApvlvDocCache::preparelines (double x1, double y1, double x2, double y2)
-    {
-      gchar *content = NULL;
-      mFile->pagetext (mPagenum, x1, y1, x2, y2, &content);
-      if (content != NULL)
-        {
-          string word;
-          ApvlvPoses *results;
-          mLines = new vector <ApvlvLine>;
-          stringstream ss (content);
-          ApvlvPos lastpos = { 0, 0, 0, 0 };
-          while (!ss.eof ())
-            {
-              ss >> word;
-              results = mFile->pagesearch (mPagenum, word.c_str ());
-              if (results != NULL)
-                {
-                  lastpos = prepare_add (lastpos, results, word);
-                  delete results;
-                }
-            }
+  void ApvlvDocCache::preparelines (double x1, double y1, double x2,
+				    double y2)
+  {
+    gchar *content = NULL;
+    mFile->pagetext (mPagenum, x1, y1, x2, y2, &content);
+    if (content != NULL)
+      {
+	string word;
+	ApvlvPoses *results;
+	mLines = new vector < ApvlvLine >;
+	stringstream ss (content);
+	ApvlvPos lastpos = { 0, 0, 0, 0 };
+	while (!ss.eof ())
+	  {
+	    ss >> word;
+	    results = mFile->pagesearch (mPagenum, word.c_str ());
+	    if (results != NULL)
+	      {
+		lastpos = prepare_add (lastpos, results, word);
+		delete results;
+	      }
+	  }
 
-          vector <ApvlvLine>::iterator it;
-          for (it = mLines->begin ();
-               it != mLines->end ();
-               it ++)
-            {
+	vector < ApvlvLine >::iterator it;
+	for (it = mLines->begin (); it != mLines->end (); it++)
+	  {
 //              debug ("line: %f, %f, %f, %f", it->pos.x1, it->pos.y1,
 //                     it->pos.x2, it->pos.y2);
-              vector <ApvlvWord>::iterator wit;
-              for (wit = it->mWords.begin ();
-                   wit != it->mWords.end ();
-                   wit ++)
-                {
+	    vector < ApvlvWord >::iterator wit;
+	    for (wit = it->mWords.begin (); wit != it->mWords.end (); wit++)
+	      {
 //                 debug ("word: %f, %f, %f, %f: %s", wit->pos.x1, wit->pos.y1,
 //                         wit->pos.x2, wit->pos.y2, wit->word.c_str ());
-                }
-            }
-          g_free (content);
-        }
-    }
+	      }
+	  }
+	g_free (content);
+      }
+  }
 
-  ApvlvPos ApvlvDocCache::prepare_add (ApvlvPos &lastpos, ApvlvPoses * results, string &word)
-    {
-      ApvlvPoses::iterator itr;
-      for (itr = results->begin ();
-           itr != results->end ();
-           itr ++)
-        {
-          itr->x1 *= mZoom;
-          itr->x2 *= mZoom;
-          itr->y1 = mHeight - itr->y1 * mZoom;
-          itr->y2 = mHeight - itr->y2 * mZoom;
+  ApvlvPos ApvlvDocCache::prepare_add (ApvlvPos & lastpos,
+				       ApvlvPoses * results, string & word)
+  {
+    ApvlvPoses::iterator itr;
+    for (itr = results->begin (); itr != results->end (); itr++)
+      {
+	itr->x1 *= mZoom;
+	itr->x2 *= mZoom;
+	itr->y1 = mHeight - itr->y1 * mZoom;
+	itr->y2 = mHeight - itr->y2 * mZoom;
 
-          debug ("x1:%f, x2:%f, y1:%f, y2:%f", itr->x1, itr->x2, itr->y1,
-                 itr->y2);
-          if ((lastpos.y2 < itr->y2)
-              || (lastpos.x2 < itr->x2)
-          )
-            {
-              break;
-            }
-        }
+	debug ("x1:%f, x2:%f, y1:%f, y2:%f", itr->x1, itr->x2, itr->y1,
+	       itr->y2);
+	if ((lastpos.y2 < itr->y2) || (lastpos.x2 < itr->x2))
+	  {
+	    break;
+	  }
+      }
 
-      if (itr == results->end ())
-        {
-          itr = results->begin ();
-        }
+    if (itr == results->end ())
+      {
+	itr = results->begin ();
+      }
 
 //      debug ("itr: %f, %f, %f, %f", itr->x1, itr->y1, itr->x2, itr->y2);
-      vector <ApvlvLine>::iterator litr;
-      for (litr = mLines->begin ();
-           litr != mLines->end ();
-           litr ++)
-        {
+    vector < ApvlvLine >::iterator litr;
+    for (litr = mLines->begin (); litr != mLines->end (); litr++)
+      {
 //          debug ("litr: %f, %f", litr->pos.y1, litr->pos.y2);
-          if (fabs (itr->y1 - litr->pos.y1) < 0.0001
-            && fabs (itr->y2 - litr->pos.y2) < 0.0001)
-            {
-              break;
-            }
-        }
+	if (fabs (itr->y1 - litr->pos.y1) < 0.0001
+	    && fabs (itr->y2 - litr->pos.y2) < 0.0001)
+	  {
+	    break;
+	  }
+      }
 
-      ApvlvWord aword = { *itr, word };
-      if (litr != mLines->end ())
-        {
+    ApvlvWord aword = { *itr, word };
+    if (litr != mLines->end ())
+      {
 //          debug ("");
-          litr->mWords.push_back (aword);
-          if (itr->x1 < litr->pos.x1)
-            {
-              litr->pos.x1 = itr->x1;
-            }
-          if (itr->x2 > litr->pos.x2)
-            {
-              litr->pos.x2 = itr->x2;
-            }
-        }
-      else
-        {
+	litr->mWords.push_back (aword);
+	if (itr->x1 < litr->pos.x1)
+	  {
+	    litr->pos.x1 = itr->x1;
+	  }
+	if (itr->x2 > litr->pos.x2)
+	  {
+	    litr->pos.x2 = itr->x2;
+	  }
+      }
+    else
+      {
 //          debug ("");
-          ApvlvLine line;
-          line.pos = *itr;
-          line.mWords.push_back (aword);
-          mLines->push_back (line);
-        }
+	ApvlvLine line;
+	line.pos = *itr;
+	line.mWords.push_back (aword);
+	mLines->push_back (line);
+      }
 
-      return *itr;
-    }
+    return *itr;
+  }
 
   ApvlvDocStatus::ApvlvDocStatus (ApvlvDoc * doc)
   {

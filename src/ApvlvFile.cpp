@@ -252,8 +252,8 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     for (GList * tmp = list; tmp != NULL; tmp = g_list_next (tmp))
       {
 	PopplerRectangle *rect = (PopplerRectangle *) tmp->data;
-//	debug ("results: %f-%f,%f-%f", rect->x1, rect->x2, rect->y1,
-//	       rect->y2);
+//      debug ("results: %f-%f,%f-%f", rect->x1, rect->x2, rect->y1,
+//             rect->y2);
 	ApvlvPos pos = { rect->x1, rect->x2, rect->y1, rect->y2 };
 	poses->push_back (pos);
       }

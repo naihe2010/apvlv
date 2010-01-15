@@ -64,16 +64,16 @@ namespace apvlv
   typedef map < char, ApvlvDocPosition > ApvlvDocPositionMap;
 
   struct ApvlvWord
-    {
+  {
     ApvlvPos pos;
     string word;
-    };
+  };
 
   struct ApvlvLine
-    {
-      ApvlvPos pos;
-      vector <ApvlvWord> mWords;
-    };
+  {
+    ApvlvPos pos;
+      vector < ApvlvWord > mWords;
+  };
 
   class ApvlvDoc;
   class ApvlvDocCache
@@ -103,9 +103,9 @@ namespace apvlv
 
     bool canselect ();
 
-    ApvlvWord * getword (int x, int y);
+    ApvlvWord *getword (int x, int y);
 
-    ApvlvLine * getline (double x, double y);
+    ApvlvLine *getline (double x, double y);
 
   private:
       ApvlvFile * mFile;
@@ -119,10 +119,11 @@ namespace apvlv
     gint mWidth;
     gint mHeight;
 
-    vector <ApvlvLine> *mLines;
+      vector < ApvlvLine > *mLines;
 
     void preparelines (double x1, double y1, double x2, double y2);
-    ApvlvPos prepare_add (ApvlvPos &last, ApvlvPoses * results, string &word);
+    ApvlvPos prepare_add (ApvlvPos & last, ApvlvPoses * results,
+			  string & word);
   };
 
   class ApvlvDocStatus:public ApvlvCoreStatus
@@ -204,7 +205,7 @@ namespace apvlv
     void blankarea (int x1, int y1, int x2, int y2, guchar *, int width,
 		    int height);
 
-    void blankword (double x, double y);
+    void blankaction (double x, double y);
 
     void togglevisual (int type);
 
