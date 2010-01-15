@@ -235,7 +235,7 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 	return NULL;
       }
 
-    debug ("search %s", str);
+//    debug ("search %s", str);
 
     GList *list = poppler_page_find_text (page, str);
     if (list == NULL)
@@ -252,8 +252,8 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     for (GList * tmp = list; tmp != NULL; tmp = g_list_next (tmp))
       {
 	PopplerRectangle *rect = (PopplerRectangle *) tmp->data;
-	debug ("results: %f-%f,%f-%f", rect->x1, rect->x2, rect->y1,
-	       rect->y2);
+//	debug ("results: %f-%f,%f-%f", rect->x1, rect->x2, rect->y1,
+//	       rect->y2);
 	ApvlvPos pos = { rect->x1, rect->x2, rect->y1, rect->y2 };
 	poses->push_back (pos);
       }
@@ -300,7 +300,7 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     gint x2 = MAX (rect.x2 * zm - 0.5, 1);
     gint y1 = MAX ((iy - rect.y2 * zm) + 0.5, 0);
     gint y2 = MAX ((iy - rect.y1 * zm) - 0.5, 1);
-    debug ("x1: %d, y1: %d, x2: %d, y2: %d", x1, y1, x2, y2);
+    //debug ("x1: %d, y1: %d, x2: %d, y2: %d", x1, y1, x2, y2);
 
     // heightlight the selection
     for (gint y = y1; y < y2; y++)

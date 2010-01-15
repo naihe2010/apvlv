@@ -61,3 +61,7 @@ set visualmode = no
 
 " set if wrapscan text
 set wrapscan = yes
+
+" set double click action
+" option value is 'word', 'line' or 'page'
+set doubleclick = word

@@ -3,6 +3,9 @@ apvlv 0.0.9
 
 News features
 
+   * Add double click action on pdf pages for select a word, a line or a page
+     of text
+
    * Mouse Copy Support: add left drag to select area, and right click to popup menu to copy to clipboard
 
    * Key Copy Support: add select area by pressing 'v' or <C-v> and copy area by press 'y'

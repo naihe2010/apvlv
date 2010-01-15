@@ -3,7 +3,7 @@ dnl APVLV - Alf's PDF Viewer Like Vim
 dnl
  
 AC_PREREQ([2.61])
-AC_INIT(apvlv, 0.0.9, naihe2010@gmail.com)
+AC_INIT(apvlv, 0.0.9.1, naihe2010@gmail.com)
 AC_COPYRIGHT([Copyright (C) 2008 Alf's Software.])
 
 if test -e .svn; then

@@ -59,6 +59,7 @@ namespace apvlv
     push ("visualmode", "no");
     push ("warpscan", "yes");
     push ("commandtimeout", "1000");
+    push ("doubleclick", "word");
 #ifdef WIN32
     push ("defaultdir", "C:\\");
 #else

@@ -162,6 +162,17 @@ Set show scrollbar or not
 Set use visual mode to select and copy text or not
 .It wrapscan =yes/no
 Set wrapscan to search text or not
+.It doubleclick = Ar action
+Set default double click action
+.Bl -tag -width "indent"
+.It none
+Selection nothing
+.It word
+Selection a word under the curcor to clipboard
+.It line
+Selection a line under the curcor to clipboard
+.It page
+Selection a page under the curcor to clipboard
 .El
 .Sh PROMPT
 Like the COMMANDS, but prefixed with a colon:
