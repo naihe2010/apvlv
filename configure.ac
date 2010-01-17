@@ -17,7 +17,7 @@ AC_DEFINE_UNQUOTED(RELEASE,["$RELEASE"],[The release number of package])
 
 AC_ARG_ENABLE(debug,
               [  --enable-debug          enable apvlv debug features],
-              [apvlv_debug=yes])
+              [apvlv_debug="$enableval"])
 
 AM_CONFIG_HEADER(src/config.hpp)
 AC_CONFIG_AUX_DIR(scripts)
