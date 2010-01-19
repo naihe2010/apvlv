@@ -1135,7 +1135,7 @@ namespace apvlv
     gint opage = mPagenum, npage = mPagenum;
 
     gint ny1 = mCury + mVrate * times;
-    if (ny1 - mVaj->value > mVaj->page_size)
+    if (ny1 - mVaj->value >= mVaj->page_size)
       {
 	ApvlvCore::scrolldown (times);
 	npage = mPagenum;

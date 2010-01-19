@@ -530,11 +530,12 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 	  }
 	else
 	  {
+            /*  
 	    ddjvu_document_release (mDoc);
 	    mDoc = NULL;
 	    ddjvu_context_release (mContext);
 	    mContext = NULL;
-	    throw std::bad_alloc ();
+	    throw std::bad_alloc ();*/
 	  }
       }
     else
