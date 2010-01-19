@@ -161,7 +161,7 @@ namespace apvlv
   void ApvlvDoc::blankaction (double x, double y)
   {
     ApvlvDocCache *cache;
-    ApvlvPos pos = { x, y, x, y };
+    ApvlvPos pos = { x, x, y, y };
 
     if (x < 0)
       {
@@ -206,6 +206,8 @@ namespace apvlv
 	if (word != NULL)
 	  {
 	    pos = word->pos;
+	    debug ("get word: [%s] x1:%f, x2:%f, y1:%f, y2:%f",
+		   word->word.c_str (), pos.x1, pos.x2, pos.y1, pos.y2);
 	  }
       }
     else if (strcasecmp (gParams->values ("doubleclick"), "line") == 0)
@@ -243,7 +245,7 @@ namespace apvlv
 
   void ApvlvDoc::blank (int bx, int by)
   {
-    debug ("bx: %d, by: %d", bx, by);
+//    debug ("bx: %d, by: %d", bx, by);
 
     ApvlvDocCache *cache = mCurrentCache1;
     gint rate = cache->getheight () / mLines;
@@ -333,7 +335,7 @@ namespace apvlv
 
     if (mInVisual == VISUAL_V)
       {
-	debug ("");
+//      debug ("");
 	if (y1 + rate >= y2)
 	  {
 	    blankarea (x1, y1, x2 + APVLV_DOC_CURSOR_WIDTH,
@@ -359,7 +361,7 @@ namespace apvlv
       }
     else if (mInVisual == VISUAL_CTRL_V)
       {
-	debug ("");
+//      debug ("");
 	blankarea (x1, y1,
 		   x1 + APVLV_DOC_CURSOR_WIDTH >
 		   x2 ? x1 + APVLV_DOC_CURSOR_WIDTH : x2,
@@ -368,7 +370,7 @@ namespace apvlv
       }
     else
       {
-	debug ("");
+//      debug ("");
 	blankarea (bx, by, bx + APVLV_DOC_CURSOR_WIDTH, by + rate, buffer,
 		   cache->getwidth (), cache->getheight ());
       }
@@ -1784,7 +1786,7 @@ namespace apvlv
 	for (itr = line->mWords.begin (); itr != line->mWords.end (); itr++)
 	  {
 	    debug ("itr: %f,%f", itr->pos.y1, itr->pos.y2);
-	    if (x > itr->pos.x1 && x < itr->pos.x2)
+	    if (x >= itr->pos.x1 && x <= itr->pos.x2)
 	      {
 		return &(*itr);
 	      }
@@ -1801,7 +1803,7 @@ namespace apvlv
     for (itr = mLines->begin (); itr != mLines->end (); itr++)
       {
 	debug ("itr: %f,%f", itr->pos.y1, itr->pos.y2);
-	if (y > itr->pos.y2 && y < itr->pos.y1)
+	if (y >= itr->pos.y2 && y <= itr->pos.y1)
 	  {
 	    return &(*itr);
 	  }
@@ -1859,10 +1861,11 @@ namespace apvlv
 	itr->y1 = mHeight - itr->y1 * mZoom;
 	itr->y2 = mHeight - itr->y2 * mZoom;
 
-	debug ("x1:%f, x2:%f, y1:%f, y2:%f", itr->x1, itr->x2, itr->y1,
-	       itr->y2);
-	if ((lastpos.y2 < itr->y2) || (lastpos.x2 < itr->x2))
+	if ((lastpos.y2 < itr->y2)
+	    || (lastpos.y2 - itr->y2 < 0.0001 && lastpos.x2 < itr->x2))
 	  {
+	    debug ("[%s] x1:%f, x2:%f, y1:%f, y2:%f", word.c_str (), itr->x1,
+		   itr->x2, itr->y1, itr->y2);
 	    break;
 	  }
       }
@@ -1887,7 +1890,6 @@ namespace apvlv
     ApvlvWord aword = { *itr, word };
     if (litr != mLines->end ())
       {
-//          debug ("");
 	litr->mWords.push_back (aword);
 	if (itr->x1 < litr->pos.x1)
 	  {
@@ -1900,7 +1902,6 @@ namespace apvlv
       }
     else
       {
-//          debug ("");
 	ApvlvLine line;
 	line.pos = *itr;
 	line.mWords.push_back (aword);
