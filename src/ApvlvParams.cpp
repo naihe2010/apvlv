@@ -80,7 +80,7 @@ namespace apvlv
 	return false;
       }
 
-    debug ("load debug: %s\n", filename);
+//    debug ("load debug: %s", filename);
     string str;
     fstream os (filename, ios::in);
 

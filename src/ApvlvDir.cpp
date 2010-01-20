@@ -129,6 +129,11 @@ namespace apvlv
     setsize (w, h);
   }
 
+  bool ApvlvDir::reload ()
+  {
+    return true;
+  }
+
   bool ApvlvDir::loadfile (const char *path, bool check)
   {
     gchar *rpath;

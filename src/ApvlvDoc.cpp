@@ -136,7 +136,7 @@ namespace apvlv
   void ApvlvDoc::blankarea (int x1, int y1, int x2, int y2, guchar * buffer,
 			    int width, int height)
   {
-    debug ("x1: %d, y1: %d, x2: %d, y2:%d", x1, y1, x2, y2);
+//    debug ("x1: %d, y1: %d, x2: %d, y2:%d", x1, y1, x2, y2);
     if (x2 > width)
       {
 	x2 = width;
@@ -1690,6 +1690,7 @@ namespace apvlv
 					      ac->mWidth, ac->mHeight,
 					      3 * ac->mWidth,
 					      NULL, NULL);
+    debug ("ac->mFile: %p", ac->mFile);
     ac->mFile->render (ac->mPagenum, ac->mWidth, ac->mHeight, ac->mZoom,
 		       ac->mRotate, bu, (char *) dat);
     // backup the pixbuf data

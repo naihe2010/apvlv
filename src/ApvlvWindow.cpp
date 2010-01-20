@@ -133,6 +133,7 @@ namespace apvlv
     if (win->type == AW_CORE)
       {
 	win->mCore->setactive (true);
+	win->mCore->reload ();
       }
 
     m_curWindow = win;
@@ -499,7 +500,7 @@ namespace apvlv
   {
     mWidth = width - 2;
     mHeight = height - 2;
-    debug ("mWidth: %d, mHeight: %d", mWidth, mHeight);
+//    debug ("mWidth: %d, mHeight: %d", mWidth, mHeight);
 
     if (type == AW_CORE)
       {
