@@ -123,7 +123,7 @@ namespace apvlv
 
     void preparelines (double x1, double y1, double x2, double y2);
     ApvlvPos prepare_add (ApvlvPos & last, ApvlvPoses * results,
-			  string & word);
+			  const char *word);
   };
 
   class ApvlvDocStatus:public ApvlvCoreStatus

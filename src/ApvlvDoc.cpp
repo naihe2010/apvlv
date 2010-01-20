@@ -1799,6 +1799,11 @@ namespace apvlv
   {
     debug ("getline: %f", y);
 
+    if (mLines == NULL)
+      {
+	return NULL;
+      }
+
     vector < ApvlvLine >::iterator itr;
     for (itr = mLines->begin (); itr != mLines->end (); itr++)
       {
@@ -1814,23 +1819,65 @@ namespace apvlv
   void ApvlvDocCache::preparelines (double x1, double y1, double x2,
 				    double y2)
   {
+    if (strcmp (gParams->values ("doubleclick"), "page") == 0
+	|| strcmp (gParams->values ("doubleclick"), "none") == 0)
+      {
+	return;
+      }
+
     gchar *content = NULL;
     mFile->pagetext (mPagenum, x1, y1, x2, y2, &content);
     if (content != NULL)
       {
-	string word;
 	ApvlvPoses *results;
+	string word;
+
 	mLines = new vector < ApvlvLine >;
-	stringstream ss (content);
+
 	ApvlvPos lastpos = { 0, 0, 0, 0 };
-	while (!ss.eof ())
+
+	if (strcmp (gParams->values ("doubleclick"), "word") == 0)
 	  {
-	    ss >> word;
-	    results = mFile->pagesearch (mPagenum, word.c_str ());
-	    if (results != NULL)
+	    stringstream ss (content);
+	    while (!ss.eof ())
 	      {
-		lastpos = prepare_add (lastpos, results, word);
-		delete results;
+		ss >> word;
+		results = mFile->pagesearch (mPagenum, word.c_str ());
+		if (results != NULL)
+		  {
+		    lastpos = prepare_add (lastpos, results, word.c_str ());
+		    delete results;
+		  }
+	      }
+	  }
+	else
+	  {
+	    gchar **v, *p;
+	    int i;
+
+	    v = g_strsplit (content, "\n", -1);
+	    if (v != NULL)
+	      {
+		for (i = 0; v[i] != NULL; ++i)
+		  {
+		    p = v[i];
+		    while (*p != '\0' && isspace (*p))
+		      {
+			p++;
+		      }
+		    if (*p == '\0')
+		      {
+			continue;
+		      }
+		    debug ("search [%s]", p);
+		    results = mFile->pagesearch (mPagenum, p);
+		    if (results != NULL)
+		      {
+			lastpos = prepare_add (lastpos, results, p);
+			delete results;
+		      }
+		  }
+		g_strfreev (v);
 	      }
 	  }
 
@@ -1851,7 +1898,7 @@ namespace apvlv
   }
 
   ApvlvPos ApvlvDocCache::prepare_add (ApvlvPos & lastpos,
-				       ApvlvPoses * results, string & word)
+				       ApvlvPoses * results, const char *word)
   {
     ApvlvPoses::iterator itr;
     for (itr = results->begin (); itr != results->end (); itr++)
@@ -1864,7 +1911,7 @@ namespace apvlv
 	if ((lastpos.y2 < itr->y2)
 	    || (lastpos.y2 - itr->y2 < 0.0001 && lastpos.x2 < itr->x2))
 	  {
-	    debug ("[%s] x1:%f, x2:%f, y1:%f, y2:%f", word.c_str (), itr->x1,
+	    debug ("[%s] x1:%f, x2:%f, y1:%f, y2:%f", word, itr->x1,
 		   itr->x2, itr->y1, itr->y2);
 	    break;
 	  }
