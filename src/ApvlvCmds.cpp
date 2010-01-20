@@ -230,7 +230,7 @@ namespace apvlv
 	  {
 	    char ts[6];
 	    g_snprintf (ts, 6, "%s", s);
-	    warnp ("Can't recognize the symbol: %s", ts);
+	    gView->errormessage ("Can't recognize the symbol: %s", ts);
 	  }
 	return s + 5;
       }

@@ -96,6 +96,8 @@ namespace apvlv
 
     mIndex = NULL;
 
+    mFile = NULL;
+
     mStore =
       gtk_tree_store_new (3, G_TYPE_POINTER, G_TYPE_OBJECT, G_TYPE_STRING);
     mDirView = gtk_tree_view_new_with_model (GTK_TREE_MODEL (mStore));
@@ -135,7 +137,7 @@ namespace apvlv
 	|| *path == '\0'
 	|| (rpath = g_locale_from_utf8 (path, -1, NULL, NULL, NULL)) == NULL)
       {
-	errp ("path error: %s", path ? path : "No path");
+	gView->errormessage ("path error: %s", path ? path : "No path");
 	return false;
       }
 
@@ -144,7 +146,7 @@ namespace apvlv
     g_free (rpath);
     if (ret < 0)
       {
-	errp ("stat error: %d:%s", errno, strerror (errno));
+	gView->errormessage ("stat error: %d:%s", errno, strerror (errno));
 	return false;
       }
 

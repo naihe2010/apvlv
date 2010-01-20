@@ -77,7 +77,11 @@ namespace apvlv
 
     void promptcommand (const char *str);
 
-    void run (const char *str);
+    void errormessage (const char *str, ...);
+
+    void infomessage (const char *str, ...);
+
+    bool run (const char *str);
 
     bool loadfile (string file);
 
@@ -103,7 +107,7 @@ namespace apvlv
 
     returnType subprocess (int times, guint keyval);
 
-    void cmd_show ();
+    void cmd_show (int ct);
 
     void cmd_hide ();
 
@@ -120,7 +124,7 @@ namespace apvlv
 
     GCompletion *filecompleteinit (const char *s);
 
-    void runcmd (const char *cmd);
+    bool runcmd (const char *cmd);
 
     int new_tabcontext (ApvlvCore * core, bool insertAfterCurr);
 
@@ -139,7 +143,8 @@ namespace apvlv
     void windowadded ();
 
     void updatetabname ();
-    bool mHasCmd;
+
+    int mCmdType;
 
     guint mProCmd;
 

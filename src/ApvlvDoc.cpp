@@ -794,8 +794,8 @@ namespace apvlv
   {
     if (use)
       {
-	warnp ("No pthread, can't support cache!!!");
-	warnp
+	gView->errormessage ("No pthread, can't support cache!!!");
+	gView->infomessage
 	  ("If you really have pthread, please recomplie the apvlv and try again.");
       }
   }
@@ -1258,11 +1258,11 @@ namespace apvlv
       }
   }
 
-  void ApvlvDoc::search (const char *str, bool reverse)
+  bool ApvlvDoc::search (const char *str, bool reverse)
   {
     if (!needsearch (str, reverse))
       {
-	return;
+	return true;
       }
 
     if (mSearchResults != NULL)
@@ -1288,7 +1288,7 @@ namespace apvlv
 	      {
 		showpage ((i + sum) % sum, 0.5);
 		markselection ();
-		break;
+		return true;
 	      }
 	  }
 
@@ -1306,7 +1306,9 @@ namespace apvlv
 	  }
 	else
 	  {
-	    break;
+	    gView->errormessage ("can't find word: '%s'",
+				 mSearchStr.c_str ());
+	    return false;
 	  }
       }
   }
@@ -1341,7 +1343,7 @@ namespace apvlv
 
     if (ct % 90 != 0)
       {
-	warnp ("Not a 90 times value, ignore.");
+	gView->errormessage ("Not a 90 times value: %d", ct);
 	return false;
       }
 

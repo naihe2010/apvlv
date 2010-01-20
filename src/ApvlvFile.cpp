@@ -27,6 +27,7 @@
 
 #include "ApvlvFile.hpp"
 #include "ApvlvUtil.hpp"
+#include "ApvlvView.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -91,7 +92,8 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 	|| (wfilename =
 	    g_locale_from_utf8 (filename, -1, NULL, NULL, NULL)) == NULL)
       {
-	errp ("filename error: %s", filename ? filename : "No name");
+	gView->errormessage ("filename error: %s",
+			     filename ? filename : "No name");
 	throw std::bad_alloc ();
       }
 
@@ -100,7 +102,7 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     int rt = stat (wfilename, &sbuf);
     if (rt < 0)
       {
-	errp ("Can't stat the PDF file: %s.", filename);
+	gView->errormessage ("Can't stat the PDF file: %s.", filename);
 	throw std::bad_alloc ();
       }
     filelen = sbuf.st_size;
@@ -362,7 +364,8 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 		if (pd->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pd->named_dest);
+								       pd->
+								       named_dest);
 		    if (destnew != NULL)
 		      {
 			ApvlvLink link = { "", destnew->page_num - 1 };
@@ -426,9 +429,7 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 		if (pagd->dest->type == POPPLER_DEST_NAMED)
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pagd->
-								       dest->
-								       named_dest);
+								       pagd->dest->named_dest);
 		    int pn = 1;
 		    if (destnew != NULL)
 		      {

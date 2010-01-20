@@ -193,7 +193,7 @@ namespace apvlv
     void scrollleft (int times);
     void scrollright (int times);
 
-    void search (const char *str, bool reverse = false);
+    bool search (const char *str, bool reverse = false);
 
     bool continuous ();
 

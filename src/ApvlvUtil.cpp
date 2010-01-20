@@ -193,7 +193,7 @@ namespace apvlv
 
     return ret;
 #else
-    return system (str);
+    return WinExec (str);
 #endif
   }
 }

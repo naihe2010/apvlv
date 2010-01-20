@@ -450,7 +450,7 @@ namespace apvlv
     mTabList.erase (remPos);
     if (c == (int) mTabList.size ())
       {
-	warnp ("erase failed to remove context");
+	gView->errormessage ("erase failed to remove context");
       }
 
     if ((int) mTabList.size () <= 1)
@@ -635,21 +635,45 @@ namespace apvlv
     char s[2] = { 0 };
     s[0] = ch;
     gtk_entry_set_text (GTK_ENTRY (mCommandBar), s);
-    cmd_show ();
+    cmd_show (CMD_CMD);
   }
 
   void ApvlvView::promptcommand (const char *s)
   {
     gtk_entry_set_text (GTK_ENTRY (mCommandBar), s);
-    cmd_show ();
+    cmd_show (CMD_CMD);
   }
 
-  void ApvlvView::cmd_show ()
+  void ApvlvView::errormessage (const char *str, ...)
+  {
+    gchar estr[512];
+    va_list vap;
+    va_start (vap, str);
+    vsnprintf (estr, sizeof estr, str, vap);
+    va_end (vap);
+    gtk_entry_set_text (GTK_ENTRY (mCommandBar), "ERROR: ");
+    gtk_entry_append_text (GTK_ENTRY (mCommandBar), estr);
+    cmd_show (CMD_MESSAGE);
+  }
+
+  void ApvlvView::infomessage (const char *str, ...)
+  {
+    gchar estr[512];
+    va_list vap;
+    va_start (vap, str);
+    vsnprintf (estr, sizeof estr, str, vap);
+    va_end (vap);
+    gtk_entry_set_text (GTK_ENTRY (mCommandBar), "INFO: ");
+    gtk_entry_append_text (GTK_ENTRY (mCommandBar), estr);
+    cmd_show (CMD_MESSAGE);
+  }
+
+  void ApvlvView::cmd_show (int cmdtype)
   {
     if (mMainWindow == NULL)
       return;
 
-    mHasCmd = TRUE;
+    mCmdType = cmdtype;
 
     mRootWindow->setsize (mWidth, adjheight ());
 
@@ -662,7 +686,7 @@ namespace apvlv
   {
     if (mMainWindow == NULL)
       return;
-    mHasCmd = FALSE;
+    mCmdType = CMD_NONE;
 
     gtk_widget_hide (mCommandBar);
     mRootWindow->setsize (mWidth, adjheight ());
@@ -818,27 +842,32 @@ namespace apvlv
     return MATCH;
   }
 
-  void ApvlvView::run (const char *str)
+  bool ApvlvView::run (const char *str)
   {
+    bool ret;
+
     switch (*str)
       {
       case SEARCH:
 	crtadoc ()->markposition ('\'');
-	crtadoc ()->search (str + 1);
+	ret = crtadoc ()->search (str + 1);
 	break;
 
       case BACKSEARCH:
 	crtadoc ()->markposition ('\'');
-	crtadoc ()->search (str + 1, true);
+	ret = crtadoc ()->search (str + 1, true);
 	break;
 
       case COMMANDMODE:
-	runcmd (str + 1);
+	ret = runcmd (str + 1);
 	break;
 
       default:
+	ret = false;
 	break;
       }
+
+    return ret;
   }
 
   void ApvlvView::settitle (const char *title)
@@ -846,8 +875,10 @@ namespace apvlv
     gtk_window_set_title (GTK_WINDOW (mMainWindow), title);
   }
 
-  void ApvlvView::runcmd (const char *str)
+  bool ApvlvView::runcmd (const char *str)
   {
+    bool ret = true;
+
     if (*str == '!')
       {
 	apvlv_system (str + 1);
@@ -882,7 +913,7 @@ namespace apvlv
 	else if ((cmd == "o"
 		  || cmd == "open" || cmd == "doc") && subcmd != "")
 	  {
-	    loadfile (subcmd.c_str ());
+	    ret = loadfile (subcmd.c_str ());
 	  }
 	else if (cmd == "TOtext" && subcmd != "")
 	  {
@@ -1007,8 +1038,15 @@ namespace apvlv
 	      {
 		crtadoc ()->showpage (atoi (cmd.c_str ()) - 1);
 	      }
+	    else
+	      {
+		errormessage ("no command: '%s'", cmd.c_str ());
+		ret = false;
+	      }
 	  }
       }
+
+    return ret;
   }
 
   void
@@ -1031,7 +1069,7 @@ namespace apvlv
     ApvlvView::apvlv_view_keypress_cb (GtkWidget * wid, GdkEvent * ev,
 				       ApvlvView * view)
   {
-    if (view->mHasCmd == FALSE)
+    if (view->mCmdType == CMD_NONE)
       {
 	gCmds->append ((GdkEventKey *) ev);
 	return TRUE;
@@ -1044,7 +1082,7 @@ namespace apvlv
     ApvlvView::apvlv_view_commandbar_cb (GtkWidget * wid, GdkEvent * ev,
 					 ApvlvView * view)
   {
-    if (view->mHasCmd == true)
+    if (view->mCmdType == CMD_CMD)
       {
 	view->mInHistroy = false;
 
@@ -1055,12 +1093,24 @@ namespace apvlv
 	      (gchar *) gtk_entry_get_text (GTK_ENTRY (view->mCommandBar));
 	    if (str && strlen (str) > 0)
 	      {
-		view->run (str);
-		view->mCmdHistroy.push_back (str);
-		view->mCurrHistroy = view->mCmdHistroy.size () - 1;
+		if (view->run (str) == true)
+		  {
+		    view->mCmdHistroy.push_back (str);
+		    view->mCurrHistroy = view->mCmdHistroy.size () - 1;
+		    view->cmd_hide ();
+		    return TRUE;
+		  }
+		else
+		  {
+		    debug ("");
+		    return TRUE;
+		  }
 	      }
-	    view->cmd_hide ();
-	    return TRUE;
+	    else
+	      {
+		view->cmd_hide ();
+		return TRUE;
+	      }
 	  }
 	else if (gek->keyval == GDK_Tab)
 	  {
@@ -1099,9 +1149,8 @@ namespace apvlv
 	    view->mInHistroy = true;
 	    gtk_entry_set_text (GTK_ENTRY (view->mCommandBar),
 				view->mCurrHistroy > 0 ?
-				view->mCmdHistroy[view->
-						  mCurrHistroy--].c_str () :
-				view->mCmdHistroy[0].c_str ());
+				view->mCmdHistroy[view->mCurrHistroy--].
+				c_str () : view->mCmdHistroy[0].c_str ());
 	    return TRUE;
 	  }
 	else if (gek->keyval == GDK_Down)
@@ -1115,15 +1164,22 @@ namespace apvlv
 	    gtk_entry_set_text (GTK_ENTRY (view->mCommandBar),
 				(size_t) view->mCurrHistroy <
 				view->mCmdHistroy.size () -
-				1 ? view->mCmdHistroy[++view->
-						      mCurrHistroy].c_str () :
-				view->mCmdHistroy[view->mCmdHistroy.size () -
-						  1].c_str ());
+				1 ? view->mCmdHistroy[++view->mCurrHistroy].
+				c_str () : view->mCmdHistroy[view->
+							     mCmdHistroy.
+							     size () -
+							     1].c_str ());
 	    return TRUE;
 	  }
 
 
 	return FALSE;
+      }
+    else if (view->mCmdType == CMD_MESSAGE)
+      {
+	debug ("");
+	view->cmd_hide ();
+	return TRUE;
       }
 
     return FALSE;
@@ -1152,7 +1208,7 @@ namespace apvlv
     int adj = 0;
     if (gtk_notebook_get_show_tabs (GTK_NOTEBOOK (mTabContainer)))
       adj += APVLV_TABS_HEIGHT;
-    if (mHasCmd)
+    if (mCmdType != CMD_NONE)
       adj += APVLV_CMD_BAR_HEIGHT;
 
     return mHeight - adj;
