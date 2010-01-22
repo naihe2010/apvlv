@@ -65,3 +65,7 @@ set wrapscan = yes
 " set double click action
 " option value is 'word', 'line' or 'page'
 set doubleclick = page
+
+" set GUI options
+" m means menu, T means toolbar
+" set guioptions = 

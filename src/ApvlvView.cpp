@@ -49,6 +49,7 @@ namespace apvlv
 {
   ApvlvView *gView = NULL;
 
+  const int ApvlvView::APVLV_MENU_HEIGHT = 20;
   const int ApvlvView::APVLV_CMD_BAR_HEIGHT = 20;
   const int ApvlvView::APVLV_TABS_HEIGHT = 30;
 
@@ -82,6 +83,14 @@ namespace apvlv
 
     mViewBox = gtk_vbox_new (FALSE, 0);
     gtk_container_add (GTK_CONTAINER (mMainWindow), mViewBox);
+
+    mMenu = new ApvlvMenu ();
+
+    if (strchr (gParams->values ("guioptions"), 'm') != NULL)
+      {
+        mMenu->setsize (mWidth, APVLV_MENU_HEIGHT);
+        gtk_box_pack_start (GTK_BOX (mViewBox), mMenu->widget (), TRUE, TRUE, 0);
+      }
 
     mTabContainer = gtk_notebook_new ();
     gtk_notebook_set_show_tabs (GTK_NOTEBOOK (mTabContainer), FALSE);
@@ -133,6 +142,7 @@ namespace apvlv
   {
     size_t i;
 
+    delete mMenu;
 
     for (int i = 0; i < (int) mTabList.size (); i++)
       {
@@ -1211,7 +1221,14 @@ namespace apvlv
     if (mCmdType != CMD_NONE)
       adj += APVLV_CMD_BAR_HEIGHT;
 
-    return mHeight - adj;
+    if (strchr (gParams->values ("guioptions"), 'm') != NULL)
+      {
+        return mHeight - APVLV_MENU_HEIGHT - adj;
+      }
+    else
+      {
+        return mHeight - adj;
+      }
   }
 
   void ApvlvView::switchtab (int tabPos)

@@ -3,6 +3,8 @@ apvlv 0.0.9
 
 News features
 
+   * Add `guioptions = "mT"` to support menu and tool bar
+
    * Add command bar response when command is failed or command is not valid
 
    * Add double click action on pdf pages for select a word, a line or a page

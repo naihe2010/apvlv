@@ -65,6 +65,7 @@ namespace apvlv
 #else
     push ("defaultdir", "/tmp");
 #endif
+    push ("guioptions", "");
   }
 
   ApvlvParams::~ApvlvParams ()

@@ -199,6 +199,10 @@ namespace apvlv
 
     returnType process (int times, guint keyval);
 
+    void gotolink (int ct);
+
+    void returnlink (int ct);
+
   private:
     void blank (int x, int y);
 
@@ -222,10 +226,6 @@ namespace apvlv
     void markselection ();
 
     bool needsearch (const char *str, bool reverse = false);
-
-    void gotolink (int ct);
-
-    void returnlink (int ct);
 
     void refresh ();
 

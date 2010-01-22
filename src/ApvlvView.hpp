@@ -33,6 +33,7 @@
 # include "config.hpp"
 #endif
 
+#include "ApvlvMenu.hpp"
 #include "ApvlvDoc.hpp"
 #include "ApvlvWindow.hpp"
 
@@ -115,9 +116,9 @@ namespace apvlv
 
     void settitle (const char *);
 
-  private:
-      ApvlvDoc * crtadoc ();
+    ApvlvDoc * crtadoc ();
 
+  private:
     void refresh ();
 
     bool destroy;
@@ -149,6 +150,8 @@ namespace apvlv
     guint mProCmd;
 
     GtkWidget *mMainWindow;
+
+    ApvlvMenu *mMenu;
 
     GtkWidget *mViewBox;
 
@@ -195,7 +198,7 @@ namespace apvlv
     int mCurrHistroy;
     bool mInHistroy;
 
-    static const int APVLV_CMD_BAR_HEIGHT, APVLV_TABS_HEIGHT;
+    static const int APVLV_MENU_HEIGHT, APVLV_CMD_BAR_HEIGHT, APVLV_TABS_HEIGHT;
   };
 
   extern ApvlvView *gView;
