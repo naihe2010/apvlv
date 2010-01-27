@@ -88,8 +88,9 @@ namespace apvlv
 
     if (strchr (gParams->values ("guioptions"), 'm') != NULL)
       {
-        mMenu->setsize (mWidth, APVLV_MENU_HEIGHT);
-        gtk_box_pack_start (GTK_BOX (mViewBox), mMenu->widget (), TRUE, TRUE, 0);
+	mMenu->setsize (mWidth, APVLV_MENU_HEIGHT);
+	gtk_box_pack_start (GTK_BOX (mViewBox), mMenu->widget (), TRUE, TRUE,
+			    0);
       }
 
     mTabContainer = gtk_notebook_new ();
@@ -1223,11 +1224,11 @@ namespace apvlv
 
     if (strchr (gParams->values ("guioptions"), 'm') != NULL)
       {
-        return mHeight - APVLV_MENU_HEIGHT - adj;
+	return mHeight - APVLV_MENU_HEIGHT - adj;
       }
     else
       {
-        return mHeight - adj;
+	return mHeight - adj;
       }
   }
 

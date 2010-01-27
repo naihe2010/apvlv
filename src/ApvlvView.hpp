@@ -116,7 +116,7 @@ namespace apvlv
 
     void settitle (const char *);
 
-    ApvlvDoc * crtadoc ();
+    ApvlvDoc *crtadoc ();
 
   private:
     void refresh ();
@@ -198,7 +198,8 @@ namespace apvlv
     int mCurrHistroy;
     bool mInHistroy;
 
-    static const int APVLV_MENU_HEIGHT, APVLV_CMD_BAR_HEIGHT, APVLV_TABS_HEIGHT;
+    static const int APVLV_MENU_HEIGHT, APVLV_CMD_BAR_HEIGHT,
+      APVLV_TABS_HEIGHT;
   };
 
   extern ApvlvView *gView;
