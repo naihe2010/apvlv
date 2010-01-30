@@ -142,6 +142,8 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 
 
 	GtkWidget *entry = gtk_entry_new ();
+        gtk_entry_set_visibility (GTK_ENTRY (entry), FALSE);
+        gtk_entry_set_invisible_char (GTK_ENTRY (entry), '*');
 	gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dia)->vbox), entry, TRUE,
 			    TRUE, 10);
 	gtk_widget_show (entry);
