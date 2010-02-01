@@ -854,6 +854,14 @@ namespace apvlv
 	setactive (true);
 
 	mReady = true;
+
+	mSearchStr = "";
+	if (mSearchResults != NULL)
+	  {
+	    delete mSearchResults;
+	    mSearchResults = NULL;
+	  }
+
 	mInVisual = VISUAL_NONE;
       }
 
@@ -1260,6 +1268,11 @@ namespace apvlv
 
   bool ApvlvDoc::search (const char *str, bool reverse)
   {
+    if (*str == '\0' && mSearchStr == "")
+      {
+	return false;
+      }
+
     if (!needsearch (str, reverse))
       {
 	return true;

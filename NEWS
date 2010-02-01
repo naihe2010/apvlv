@@ -20,6 +20,8 @@ Bug Fix
   
    * display '*' when input password to open pdf docs
 
+   * return false when search next but no first string was be searched.
+
 
 apvlv 0.0.8
 ===========
