@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;poppler-src&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;HAVE_PTHREAD;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;HAVE_PTHREAD;_CRT_SECURE_NO_WARNINGS;PACKAGE_NAME=\&quot;apvlv\&quot;;PACKAGE_VERSION=\&quot;0.0.9.2\&quot;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -120,7 +120,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="&quot;poppler-src&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;HAVE_PTHREAD;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;HAVE_PTHREAD;_CRT_SECURE_NO_WARNINGS;PACKAGE_NAME=\&quot;apvlv\&quot;;PACKAGE_VERSION=\&quot;0.0.9.2\&quot;"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -205,6 +205,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\ApvlvMenu.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\ApvlvParams.cpp"
 				>
 			</File>
@@ -248,6 +252,10 @@
 			</File>
 			<File
 				RelativePath="..\src\ApvlvFile.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\ApvlvMenu.hpp"
 				>
 			</File>
 			<File
