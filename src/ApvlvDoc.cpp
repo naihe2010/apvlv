@@ -124,10 +124,7 @@ namespace apvlv
     if (mCurrentCache2)
       delete mCurrentCache2;
 
-    if (mFilestr != helppdf)
-      {
-	savelastposition ();
-      }
+    savelastposition ();
     mPositions.clear ();
 
     delete mStatus;
@@ -699,7 +696,8 @@ namespace apvlv
 
   bool ApvlvDoc::savelastposition ()
   {
-    if (filename () == NULL || gParams->valueb ("noinfo"))
+    if (filename () == NULL
+	|| helppdf == filename () || gParams->valueb ("noinfo"))
       {
 	return false;
       }

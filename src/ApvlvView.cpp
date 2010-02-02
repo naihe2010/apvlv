@@ -209,7 +209,7 @@ namespace apvlv
 	os.close ();
       }
 
-    GtkWidget *dia = gtk_file_chooser_dialog_new ("",
+    GtkWidget *dia = gtk_file_chooser_dialog_new ("Open ...",
 						  GTK_WINDOW (mMainWindow),
 						  GTK_FILE_CHOOSER_ACTION_SAVE,
 						  GTK_STOCK_CANCEL,

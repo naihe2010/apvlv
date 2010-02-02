@@ -122,9 +122,6 @@ namespace apvlv
 
   void ApvlvWindow::setcurrentWindow (ApvlvWindow * pre, ApvlvWindow * win)
   {
-    if (pre)
-      asst (pre->type == AW_CORE);
-    asst (win->type == AW_CORE);
     if (pre != NULL && pre->type == AW_CORE)
       {
 	pre->mCore->setactive (false);
@@ -133,7 +130,10 @@ namespace apvlv
     if (win->type == AW_CORE)
       {
 	win->mCore->setactive (true);
-	win->mCore->reload ();
+	if (pre != NULL)
+	  {
+	    win->mCore->reload ();
+	  }
       }
 
     m_curWindow = win;
