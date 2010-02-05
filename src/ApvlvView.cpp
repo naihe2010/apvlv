@@ -51,7 +51,7 @@ namespace apvlv
 
   const int ApvlvView::APVLV_MENU_HEIGHT = 20;
   const int ApvlvView::APVLV_CMD_BAR_HEIGHT = 20;
-  const int ApvlvView::APVLV_TABS_HEIGHT = 30;
+  const int ApvlvView::APVLV_TABS_HEIGHT = 36;
 
     ApvlvView::ApvlvView (const char *filename):mCurrTabPos (-1)
   {
@@ -88,7 +88,7 @@ namespace apvlv
 
     if (strchr (gParams->values ("guioptions"), 'm') != NULL)
       {
-	mMenu->setsize (mWidth, APVLV_MENU_HEIGHT);
+	mMenu->setsize (mWidth, APVLV_MENU_HEIGHT - 1);
 	gtk_box_pack_start (GTK_BOX (mViewBox), mMenu->widget (), TRUE, TRUE,
 			    0);
       }
