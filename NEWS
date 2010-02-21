@@ -22,6 +22,8 @@ Bug Fix
 
    * return false when search next but no first string was be searched.
 
+   * return true when sub child dir has pdf files
+
 
 apvlv 0.0.8
 ===========
