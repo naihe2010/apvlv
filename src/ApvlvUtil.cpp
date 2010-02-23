@@ -30,7 +30,7 @@
 
 #include <stdlib.h>
 #ifndef WIN32
-#include <wait.h>
+#include <sys/wait.h>
 #endif
 #include <gtk/gtk.h>
 
