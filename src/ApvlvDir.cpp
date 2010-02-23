@@ -699,7 +699,7 @@ namespace apvlv
 		if (node != NULL)
 		  {
 		    mDirNodes = g_slist_append (mDirNodes, node);
-                    has = true;
+		    has = true;
 		  }
 	      }
 	    else if (g_ascii_strncasecmp (name + strlen (name) - 4, ".pdf", 4)

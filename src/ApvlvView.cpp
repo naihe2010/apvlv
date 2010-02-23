@@ -27,6 +27,7 @@
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
 #include "ApvlvParams.hpp"
+#include "ApvlvInfo.hpp"
 #include "ApvlvDir.hpp"
 #include "ApvlvCmds.hpp"
 #include "ApvlvView.hpp"
@@ -184,30 +185,7 @@ namespace apvlv
 
   void ApvlvView::open ()
   {
-    const char *lastfile = NULL;
     gchar *dirname;
-
-    char *path = absolutepath (sessionfile.c_str ());
-    ifstream os (path, ios::in);
-    g_free (path);
-
-    string line, files;
-    if (os.is_open ())
-      {
-
-	while ((getline (os, line)) != NULL)
-	  {
-	    const char *p = line.c_str ();
-
-	    if (*p == '>')
-	      {
-		stringstream ss (++p);
-		ss >> files;
-		lastfile = files.c_str ();
-	      }
-	  }
-	os.close ();
-      }
 
     GtkWidget *dia = gtk_file_chooser_dialog_new ("Open ...",
 						  GTK_WINDOW (mMainWindow),
@@ -217,14 +195,14 @@ namespace apvlv
 						  GTK_STOCK_OK,
 						  GTK_RESPONSE_ACCEPT,
 						  NULL);
+    infofile *fp = gInfo->file (0);
     dirname =
-      lastfile ? g_dirname (lastfile) :
+      fp ? g_dirname (fp->file.c_str ()) :
       g_strdup (gParams->values ("defaultdir"));
-    gchar *realdir = absolutepath (dirname);
+    debug ("lastfile: [%s], dirname: [%s]", fp ? fp->file.c_str () : "",
+	   dirname);
+    gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dia), dirname);
     g_free (dirname);
-    debug ("lastfile: [%s], dirname: [%s]", lastfile, realdir);
-    gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dia), realdir);
-    g_free (realdir);
 
     GtkFileFilter *filter = gtk_file_filter_new ();
     gtk_file_filter_add_mime_type (filter, "PDF File");
@@ -1160,8 +1138,9 @@ namespace apvlv
 	    view->mInHistroy = true;
 	    gtk_entry_set_text (GTK_ENTRY (view->mCommandBar),
 				view->mCurrHistroy > 0 ?
-				view->mCmdHistroy[view->mCurrHistroy--].
-				c_str () : view->mCmdHistroy[0].c_str ());
+				view->mCmdHistroy[view->
+						  mCurrHistroy--].c_str () :
+				view->mCmdHistroy[0].c_str ());
 	    return TRUE;
 	  }
 	else if (gek->keyval == GDK_Down)
@@ -1175,11 +1154,10 @@ namespace apvlv
 	    gtk_entry_set_text (GTK_ENTRY (view->mCommandBar),
 				(size_t) view->mCurrHistroy <
 				view->mCmdHistroy.size () -
-				1 ? view->mCmdHistroy[++view->mCurrHistroy].
-				c_str () : view->mCmdHistroy[view->
-							     mCmdHistroy.
-							     size () -
-							     1].c_str ());
+				1 ? view->mCmdHistroy[++view->
+						      mCurrHistroy].c_str () :
+				view->mCmdHistroy[view->mCmdHistroy.size () -
+						  1].c_str ());
 	    return TRUE;
 	  }
 

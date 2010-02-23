@@ -29,6 +29,7 @@
 #include "ApvlvView.hpp"
 #include "ApvlvCmds.hpp"
 #include "ApvlvParams.hpp"
+#include "ApvlvInfo.hpp"
 #include "ApvlvUtil.hpp"
 
 #include <iostream>
@@ -153,6 +154,11 @@ main (int argc, char *argv[])
 
   ApvlvParams sParams;
   gParams = &sParams;
+
+  gchar *infopath = absolutepath ("~/.apvlvinfo");
+  ApvlvInfo sInfo (infopath);
+  g_free (infopath);
+  gInfo = &sInfo;
 
 #ifdef _WIN32
   gchar *temp = absolutepath (iconpdf.c_str ());

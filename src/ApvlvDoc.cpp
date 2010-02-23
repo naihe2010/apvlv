@@ -28,6 +28,7 @@
 
 #include "ApvlvUtil.hpp"
 #include "ApvlvParams.hpp"
+#include "ApvlvInfo.hpp"
 #include "ApvlvView.hpp"
 #include "ApvlvDoc.hpp"
 
@@ -124,7 +125,7 @@ namespace apvlv
     if (mCurrentCache2)
       delete mCurrentCache2;
 
-    savelastposition ();
+    savelastposition (filename ());
     mPositions.clear ();
 
     delete mStatus;
@@ -694,36 +695,25 @@ namespace apvlv
       }
   }
 
-  bool ApvlvDoc::savelastposition ()
+  bool ApvlvDoc::savelastposition (const char *filename)
   {
-    if (filename () == NULL
-	|| helppdf == filename () || gParams->valueb ("noinfo"))
+    if (filename == NULL || helppdf == filename || gParams->valueb ("noinfo"))
       {
 	return false;
       }
 
-    gchar *path = absolutepath (sessionfile.c_str ());
-    ofstream os (path, ios::app);
-    g_free (path);
+    bool ret = gInfo->file (mPagenum, scrollrate (), filename);
 
-    if (os.is_open ())
-      {
-	os << ">";
-	os << filename () << "\t";
-	os << mPagenum << "\t";
-	os << scrollrate ();
-	os << "\n";
-	os.close ();
-	return true;
-      }
-    return false;
+    return ret;
   }
 
-  bool ApvlvDoc::loadlastposition ()
+  bool ApvlvDoc::loadlastposition (const char *filename)
   {
-    bool ret = false;
-    int pagen = 0;
-    double scrollr = 0.00;
+    if (filename == NULL || helppdf == filename || gParams->valueb ("noinfo"))
+      {
+	showpage (0);
+	return false;
+      }
 
     if (gParams->valueb ("noinfo"))
       {
@@ -731,38 +721,14 @@ namespace apvlv
 	return false;
       }
 
-    char *path = absolutepath (sessionfile.c_str ());
-    ifstream os (path, ios::in);
-    g_free (path);
+    bool ret = false;
 
-    if (os.is_open ())
-      {
-	string line;
+    infofile *fp = gInfo->file (filename);
 
-	while ((getline (os, line)) != NULL)
-	  {
-	    const char *p = line.c_str ();
-
-	    if (*p == '>')
-	      {
-		stringstream ss (++p);
-
-		string files;
-		ss >> files;
-
-		if (files == mFilestr)
-		  {
-		    ss >> pagen >> scrollr;
-		    ret = true;
-		  }
-	      }
-	  }
-	os.close ();
-      }
 
     // correctly check
-    mScrollvalue = scrollr >= 0 ? scrollr : 0;
-    showpage (pagen >= 0 ? pagen : 0);
+    mScrollvalue = fp->rate;
+    showpage (fp->page);
 
     // Warning
     // I can't think a better way to scroll correctly when
@@ -774,7 +740,7 @@ namespace apvlv
 
   bool ApvlvDoc::reload ()
   {
-    savelastposition ();
+    savelastposition (filename ());
     return loadfile (mFilestr, false);
   }
 
@@ -845,7 +811,7 @@ namespace apvlv
 	    mCurrentCache2 = new ApvlvDocCache (mFile);
 	  }
 
-	loadlastposition ();
+	loadlastposition (filename);
 
 	mStatus->show ();
 

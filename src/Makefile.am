@@ -10,7 +10,8 @@ HEAD = config.hpp \
        ApvlvCmds.hpp \
        ApvlvParams.hpp \
        ApvlvWindow.hpp \
-       ApvlvMenu.hpp
+       ApvlvMenu.hpp \
+       ApvlvInfo.hpp
 
 SOURCE = main.cpp \
 	 ApvlvUtil.cpp \
@@ -22,7 +23,8 @@ SOURCE = main.cpp \
 	 ApvlvCmds.cpp \
 	 ApvlvParams.cpp \
 	 ApvlvWindow.cpp \
-         ApvlvMenu.cpp 
+         ApvlvMenu.cpp \
+         ApvlvInfo.cpp 
 
 bin_PROGRAMS = apvlv 
 

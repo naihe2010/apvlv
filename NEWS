@@ -3,6 +3,8 @@ apvlv 0.0.9
 
 News features
 
+   * More like vim's info file schem
+
    * Add `guioptions = "mT"` to support menu and tool bar
 
    * Add command bar response when command is failed or command is not valid

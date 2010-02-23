@@ -231,9 +231,9 @@ namespace apvlv
 
     bool reload ();
 
-    bool savelastposition ();
+    bool savelastposition (const char *filename);
 
-    bool loadlastposition ();
+    bool loadlastposition (const char *filename);
 
     static void apvlv_doc_on_mouse (GtkAdjustment *, ApvlvDoc *);
 
