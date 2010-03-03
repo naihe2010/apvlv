@@ -226,30 +226,7 @@ namespace apvlv
 
   void ApvlvView::opendir ()
   {
-    const char *lastfile = NULL;
     gchar *dirname;
-
-    char *path = absolutepath (sessionfile.c_str ());
-    ifstream os (path, ios::in);
-    g_free (path);
-
-    string line, files;
-    if (os.is_open ())
-      {
-
-	while ((getline (os, line)) != NULL)
-	  {
-	    const char *p = line.c_str ();
-
-	    if (*p == '>')
-	      {
-		stringstream ss (++p);
-		ss >> files;
-		lastfile = files.c_str ();
-	      }
-	  }
-	os.close ();
-      }
 
     GtkWidget *dia = gtk_file_chooser_dialog_new ("",
 						  GTK_WINDOW (mMainWindow),
@@ -259,8 +236,8 @@ namespace apvlv
 						  GTK_STOCK_OK,
 						  GTK_RESPONSE_ACCEPT,
 						  NULL);
-    dirname =
-      lastfile ? g_dirname (lastfile) :
+    infofile *fp = gInfo->file (0);
+    dirname = fp ? g_dirname (fp->file.c_str ()) :
       g_strdup (gParams->values ("defaultdir"));
     gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dia), dirname);
     g_free (dirname);
@@ -1138,9 +1115,8 @@ namespace apvlv
 	    view->mInHistroy = true;
 	    gtk_entry_set_text (GTK_ENTRY (view->mCommandBar),
 				view->mCurrHistroy > 0 ?
-				view->mCmdHistroy[view->
-						  mCurrHistroy--].c_str () :
-				view->mCmdHistroy[0].c_str ());
+				view->mCmdHistroy[view->mCurrHistroy--].
+				c_str () : view->mCmdHistroy[0].c_str ());
 	    return TRUE;
 	  }
 	else if (gek->keyval == GDK_Down)
@@ -1154,10 +1130,11 @@ namespace apvlv
 	    gtk_entry_set_text (GTK_ENTRY (view->mCommandBar),
 				(size_t) view->mCurrHistroy <
 				view->mCmdHistroy.size () -
-				1 ? view->mCmdHistroy[++view->
-						      mCurrHistroy].c_str () :
-				view->mCmdHistroy[view->mCmdHistroy.size () -
-						  1].c_str ());
+				1 ? view->mCmdHistroy[++view->mCurrHistroy].
+				c_str () : view->mCmdHistroy[view->
+							     mCmdHistroy.
+							     size () -
+							     1].c_str ());
 	    return TRUE;
 	  }
 

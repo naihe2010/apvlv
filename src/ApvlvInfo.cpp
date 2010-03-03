@@ -52,7 +52,7 @@ namespace apvlv
 
 	while (getline (is, line))
 	  {
-	    p = strchr (line.c_str (), '\t');
+	    p = strchr ((char *) line.c_str (), '\t');
 	    if (p == NULL)
 	      {
 		continue;
