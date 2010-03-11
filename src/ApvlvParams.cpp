@@ -109,7 +109,7 @@ namespace apvlv
 	    if (off == string::npos)
 	      {
 		is >> crap >> data;
-		if (crap == "=" && data.length () > 0)
+		if (crap == "=")
 		  {
 		    push (argu.c_str (), data.c_str ());
 		    continue;
@@ -123,14 +123,21 @@ namespace apvlv
 
 		p = (char *) argu.c_str () + off + 1;
 		while (isspace (*p))
-		  p++;
-
-		if (*p != '\0')
 		  {
-		    g_snprintf (v, sizeof v, "%s", p);
-		    push (k, v);
-		    continue;
+		    p++;
 		  }
+
+		g_snprintf (v, sizeof v, "%s", *p ? p : "");
+
+		p = (char *) v + strlen (v) - 1;
+		while (isspace (*p) && p >= v)
+		  {
+		    p--;
+		  }
+		*(p + 1) = '\0';
+
+		push (k, v);
+		continue;
 	      }
 
 	    errp ("Syntax error: set: %s", str.c_str ());
