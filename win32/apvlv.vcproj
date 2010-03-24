@@ -205,6 +205,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\ApvlvInfo.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\ApvlvMenu.cpp"
 				>
 			</File>
@@ -252,6 +256,10 @@
 			</File>
 			<File
 				RelativePath="..\src\ApvlvFile.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\ApvlvInfo.hpp"
 				>
 			</File>
 			<File
