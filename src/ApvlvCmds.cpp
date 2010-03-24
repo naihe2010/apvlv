@@ -380,6 +380,14 @@ namespace apvlv
 	SK["<End>"] = GDK_End;
 	SK["<PageUp>"] = GDK_Page_Up;
 	SK["<PageDown>"] = GDK_Page_Down;
+        SK["<KP_Up>"] = GDK_KP_Up;
+        SK["<KP_Down>"] = GDK_KP_Down;
+        SK["<KP_Left>"] = GDK_KP_Left;
+        SK["<KP_Right>"] = GDK_KP_Right;
+        SK["<KP_Prior>"] = GDK_KP_Prior;
+        SK["<KP_Next>"] = GDK_KP_Next;
+        SK["<KP_Home>"] = GDK_KP_Home;
+        SK["<KP_End>"] = GDK_KP_End;
       }
   }
 
