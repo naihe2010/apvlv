@@ -166,6 +166,8 @@ namespace apvlv
 
     bool loadfile (const char *src, bool check = true);
 
+    int pagenumber ();
+
     bool print (int ct);
 
     bool totext (const char *name);

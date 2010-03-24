@@ -749,6 +749,25 @@ namespace apvlv
     return loadfile (filename.c_str (), check);
   }
 
+  gint ApvlvDoc::pagenumber ()
+  {
+    if (mContinuous && mCurrentCache2 != NULL)
+      {
+	if (scrollrate () > 0.5)
+	  {
+	    return mCurrentCache2->getpagenum () + 1;
+	  }
+	else
+	  {
+	    return mCurrentCache1->getpagenum () + 1;
+	  }
+      }
+    else
+      {
+	return mPagenum + 1;
+      }
+  }
+
   bool ApvlvDoc::usecache ()
   {
     return false;
@@ -1993,11 +2012,6 @@ namespace apvlv
     if (mDoc->filename ())
       {
 	gint pn = mDoc->pagenumber ();
-
-	if (mDoc->continuous () && mDoc->scrollrate () > 0.5)
-	  {
-	    pn++;
-	  }
 
 	char temp[AD_STATUS_SIZE][256];
 	gchar *bn;
