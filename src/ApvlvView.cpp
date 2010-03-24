@@ -1115,9 +1115,8 @@ namespace apvlv
 	    view->mInHistroy = true;
 	    gtk_entry_set_text (GTK_ENTRY (view->mCommandBar),
 				view->mCurrHistroy > 0 ?
-				view->mCmdHistroy[view->
-						  mCurrHistroy--].c_str () :
-				view->mCmdHistroy[0].c_str ());
+				view->mCmdHistroy[view->mCurrHistroy--].
+				c_str () : view->mCmdHistroy[0].c_str ());
 	    return TRUE;
 	  }
 	else if (gek->keyval == GDK_Down)
@@ -1131,10 +1130,11 @@ namespace apvlv
 	    gtk_entry_set_text (GTK_ENTRY (view->mCommandBar),
 				(size_t) view->mCurrHistroy <
 				view->mCmdHistroy.size () -
-				1 ? view->mCmdHistroy[++view->
-						      mCurrHistroy].c_str () :
-				view->mCmdHistroy[view->mCmdHistroy.size () -
-						  1].c_str ());
+				1 ? view->mCmdHistroy[++view->mCurrHistroy].
+				c_str () : view->mCmdHistroy[view->
+							     mCmdHistroy.
+							     size () -
+							     1].c_str ());
 	    return TRUE;
 	  }
 
@@ -1216,6 +1216,8 @@ namespace apvlv
       gfilename = g_strdup ("None");
     else
       gfilename = g_path_get_basename (filename);
+
+    settitle (gfilename);
 
     if (mTabList[mCurrTabPos].numwindows > 1)
       g_snprintf (tagname, sizeof tagname, "[%d] %s",
