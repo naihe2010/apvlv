@@ -63,6 +63,8 @@ namespace apvlv
 
     GSList *mFileHead;
     int mFileMax;
+
+    bool ini_add_position (const char *);
   };
 
   extern ApvlvInfo *gInfo;

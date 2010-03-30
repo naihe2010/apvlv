@@ -48,45 +48,19 @@ namespace apvlv
     if (is.is_open ())
       {
 	string line;
-	char *p;
+	const char *p;
 
 	while (getline (is, line))
 	  {
-	    p = strchr ((char *) line.c_str (), '\t');
-	    if (p == NULL)
+	    p = line.c_str ();
+
+	    if (*p != '\''	/* the ' */
+		|| !isdigit (*(p + 1)))	/* the digit */
 	      {
 		continue;
 	      }
 
-	    while (!isdigit (*p))
-	      {
-		p++;
-	      }
-	    int page = atoi (p);
-
-	    p = strchr (p + 1, '\t');
-	    if (p == NULL)
-	      {
-		continue;
-	      }
-
-	    while (!isdigit (*p))
-	      {
-		p++;
-	      }
-	    double rate = atof (p);
-
-	    p = strchr (p + 1, '\t');
-	    while (isspace (*p))
-	      {
-		p++;
-	      }
-
-	    infofile *fp = new infofile;
-	    fp->page = page;
-	    fp->rate = rate;
-	    fp->file = p;
-	    mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
+	    ini_add_position (p);
 	  }
 
 	mFileHead = g_slist_reverse (mFileHead);
@@ -185,6 +159,57 @@ namespace apvlv
     fp->rate = rate;
     update ();
 
+    return true;
+  }
+
+  bool ApvlvInfo::ini_add_position (const char *str)
+  {
+    const char *p;
+
+    p = strchr (str + 2, '\t');	/* Skip the ' and the digit */
+    if (p == NULL)
+      {
+	return false;
+      }
+
+    while (*p != '\0' && !isdigit (*p))
+      {
+	p++;
+      }
+    int page = atoi (p);
+
+    p = strchr (p, '\t');
+    if (p == NULL)
+      {
+	return false;
+      }
+
+    while (*p != '\0' && !isdigit (*p))
+      {
+	p++;
+      }
+    double rate = atof (p);
+
+    p = strchr (p, '\t');
+    if (p == NULL)
+      {
+	return false;
+      }
+
+    while (*p != '\0' && isspace (*p))
+      {
+	p++;
+      }
+    if (*p == '\0')
+      {
+	return false;
+      }
+
+    infofile *fp = new infofile;
+    fp->page = page;
+    fp->rate = rate;
+    fp->file = p;
+    mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
     return true;
   }
 };
