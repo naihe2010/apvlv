@@ -567,24 +567,11 @@ namespace apvlv
 
   void ApvlvDirStatus::active (bool act)
   {
-    GdkColor c;
-
-    if (act)
-      {
-	c.red = 300;
-	c.green = 300;
-	c.blue = 300;
-      }
-    else
-      {
-	c.red = 30000;
-	c.green = 30000;
-	c.blue = 30000;
-      }
-
     for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
       {
-	gtk_widget_modify_fg (mStlab[i], GTK_STATE_NORMAL, &c);
+	gtk_widget_modify_fg (mStlab[i],
+			      (act) ? GTK_STATE_ACTIVE :
+			      GTK_STATE_INSENSITIVE, NULL);
       }
   }
 
