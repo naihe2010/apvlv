@@ -879,7 +879,19 @@ namespace apvlv
 	else if ((cmd == "o"
 		  || cmd == "open" || cmd == "doc") && subcmd != "")
 	  {
-	    ret = loadfile (subcmd.c_str ());
+	    if (g_file_test (subcmd.c_str (), G_FILE_TEST_IS_DIR))
+	      {
+		ret = loaddir (subcmd.c_str ());
+	      }
+	    else if (g_file_test (subcmd.c_str (), G_FILE_TEST_EXISTS))
+	      {
+		ret = loadfile (subcmd.c_str ());
+	      }
+	    else
+	      {
+		errormessage ("no file '%s'", subcmd.c_str ());
+		ret = false;
+	      }
 	  }
 	else if (cmd == "TOtext" && subcmd != "")
 	  {
