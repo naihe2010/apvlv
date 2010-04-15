@@ -267,6 +267,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_3746001836224FA99327CC37C9906442"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_3749846CF37F49D49AA71759C225EDA4"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -2266,6 +2272,26 @@
             "TargetName" = "8:Adobe-GB1"
             "Tag" = "8:"
             "Folder" = "8:_99B9FEC63F28451798C3D0E2501C31B9"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3746001836224FA99327CC37C9906442"
+            {
+            "SourcePath" = "8:..\\freetype235\\freetype6.dll"
+            "TargetName" = "8:freetype6.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_4B52064CFDAC4E7BAE48A2629DE4EE51"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -6117,7 +6143,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:apvlv"
         "ProductCode" = "8:{C706BF94-CDD3-445A-8821-B95744836B0C}"
-        "PackageCode" = "8:{49D02D93-3635-4122-B77F-B12B3BD3431F}"
+        "PackageCode" = "8:{BA9C4492-48DD-4655-B590-BCCCB7E2D462}"
         "UpgradeCode" = "8:{76BD4EC1-37A0-4C00-8E09-B513FE3D9B38}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
