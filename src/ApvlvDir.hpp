@@ -42,16 +42,26 @@ namespace apvlv
   class ApvlvDirNode
   {
   public:
-    ApvlvDirNode (gint);
-    ApvlvDirNode (bool isdir, const char *, const char *);
+    ApvlvDirNode (GtkTreeIter *, gint);
+    ApvlvDirNode (GtkTreeIter *, bool isdir, const char *, const char *);
     ~ApvlvDirNode ();
 
     //
     // Get the destination
     bool dest (const char **rpath, int *pagenum);
 
+    //
+    // Get the string
+    const char *phrase ();
+
+    //
+    // Get the gtk tree iter
+    const GtkTreeIter *iter ();
+
   private:
-      gint mPagenum;		/* -1 means dir, 0 means file, > 0 means page num */
+      GtkTreeIter itr[1];
+
+    gint mPagenum;		/* -1 means dir, 0 means file, > 0 means page num */
     char filename[0x100];
     char *realname;
   };
@@ -105,6 +115,8 @@ namespace apvlv
 
     void scrollright (int times);
 
+    bool search (const char *str, bool reverse = false);
+
     static void apvlv_dir_on_changed (GtkTreeSelection *, ApvlvDir *);
 
     bool walk_file_index (GtkTreeIter * titr, ApvlvFileIndexIter iter);
@@ -117,7 +129,7 @@ namespace apvlv
 
     ApvlvFileIndex *mIndex;
 
-    GSList *mDirNodes;
+    GList *mDirNodes;
 
     GtkWidget *mDirView;
     GtkTreeStore *mStore;

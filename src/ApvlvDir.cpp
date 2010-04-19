@@ -46,14 +46,17 @@
 
 namespace apvlv
 {
-  ApvlvDirNode::ApvlvDirNode (gint p)
+  ApvlvDirNode::ApvlvDirNode (GtkTreeIter * ir, gint p)
   {
+    *itr = *ir;
     mPagenum = p;
     realname = NULL;
   }
 
-  ApvlvDirNode::ApvlvDirNode (bool isdir, const char *real, const char *file)
+  ApvlvDirNode::ApvlvDirNode (GtkTreeIter * ir, bool isdir, const char *real,
+			      const char *file)
   {
+    *itr = *ir;
     mPagenum = isdir ? -1 : 0;
     g_snprintf (filename, sizeof filename, "%s", file);
     realname = g_strdup (real);
@@ -82,6 +85,16 @@ namespace apvlv
       }
 
     return false;
+  }
+
+  const char *ApvlvDirNode::phrase ()
+  {
+    return filename;
+  }
+
+  const GtkTreeIter *ApvlvDirNode::iter ()
+  {
+    return itr;
   }
 
   ApvlvDir::ApvlvDir (int w, int h)
@@ -197,12 +210,12 @@ namespace apvlv
   {
     if (mDirNodes)
       {
-	for (GSList * list = mDirNodes; list; list = g_slist_next (list))
+	for (GList * list = mDirNodes; list; list = g_list_next (list))
 	  {
 	    ApvlvDirNode *info = (ApvlvDirNode *) list->data;
 	    delete info;
 	  }
-	g_slist_free (mDirNodes);
+	g_list_free (mDirNodes);
       }
 
     if (mIndex != NULL)
@@ -494,6 +507,83 @@ namespace apvlv
     mStatus->show ();
   }
 
+  bool ApvlvDir::search (const char *str, bool reverse)
+  {
+    if (!mReady)
+      return false;
+
+    if (*str == '\0' && mSearchStr == "")
+      {
+	return false;
+      }
+
+    if (*str != '\0')
+      {
+	mSearchStr = str;
+      }
+
+//    bool wrap = gParams->valueb ("wrapscan");
+
+    ApvlvDirNode *info = NULL;
+    gtk_tree_model_get (GTK_TREE_MODEL (mStore), &mCurrentIter, 0, &info, -1);
+    if (info == NULL || mDirNodes == NULL)
+      {
+	return false;
+      }
+
+    GList *list;
+    for (list = mDirNodes; list; list = g_list_next (list))
+      {
+	if (info == list->data)
+	  {
+	    break;
+	  }
+      }
+
+    if (list == NULL)
+      {
+	return false;
+      }
+
+    while (list != NULL)
+      {
+	info = (ApvlvDirNode *) list->data;
+	if (strstr (info->phrase (), mSearchStr.c_str ()) != NULL)
+	  {
+	    break;
+	  }
+	if (reverse)
+	  {
+	    list = g_list_previous (list);
+	  }
+	else
+	  {
+	    list = g_list_next (list);
+	  }
+      }
+
+    if (list == NULL)
+      {
+	gView->errormessage ("can't find word: '%s'", mSearchStr.c_str ());
+	return false;
+      }
+
+    mCurrentIter = *info->iter ();
+    GtkTreePath *path =
+      gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
+    if (path)
+      {
+	gtk_tree_view_expand_to_path (GTK_TREE_VIEW (mDirView), path);
+	gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
+	gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL,
+				      TRUE, 0.5, 0.0);
+	gtk_tree_path_free (path);
+      }
+
+    mStatus->show ();
+    return true;
+  }
+
   void ApvlvDir::setactive (bool act)
   {
     mStatus->active (act);
@@ -506,28 +596,24 @@ namespace apvlv
 
     GtkTreeIter nitr[1];
 
-    ApvlvDirNode *node = NULL;
-    node = new ApvlvDirNode (iter->page);
+    has = true;
+    gtk_tree_store_append (mStore, nitr, titr);
+    ApvlvDirNode *node = new ApvlvDirNode (nitr, iter->page);
+    mDirNodes = g_list_append (mDirNodes, node);
+    debug ("node: %p", node);
 
-    if (node != NULL)
+    GdkPixbuf *pix = gdk_pixbuf_new_from_file_at_size (iconreg.c_str (), 40,
+						       20, NULL);
+    if (pix)
       {
-	mDirNodes = g_slist_append (mDirNodes, node);
-	has = true;
-	gtk_tree_store_append (mStore, nitr, titr);
-	GdkPixbuf *pix =
-	  gdk_pixbuf_new_from_file_at_size (iconreg.c_str (), 40,
-					    20, NULL);
-	if (pix)
-	  {
-	    gtk_tree_store_set (mStore, nitr, 0, node, 1, pix, 2,
-				iter->title.c_str (), -1);
-	    g_object_unref (pix);
-	  }
-	else
-	  {
-	    gtk_tree_store_set (mStore, nitr, 0, node, 2,
-				iter->title.c_str (), -1);
-	  }
+	gtk_tree_store_set (mStore, nitr, 0, node, 1, pix, 2,
+			    iter->title.c_str (), -1);
+	g_object_unref (pix);
+      }
+    else
+      {
+	gtk_tree_store_set (mStore, nitr, 0, node, 2,
+			    iter->title.c_str (), -1);
       }
 
     for (ApvlvFileIndexIter itr = iter->children.begin ();
@@ -635,7 +721,7 @@ namespace apvlv
 	      }
 
 	    gchar *realname = g_strjoin (PATH_SEP_S, path, name, NULL);
-	    debug ("add a item: %s[%s]", name, realname);
+//          debug ("add a item: %s[%s]", name, realname);
 
 	    ApvlvDirNode *node = NULL;
 	    struct stat buf[1];
@@ -658,10 +744,10 @@ namespace apvlv
 
 	    if (S_ISDIR (buf->st_mode))
 	      {
-		node = new ApvlvDirNode (true, realname, name);
-
 		GtkTreeIter mitr[1];
 		gtk_tree_store_append (mStore, mitr, itr);
+		node = new ApvlvDirNode (mitr, true, realname, name);
+
 		GdkPixbuf *pix =
 		  gdk_pixbuf_new_from_file_at_size (icondir.c_str (), 40, 20,
 						    NULL);
@@ -685,7 +771,8 @@ namespace apvlv
 
 		if (node != NULL)
 		  {
-		    mDirNodes = g_slist_append (mDirNodes, node);
+		    mDirNodes = g_list_append (mDirNodes, node);
+		    debug ("node: %p", node);
 		    has = true;
 		  }
 	      }
@@ -696,11 +783,11 @@ namespace apvlv
 		     || g_ascii_strncasecmp (name + strlen (name) - 4, ".djv",
 					     4) == 0)
 	      {
-		node = new ApvlvDirNode (false, realname, name);
-
-		mDirNodes = g_slist_append (mDirNodes, node);
 		GtkTreeIter mitr[1];
 		gtk_tree_store_append (mStore, mitr, itr);
+		node = new ApvlvDirNode (mitr, false, realname, name);
+		mDirNodes = g_list_append (mDirNodes, node);
+		debug ("node: %p", node);
 
 		GdkPixbuf *pix =
 		  gdk_pixbuf_new_from_file_at_size (iconpdf.c_str (), 40, 20,

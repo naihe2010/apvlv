@@ -154,8 +154,6 @@ namespace apvlv
 
     void setactive (bool act);
 
-    bool hascontent ();
-
     ApvlvDoc *copy ();
 
     bool usecache ();

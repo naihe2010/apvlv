@@ -318,6 +318,81 @@ namespace apvlv
       }
   }
 
+  bool ApvlvCore::hascontent ()
+  {
+    return false;
+  }
+
+  bool ApvlvCore::usecache ()
+  {
+    return false;
+  }
+
+  void ApvlvCore::usecache (bool use)
+  {
+  }
+
+  bool ApvlvCore::print (int ct)
+  {
+    return false;
+  }
+
+  bool ApvlvCore::totext (const char *name)
+  {
+    return false;
+  }
+
+  bool ApvlvCore::rotate (int ct)
+  {
+    return false;
+  }
+
+  void ApvlvCore::markposition (const char s)
+  {
+  }
+
+  void ApvlvCore::setzoom (const char *z)
+  {
+  }
+
+  void ApvlvCore::jump (const char s)
+  {
+  }
+
+  void ApvlvCore::nextpage (int times)
+  {
+  }
+
+  void ApvlvCore::prepage (int times)
+  {
+  }
+
+  void ApvlvCore::halfnextpage (int times)
+  {
+  }
+
+  void ApvlvCore::halfprepage (int times)
+  {
+  }
+
+  bool ApvlvCore::search (const char *str, bool reverse)
+  {
+    return false;
+  }
+
+  bool ApvlvCore::continuous ()
+  {
+    return false;
+  }
+
+  void ApvlvCore::gotolink (int ct)
+  {
+  }
+
+  void ApvlvCore::returnlink (int ct)
+  {
+  }
+
   void ApvlvCore::setactive (bool act)
   {
     mActive = act;

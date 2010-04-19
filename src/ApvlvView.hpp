@@ -116,7 +116,7 @@ namespace apvlv
 
     void settitle (const char *);
 
-    ApvlvDoc *crtadoc ();
+    ApvlvCore *crtadoc ();
 
   private:
     void refresh ();

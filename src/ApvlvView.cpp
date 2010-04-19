@@ -727,9 +727,9 @@ namespace apvlv
       }
   }
 
-  ApvlvDoc *ApvlvView::crtadoc ()
+  ApvlvCore *ApvlvView::crtadoc ()
   {
-    return (ApvlvDoc *) currentWindow ()->getCore ();
+    return currentWindow ()->getCore ();
   }
 
   returnType ApvlvView::subprocess (int ct, guint key)
@@ -946,12 +946,12 @@ namespace apvlv
 	  }
 	else if ((cmd == "help" || cmd == "h") && subcmd == "setting")
 	  {
-	    crtadoc ()->loadfile (helppdf);
+	    crtadoc ()->loadfile (helppdf.c_str ());
 	    crtadoc ()->showpage (8);
 	  }
 	else if ((cmd == "help" || cmd == "h") && subcmd == "prompt")
 	  {
-	    crtadoc ()->loadfile (helppdf);
+	    crtadoc ()->loadfile (helppdf.c_str ());
 	    crtadoc ()->showpage (8);
 	  }
 	else if (cmd == "help" || cmd == "h")

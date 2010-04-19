@@ -96,7 +96,7 @@ namespace apvlv
 
     virtual gint pagenumber ();
 
-    virtual void showpage (gint, gdouble);
+    virtual void showpage (gint, gdouble s = 0.00);
     virtual void refresh ();
 
     virtual gdouble zoomvalue ();
@@ -111,6 +111,40 @@ namespace apvlv
     virtual void scrolldown (int times);
     virtual void scrollleft (int times);
     virtual void scrollright (int times);
+
+    virtual bool hascontent ();
+
+    virtual bool usecache ();
+
+    virtual void usecache (bool use);
+
+    virtual bool print (int ct);
+
+    virtual bool totext (const char *name);
+
+    virtual bool rotate (int ct = 90);
+
+    virtual void markposition (const char s);
+
+    virtual void setzoom (const char *z);
+
+    virtual void jump (const char s);
+
+    virtual void nextpage (int times = 1);
+
+    virtual void prepage (int times = 1);
+
+    virtual void halfnextpage (int times = 1);
+
+    virtual void halfprepage (int times = 1);
+
+    virtual bool search (const char *str, bool reverse = false);
+
+    virtual bool continuous ();
+
+    virtual void gotolink (int ct);
+
+    virtual void returnlink (int ct);
 
     virtual void setsize (int wid, int hei);
 
