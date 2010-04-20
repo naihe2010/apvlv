@@ -259,11 +259,22 @@ namespace apvlv
       case '?':
 	gView->promptcommand (key);
 	return NEED_MORE;
+
+      case 'n':
+	markposition ('\'');
+	search ("");
+	break;
+      case 'N':
+	markposition ('\'');
+	search ("", true);
+	break;
+
       case 't':
       case 'o':
       case GDK_Return:
 	enter (key);
 	break;
+
       case 'H':
 	scrollto (0.0);
 	break;
@@ -273,6 +284,7 @@ namespace apvlv
       case 'L':
 	scrollto (1.0);
 	break;
+
       case GDK_Up:
       case 'k':
 	scrollup (ct);
@@ -509,6 +521,8 @@ namespace apvlv
 
   bool ApvlvDir::search (const char *str, bool reverse)
   {
+    bool next;
+
     if (!mReady)
       return false;
 
@@ -517,17 +531,18 @@ namespace apvlv
 	return false;
       }
 
+    next = true;
     if (*str != '\0')
       {
 	mSearchStr = str;
+	next = false;
       }
-
-//    bool wrap = gParams->valueb ("wrapscan");
 
     ApvlvDirNode *info = NULL;
     gtk_tree_model_get (GTK_TREE_MODEL (mStore), &mCurrentIter, 0, &info, -1);
     if (info == NULL || mDirNodes == NULL)
       {
+	gView->errormessage ("can't find word: '%s'", mSearchStr.c_str ());
 	return false;
       }
 
@@ -542,16 +557,12 @@ namespace apvlv
 
     if (list == NULL)
       {
+	gView->errormessage ("can't find word: '%s'", mSearchStr.c_str ());
 	return false;
       }
 
-    while (list != NULL)
+    if (next)
       {
-	info = (ApvlvDirNode *) list->data;
-	if (strstr (info->phrase (), mSearchStr.c_str ()) != NULL)
-	  {
-	    break;
-	  }
 	if (reverse)
 	  {
 	    list = g_list_previous (list);
@@ -559,6 +570,44 @@ namespace apvlv
 	else
 	  {
 	    list = g_list_next (list);
+	  }
+      }
+
+    bool wrap = gParams->valueb ("wrapscan");
+
+    for (GList * origin = list; list != NULL;)
+      {
+	info = (ApvlvDirNode *) list->data;
+	if (strstr (info->phrase (), mSearchStr.c_str ()) != NULL)
+	  {
+	    break;
+	  }
+
+	if (reverse)
+	  {
+	    list = g_list_previous (list);
+	  }
+	else
+	  {
+	    list = g_list_next (list);
+	  }
+
+	if (list == origin)
+	  {
+	    list = NULL;
+	    break;
+	  }
+
+	if (list == NULL && wrap)
+	  {
+	    if (reverse)
+	      {
+		list = g_list_last (mDirNodes);
+	      }
+	    else
+	      {
+		list = mDirNodes;
+	      }
 	  }
       }
 
@@ -600,7 +649,6 @@ namespace apvlv
     gtk_tree_store_append (mStore, nitr, titr);
     ApvlvDirNode *node = new ApvlvDirNode (nitr, iter->page);
     mDirNodes = g_list_append (mDirNodes, node);
-    debug ("node: %p", node);
 
     GdkPixbuf *pix = gdk_pixbuf_new_from_file_at_size (iconreg.c_str (), 40,
 						       20, NULL);
@@ -772,7 +820,6 @@ namespace apvlv
 		if (node != NULL)
 		  {
 		    mDirNodes = g_list_append (mDirNodes, node);
-		    debug ("node: %p", node);
 		    has = true;
 		  }
 	      }
@@ -787,7 +834,6 @@ namespace apvlv
 		gtk_tree_store_append (mStore, mitr, itr);
 		node = new ApvlvDirNode (mitr, false, realname, name);
 		mDirNodes = g_list_append (mDirNodes, node);
-		debug ("node: %p", node);
 
 		GdkPixbuf *pix =
 		  gdk_pixbuf_new_from_file_at_size (iconpdf.c_str (), 40, 20,

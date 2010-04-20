@@ -1292,7 +1292,7 @@ namespace apvlv
 
 	if (!reverse && i < (wrap ? (from + sum) : (sum - 1)))
 	  {
-	    debug ("wrap: %d, i++:", wrap, i, i + 1);
+//          debug ("wrap: %d, i++:", wrap, i, i + 1);
 	    i++;
 	  }
 	else if (reverse && i > (wrap ? (from - sum) : 0))
