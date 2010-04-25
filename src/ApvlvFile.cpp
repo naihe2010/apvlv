@@ -137,7 +137,7 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 						 GTK_DIALOG_DESTROY_WITH_PARENT,
 						 GTK_MESSAGE_QUESTION,
 						 GTK_BUTTONS_OK_CANCEL,
-						 error->message);
+						 "%s", error->message);
 	g_error_free (error);
 
 
