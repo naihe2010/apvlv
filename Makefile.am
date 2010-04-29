@@ -3,9 +3,9 @@ AUTOMAKE_OPTIONS = foreign 1.7
 
 SUBDIRS = src
 
-EXTRA_DIST = apvlv.1 apvlvrc.example Startup.pdf icons/*
+EXTRA_DIST = apvlv.1 apvlvrc.example Startup.tex Startup.pdf icons/*
 
-pdf_DATA = Startup.pdf
+pdf_DATA = Startup.pdf Startup.tex
 doc_DATA = apvlvrc.example icons/reg.png icons/dir.png icons/pdf.png
 man_MANS = apvlv.1
 
