@@ -72,31 +72,49 @@ namespace apvlv
 #endif
     char abpath[PATH_MAX];
 
-
     if (g_path_is_absolute (path))
       {
 	return g_strdup (path);
       }
 
-    if (*path == '~')
+    if (*path == '~' && *(path + 1) == PATH_SEP_C)
       {
+	const gchar *home;
+
 #ifdef WIN32
-	gchar *home =
-	  g_win32_get_package_installation_directory_of_module (NULL);
+	home = g_win32_get_package_installation_directory_of_module (NULL);
 #else
-	char *home = getenv ("HOME");
+	home = getenv ("HOME");
+	if (home == NULL)
+	  {
+	    home = g_get_home_dir ();
+	  }
 #endif
-	g_snprintf (abpath, sizeof abpath, "%s%s", home, ++path);
+
+	if (home != NULL)
+	  {
+	    g_snprintf (abpath, sizeof abpath, "%s%s", home, ++path);
+	  }
+	else
+	  {
+	    debug ("Can't find home directory, use current");
+	    g_snprintf (abpath, sizeof abpath, "%s", path + 2);
+	  }
       }
     else
       {
-#ifdef WIN32
-	char cpath[PATH_MAX];
-	GetCurrentDirectoryA (sizeof cpath, cpath);
-	g_snprintf (abpath, sizeof abpath, "%s\\%s", cpath, path);
-#else
-	snprintf (abpath, sizeof abpath, "%s/%s", getenv ("PWD"), path);
-#endif
+	const gchar *pwd;
+
+	pwd = g_get_current_dir ();
+	if (pwd != NULL)
+	  {
+	    g_snprintf (abpath, sizeof abpath, "%s/%s", pwd, path);
+	  }
+	else
+	  {
+	    debug ("Can't find current directory, use current");
+	    g_snprintf (abpath, sizeof abpath, "%s", path);
+	  }
       }
 
     return g_strdup (abpath);
