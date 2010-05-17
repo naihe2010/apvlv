@@ -665,8 +665,15 @@ namespace apvlv
     GCompletion *gcomp = NULL;
 
     stringstream ss (ps);
-    string cmd, np;
-    ss >> cmd >> np;
+    string cmd, np, argu;
+    ss >> cmd >> np >> argu;
+
+    if (np[np.length () - 1] == '\\')
+      {
+	np.replace (np.length () - 1, 1, 1, ' ');
+	np += argu;
+	ss >> argu;
+      }
 
     if (cmd == "" || np == "")
       {
@@ -687,7 +694,7 @@ namespace apvlv
 	    list->data = g_strdup (((ApvlvCore *) mDocs[i])->filename ());
 	    g_completion_add_items (gcomp, list);
 	  }
-	g_free (list);
+	g_list_free (list);
       }
 
     if (gcomp != NULL)
@@ -697,12 +704,28 @@ namespace apvlv
 	g_completion_complete (gcomp, np.c_str (), &comtext);
 	if (comtext != NULL)
 	  {
+	    char text[PATH_MAX];
+
 	    debug ("get a match: %s", comtext);
-	    char text[0x100];
-	    g_snprintf (text, sizeof text, ":%s %s", cmd.c_str (), comtext);
-	    g_free (comtext);
+	    gchar **v;
+
+	    v = g_strsplit (comtext, " ", -1);
+	    if (v != NULL)
+	      {
+		gchar *comstr = g_strjoinv ("\\ ", v);
+		g_snprintf (text, sizeof text, ":%s %s", cmd.c_str (),
+			    comstr);
+		g_free (comstr);
+		g_strfreev (v);
+	      }
+	    else
+	      {
+		g_snprintf (text, sizeof text, ":%s %s", cmd.c_str (),
+			    comtext);
+	      }
 	    gtk_entry_set_text (GTK_ENTRY (mCommandBar), text);
 	    gtk_editable_set_position (GTK_EDITABLE (mCommandBar), -1);
+	    g_free (comtext);
 	  }
 	else
 	  {
@@ -854,6 +877,13 @@ namespace apvlv
 	stringstream ss (str);
 	string cmd, subcmd, argu;
 	ss >> cmd >> subcmd >> argu;
+
+	if (subcmd[subcmd.length () - 1] == '\\')
+	  {
+	    subcmd.replace (subcmd.length () - 1, 1, 1, ' ');
+	    subcmd += argu;
+	    ss >> argu;
+	  }
 
 	if (cmd == "set")
 	  {
