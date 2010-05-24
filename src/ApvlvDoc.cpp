@@ -422,7 +422,7 @@ namespace apvlv
 
   int ApvlvDoc::yank (int times)
   {
-    char *txt1, *txt2, *txt3;
+    char *txt1 = NULL, *txt2 = NULL, *txt3 = NULL;
 
     gint y1 = mBlanky1, y2 = mBlanky2;
     if (y1 > y2)
