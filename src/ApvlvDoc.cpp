@@ -815,7 +815,7 @@ namespace apvlv
 	if (mCurrentCache1 != NULL)
 	  {
 	    delete mCurrentCache1;
-	    mCurrentCache2 = NULL;
+	    mCurrentCache1 = NULL;
 	  }
 	mCurrentCache1 = new ApvlvDocCache (mFile);
 
