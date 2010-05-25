@@ -20,14 +20,22 @@ News features
 
    * add search support of dir and content view
 
+   * add Startup.tex to source tar
+
+   * use \ to support space in file name when :o[pen] or :doc
+
 Bug Fix
-  
+
    * display '*' when input password to open pdf docs
 
    * return false when search next but no first string was be searched.
 
    * return true when sub child dir has pdf files
 
+   * fix a segfault when yank text
+
+   * fix a memory leak when destroy a apvlv doc
+  
 
 apvlv 0.0.8
 ===========
