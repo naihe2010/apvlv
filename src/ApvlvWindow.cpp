@@ -363,6 +363,12 @@ namespace apvlv
 	gView->regloaded (doc);
       }
 
+    if (doc == NULL)
+      {
+	gView->errormessage ("can't split");
+        return this;
+      }
+
     ApvlvWindow *nwindow = new ApvlvWindow (doc);
     nwindow->m_parent = this;
     m_son = nwindow;
