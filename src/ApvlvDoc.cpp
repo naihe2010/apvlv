@@ -629,12 +629,34 @@ namespace apvlv
 	return NEED_MORE;
 	break;
       case 'n':
-	markposition ('\'');
-	search ("");
+        if (mSearchCmd == SEARCH)
+          {
+            markposition ('\'');
+            search ("");
+          }
+        else if (mSearchCmd == BACKSEARCH)
+          {
+            markposition ('\'');
+            search ("", true);
+          }
+        else
+          {
+          }
 	break;
       case 'N':
-	markposition ('\'');
-	search ("", true);
+        if (mSearchCmd == SEARCH)
+          {
+            markposition ('\'');
+            search ("", true);
+          }
+        else if (mSearchCmd == BACKSEARCH)
+          {
+            markposition ('\'');
+            search ("");
+          }
+        else
+          {
+          }
 	break;
       case CTRL ('v'):
       case 'v':
@@ -1267,6 +1289,11 @@ namespace apvlv
     if (*str == '\0' && mSearchStr == "")
       {
 	return false;
+      }
+
+    if (*str != '\0')
+      {
+        mSearchCmd = reverse ? BACKSEARCH : SEARCH;
       }
 
     if (!needsearch (str, reverse))

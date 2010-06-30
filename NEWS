@@ -24,6 +24,10 @@ News features
 
    * use \ to support space in file name when :o[pen] or :doc
 
+   * use 'G' to go to the last page
+
+   * keep search direction when search with 'n' or 'N' after / or ?
+
 Bug Fix
 
    * display '*' when input password to open pdf docs
@@ -35,6 +39,10 @@ Bug Fix
    * fix a segfault when yank text
 
    * fix a memory leak when destroy a apvlv doc
+
+   * fix the correct select mark when scroll up or down the page
+
+   * fix the k or j 's length in continous mode
   
 
 apvlv 0.0.8
