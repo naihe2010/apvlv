@@ -525,6 +525,12 @@ namespace apvlv
 	return subprocess (ct, key);
       }
 
+    int oct = ct;
+    if (ct == 0)
+      {
+        ct ++;
+      }
+
     switch (key)
       {
       case GDK_Page_Down:
@@ -607,7 +613,14 @@ namespace apvlv
 	break;
       case 'G':
 	markposition ('\'');
-	showpage (ct - 1);
+        if (oct == 0)
+          {
+            showpage (-1);
+          }
+        else
+          {
+            showpage (ct - 1);
+          }
 	break;
       case 'm':
       case '\'':

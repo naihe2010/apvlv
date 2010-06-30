@@ -81,7 +81,7 @@ namespace apvlv
 
     mHasPreCount = false;
 
-    mPreCount = 1;
+    mPreCount = 0;
 
     mNext = NULL;
 
