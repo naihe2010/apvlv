@@ -237,7 +237,9 @@ namespace apvlv
 	    if (gParams->valueb ("continuous"))
 	      {
 		showpage (mPagenum - 1,
-			  mVaj->upper / (2 * sub - mVaj->page_size));
+			  ((mVaj->upper / 2) - mVrate * times) / (sub -
+								  mVaj->
+								  page_size));
 	      }
 	    else
 	      {
