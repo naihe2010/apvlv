@@ -165,6 +165,7 @@ namespace apvlv
 
     double mScrollvalue;
 
+    int mSearchPagenum;
     bool mSearchReverse;
     guint mSearchSelect;
     ApvlvPoses *mSearchResults;

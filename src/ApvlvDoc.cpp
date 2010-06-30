@@ -1218,10 +1218,10 @@ namespace apvlv
 
     // same string, but need to search next page
     else
-      if (((mSearchReverse == reverse)
-	   && mSearchSelect == mSearchResults->size () - 1)
-	  || ((mSearchReverse != reverse) && mSearchSelect == 0))
-      {
+      if ((mSearchPagenum != mPagenum)
+          || ((mSearchReverse == reverse) && mSearchSelect == mSearchResults->size () - 1)
+          || ((mSearchReverse != reverse) && mSearchSelect == 0))
+        {
 	debug
 	  ("same, but need next string: S: %d, s: %d, sel: %d, max: %d.",
 	   mSearchReverse, reverse, mSearchSelect, mSearchResults->size ());
@@ -1283,6 +1283,7 @@ namespace apvlv
 	    if (mSearchResults != NULL)
 	      {
 		showpage ((i + sum) % sum, 0.5);
+                mSearchPagenum = mPagenum;
 		markselection ();
 		return true;
 	      }
