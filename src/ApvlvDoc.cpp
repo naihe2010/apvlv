@@ -528,7 +528,7 @@ namespace apvlv
     int oct = ct;
     if (ct == 0)
       {
-        ct ++;
+	ct++;
       }
 
     switch (key)
@@ -613,14 +613,14 @@ namespace apvlv
 	break;
       case 'G':
 	markposition ('\'');
-        if (oct == 0)
-          {
-            showpage (-1);
-          }
-        else
-          {
-            showpage (ct - 1);
-          }
+	if (oct == 0)
+	  {
+	    showpage (-1);
+	  }
+	else
+	  {
+	    showpage (ct - 1);
+	  }
 	break;
       case 'm':
       case '\'':
@@ -629,34 +629,34 @@ namespace apvlv
 	return NEED_MORE;
 	break;
       case 'n':
-        if (mSearchCmd == SEARCH)
-          {
-            markposition ('\'');
-            search ("");
-          }
-        else if (mSearchCmd == BACKSEARCH)
-          {
-            markposition ('\'');
-            search ("", true);
-          }
-        else
-          {
-          }
+	if (mSearchCmd == SEARCH)
+	  {
+	    markposition ('\'');
+	    search ("");
+	  }
+	else if (mSearchCmd == BACKSEARCH)
+	  {
+	    markposition ('\'');
+	    search ("", true);
+	  }
+	else
+	  {
+	  }
 	break;
       case 'N':
-        if (mSearchCmd == SEARCH)
-          {
-            markposition ('\'');
-            search ("", true);
-          }
-        else if (mSearchCmd == BACKSEARCH)
-          {
-            markposition ('\'');
-            search ("");
-          }
-        else
-          {
-          }
+	if (mSearchCmd == SEARCH)
+	  {
+	    markposition ('\'');
+	    search ("", true);
+	  }
+	else if (mSearchCmd == BACKSEARCH)
+	  {
+	    markposition ('\'');
+	    search ("");
+	  }
+	else
+	  {
+	  }
 	break;
       case CTRL ('v'):
       case 'v':
@@ -1254,9 +1254,10 @@ namespace apvlv
     // same string, but need to search next page
     else
       if ((mSearchPagenum != mPagenum)
-          || ((mSearchReverse == reverse) && mSearchSelect == mSearchResults->size () - 1)
-          || ((mSearchReverse != reverse) && mSearchSelect == 0))
-        {
+	  || ((mSearchReverse == reverse)
+	      && mSearchSelect == mSearchResults->size () - 1)
+	  || ((mSearchReverse != reverse) && mSearchSelect == 0))
+      {
 	debug
 	  ("same, but need next string: S: %d, s: %d, sel: %d, max: %d.",
 	   mSearchReverse, reverse, mSearchSelect, mSearchResults->size ());
@@ -1293,7 +1294,7 @@ namespace apvlv
 
     if (*str != '\0')
       {
-        mSearchCmd = reverse ? BACKSEARCH : SEARCH;
+	mSearchCmd = reverse ? BACKSEARCH : SEARCH;
       }
 
     if (!needsearch (str, reverse))
@@ -1323,7 +1324,7 @@ namespace apvlv
 	    if (mSearchResults != NULL)
 	      {
 		showpage ((i + sum) % sum, 0.5);
-                mSearchPagenum = mPagenum;
+		mSearchPagenum = mPagenum;
 		markselection ();
 		return true;
 	      }

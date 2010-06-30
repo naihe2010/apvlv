@@ -238,8 +238,7 @@ namespace apvlv
 	      {
 		showpage (mPagenum - 1,
 			  ((mVaj->upper / 2) - mVrate * times) / (sub -
-								  mVaj->
-								  page_size));
+								  mVaj->page_size));
 	      }
 	    else
 	      {

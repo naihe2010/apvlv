@@ -366,7 +366,7 @@ namespace apvlv
     if (doc == NULL)
       {
 	gView->errormessage ("can't split");
-        return this;
+	return this;
       }
 
     ApvlvWindow *nwindow = new ApvlvWindow (doc);
