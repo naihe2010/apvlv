@@ -247,6 +247,11 @@ namespace apvlv
 
   returnType ApvlvDir::process (int ct, guint key)
   {
+    if (ct == 0)
+      {
+	ct++;
+      }
+
     if (mProCmd != 0)
       {
 	return subprocess (ct, key);
