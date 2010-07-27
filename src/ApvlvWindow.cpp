@@ -130,10 +130,6 @@ namespace apvlv
     if (win->type == AW_CORE)
       {
 	win->mCore->setactive (true);
-	if (pre != NULL)
-	  {
-	    win->mCore->reload ();
-	  }
       }
 
     m_curWindow = win;

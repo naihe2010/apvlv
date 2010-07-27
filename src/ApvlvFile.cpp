@@ -45,10 +45,18 @@ namespace apvlv
   ApvlvFile::ApvlvFile (const char *filename, bool check)
   {
     mIndex = NULL;
+
+    mRawdata = NULL;
+    mRawdataSize = 0;
   }
 
   ApvlvFile::~ApvlvFile ()
   {
+    if (mRawdata != NULL)
+      {
+        delete []mRawdata;
+        mRawdata = NULL;
+      }
   }
 
   ApvlvFile *ApvlvFile::newfile (const char *filename, bool check)
@@ -82,8 +90,6 @@ namespace apvlv
 ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 	     check)
   {
-    static gchar *mRawdata = NULL;
-    static guint mRawdatasize = 0;
     gchar *wfilename;
 
     if (filename == NULL
@@ -107,7 +113,7 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
       }
     filelen = sbuf.st_size;
 
-    if (mRawdata != NULL && mRawdatasize < filelen)
+    if (mRawdata != NULL && mRawdataSize < filelen)
       {
 	delete[]mRawdata;
 	mRawdata = NULL;
@@ -116,7 +122,7 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     if (mRawdata == NULL)
       {
 	mRawdata = new char[filelen];
-	mRawdatasize = filelen;
+	mRawdataSize = filelen;
       }
 
     ifstream ifs (wfilename, ios::binary);

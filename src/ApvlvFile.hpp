@@ -113,6 +113,9 @@ namespace apvlv
 
       ApvlvFileIndex * mIndex;
     unsigned short mIndexRef;
+
+    gchar *mRawdata;
+    guint mRawdataSize;
   };
 
   class ApvlvPDF:public ApvlvFile
