@@ -117,11 +117,11 @@ namespace apvlv
 
     bool search (const char *str, bool reverse = false);
 
-    static void apvlv_dir_on_changed (GtkTreeSelection *, ApvlvDir *);
-
     bool walk_file_index (GtkTreeIter * titr, ApvlvFileIndexIter iter);
 
     bool walk_dir_path_index (GtkTreeIter * titr, const char *path);
+
+    static void apvlv_dir_on_changed (GtkTreeSelection *, ApvlvDir *);
 
     static gboolean apvlv_dir_first_select_cb (ApvlvDir *);
 

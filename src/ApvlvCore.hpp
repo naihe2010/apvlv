@@ -159,6 +159,9 @@ namespace apvlv
 
     int mType;
 
+    gchar *mCheckMD5;
+    guint mReloadTimer;
+
     string mFilestr;
 
     guint mProCmd;
@@ -211,6 +214,12 @@ namespace apvlv
 
     // status bar
     ApvlvCoreStatus *mStatus;
+
+  private:
+    static gboolean apvlv_core_check_reload (gpointer);
+
+    gchar *checkmd5 ();
+
   };
 }
 

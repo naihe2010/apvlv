@@ -54,8 +54,8 @@ namespace apvlv
   {
     if (mRawdata != NULL)
       {
-        delete []mRawdata;
-        mRawdata = NULL;
+	delete[]mRawdata;
+	mRawdata = NULL;
       }
   }
 

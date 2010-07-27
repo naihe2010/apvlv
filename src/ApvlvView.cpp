@@ -395,7 +395,7 @@ namespace apvlv
     if (mTabList.size () > 1)
       {
 	gtk_notebook_set_show_tabs (GTK_NOTEBOOK (mTabContainer), TRUE);
-        gtk_widget_set_size_request (mTabContainer, mWidth - 12, 12);
+	gtk_widget_set_size_request (mTabContainer, mWidth - 12, 12);
       }
 
     return mCurrTabPos + 1;

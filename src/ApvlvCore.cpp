@@ -31,8 +31,10 @@
 #include "ApvlvCore.hpp"
 
 #include <stdlib.h>
+#include <sys/stat.h>
 
 #include <iostream>
+#include <fstream>
 
 namespace apvlv
 {
@@ -41,6 +43,8 @@ namespace apvlv
 
     ApvlvCore::ApvlvCore ()
   {
+    mInuse = true;
+
     mReady = false;
 
     mProCmd = 0;
@@ -70,16 +74,106 @@ namespace apvlv
       gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
     mHaj =
       gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
+
+    mReloadTimer = 0;
+    mCheckMD5 = NULL;
+
+    if (gParams->valuei ("autoreload") > 0)
+      {
+	mReloadTimer = g_timeout_add (gParams->valuei ("autoreload") * 1000,
+				      apvlv_core_check_reload, this);
+      }
   }
 
   ApvlvCore::~ApvlvCore ()
   {
+    if (mReloadTimer)
+      {
+	g_source_remove (mReloadTimer);
+	mReloadTimer = 0;
+      }
+
+    if (mCheckMD5)
+      {
+	g_free (mCheckMD5);
+	mCheckMD5 = NULL;
+      }
+
     g_object_unref (mVbox);
   }
 
   bool ApvlvCore::reload ()
   {
     return true;
+  }
+
+  gchar *ApvlvCore::checkmd5 ()
+  {
+    struct stat sbuf[1];
+    int rt = stat (mFilestr.c_str (), sbuf);
+    if (rt < 0 || sbuf->st_size <= 0)
+      {
+	gView->errormessage ("stat file: %s error.", mFilestr.c_str ());
+	return NULL;
+      }
+
+    if (S_ISREG (sbuf->st_mode))
+      {
+	guchar *data = new guchar[sbuf->st_size];
+
+	ifstream ifs (mFilestr.c_str (), ios::binary);
+	if (ifs.is_open ())
+	  {
+	    ifs.read ((char *) data, sbuf->st_size);
+	    ifs.close ();
+	  }
+
+	gchar *md5 = g_compute_checksum_for_data (G_CHECKSUM_MD5, data,
+						  sbuf->st_size);
+
+
+	delete[]data;
+
+	return md5;
+      }
+
+    return NULL;
+  }
+
+  gboolean ApvlvCore::apvlv_core_check_reload (gpointer data)
+  {
+    ApvlvCore *core = (ApvlvCore *) data;
+
+    if (core->mInuse == false)
+      {
+	return TRUE;
+      }
+
+    if (core->mCheckMD5 == NULL)
+      {
+	core->mCheckMD5 = core->checkmd5 ();
+	return TRUE;
+      }
+    else
+      {
+	gchar *newmd5 = core->checkmd5 ();
+	if (strcmp (newmd5, core->mCheckMD5) == 0)
+	  {
+	    debug ("%d: file is not changed.", time (NULL));
+	    g_free (newmd5);
+	    return TRUE;
+	  }
+	else
+	  {
+	    debug ("%d: file is modified, reload it.", time (NULL));
+	    gView->infomessage ("Contents is modified, reload it.");
+	    g_free (core->mCheckMD5);
+	    core->mCheckMD5 = newmd5;
+	    core->reload ();
+	  }
+      }
+
+    return TRUE;
   }
 
   void ApvlvCore::inuse (bool use)
