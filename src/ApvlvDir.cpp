@@ -144,6 +144,33 @@ namespace apvlv
 
   bool ApvlvDir::reload ()
   {
+    gtk_tree_store_clear (mStore);
+
+    if (mDirNodes)
+      {
+	for (GList * list = mDirNodes; list; list = g_list_next (list))
+	  {
+	    ApvlvDirNode *info = (ApvlvDirNode *) list->data;
+	    delete info;
+	  }
+	g_list_free (mDirNodes);
+        mDirNodes = NULL;
+      }
+
+    if (mIndex != NULL)
+      {
+	mFile->free_index (mIndex);
+        mIndex = NULL;
+      }
+
+    if (mFile != NULL)
+      {
+	delete mFile;
+        mFile = NULL;
+      }
+
+    loadfile (mFilestr.c_str (), FALSE);
+
     return true;
   }
 
@@ -294,23 +321,31 @@ namespace apvlv
       case 'k':
 	scrollup (ct);
 	break;
+
       case CTRL ('n'):
       case CTRL ('j'):
       case GDK_Down:
       case 'j':
 	scrolldown (ct);
 	break;
+
       case GDK_BackSpace:
       case GDK_Left:
       case CTRL ('h'):
       case 'h':
 	scrollleft (ct);
 	break;
+
       case GDK_space:
       case GDK_Right:
       case CTRL ('l'):
       case 'l':
 	scrollright (ct);
+        break;
+
+      case 'R':
+        reload ();
+        break;
       }
 
     return MATCH;
