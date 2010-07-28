@@ -67,9 +67,6 @@ namespace apvlv
   // Warning: The string is returned a new allocated buffer, NEED TO BE g_free
   char *absolutepath (const char *path)
   {
-#ifndef PATH_MAX
-#define PATH_MAX 4096
-#endif
     char abpath[PATH_MAX];
 
     if (g_path_is_absolute (path))

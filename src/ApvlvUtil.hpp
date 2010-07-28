@@ -50,6 +50,10 @@ namespace apvlv
   extern string iconpdf;
   extern string sessionfile;
 
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif
+
 #ifdef WIN32
 #define PATH_SEP_C  '\\'
 #define PATH_SEP_S  "\\"

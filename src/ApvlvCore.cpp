@@ -32,6 +32,7 @@
 
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <glib/gstdio.h>
 
 #include <iostream>
 #include <fstream>
@@ -117,14 +118,23 @@ namespace apvlv
   gchar *ApvlvCore::checkmd5 ()
   {
     struct stat sbuf[1];
-    int rt = stat (mFilestr.c_str (), sbuf);
-    if (rt < 0 || sbuf->st_size <= 0)
+    int rt = g_stat (mFilestr.c_str (), sbuf);
+    if (rt < 0)
       {
 	gView->errormessage ("stat file: %s error.", mFilestr.c_str ());
 	return NULL;
       }
 
-    if (S_ISREG (sbuf->st_mode))
+    if (S_ISDIR (sbuf->st_mode))
+      {
+	string data;
+	walkdir (mFilestr.c_str (), add_token, &data);
+	gchar *md5 = g_compute_checksum_for_string (G_CHECKSUM_MD5, data.c_str
+						    (), -1);
+	return md5;
+      }
+
+    else
       {
 	guchar *data = new guchar[sbuf->st_size];
 
@@ -140,14 +150,6 @@ namespace apvlv
 
 	delete[]data;
 
-	return md5;
-      }
-    else if (S_ISDIR (sbuf->st_mode))
-      {
-	string data;
-	walkdir (mFilestr.c_str (), add_token, &data);
-	gchar *md5 = g_compute_checksum_for_string (G_CHECKSUM_MD5, data.c_str
-						    (), -1);
 	return md5;
       }
 
