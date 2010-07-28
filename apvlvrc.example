@@ -69,3 +69,7 @@ set doubleclick = page
 " set GUI options
 " m means menu, T means toolbar
 " set guioptions = 
+
+" set if use auto reload document
+" > 0 means auto reload after some seconds. = 0 means not auto reload
+" set autoreload = 3

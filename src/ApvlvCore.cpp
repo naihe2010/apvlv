@@ -107,6 +107,13 @@ namespace apvlv
     return true;
   }
 
+  static gboolean add_token (const char *name, void *data)
+  {
+    string *str = (string *) data;
+    str->append (name);
+    return TRUE;
+  }
+
   gchar *ApvlvCore::checkmd5 ()
   {
     struct stat sbuf[1];
@@ -131,9 +138,16 @@ namespace apvlv
 	gchar *md5 = g_compute_checksum_for_data (G_CHECKSUM_MD5, data,
 						  sbuf->st_size);
 
-
 	delete[]data;
 
+	return md5;
+      }
+    else if (S_ISDIR (sbuf->st_mode))
+      {
+	string data;
+	walkdir (mFilestr.c_str (), add_token, &data);
+	gchar *md5 = g_compute_checksum_for_string (G_CHECKSUM_MD5, data.c_str
+						    (), -1);
 	return md5;
       }
 
@@ -166,7 +180,8 @@ namespace apvlv
 	else
 	  {
 	    debug ("%d: file is modified, reload it.", time (NULL));
-	    gView->infomessage ("Contents is modified, reload it.");
+	    gView->infomessage
+	      ("Contents is modified, apvlv reload it automatically");
 	    g_free (core->mCheckMD5);
 	    core->mCheckMD5 = newmd5;
 	    core->reload ();

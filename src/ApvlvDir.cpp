@@ -154,19 +154,19 @@ namespace apvlv
 	    delete info;
 	  }
 	g_list_free (mDirNodes);
-        mDirNodes = NULL;
+	mDirNodes = NULL;
       }
 
     if (mIndex != NULL)
       {
 	mFile->free_index (mIndex);
-        mIndex = NULL;
+	mIndex = NULL;
       }
 
     if (mFile != NULL)
       {
 	delete mFile;
-        mFile = NULL;
+	mFile = NULL;
       }
 
     loadfile (mFilestr.c_str (), FALSE);
@@ -341,11 +341,11 @@ namespace apvlv
       case CTRL ('l'):
       case 'l':
 	scrollright (ct);
-        break;
+	break;
 
       case 'R':
-        reload ();
-        break;
+	reload ();
+	break;
       }
 
     return MATCH;

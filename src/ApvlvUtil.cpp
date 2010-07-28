@@ -120,6 +120,46 @@ namespace apvlv
     return g_strdup (abpath);
   }
 
+  gboolean walkdir (const char *name, gboolean (*cb) (const char *, void *),
+		    void *usrp)
+  {
+    GDir *dir = g_dir_open (name, 0, NULL);
+    if (dir == NULL)
+      {
+	debug ("Open dir: %s failed", name);
+	return FALSE;
+      }
+
+    const gchar *token;
+    while ((token = g_dir_read_name (dir)) != NULL)
+      {
+	gchar *subname = g_strjoin (PATH_SEP_S, name, token, NULL);
+	if (subname == NULL)
+	  {
+	    continue;
+	  }
+
+	if (g_file_test (subname, G_FILE_TEST_IS_REGULAR) == TRUE)
+	  {
+	    if (cb (subname, usrp) == FALSE)
+	      {
+		return FALSE;
+	      }
+	  }
+	else if (g_file_test (subname, G_FILE_TEST_IS_DIR) == TRUE)
+	  {
+	    if (walkdir (subname, cb, usrp) == FALSE)
+	      {
+		return FALSE;
+	      }
+	  }
+      }
+
+    g_dir_close (dir);
+
+    return TRUE;
+  }
+
   // Copy a file
   bool filecpy (const char *dst, const char *src)
   {

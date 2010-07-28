@@ -28,6 +28,8 @@ News features
 
    * keep search direction when search with 'n' or 'N' after / or ?
 
+   * add autoreload parameter to support auto reload document or directory view
+
 Bug Fix
 
    * display '*' when input password to open pdf docs

@@ -3,7 +3,7 @@ dnl APVLV - Alf's PDF Viewer Like Vim
 dnl
  
 AC_PREREQ([2.61])
-AC_INIT(apvlv, 0.0.9.7, naihe2010@gmail.com)
+AC_INIT(apvlv, 0.0.9.8, naihe2010@gmail.com)
 AC_COPYRIGHT([Copyright (C) 2008 Alf's Software.])
 
 if test -e .svn; then
@@ -102,6 +102,7 @@ AC_CHECK_HEADER([libdjvu/ddjvuapi.h],
 fi
 
 PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.4.0, CPPFLAGS="$CPPFLAGS $GTK_CFLAGS"; LIBS="$LIBS $GTK_LIBS")
+PKG_CHECK_MODULES(GTHREAD, gthread-2.0 >= 2.16, CPPFLAGS="$CPPFLAGS $GTHREAD_CFLAGS"; LIBS="$LIBS $GTHREAD_LIBS")
 PKG_CHECK_MODULES(POPPLER, poppler-glib >= 0.5.4, CPPFLAGS="$CPPFLAGS $POPPLER_CFLAGS"; LIBS="$LIBS $POPPLER_LIBS")
 
 AC_OUTPUT(Makefile src/Makefile)
