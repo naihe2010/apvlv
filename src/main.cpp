@@ -179,6 +179,7 @@ main (int argc, char *argv[])
     }
 
   gchar *path;
+  bool ishelppdf = false;
   if (opt > 0 && argc > opt)
     {
       path = argv[opt];
@@ -187,6 +188,7 @@ main (int argc, char *argv[])
   else
     {
       path = (gchar *) helppdf.c_str ();
+      ishelppdf = true;
     }
 
   gchar *rpath = g_locale_to_utf8 (path, -1, NULL, NULL, NULL);
@@ -211,6 +213,10 @@ main (int argc, char *argv[])
   gtk_init (&argc, &argv);
 
   ApvlvView sView (path);
+  if (ishelppdf)
+    {
+      helppdf = path;
+    }
   g_free (path);
 
   gView = &sView;

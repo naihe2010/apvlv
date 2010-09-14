@@ -879,7 +879,7 @@ namespace apvlv
 	string cmd, subcmd, argu;
 	ss >> cmd >> subcmd >> argu;
 
-	if (subcmd[subcmd.length () - 1] == '\\')
+	if (subcmd.length () > 0 && subcmd[subcmd.length () - 1] == '\\')
 	  {
 	    subcmd.replace (subcmd.length () - 1, 1, 1, ' ');
 	    subcmd += argu;
