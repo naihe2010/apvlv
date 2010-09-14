@@ -272,7 +272,7 @@ namespace apvlv
     return MATCH;
   }
 
-  returnType ApvlvDir::process (int ct, guint key)
+  returnType ApvlvDir::process (int has, int ct, guint key)
   {
     if (ct == 0)
       {

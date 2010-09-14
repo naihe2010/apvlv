@@ -97,7 +97,7 @@ namespace apvlv
 
     void setactive (bool act);
 
-    returnType process (int times, guint keyval);
+    returnType process (int hastimes, int times, guint keyval);
 
   private:
 

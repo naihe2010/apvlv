@@ -518,17 +518,16 @@ namespace apvlv
     return MATCH;
   }
 
-  returnType ApvlvDoc::process (int ct, guint key)
+  returnType ApvlvDoc::process (int has, int ct, guint key)
   {
     if (mProCmd != 0)
       {
 	return subprocess (ct, key);
       }
 
-    int oct = ct;
-    if (ct == 0)
+    if (!has)
       {
-	ct++;
+	ct = 1;
       }
 
     switch (key)
@@ -613,13 +612,13 @@ namespace apvlv
 	break;
       case 'G':
 	markposition ('\'');
-	if (oct == 0)
+	if (has)
 	  {
-	    showpage (-1);
+	    showpage (ct - 1);
 	  }
 	else
 	  {
-	    showpage (ct - 1);
+	    showpage (-1);
 	  }
 	break;
       case 'm':

@@ -802,7 +802,7 @@ namespace apvlv
     return MATCH;
   }
 
-  returnType ApvlvView::process (int ct, guint key)
+  returnType ApvlvView::process (int has, int ct, guint key)
   {
     if (mProCmd != 0)
       {
@@ -825,7 +825,7 @@ namespace apvlv
 	mProCmd = 'g';
 	return NEED_MORE;
       default:
-	return crtadoc ()->process (ct, key);
+	return crtadoc ()->process (has, ct, key);
 	break;
       }
 

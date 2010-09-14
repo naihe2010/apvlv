@@ -197,7 +197,7 @@ namespace apvlv
 
     bool continuous ();
 
-    returnType process (int times, guint keyval);
+    returnType process (int hastimes, int times, guint keyval);
 
     void gotolink (int ct);
 

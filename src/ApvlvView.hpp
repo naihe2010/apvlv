@@ -104,7 +104,7 @@ namespace apvlv
 
     void fullscreen ();
 
-    returnType process (int times, guint keyval);
+    returnType process (int hastimes, int times, guint keyval);
 
     returnType subprocess (int times, guint keyval);
 

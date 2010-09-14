@@ -148,7 +148,7 @@ namespace apvlv
 
     virtual void setsize (int wid, int hei);
 
-    virtual returnType process (int times, guint keyval);
+    virtual returnType process (int has, int times, guint keyval);
 
   protected:
       ApvlvFile * mFile;

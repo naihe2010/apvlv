@@ -81,7 +81,7 @@ namespace apvlv
 
     mHasPreCount = false;
 
-    mPreCount = 0;
+    mPreCount = 1;
 
     mNext = NULL;
 
@@ -164,7 +164,7 @@ namespace apvlv
 	  {
 	    gint key = keyval (k);
 	    if (key > 0)
-	      gView->process (precount (), keyval (k));
+	      gView->process (mHasPreCount, precount (), keyval (k));
 	  }
       }
 
@@ -276,6 +276,7 @@ namespace apvlv
   void ApvlvCmd::precount (gint precount)
   {
     mPreCount = precount;
+    mHasPreCount = true;
   }
 
   gint ApvlvCmd::precount ()

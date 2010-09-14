@@ -220,7 +220,7 @@ namespace apvlv
     return mType;
   }
 
-  returnType ApvlvCore::process (int ct, guint key)
+  returnType ApvlvCore::process (int has, int ct, guint key)
   {
     return MATCH;
   }
