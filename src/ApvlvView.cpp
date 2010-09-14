@@ -1070,7 +1070,7 @@ namespace apvlv
       {
 	view->mWidth = w;
 	view->mHeight = h;
-	view->mRootWindow->setsize (w, view->adjheight ());
+	view->mRootWindow->setsize (w, view->adjheight () - 10);
       }
   }
 
@@ -1216,18 +1216,19 @@ namespace apvlv
   {
     int adj = 0;
     if (gtk_notebook_get_show_tabs (GTK_NOTEBOOK (mTabContainer)))
-      adj += APVLV_TABS_HEIGHT;
+      {
+	adj += APVLV_TABS_HEIGHT;
+      }
     if (mCmdType != CMD_NONE)
-      adj += APVLV_CMD_BAR_HEIGHT;
-
+      {
+	adj += APVLV_CMD_BAR_HEIGHT;
+      }
     if (strchr (gParams->values ("guioptions"), 'm') != NULL)
       {
-	return mHeight - APVLV_MENU_HEIGHT - adj;
+	adj += APVLV_MENU_HEIGHT;
       }
-    else
-      {
-	return mHeight - adj;
-      }
+
+    return mHeight - adj;
   }
 
   void ApvlvView::switchtab (int tabPos)
