@@ -173,6 +173,12 @@ namespace apvlv
     else
       {
 	gchar *newmd5 = core->checkmd5 ();
+	if (newmd5 == NULL)
+	  {
+	    debug ("%d: get check sum failed", time (NULL));
+	    return TRUE;
+	  }
+
 	if (strcmp (newmd5, core->mCheckMD5) == 0)
 	  {
 	    debug ("%d: file is not changed.", time (NULL));
