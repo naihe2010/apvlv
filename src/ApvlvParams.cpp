@@ -40,6 +40,7 @@ namespace apvlv
 
     ApvlvParams::ApvlvParams ()
   {
+    push ("inverted", "no");
     push ("fullscreen", "no");
     push ("zoom", "fitwidth");
     push ("continuous", "yes");

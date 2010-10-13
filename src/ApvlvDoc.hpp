@@ -102,6 +102,7 @@ namespace apvlv
     ApvlvLinks *getlinks ();
 
     bool canselect ();
+    bool mInverted;
 
     ApvlvWord *getword (int x, int y);
 
