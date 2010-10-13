@@ -27,9 +27,8 @@
 
 #include "ApvlvInfo.hpp"
 
-#include <stdlib.h>
-#include <string.h>
-
+#include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <sstream>
 

@@ -38,8 +38,8 @@
 #include "ApvlvUtil.hpp"
 
 #include <gtk/gtk.h>
-#include <stdlib.h>
 
+//#include <cstdlib>
 #include <iostream>
 #include <vector>
 #include <map>

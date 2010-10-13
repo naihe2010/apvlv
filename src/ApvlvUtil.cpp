@@ -28,12 +28,11 @@
 
 #include "ApvlvUtil.hpp"
 
-#include <stdlib.h>
+#include <gtk/gtk.h>
+
 #ifndef WIN32
 #include <sys/wait.h>
 #endif
-#include <gtk/gtk.h>
-
 #ifdef WIN32
 # include <windows.h>
 #endif

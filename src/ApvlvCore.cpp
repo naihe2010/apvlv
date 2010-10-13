@@ -30,8 +30,6 @@
 #include "ApvlvView.hpp"
 #include "ApvlvCore.hpp"
 
-#include <stdlib.h>
-#include <sys/stat.h>
 #include <glib/gstdio.h>
 
 #include <iostream>

@@ -30,16 +30,12 @@
 #include "ApvlvParams.hpp"
 #include "ApvlvDir.hpp"
 
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-#include <math.h>
-#include <sys/stat.h>
-
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #include <glib/gstdio.h>
 
+#include <cerrno>
+#include <sys/stat.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>

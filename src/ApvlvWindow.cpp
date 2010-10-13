@@ -34,8 +34,6 @@
 
 #include <gtk/gtk.h>
 
-#include <string.h>
-
 namespace apvlv
 {
   ApvlvWindow *ApvlvWindow::m_curWindow = NULL;

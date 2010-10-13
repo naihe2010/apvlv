@@ -32,13 +32,12 @@
 #include "ApvlvInfo.hpp"
 #include "ApvlvUtil.hpp"
 
-#include <iostream>
-
 #include <locale.h>
 #ifndef WIN32
 #include <getopt.h>
 #endif
 #include <gtk/gtk.h>
+#include <iostream>
 
 using namespace apvlv;
 

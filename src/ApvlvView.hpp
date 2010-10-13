@@ -37,10 +37,9 @@
 #include "ApvlvDoc.hpp"
 #include "ApvlvWindow.hpp"
 
-#include <iostream>
-
 #include <gtk/gtk.h>
 
+#include <iostream>
 #include <list>
 
 namespace apvlv

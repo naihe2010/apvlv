@@ -32,15 +32,12 @@
 #include "ApvlvView.hpp"
 #include "ApvlvDoc.hpp"
 
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <sys/stat.h>
-
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtkprintoperation.h>
 
+#include <cstdlib>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <sstream>

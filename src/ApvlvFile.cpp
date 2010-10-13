@@ -29,12 +29,11 @@
 #include "ApvlvUtil.hpp"
 #include "ApvlvView.hpp"
 
+#include <glib.h>
+
+#include <sys/stat.h>
 #include <iostream>
 #include <fstream>
-
-#include <stdio.h>
-#include <sys/stat.h>
-#include <glib.h>
 
 namespace apvlv
 {

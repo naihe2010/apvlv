@@ -31,15 +31,13 @@
 #include "ApvlvUtil.hpp"
 #include "ApvlvCmds.hpp"
 
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #ifndef WIN32
 #include <gdk/gdkx.h>
 #endif
 
+#include <cstdlib>
 #include <sstream>
 
 namespace apvlv
