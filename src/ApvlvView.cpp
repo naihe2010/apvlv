@@ -927,7 +927,7 @@ namespace apvlv
 	  }
 	else if ((cmd == "pr" || cmd == "print"))
 	  {
-	    crtadoc ()->print (subcmd == "" ? 1 : atoi (subcmd.c_str ()));
+	    crtadoc ()->print (subcmd == "" ? -1 : atoi (subcmd.c_str ()));
 	  }
 	else if (cmd == "sp")
 	  {

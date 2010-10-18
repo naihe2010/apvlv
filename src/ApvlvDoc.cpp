@@ -48,11 +48,11 @@ namespace apvlv
   static GtkPrintSettings *settings = NULL;
   const int APVLV_DOC_CURSOR_WIDTH = 2;
 
-  ApvlvDoc::ApvlvDoc (int w, int h, const char *zm, bool cache)
-    {
-      mCurrentCache1 = mCurrentCache2 = NULL;
+    ApvlvDoc::ApvlvDoc (int w, int h, const char *zm, bool cache)
+  {
+    mCurrentCache1 = mCurrentCache2 = NULL;
 
-      mReady = false;
+    mReady = false;
 
     mAdjInchg = false;
 
@@ -1460,6 +1460,14 @@ namespace apvlv
       {
 	data->endpn = mFile->pagesum () - 1;
       }
+    //If nothing is specified, print all pages
+    if (ct == -1)
+      {
+	data->frmpn = 0;
+	data->endpn = mFile->pagesum () - 1;
+	//revert to +ve value, since I don't know if ct is assumed to be +ve anywhere 
+	ct = mFile->pagesum ();
+      }
 
     g_signal_connect (G_OBJECT (print), "begin-print",
 		      G_CALLBACK (begin_print), data);
@@ -2061,35 +2069,34 @@ namespace apvlv
       }
   }
 
-  static void 
-    invert_pixbuf (GdkPixbuf * pixbuf)
+  static void invert_pixbuf (GdkPixbuf * pixbuf)
+  {
+    guchar *data, *p;
+    guint width, height, x, y, rowstride, n_channels;
+
+    n_channels = gdk_pixbuf_get_n_channels (pixbuf);
+    g_assert (gdk_pixbuf_get_colorspace (pixbuf) == GDK_COLORSPACE_RGB);
+    g_assert (gdk_pixbuf_get_bits_per_sample (pixbuf) == 8);
+
+    /* First grab a pointer to the raw pixel data. */
+    data = gdk_pixbuf_get_pixels (pixbuf);
+
+    /* Find the number of bytes per row (could be padded). */
+    rowstride = gdk_pixbuf_get_rowstride (pixbuf);
+
+    width = gdk_pixbuf_get_width (pixbuf);
+    height = gdk_pixbuf_get_height (pixbuf);
+    for (x = 0; x < width; x++)
       {
-        guchar *data, *p;
-        guint width, height, x, y, rowstride, n_channels;
-
-        n_channels = gdk_pixbuf_get_n_channels (pixbuf);
-        g_assert (gdk_pixbuf_get_colorspace (pixbuf) == GDK_COLORSPACE_RGB);
-        g_assert (gdk_pixbuf_get_bits_per_sample (pixbuf) == 8);
-
-        /* First grab a pointer to the raw pixel data. */
-        data = gdk_pixbuf_get_pixels (pixbuf);
-
-        /* Find the number of bytes per row (could be padded). */
-        rowstride = gdk_pixbuf_get_rowstride (pixbuf);
-
-        width = gdk_pixbuf_get_width (pixbuf);
-        height = gdk_pixbuf_get_height (pixbuf);
-        for (x = 0; x < width; x++)
-          {
-            for (y = 0; y < height; y++)
-              {
-                /* Calculate pixel's offset into the data array. */
-                p = data + x * n_channels + y * rowstride;
-                /* Change the RGB values */
-                p[0] = 255 - p[0];
-                p[1] = 255 - p[1];
-                p[2] = 255 - p[2];
-              }
-          }
+	for (y = 0; y < height; y++)
+	  {
+	    /* Calculate pixel's offset into the data array. */
+	    p = data + x * n_channels + y * rowstride;
+	    /* Change the RGB values */
+	    p[0] = 255 - p[0];
+	    p[1] = 255 - p[1];
+	    p[2] = 255 - p[2];
+	  }
       }
+  }
 }
