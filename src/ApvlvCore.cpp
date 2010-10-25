@@ -123,6 +123,8 @@ namespace apvlv
 	return NULL;
       }
 
+    time_t now = time (NULL);
+
     if (S_ISDIR (sbuf->st_mode))
       {
 	string data;
@@ -130,6 +132,12 @@ namespace apvlv
 	gchar *md5 = g_compute_checksum_for_string (G_CHECKSUM_MD5, data.c_str
 						    (), -1);
 	return md5;
+      }
+
+    else if (now - sbuf->st_mtime < 2)
+      {
+	debug ("File is modifing, skiped.\n");
+	return mCheckMD5;
       }
 
     else
