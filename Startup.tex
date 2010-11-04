@@ -1,72 +1,114 @@
 \documentclass[a4paper,12pt]{article}
-\usepackage{graphicx}
+% \usepackage{graphicx}
 \usepackage[top=2in,bottom=1in,left=1.25in,right=1.25in]{geometry}
+\usepackage{color} % für eigene Farben (zusätzlich zu den vordefinierten)
+\definecolor{darkblue}{rgb}{0,0,.5} % Definition für dunkelblau
+\definecolor{darkred}{rgb}{.5,0,0} %Definition für dunkelrot
+\definecolor{indigo}{RGB}{75,0,139} %Definition für dunkelrot
+
+
+\usepackage[pdftex,
+colorlinks, % Schrift in Farbe, sonst mit Rahmen
+bookmarksnumbered, % Inhaltsverzeichnis mit Numerierung
+bookmarksopen, % offnet das Inhaltsverzeichnis
+pdfstartview=FitH, % startet mit Seitenbreite
+linkcolor=darkblue, % standard red
+citecolor=darkred, % standard green
+urlcolor=indigo, % standard cyan
+filecolor=darkblue, %
+pdftitle={Apvlv Manual},
+pdfauthor={Alf, Sebastian},
+pdfsubject={Alf's PDF Viewer Like Vim},
+pdfcreator={vim & pdflatex},
+pdfkeywords={open source software documentation},
+pdfproducer={pdflatex},
+linktoc={all},
+plainpages=false % to avoid warning: pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has been already used
+]{hyperref}
+
+% let's agree on a format how we display apvlv's name:
+\newcommand{\apvlv}{\textsf{Apvlv{ }}}
 
 \begin{document}
 
 \large
 
 \title{Apvlv - Alf's PDF Viewer Like Vim}
-\author{version 0.0.9}
-\date{by Alf $<$naihe2010@gmail.com$>$ \\Apvlv is open source and freely distributable}
+%\author{version 0.0.9}
+\author{by Alf \texttt{$<$\href{mailto:naihe2010@gmail.com}{naihe2010@gmail.com}$>$}}
+\date{\today}
+%\date{Apvlv is open source and freely distributable}
 \maketitle{}
 
 \begin{center}
+Current version: 0.0.9\\
+\vspace{1cm}
+\apvlv is open source software (GNU GPLv2) and freely distributable.
+\vspace{1cm}
+
+\rule{\textwidth}{1pt}
 \begin{tabular}{lll}
 type & :help info$<$Enter$>$      & for information \\
-type & :q                         & for exit \\
-type & :help command$<$Enter$>$   & for command \\
-type & :help setting$<$Enter$>$   & for setting \\
+type & q                          & for exit \\
+type & :help command$<$Enter$>$   & for help on a command \\
+type & :help setting$<$Enter$>$   & for help on settings \\ % 
 \end{tabular}
+\rule{\textwidth}{1pt}
+
+
+
+\vspace{3cm}
+{\small Please visit \apvlv's homepage \texttt{\href{http://apvlv.googlecode.com}{http://apvlv.googlecode.com}} for more information, issues and help.}
 \end{center}
 
 \newpage
 
-\section{Infomation}
+\section{Introduction}\label{intro}
 
-Apvlv is an open source software, and was created by Alf. Now, it is still growing.
+\apvlv is open source software, and was created by Alf. It is in active development. %Now, it is still growing.
 
-According to it's name, Apvlv makes people reading their PDF files just like using Vim.
+As its name suggests, \apvlv allows you to read your PDF files in Vim-style! A focus is set on simplicity and minimalistic GUI. This way you have more space for the actual document.
 
-So, Apvlv bindings lots of Vim command and it's behaviour is like Vim. For example, $<$Ctrl-f$>$ to forward page, $<$Ctrl-b$>$ to previous page, 'k','j','h','l' to scroll page up, down, left or right, and so on. 
+\apvlv's key bindings are inspired by the design and high efficiency of Vim commands making its use a joy for all accustomed Vim users. For example, one can use $<$Ctrl-f$>$ to forward page, $<$Ctrl-b$>$ to previous page, 'k','j','h','l' to scroll page up, down, left or right, and so on. 
+Furthermore, \apvlv can understand how many times you want to run the command. E.g. typing '20' and  $<$Ctrl-f$>$ will go 20 pages forward.
+%The only thing you need to do is typing the number before the command. For example, typing '50' and $<$Ctrl-f$>$ will go 50 pages forward, typing '30' and $<$Ctrl-b$>$ will go 30 pages back.
+Even more practical is \apvlv's ability to show the content of a directory (press 'O') on your system. You're then able to navigate through folders in Vim-style fashion. 'h' and 'l' collapse or expand a directory and pressing 't' will open the selected document in a new tab.
+%the table of contents upon pressing 't'. This allows you to navigate through the 
 
-And, Apvlv can understand how many times you want to run the command.
+%What's more important is that \apvlv supports view of a directory as content of pdf document. Pressing 'k' or 'j' to move selected up or down, 'h' or 'l' to collapse or expand a dir, and press 't' will open the selected document in a new tab.
 
-The only thing you need to do is typing the number before the command. For example, typing '50' and $<$Ctrl-f$>$ will go 50 pages forward, typing '30' and $<$Ctrl-b$>$ will go 30 pages back.
+This documentation introduces you to using \apvlv. Section \ref{gettingstarted} describes installation and invocation of \apvlv. Section \ref{command} summarizes the available commands and key bindings, section \ref{setting} describes the available configurations and section \ref{promtcommand} explains the command prompt (commands that start with ':').
+%Do you like it? If yes, continue read the help document.
 
-What's more important is that apvlv supports view of a directory as content of pdf document. Pressing 'k' or 'j' to move selected up or down, 'h' or 'l' to collapse or expand a dir, and press 't' will open the selected document in a new tab.
-
-Do you like it? If yes, continue read the help document.
 
 \newpage
 
-\section{How to start}
+\section{Getting Started}\label{gettingstarted}
 
-\subsection{How to install}
+\subsection{Installation of \apvlv}\label{sinstall}
 
-Apvlv uses GNU Autotools as it's build system, you just need to type
+\apvlv uses GNU Autotools as it's build system, you just need to type
 \begin{verbatim}
 # ./configure
 # make
 # make install
 \end{verbatim}
-in terminal to install it to /usr/local.
+in a terminal to install it to \texttt{/usr/local}.
 
-If you got error message like 'No package 'poppler-glib' found', may be there is no poppler in your system. You need to install it by yourself.
+If you got error message like \texttt{No package 'poppler-glib'} found, then you might have to install the poppler library by yourself.
 
-If you want to install apvlv in a custom path, use './configure --prefix=YOUR CUSTOM PATH' instead of './configure'.
+If you want to install \apvlv in a custom path, use \texttt{./configure --prefix=YOUR CUSTOM PATH} instead of \texttt{./configure}.
 
-\subsection{How to start the binary program}
+\subsection{How to start the binary program}\label{sstart}
 
-You can start apvlv by typing 'apvlv' in any terminal which is running under X.
+You can run \apvlv by typing '\texttt{apvlv}' in any terminal which is running under X. To open a specific pdf document, run '\texttt{apvlv $<$documentname$>$.pdf}'
 
-If you got message like 'command not found', make sure the path which apvlv's binary in is in your "PATH" evorment. 
-
-If not, run 'export PATH="/usr/local/bin:\$PATH"' to append the path.
+If you get an error message like 'command not found', make sure the path in which \apvlv's binary is located is in your "PATH" environment variable. 
+If not, run '\texttt{export PATH="/usr/local/bin:\$PATH"}' to append the path.
 
 \newpage
 
-\section{Command}
+\section{Command}\label{command}
 
 \begin{description}
 
@@ -76,7 +118,7 @@ display a file chooser dialog to select a PDF file to open.
 
 \item O
 
-select a directory to display
+select a directory to display. After you selected the directory within the dialog, press enter and \apvlv will recursively search the path for PDFs. You will be presented with a vim-style navigation of your folders which allows you to easily access another document.
 
 \item R
 
@@ -84,35 +126,32 @@ reload the current file.
 
 \item r
 
-[count] rotate the document page view
+[count] rotate the document page 
 
 \item G
 
-[count] page show
+  go to end of document, or (preceded by [count]) show page [count]
 
 \item gt
 
-next tab show
+show next tab
 
 \item gT
 
-previous tab show
+show previous tab
 
-\item $<$PageDown$>$
+\item $<$PageDown$>$ or $<$C-f$>$
 
-\item $<$C-f$>$
+[count] go n page(s) forward
 
-[count] forward page 
+\item $<$PageUp$>$ or
+$<$C-b$>$
 
-\item $<$PageUp$>$
-
-\item $<$C-b$>$
-
-[count] previous page 
+[count] go n page(s) backward
 
 \item $<$C-d$>$
 
-[count] half forward page 
+[count] half page forward
 
 \item $<$C-u$>$
 
@@ -120,100 +159,91 @@ previous tab show
 
 \item H
 
-scroll to head
+scroll to head of page
 
 \item M
 
-scroll to middle
+scroll to center of page
 
 \item L
 
-scroll to last
+scroll to end of page
 
 \item $<$C-p$>$
+$<$Up$>$
+k
 
-\item $<$Up$>$
+[count] scroll up
+\item  $<$C-n$>$ or 
+ $<$Down$>$ or 
+ $<$C-j$>$ or 
+ j
 
-\item k
+[count] scroll down
 
-[count] page scroll up
+\item $<$BackSpace$>$ or 
+$<$Left$>$ or 
+h
 
-\item $<$C-n$>$
+[count] scroll left
 
-\item $<$Down$>$
+\item $<$Space$>$ or 
+$<$C-l$>$ or 
+l
 
-\item $<$C-j$>$
-
-\item j
-
-[count] page scroll down
-
-\item $<$BackSpace$>$
-
-\item $<$Left$>$
-
-\item h
-
-[count] page scroll left
-
-\item $<$Space$>$
-
-\item $<$C-l$>$
-
-\item l
-
-[count] page scroll right
+[count] scroll right
 
 \item /
 
-search a string
+search for a string. Type and hit $<$enter$>$.
 
 \item ?
 
-back search a string
+search for a string, backwards.
 
 \item f
 
-If Apvlv is in full screen mode, switch to normal mode. Other wise, switch to full screen.
+Toggle full screen mode. % If \apvlv is in full screen mode, switch to normal mode. Other wise, switch to full screen.
 
 \item zi
 
-zoom in the page
+zoom in.
 
 \item zo
 
-zoom out the page
+zoom out.
 
 \item zw
 
-zoom to fit width
+zoom to fit width.
 
 \item zh
 
-zoom to fit height
+zoom to fit height (full page).
 
 \item m
 
-Mark the read position to the followed char. \\
+Mark the read position and name it by pressing a character. \\
 That is, press 'ma' will mark the current position to a, and you can return here by press 'a.
 
 \item '
 
-Goto the position which point by the followed char. \\
-The next key be pressed must had been marked before. 
+Goto the position indicated by a character, i.e. press 'a to go to the position a. \\
+%The next key be pressed must had been marked before. 
+The character has to be marked by 'm' before (see above).
 
 \item ''
 
-Return to the presious position
+Return to the previous position
 
 \item $<$C-w$>$ q
 \item $<$C-w$>$ $<$C-Q$>$
 
-Close the current window.
+Close the current tab (other tabs will not be affected)
 
 \item $<$C-w$>$ $<$C-w$>$
 
-move to the next window.
+move to the next window (currently broken).
 
 \item $<$C-w$>$ k
 
@@ -255,15 +285,15 @@ So, 'map god god' will make the application to loop test the command 'god' for e
 
 \newpage
 
-\section{Setting}
+\section{Setting}\label{setting}
 
-Apvlv support these settings. You can set any of them in .apvlvrc.
+\apvlv support these settings. You can set any of them in .apvlvrc.
 
 \begin{description}
 
 \item fullscreen=yes/no
 
-If set yes, apvlv will be in full screen mode after startup.
+If set yes, \apvlv will be in full screen mode after startup.
 
 \item width=$<$int$>$
 
@@ -376,7 +406,7 @@ If reverted pdf page
 
 \newpage
 
-\section{Prompt Command}
+\section{Prompt Command}\label{promtcommand}
 
 \begin{description}
 
@@ -475,13 +505,13 @@ go to a page number
 
 \newpage
 
-\section{About}
+\section{About}\label{about}
 
 \large
 \begin{tabular}{l}
-Website: http://apvlv.googlecode.com \\
-Author: Alf $<$naihe2010@gmail.com$>$ \\
-Blog: http://naihe2010.cublog.cn
+  Website: \texttt{\href{http://apvlv.googlecode.com}{http://apvlv.googlecode.com}} \\
+  Author: Alf \texttt{\href{mailto:naihe2010@gmail.com}{$<$naihe2010@gmail.com$>$}} \\
+Blog: \texttt{\href{http://naihe2010.cublog.cn}{http://naihe2010.cublog.cn}}
 \end{tabular}
 
 \end{document}
