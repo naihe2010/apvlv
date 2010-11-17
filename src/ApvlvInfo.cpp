@@ -19,7 +19,7 @@
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 *
 */
-/* @CFILE ApvlvInfo.cpp 
+/* @CFILE ApvlvInfo.cpp
 *
 *  Author: Alf <naihe2010@gmail.com>
 */
@@ -33,10 +33,10 @@
 #include <sstream>
 
 namespace apvlv
-{
+  {
   ApvlvInfo *gInfo = NULL;
 
-    ApvlvInfo::ApvlvInfo (const char *filename)
+  ApvlvInfo::ApvlvInfo (const char *filename)
   {
     mFileName = filename;
 
@@ -46,25 +46,25 @@ namespace apvlv
     ifstream is (mFileName.c_str (), ios::in);
     if (is.is_open ())
       {
-	string line;
-	const char *p;
+        string line;
+        const char *p;
 
-	while (getline (is, line))
-	  {
-	    p = line.c_str ();
+        while (getline (is, line))
+          {
+            p = line.c_str ();
 
-	    if (*p != '\''	/* the ' */
-		|| !isdigit (*(p + 1)))	/* the digit */
-	      {
-		continue;
-	      }
+            if (*p != '\''	/* the ' */
+                || !isdigit (*(p + 1)))	/* the digit */
+              {
+                continue;
+              }
 
-	    ini_add_position (p);
-	  }
+            ini_add_position (p);
+          }
 
-	mFileHead = g_slist_reverse (mFileHead);
+        mFileHead = g_slist_reverse (mFileHead);
 
-	is.close ();
+        is.close ();
       }
   }
 
@@ -72,9 +72,9 @@ namespace apvlv
   {
     while (mFileHead != NULL)
       {
-	infofile *fp = (infofile *) (mFileHead->data);
-	delete fp;
-	mFileHead = g_slist_next (mFileHead);
+        infofile *fp = (infofile *) (mFileHead->data);
+        delete fp;
+        mFileHead = g_slist_next (mFileHead);
       }
     g_slist_free (mFileHead);
   }
@@ -84,23 +84,23 @@ namespace apvlv
     ofstream os (mFileName.c_str (), ios::out);
     if (!os.is_open ())
       {
-	return false;
+        return false;
       }
 
     int i;
     GSList *lfp;
     infofile *fp;
     for (i = 0, lfp = mFileHead;
-	 i < mFileMax && lfp != NULL; ++i, lfp = g_slist_next (lfp))
+         i < mFileMax && lfp != NULL; ++i, lfp = g_slist_next (lfp))
       {
-	fp = (infofile *) (lfp->data);
-	if (fp)
-	  {
-	    os << "'" << i << "\t";
-	    os << fp->page << "\t";
-	    os << fp->rate << "\t";
-	    os << fp->file << endl;
-	  }
+        fp = (infofile *) (lfp->data);
+        if (fp)
+          {
+            os << "'" << i << "\t";
+            os << fp->page << "\t";
+            os << fp->rate << "\t";
+            os << fp->file << endl;
+          }
       }
 
     os.close ();
@@ -120,25 +120,25 @@ namespace apvlv
 
     for (lfp = mFileHead; lfp != NULL; lfp = g_slist_next (lfp))
       {
-	fp = (infofile *) (lfp->data);
-	if (fp->file == filename)
-	  {
-	    break;
-	  }
+        fp = (infofile *) (lfp->data);
+        if (fp->file == filename)
+          {
+            break;
+          }
       }
 
     if (lfp == NULL)
       {
-	fp = new infofile;
-	fp->page = 0;
-	fp->rate = 0.0;
-	fp->file = filename;
-	mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
+        fp = new infofile;
+        fp->page = 0;
+        fp->rate = 0.0;
+        fp->file = filename;
+        mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
       }
     else
       {
-	mFileHead = g_slist_remove (mFileHead, fp);
-	mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
+        mFileHead = g_slist_remove (mFileHead, fp);
+        mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
       }
 
     return fp;
@@ -151,7 +151,7 @@ namespace apvlv
     fp = file (filename);
     if (fp == NULL)
       {
-	return false;
+        return false;
       }
 
     fp->page = page;
@@ -168,40 +168,40 @@ namespace apvlv
     p = strchr (str + 2, '\t');	/* Skip the ' and the digit */
     if (p == NULL)
       {
-	return false;
+        return false;
       }
 
     while (*p != '\0' && !isdigit (*p))
       {
-	p++;
+        p++;
       }
     int page = atoi (p);
 
     p = strchr (p, '\t');
     if (p == NULL)
       {
-	return false;
+        return false;
       }
 
     while (*p != '\0' && !isdigit (*p))
       {
-	p++;
+        p++;
       }
     double rate = atof (p);
 
     p = strchr (p, '\t');
     if (p == NULL)
       {
-	return false;
+        return false;
       }
 
     while (*p != '\0' && isspace (*p))
       {
-	p++;
+        p++;
       }
     if (*p == '\0')
       {
-	return false;
+        return false;
       }
 
     infofile *fp = new infofile;

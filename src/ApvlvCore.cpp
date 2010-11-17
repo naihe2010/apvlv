@@ -36,11 +36,11 @@
 #include <fstream>
 
 namespace apvlv
-{
+  {
   class ApvlvView;
   extern ApvlvView *gView;
 
-    ApvlvCore::ApvlvCore ()
+  ApvlvCore::ApvlvCore ()
   {
     mInuse = true;
 
@@ -59,14 +59,14 @@ namespace apvlv
     mScrollwin = gtk_scrolled_window_new (NULL, NULL);
     if (gParams->valueb ("scrollbar"))
       {
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin),
-					GTK_POLICY_AUTOMATIC,
-					GTK_POLICY_AUTOMATIC);
+        gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin),
+                                        GTK_POLICY_AUTOMATIC,
+                                        GTK_POLICY_AUTOMATIC);
       }
     else
       {
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin),
-					GTK_POLICY_NEVER, GTK_POLICY_NEVER);
+        gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin),
+                                        GTK_POLICY_NEVER, GTK_POLICY_NEVER);
       }
 
     mVaj =
@@ -79,8 +79,8 @@ namespace apvlv
 
     if (gParams->valuei ("autoreload") > 0)
       {
-	mReloadTimer = g_timeout_add (gParams->valuei ("autoreload") * 1000,
-				      apvlv_core_check_reload, this);
+        mReloadTimer = g_timeout_add (gParams->valuei ("autoreload") * 1000,
+                                      apvlv_core_check_reload, this);
       }
   }
 
@@ -88,14 +88,14 @@ namespace apvlv
   {
     if (mReloadTimer)
       {
-	g_source_remove (mReloadTimer);
-	mReloadTimer = 0;
+        g_source_remove (mReloadTimer);
+        mReloadTimer = 0;
       }
 
     if (mCheckMD5)
       {
-	g_free (mCheckMD5);
-	mCheckMD5 = NULL;
+        g_free (mCheckMD5);
+        mCheckMD5 = NULL;
       }
 
     g_object_unref (mVbox);
@@ -119,44 +119,44 @@ namespace apvlv
     int rt = g_stat (mFilestr.c_str (), sbuf);
     if (rt < 0)
       {
-	gView->errormessage ("stat file: %s error.", mFilestr.c_str ());
-	return NULL;
+        gView->errormessage ("stat file: %s error.", mFilestr.c_str ());
+        return NULL;
       }
 
     time_t now = time (NULL);
 
     if (S_ISDIR (sbuf->st_mode))
       {
-	string data;
-	walkdir (mFilestr.c_str (), add_token, &data);
-	gchar *md5 = g_compute_checksum_for_string (G_CHECKSUM_MD5, data.c_str
-						    (), -1);
-	return md5;
+        string data;
+        walkdir (mFilestr.c_str (), add_token, &data);
+        gchar *md5 = g_compute_checksum_for_string (G_CHECKSUM_MD5, data.c_str
+                     (), -1);
+        return md5;
       }
 
     else if (now - sbuf->st_mtime < 2)
       {
-	debug ("File is modifing, skiped.\n");
-	return mCheckMD5;
+        debug ("File is modifing, skiped.\n");
+        return mCheckMD5;
       }
 
     else
       {
-	guchar *data = new guchar[sbuf->st_size];
+        guchar *data = new guchar[sbuf->st_size];
 
-	ifstream ifs (mFilestr.c_str (), ios::binary);
-	if (ifs.is_open ())
-	  {
-	    ifs.read ((char *) data, sbuf->st_size);
-	    ifs.close ();
-	  }
+        ifstream ifs (mFilestr.c_str (), ios::binary);
+        if (ifs.is_open ())
+          {
+            ifs.read ((char *) data, sbuf->st_size);
+            ifs.close ();
+          }
 
-	gchar *md5 = g_compute_checksum_for_data (G_CHECKSUM_MD5, data,
-						  sbuf->st_size);
+        gchar *md5 = g_compute_checksum_for_data (G_CHECKSUM_MD5, data,
+                     sbuf->st_size);
 
-	delete[]data;
+        delete[]data;
 
-	return md5;
+        return md5;
       }
 
     return NULL;
@@ -168,38 +168,38 @@ namespace apvlv
 
     if (core->mInuse == false)
       {
-	return TRUE;
+        return TRUE;
       }
 
     if (core->mCheckMD5 == NULL)
       {
-	core->mCheckMD5 = core->checkmd5 ();
-	return TRUE;
+        core->mCheckMD5 = core->checkmd5 ();
+        return TRUE;
       }
     else
       {
-	gchar *newmd5 = core->checkmd5 ();
-	if (newmd5 == NULL)
-	  {
-	    debug ("%d: get check sum failed", time (NULL));
-	    return TRUE;
-	  }
+        gchar *newmd5 = core->checkmd5 ();
+        if (newmd5 == NULL)
+          {
+            debug ("%d: get check sum failed", time (NULL));
+            return TRUE;
+          }
 
-	if (strcmp (newmd5, core->mCheckMD5) == 0)
-	  {
-	    debug ("%d: file is not changed.", time (NULL));
-	    g_free (newmd5);
-	    return TRUE;
-	  }
-	else
-	  {
-	    debug ("%d: file is modified, reload it.", time (NULL));
-	    gView->infomessage
-	      ("Contents is modified, apvlv reload it automatically");
-	    g_free (core->mCheckMD5);
-	    core->mCheckMD5 = newmd5;
-	    core->reload ();
-	  }
+        if (strcmp (newmd5, core->mCheckMD5) == 0)
+          {
+            debug ("%d: file is not changed.", time (NULL));
+            g_free (newmd5);
+            return TRUE;
+          }
+        else
+          {
+            debug ("%d: file is modified, reload it.", time (NULL));
+            gView->infomessage
+            ("Contents is modified, apvlv reload it automatically");
+            g_free (core->mCheckMD5);
+            core->mCheckMD5 = newmd5;
+            core->reload ();
+          }
       }
 
     return TRUE;
@@ -211,8 +211,8 @@ namespace apvlv
 
     if (mInuse == false && gView->hasloaded (filename (), type ()) == false)
       {
-	debug ("core :%p is not needed, delete it\n", this);
-	delete this;
+        debug ("core :%p is not needed, delete it\n", this);
+        delete this;
       }
   }
 
@@ -274,8 +274,8 @@ namespace apvlv
   {
     if (mFile != NULL)
       {
-	debug ("write %p to %s", mFile, name);
-	return mFile->writefile (name ? name : filename ());
+        debug ("write %p to %s", mFile, name);
+        return mFile->writefile (name ? name : filename ());
       }
     return false;
   }
@@ -304,15 +304,15 @@ namespace apvlv
     double val = mVaj->value / maxv;
     if (val > 1.0)
       {
-	return 1.00;
+        return 1.00;
       }
     else if (val > 0.0)
       {
-	return val;
+        return val;
       }
     else
       {
-	return 0.00;
+        return 0.00;
       }
   }
 
@@ -323,16 +323,16 @@ namespace apvlv
 
     if (mVaj->upper != mVaj->lower)
       {
-	double maxv = mVaj->upper - mVaj->lower - mVaj->page_size;
-	double val = maxv * s;
-	gtk_adjustment_set_value (mVaj, val);
-	mStatus->show ();
-	return TRUE;
+        double maxv = mVaj->upper - mVaj->lower - mVaj->page_size;
+        double val = maxv * s;
+        gtk_adjustment_set_value (mVaj, val);
+        mStatus->show ();
+        return TRUE;
       }
     else
       {
-	debug ("fatal a timer error, try again!");
-	return FALSE;
+        debug ("fatal a timer error, try again!");
+        return FALSE;
       }
   }
 
@@ -347,27 +347,27 @@ namespace apvlv
 
     if (val - mVrate * times > mVaj->lower)
       {
-	gtk_adjustment_set_value (mVaj, val - mVrate * times);
+        gtk_adjustment_set_value (mVaj, val - mVrate * times);
       }
     else if (val > mVaj->lower)
       {
-	gtk_adjustment_set_value (mVaj, mVaj->lower);
+        gtk_adjustment_set_value (mVaj, mVaj->lower);
       }
     else
       {
-	if (gParams->valueb ("autoscrollpage"))
-	  {
-	    if (gParams->valueb ("continuous"))
-	      {
-		showpage (mPagenum - 1,
-			  ((mVaj->upper / 2) - mVrate * times) / (sub -
-								  mVaj->page_size));
-	      }
-	    else
-	      {
-		showpage (mPagenum - 1, 1.0);
-	      }
-	  }
+        if (gParams->valueb ("autoscrollpage"))
+          {
+            if (gParams->valueb ("continuous"))
+              {
+                showpage (mPagenum - 1,
+                          ((mVaj->upper / 2) - mVrate * times) / (sub -
+                                                                  mVaj->page_size));
+              }
+            else
+              {
+                showpage (mPagenum - 1, 1.0);
+              }
+          }
       }
 
     mStatus->show ();
@@ -384,25 +384,25 @@ namespace apvlv
 
     if (val + mVrate * times + mVaj->page_size < mVaj->upper)
       {
-	gtk_adjustment_set_value (mVaj, val + mVrate * times);
+        gtk_adjustment_set_value (mVaj, val + mVrate * times);
       }
     else if (val + mVaj->page_size < mVaj->upper)
       {
-	gtk_adjustment_set_value (mVaj, mVaj->upper - mVaj->page_size);
+        gtk_adjustment_set_value (mVaj, mVaj->upper - mVaj->page_size);
       }
     else
       {
-	if (gParams->valueb ("autoscrollpage"))
-	  {
-	    if (gParams->valueb ("continuous"))
-	      {
-		showpage (mPagenum + 1, (sub - mVaj->page_size) / 2 / sub);
-	      }
-	    else
-	      {
-		showpage (mPagenum + 1, 0.0);
-	      }
-	  }
+        if (gParams->valueb ("autoscrollpage"))
+          {
+            if (gParams->valueb ("continuous"))
+              {
+                showpage (mPagenum + 1, (sub - mVaj->page_size) / 2 / sub);
+              }
+            else
+              {
+                showpage (mPagenum + 1, 0.0);
+              }
+          }
       }
 
     mStatus->show ();
@@ -417,11 +417,11 @@ namespace apvlv
     gdouble val = mHaj->value - mHrate * times;
     if (val > mVaj->lower)
       {
-	gtk_adjustment_set_value (mHaj, val);
+        gtk_adjustment_set_value (mHaj, val);
       }
     else
       {
-	gtk_adjustment_set_value (mHaj, mHaj->lower);
+        gtk_adjustment_set_value (mHaj, mHaj->lower);
       }
   }
 
@@ -434,11 +434,11 @@ namespace apvlv
     gdouble val = mHaj->value + mHrate * times;
     if (val + mHaj->page_size < mHaj->upper)
       {
-	gtk_adjustment_set_value (mHaj, val);
+        gtk_adjustment_set_value (mHaj, val);
       }
     else
       {
-	gtk_adjustment_set_value (mHaj, mHaj->upper - mHaj->page_size);
+        gtk_adjustment_set_value (mHaj, mHaj->upper - mHaj->page_size);
       }
   }
 
@@ -523,9 +523,9 @@ namespace apvlv
 
     if (mActive && filename () && gView)
       {
-	gchar *base = g_path_get_basename (filename ());
-	gView->settitle (base);
-	g_free (base);
+        gchar *base = g_path_get_basename (filename ());
+        gView->settitle (base);
+        g_free (base);
       }
   }
 

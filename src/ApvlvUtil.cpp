@@ -42,7 +42,7 @@
 using namespace std;
 
 namespace apvlv
-{
+  {
 
 #ifdef WIN32
   string helppdf = "~\\Startup.pdf";
@@ -70,85 +70,85 @@ namespace apvlv
 
     if (g_path_is_absolute (path))
       {
-	return g_strdup (path);
+        return g_strdup (path);
       }
 
     if (*path == '~' && *(path + 1) == PATH_SEP_C)
       {
-	const gchar *home;
+        const gchar *home;
 
 #ifdef WIN32
-	home = g_win32_get_package_installation_directory_of_module (NULL);
+        home = g_win32_get_package_installation_directory_of_module (NULL);
 #else
-	home = getenv ("HOME");
-	if (home == NULL)
-	  {
-	    home = g_get_home_dir ();
-	  }
+        home = getenv ("HOME");
+        if (home == NULL)
+          {
+            home = g_get_home_dir ();
+          }
 #endif
 
-	if (home != NULL)
-	  {
-	    g_snprintf (abpath, sizeof abpath, "%s%s", home, ++path);
-	  }
-	else
-	  {
-	    debug ("Can't find home directory, use current");
-	    g_snprintf (abpath, sizeof abpath, "%s", path + 2);
-	  }
+        if (home != NULL)
+          {
+            g_snprintf (abpath, sizeof abpath, "%s%s", home, ++path);
+          }
+        else
+          {
+            debug ("Can't find home directory, use current");
+            g_snprintf (abpath, sizeof abpath, "%s", path + 2);
+          }
       }
     else
       {
-	const gchar *pwd;
+        const gchar *pwd;
 
-	pwd = g_get_current_dir ();
-	if (pwd != NULL)
-	  {
-	    g_snprintf (abpath, sizeof abpath, "%s/%s", pwd, path);
-	  }
-	else
-	  {
-	    debug ("Can't find current directory, use current");
-	    g_snprintf (abpath, sizeof abpath, "%s", path);
-	  }
+        pwd = g_get_current_dir ();
+        if (pwd != NULL)
+          {
+            g_snprintf (abpath, sizeof abpath, "%s/%s", pwd, path);
+          }
+        else
+          {
+            debug ("Can't find current directory, use current");
+            g_snprintf (abpath, sizeof abpath, "%s", path);
+          }
       }
 
     return g_strdup (abpath);
   }
 
   gboolean walkdir (const char *name, gboolean (*cb) (const char *, void *),
-		    void *usrp)
+                    void *usrp)
   {
     GDir *dir = g_dir_open (name, 0, NULL);
     if (dir == NULL)
       {
-	debug ("Open dir: %s failed", name);
-	return FALSE;
+        debug ("Open dir: %s failed", name);
+        return FALSE;
       }
 
     const gchar *token;
     while ((token = g_dir_read_name (dir)) != NULL)
       {
-	gchar *subname = g_strjoin (PATH_SEP_S, name, token, NULL);
-	if (subname == NULL)
-	  {
-	    continue;
-	  }
+        gchar *subname = g_strjoin (PATH_SEP_S, name, token, NULL);
+        if (subname == NULL)
+          {
+            continue;
+          }
 
-	if (g_file_test (subname, G_FILE_TEST_IS_REGULAR) == TRUE)
-	  {
-	    if (cb (subname, usrp) == FALSE)
-	      {
-		return FALSE;
-	      }
-	  }
-	else if (g_file_test (subname, G_FILE_TEST_IS_DIR) == TRUE)
-	  {
-	    if (walkdir (subname, cb, usrp) == FALSE)
-	      {
-		return FALSE;
-	      }
-	  }
+        if (g_file_test (subname, G_FILE_TEST_IS_REGULAR) == TRUE)
+          {
+            if (cb (subname, usrp) == FALSE)
+              {
+                return FALSE;
+              }
+          }
+        else if (g_file_test (subname, G_FILE_TEST_IS_DIR) == TRUE)
+          {
+            if (walkdir (subname, cb, usrp) == FALSE)
+              {
+                return FALSE;
+              }
+          }
       }
 
     g_dir_close (dir);
@@ -167,9 +167,9 @@ namespace apvlv
     gboolean ret = g_file_get_contents (s, &content, NULL, NULL);
     if (ret == TRUE)
       {
-	ret = g_file_set_contents (d, content, -1, NULL);
-	g_free (content);
-	ok = ret;
+        ret = g_file_set_contents (d, content, -1, NULL);
+        g_free (content);
+        ok = ret;
       }
 
     g_free (s);
@@ -191,14 +191,14 @@ namespace apvlv
   }
 
   void
-    logv (const char *level, const char *file, int line, const char *func,
-	  const char *ms, ...)
+  logv (const char *level, const char *file, int line, const char *func,
+        const char *ms, ...)
   {
     char p[0x1000], temp[0x100];
     va_list vap;
 
     g_snprintf (temp, sizeof temp, "[%s] %s: %d: %s(): ",
-		level, file, line, func);
+                level, file, line, func);
 
     va_start (vap, ms);
     vsnprintf (p, sizeof p, ms, vap);
@@ -219,30 +219,30 @@ namespace apvlv
     ret = -1;
     if (pid < 0)
       {
-	errp ("Can't fork\n");
+        errp ("Can't fork\n");
       }
     else if (pid == 0)
       {
-	gchar **argv;
+        gchar **argv;
 
-	while (!isalnum (*str))
-	  str++;
+        while (!isalnum (*str))
+          str++;
 
-	argv = g_strsplit_set (str, " \t", 0);
-	if (argv == NULL)
-	  {
-	    exit (1);
-	  }
+        argv = g_strsplit_set (str, " \t", 0);
+        if (argv == NULL)
+          {
+            exit (1);
+          }
 
-	debug ("Exec path: (%s) argument [%d]\n", argv[0],
-	       g_strv_length (argv));
-	ret = execvp (argv[0], argv);
-	g_strfreev (argv);
-	errp ("Exec error\n");
+        debug ("Exec path: (%s) argument [%d]\n", argv[0],
+               g_strv_length (argv));
+        ret = execvp (argv[0], argv);
+        g_strfreev (argv);
+        errp ("Exec error\n");
       }
     else
       {
-	ret = wait4 (pid, &status, 0, NULL);
+        ret = wait4 (pid, &status, 0, NULL);
       }
 
     return ret;

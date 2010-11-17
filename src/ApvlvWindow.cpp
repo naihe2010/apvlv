@@ -35,21 +35,21 @@
 #include <gtk/gtk.h>
 
 namespace apvlv
-{
+  {
   ApvlvWindow *ApvlvWindow::m_curWindow = NULL;
 
-    ApvlvWindow::ApvlvWindow (ApvlvCore * doc)
+  ApvlvWindow::ApvlvWindow (ApvlvCore * doc)
   {
     mIsClose = false;
 
     type = AW_CORE;
     if (doc == NULL)
       {
-	mCore = new ApvlvDoc (0, 0, gParams->values ("zoom"));
+        mCore = new ApvlvDoc (0, 0, gParams->values ("zoom"));
       }
     else
       {
-	mCore = doc;
+        mCore = doc;
       }
     m_son = m_daughter = m_parent = NULL;
   }
@@ -58,7 +58,7 @@ namespace apvlv
   {
     if (mIsClose)
       {
-	return;
+        return;
       }
 
     debug ("delete window: %p", this);
@@ -67,37 +67,37 @@ namespace apvlv
 
     if (m_parent != NULL)
       {
-	if (m_parent->m_son == this)
-	  {
-	    m_parent->m_son = NULL;
-	  }
-	else if (m_parent->m_daughter == this)
-	  {
-	    m_parent->m_daughter = NULL;
-	  }
+        if (m_parent->m_son == this)
+          {
+            m_parent->m_son = NULL;
+          }
+        else if (m_parent->m_daughter == this)
+          {
+            m_parent->m_daughter = NULL;
+          }
       }
 
     if (type == AW_CORE)
       {
-	mCore->inuse (false);
+        mCore->inuse (false);
       }
 
     else if (type == AW_SP || type == AW_VSP)
       {
-	if (m_son != NULL)
-	  {
-	    ApvlvWindow *win = m_son;
-	    m_son = NULL;
-	    delete win;
-	  }
-	if (m_daughter != NULL)
-	  {
-	    ApvlvWindow *win = m_daughter;
-	    m_daughter = NULL;
-	    delete win;
-	  }
+        if (m_son != NULL)
+          {
+            ApvlvWindow *win = m_son;
+            m_son = NULL;
+            delete win;
+          }
+        if (m_daughter != NULL)
+          {
+            ApvlvWindow *win = m_daughter;
+            m_daughter = NULL;
+            delete win;
+          }
 
-	g_object_unref (mPaned);
+        g_object_unref (mPaned);
       }
   }
 
@@ -105,16 +105,16 @@ namespace apvlv
   {
     if (type == AW_CORE)
       {
-	return mCore->widget ();
+        return mCore->widget ();
       }
     else if (type == AW_SP || type == AW_VSP)
       {
-	return mPaned;
+        return mPaned;
       }
     else
       {
-	debug ("type error: %d", type);
-	return NULL;
+        debug ("type error: %d", type);
+        return NULL;
       }
   }
 
@@ -122,12 +122,12 @@ namespace apvlv
   {
     if (pre != NULL && pre->type == AW_CORE)
       {
-	pre->mCore->setactive (false);
+        pre->mCore->setactive (false);
       }
 
     if (win->type == AW_CORE)
       {
-	win->mCore->setactive (true);
+        win->mCore->setactive (true);
       }
 
     m_curWindow = win;
@@ -163,23 +163,23 @@ namespace apvlv
       case 'j':
       case 'h':
       case 'l':
-	nwin = getneighbor (ct, key);
-	if (nwin != NULL)
-	  {
-	    setcurrentWindow (this, nwin);
-	  }
-	break;
+        nwin = getneighbor (ct, key);
+        if (nwin != NULL)
+          {
+            setcurrentWindow (this, nwin);
+          }
+        break;
 
       case '-':
-	smaller (ct);
-	break;
+        smaller (ct);
+        break;
 
       case '+':
-	bigger (ct);
-	break;
+        bigger (ct);
+        break;
 
       default:
-	break;
+        break;
       }
     return MATCH;
   }
@@ -189,17 +189,17 @@ namespace apvlv
     switch (key)
       {
       case CTRL ('w'):
-	return getnext (ct);
+        return getnext (ct);
       case 'k':
-	return getkj (1, false);
+        return getkj (1, false);
       case 'j':
-	return getkj (1, true);
+        return getkj (1, true);
       case 'h':
-	return gethl (1, false);
+        return gethl (1, false);
       case 'l':
-	return gethl (1, true);
+        return gethl (1, true);
       default:
-	break;
+        break;
       }
 
     return NULL;
@@ -213,52 +213,52 @@ namespace apvlv
     asst (this && type == AW_CORE);
     for (cw = fw = NULL, w = this; w != NULL; cw = w, w = w->m_parent)
       {
-	if (w->type == AW_SP)
-	  {
-	    if ((cw == w->m_daughter && down == true)
-		|| (cw == w->m_son && down == false))
-	      {
-		continue;
-	      }
-	    else
-	      {
-		fw = down ? w->m_daughter : w->m_son;
-		break;
-	      }
-	  }
-	else if (w->type == AW_VSP)
-	  {
-	    if (cw != NULL && cw == w->m_daughter)
-	      {
-		right = true;
-	      }
-	    else
-	      {
-		right = false;
-	      }
-	  }
+        if (w->type == AW_SP)
+          {
+            if ((cw == w->m_daughter && down == true)
+                || (cw == w->m_son && down == false))
+              {
+                continue;
+              }
+            else
+              {
+                fw = down ? w->m_daughter : w->m_son;
+                break;
+              }
+          }
+        else if (w->type == AW_VSP)
+          {
+            if (cw != NULL && cw == w->m_daughter)
+              {
+                right = true;
+              }
+            else
+              {
+                right = false;
+              }
+          }
       }
 
     for (nw = w = fw; w != NULL;)
       {
-	if (w->type == AW_CORE)
-	  {
-	    nw = w;
-	    break;
-	  }
-	else if (w->type == AW_SP)
-	  {
-	    w = down ? w->m_son : w->m_daughter;
-	  }
-	else if (w->type == AW_VSP)
-	  {
-	    w = right ? w->m_daughter : w->m_son;
-	  }
-	else
-	  {
-	    debug ("error type: %d", w->type);
-	    return NULL;
-	  }
+        if (w->type == AW_CORE)
+          {
+            nw = w;
+            break;
+          }
+        else if (w->type == AW_SP)
+          {
+            w = down ? w->m_son : w->m_daughter;
+          }
+        else if (w->type == AW_VSP)
+          {
+            w = right ? w->m_daughter : w->m_son;
+          }
+        else
+          {
+            debug ("error type: %d", w->type);
+            return NULL;
+          }
       }
 
     return nw;
@@ -272,52 +272,52 @@ namespace apvlv
     asst (this && type == AW_CORE);
     for (cw = fw = NULL, w = this; w != NULL; cw = w, w = w->m_parent)
       {
-	if (w->type == AW_VSP)
-	  {
-	    if ((cw == w->m_daughter && right == true)
-		|| (cw == w->m_son && right == false))
-	      {
-		continue;
-	      }
-	    else
-	      {
-		fw = right ? w->m_daughter : w->m_son;
-		break;
-	      }
-	  }
-	else if (w->type == AW_SP)
-	  {
-	    if (cw != NULL && cw == w->m_daughter)
-	      {
-		down = true;
-	      }
-	    else
-	      {
-		down = false;
-	      }
-	  }
+        if (w->type == AW_VSP)
+          {
+            if ((cw == w->m_daughter && right == true)
+                || (cw == w->m_son && right == false))
+              {
+                continue;
+              }
+            else
+              {
+                fw = right ? w->m_daughter : w->m_son;
+                break;
+              }
+          }
+        else if (w->type == AW_SP)
+          {
+            if (cw != NULL && cw == w->m_daughter)
+              {
+                down = true;
+              }
+            else
+              {
+                down = false;
+              }
+          }
       }
 
     for (nw = w = fw; w != NULL;)
       {
-	if (w->type == AW_CORE)
-	  {
-	    nw = w;
-	    break;
-	  }
-	else if (w->type == AW_VSP)
-	  {
-	    w = right ? w->m_son : w->m_daughter;
-	  }
-	else if (w->type == AW_SP)
-	  {
-	    w = down ? w->m_daughter : w->m_son;
-	  }
-	else
-	  {
-	    debug ("error type: %d", w->type);
-	    return NULL;
-	  }
+        if (w->type == AW_CORE)
+          {
+            nw = w;
+            break;
+          }
+        else if (w->type == AW_VSP)
+          {
+            w = right ? w->m_son : w->m_daughter;
+          }
+        else if (w->type == AW_SP)
+          {
+            w = down ? w->m_daughter : w->m_son;
+          }
+        else
+          {
+            debug ("error type: %d", w->type);
+            return NULL;
+          }
       }
 
     return nw;
@@ -328,13 +328,13 @@ namespace apvlv
     ApvlvWindow *n = getkj (num, true);
     if (n == NULL)
       {
-	n = gethl (num, true);
-	if (n == NULL)
-	  {
-	    n = gethl (num, false);
-	    if (n == NULL)
-	      n = getkj (num, false);
-	  }
+        n = gethl (num, true);
+        if (n == NULL)
+          {
+            n = gethl (num, false);
+            if (n == NULL)
+              n = getkj (num, false);
+          }
       }
     return n;
   }
@@ -347,20 +347,20 @@ namespace apvlv
 
     if (doc == mCore)
       {
-	debug ("can't birth with orign doc, copy it");
-	doc = NULL;
+        debug ("can't birth with orign doc, copy it");
+        doc = NULL;
       }
 
     if (doc == NULL)
       {
-	doc = mCore->copy ();
-	gView->regloaded (doc);
+        doc = mCore->copy ();
+        gView->regloaded (doc);
       }
 
     if (doc == NULL)
       {
-	gView->errormessage ("can't split");
-	return this;
+        gView->errormessage ("can't split");
+        return this;
       }
 
     ApvlvWindow *nwindow = new ApvlvWindow (doc);
@@ -374,27 +374,27 @@ namespace apvlv
     mPaned = vsp == false ? gtk_vpaned_new () : gtk_hpaned_new ();
     g_object_ref (mPaned);
     g_signal_connect (G_OBJECT (mPaned), "button-release-event",
-		      G_CALLBACK (apvlv_window_paned_resized_cb), this);
+                      G_CALLBACK (apvlv_window_paned_resized_cb), this);
 
     if (m_parent)
       {
-	void (*panedcb) (GtkPaned *, GtkWidget *);
-	GtkWidget *parent = m_parent->mPaned;
-	if (gtk_paned_get_child1 (GTK_PANED (parent)) == widget ())
-	  {
-	    panedcb = gtk_paned_add1;
-	  }
-	else
-	  {
-	    panedcb = gtk_paned_add2;
-	  }
+        void (*panedcb) (GtkPaned *, GtkWidget *);
+        GtkWidget *parent = m_parent->mPaned;
+        if (gtk_paned_get_child1 (GTK_PANED (parent)) == widget ())
+          {
+            panedcb = gtk_paned_add1;
+          }
+        else
+          {
+            panedcb = gtk_paned_add2;
+          }
 
-	gtk_container_remove (GTK_CONTAINER (parent), widget ());
-	panedcb (GTK_PANED (parent), mPaned);
+        gtk_container_remove (GTK_CONTAINER (parent), widget ());
+        panedcb (GTK_PANED (parent), mPaned);
       }
     else
       {
-	replace_widget (widget (), mPaned);
+        replace_widget (widget (), mPaned);
       }
 
     gtk_paned_pack1 (GTK_PANED (mPaned), nwindow->widget (), TRUE, TRUE);
@@ -403,13 +403,13 @@ namespace apvlv
     type = vsp == false ? AW_SP : AW_VSP;
     if (type == AW_SP)
       {
-	nwindow->setsize (mWidth, mHeight / 2);
-	nwindow2->setsize (mWidth, mHeight / 2);
+        nwindow->setsize (mWidth, mHeight / 2);
+        nwindow2->setsize (mWidth, mHeight / 2);
       }
     else if (type == AW_VSP)
       {
-	nwindow->setsize (mWidth / 2, mHeight);
-	nwindow2->setsize (mWidth / 2, mHeight);
+        nwindow->setsize (mWidth / 2, mHeight);
+        nwindow2->setsize (mWidth / 2, mHeight);
       }
 
     gtk_widget_show_all (mPaned);
@@ -428,42 +428,42 @@ namespace apvlv
 
     if (m_parent)
       {
-	void (*panedcb) (GtkPaned *, GtkWidget *);
-	GtkWidget *parent = m_parent->mPaned;
-	if (gtk_paned_get_child1 (GTK_PANED (parent)) == mPaned)
-	  {
-	    panedcb = gtk_paned_add1;
-	  }
-	else
-	  {
-	    panedcb = gtk_paned_add2;
-	  }
+        void (*panedcb) (GtkPaned *, GtkWidget *);
+        GtkWidget *parent = m_parent->mPaned;
+        if (gtk_paned_get_child1 (GTK_PANED (parent)) == mPaned)
+          {
+            panedcb = gtk_paned_add1;
+          }
+        else
+          {
+            panedcb = gtk_paned_add2;
+          }
 
-	gtk_container_remove (GTK_CONTAINER (mPaned), child->widget ());
-	gtk_container_remove (GTK_CONTAINER (parent), mPaned);
-	panedcb (GTK_PANED (parent), child->widget ());
+        gtk_container_remove (GTK_CONTAINER (mPaned), child->widget ());
+        gtk_container_remove (GTK_CONTAINER (parent), mPaned);
+        panedcb (GTK_PANED (parent), child->widget ());
       }
     else
       {
-	gtk_container_remove (GTK_CONTAINER (mPaned), child->widget ());
-	replace_widget (mPaned, child->widget ());
+        gtk_container_remove (GTK_CONTAINER (mPaned), child->widget ());
+        replace_widget (mPaned, child->widget ());
       }
 
     if (child->type == AW_CORE)
       {
-	ApvlvCore *doc = child->getCore ();
-	type = AW_CORE;
-	mCore = doc;
+        ApvlvCore *doc = child->getCore ();
+        type = AW_CORE;
+        mCore = doc;
       }
     else if (child->type == AW_SP || child->type == AW_VSP)
       {
-	type = child->type;
-	mPaned = child->mPaned;
-	m_son = child->m_son;
-	m_son->m_parent = this;
-	m_daughter = child->m_daughter;
-	m_daughter->m_parent = this;
-	child->type = AW_NONE;
+        type = child->type;
+        mPaned = child->mPaned;
+        m_son = child->m_son;
+        m_son->m_parent = this;
+        m_daughter = child->m_daughter;
+        m_daughter->m_parent = this;
+        child->type = AW_NONE;
       }
 
     gtk_widget_show_all (widget ());
@@ -488,11 +488,11 @@ namespace apvlv
   {
     if (width)
       {
-	*width = mWidth;
+        *width = mWidth;
       }
     if (height)
       {
-	*height = mHeight;
+        *height = mHeight;
       }
   }
 
@@ -504,11 +504,11 @@ namespace apvlv
 
     if (type == AW_CORE)
       {
-	mCore->setsize (mWidth, mHeight);
+        mCore->setsize (mWidth, mHeight);
       }
     else if (type == AW_SP || type == AW_VSP)
       {
-	g_timeout_add (50, apvlv_window_resize_children_cb, this);
+        g_timeout_add (50, apvlv_window_resize_children_cb, this);
       }
   }
 
@@ -517,7 +517,7 @@ namespace apvlv
     debug ("widget (): %p, doc->widget (): %p", widget (), doc->widget ());
     if (type == AW_CORE)
       {
-	mCore->inuse (false);
+        mCore->inuse (false);
       }
     replace_widget (widget (), doc->widget ());
     doc->inuse (true);
@@ -559,9 +559,9 @@ namespace apvlv
   }
 
   gboolean
-    ApvlvWindow::apvlv_window_paned_resized_cb (GtkWidget * wid,
-						GdkEventButton * but,
-						ApvlvWindow * win)
+  ApvlvWindow::apvlv_window_paned_resized_cb (GtkWidget * wid,
+      GdkEventButton * but,
+      ApvlvWindow * win)
   {
     win->resize_children ();
     return FALSE;
@@ -577,25 +577,25 @@ namespace apvlv
     int ms = ma - mi;
     if (ms != 0)
       {
-	if (type == AW_SP)
-	  {
-	    mh1 = (mHeight * (mv - mi)) / ms - 1;
-	    mh2 = mHeight - mh1 - 1;
-	  }
-	else if (type == AW_VSP)
-	  {
-	    mw1 = (mWidth * (mv - mi)) / ms - 1;
-	    mw2 = mWidth - mw1 - 1;
-	  }
+        if (type == AW_SP)
+          {
+            mh1 = (mHeight * (mv - mi)) / ms - 1;
+            mh2 = mHeight - mh1 - 1;
+          }
+        else if (type == AW_VSP)
+          {
+            mw1 = (mWidth * (mv - mi)) / ms - 1;
+            mw2 = mWidth - mw1 - 1;
+          }
 
-	m_son->setsize (mw1, mh1);
-	m_daughter->setsize (mw2, mh2);
+        m_son->setsize (mw1, mh1);
+        m_daughter->setsize (mw2, mh2);
 
-	return TRUE;
+        return TRUE;
       }
     else
       {
-	return FALSE;
+        return FALSE;
       }
   }
 

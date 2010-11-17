@@ -42,32 +42,32 @@
 using namespace std;
 
 namespace apvlv
-{
+  {
   typedef map < string, string > ApvlvParam;
 
   class ApvlvParams
-  {
-  public:
-    ApvlvParams ();
-    ~ApvlvParams ();
+    {
+    public:
+      ApvlvParams ();
+      ~ApvlvParams ();
 
-    bool loadfile (const char *filename);
+      bool loadfile (const char *filename);
 
-    bool push (string & ch, string & str);
+      bool push (string & ch, string & str);
 
-    bool push (const char *c, const char *s);
+      bool push (const char *c, const char *s);
 
-    const char *values (const char *key);
+      const char *values (const char *key);
 
-    int valuei (const char *key);
+      int valuei (const char *key);
 
-    double valuef (const char *key);
+      double valuef (const char *key);
 
-    bool valueb (const char *key);
+      bool valueb (const char *key);
 
-  private:
+    private:
       ApvlvParam mSettings;
-  };
+    };
 
   extern ApvlvParams *gParams;
 }

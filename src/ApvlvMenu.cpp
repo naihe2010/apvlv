@@ -29,7 +29,7 @@
 #include "ApvlvMenu.hpp"
 
 namespace apvlv
-{
+  {
   static void apvlv_menu_on_file_open ();
   static void apvlv_menu_on_file_opentab ();
   static void apvlv_menu_on_file_saveas ();
@@ -43,9 +43,10 @@ namespace apvlv
   static void apvlv_menu_on_tools_jumpback ();
   static void apvlv_menu_on_help_about ();
 
-    ApvlvMenu::ApvlvMenu ()
+  ApvlvMenu::ApvlvMenu ()
   {
-    const GtkActionEntry action_entries[] = {
+    const GtkActionEntry action_entries[] =
+    {
       {"File", NULL, "File", NULL, NULL, NULL},
       {"Open", NULL, "Open", NULL, NULL, apvlv_menu_on_file_open},
       {"OpenTab", ":tabnew", "Open Tab...", NULL, NULL,
@@ -102,8 +103,8 @@ namespace apvlv
 
     GtkActionGroup *group = gtk_action_group_new ("action");
     gtk_action_group_add_actions (group, action_entries, sizeof
-				  (action_entries) / sizeof
-				  (action_entries[0]), NULL);
+                                  (action_entries) / sizeof
+                                  (action_entries[0]), NULL);
     gtk_ui_manager_insert_action_group (manager, group, 0);
 
     gtk_ui_manager_add_ui_from_string (manager, menu_string, -1, NULL);
@@ -182,7 +183,8 @@ namespace apvlv
   static void apvlv_menu_on_help_about ()
   {
     GtkWidget *dia = NULL;
-    static const char *author[] = {
+    static const char *author[] =
+    {
       "Alf",
       NULL
     };
@@ -193,7 +195,7 @@ namespace apvlv
     gtk_about_dialog_set_authors (GTK_ABOUT_DIALOG (dia), author);
     gtk_about_dialog_set_artists (GTK_ABOUT_DIALOG (dia), author);
     gtk_about_dialog_set_website (GTK_ABOUT_DIALOG (dia),
-				  "http://naihe2010.cublog.cn");
+                                  "http://naihe2010.cublog.cn");
     gtk_about_dialog_set_copyright (GTK_ABOUT_DIALOG (dia), "GNU");
     gtk_dialog_run (GTK_DIALOG (dia));
     gtk_widget_destroy (dia);

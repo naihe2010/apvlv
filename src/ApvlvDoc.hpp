@@ -48,238 +48,238 @@
 using namespace std;
 
 namespace apvlv
-{
-  struct PrintData
   {
-    ApvlvFile *file;
-    guint frmpn, endpn;
-  };
+  struct PrintData
+    {
+      ApvlvFile *file;
+      guint frmpn, endpn;
+    };
 
   struct ApvlvDocPosition
-  {
-    int pagenum;
-    double scrollrate;
-  };
+    {
+      int pagenum;
+      double scrollrate;
+    };
 
   typedef map < char, ApvlvDocPosition > ApvlvDocPositionMap;
 
   struct ApvlvWord
-  {
-    ApvlvPos pos;
-    string word;
-  };
+    {
+      ApvlvPos pos;
+      string word;
+    };
 
   struct ApvlvLine
-  {
-    ApvlvPos pos;
+    {
+      ApvlvPos pos;
       vector < ApvlvWord > mWords;
-  };
+    };
 
   class ApvlvDoc;
   class ApvlvDocCache
-  {
-  public:
-    ApvlvDocCache (ApvlvFile *);
+    {
+    public:
+      ApvlvDocCache (ApvlvFile *);
 
-    ~ApvlvDocCache ();
+      ~ApvlvDocCache ();
 
-    void set (guint p, double zm, guint rot, bool delay = true);
+      void set (guint p, double zm, guint rot, bool delay = true);
 
-    static void load (ApvlvDocCache *);
+      static void load (ApvlvDocCache *);
 
-    PopplerPage *getpage ();
+      PopplerPage *getpage ();
 
-    guint getpagenum ();
+      guint getpagenum ();
 
-    guchar *getdata (bool wait);
+      guchar *getdata (bool wait);
 
-    GdkPixbuf *getbuf (bool wait);
+      GdkPixbuf *getbuf (bool wait);
 
-    double getwidth ();
+      double getwidth ();
 
-    double getheight ();
+      double getheight ();
 
-    ApvlvLinks *getlinks ();
+      ApvlvLinks *getlinks ();
 
-    bool canselect ();
-    bool mInverted;
+      bool canselect ();
+      bool mInverted;
 
-    ApvlvWord *getword (int x, int y);
+      ApvlvWord *getword (int x, int y);
 
-    ApvlvLine *getline (double x, double y);
+      ApvlvLine *getline (double x, double y);
 
-  private:
+    private:
       ApvlvFile * mFile;
-    ApvlvLinks *mLinks;
-    double mZoom;
-    double mRotate;
-    gint mPagenum;
-    guchar *mData;
-    gint mSize;
-    GdkPixbuf *mBuf;
-    gint mWidth;
-    gint mHeight;
+      ApvlvLinks *mLinks;
+      double mZoom;
+      double mRotate;
+      gint mPagenum;
+      guchar *mData;
+      gint mSize;
+      GdkPixbuf *mBuf;
+      gint mWidth;
+      gint mHeight;
 
       vector < ApvlvLine > *mLines;
 
-    void preparelines (double x1, double y1, double x2, double y2);
-    ApvlvPos prepare_add (ApvlvPos & last, ApvlvPoses * results,
-			  const char *word);
-  };
+      void preparelines (double x1, double y1, double x2, double y2);
+      ApvlvPos prepare_add (ApvlvPos & last, ApvlvPoses * results,
+                            const char *word);
+    };
 
   class ApvlvDocStatus:public ApvlvCoreStatus
-  {
-  public:
-    ApvlvDocStatus (ApvlvDoc *);
+    {
+    public:
+      ApvlvDocStatus (ApvlvDoc *);
 
-    ~ApvlvDocStatus ();
+      ~ApvlvDocStatus ();
 
-    void active (bool act);
+      void active (bool act);
 
-    void setsize (int, int);
+      void setsize (int, int);
 
-    void show ();
+      void show ();
 
-  private:
+    private:
       ApvlvDoc * mDoc;
 #define AD_STATUS_SIZE   4
-    GtkWidget *mStlab[AD_STATUS_SIZE];
-  };
+      GtkWidget *mStlab[AD_STATUS_SIZE];
+    };
 
   class ApvlvDoc:public ApvlvCore
-  {
-  public:
-    ApvlvDoc (int w, int h, const char *zm = "NORMAL", bool cache = false);
+    {
+    public:
+      ApvlvDoc (int w, int h, const char *zm = "NORMAL", bool cache = false);
 
-     ~ApvlvDoc ();
+      ~ApvlvDoc ();
 
-    void setactive (bool act);
+      void setactive (bool act);
 
-    ApvlvDoc *copy ();
+      ApvlvDoc *copy ();
 
-    bool usecache ();
+      bool usecache ();
 
-    void usecache (bool use);
+      void usecache (bool use);
 
-    bool loadfile (string & filename, bool check = true);
+      bool loadfile (string & filename, bool check = true);
 
-    bool loadfile (const char *src, bool check = true);
+      bool loadfile (const char *src, bool check = true);
 
-    int pagenumber ();
+      int pagenumber ();
 
-    bool print (int ct);
+      bool print (int ct);
 
-    bool totext (const char *name);
+      bool totext (const char *name);
 
-    bool rotate (int ct = 90);
+      bool rotate (int ct = 90);
 
-    void markposition (const char s);
+      void markposition (const char s);
 
-    void setzoom (const char *z);
+      void setzoom (const char *z);
 
-    void jump (const char s);
+      void jump (const char s);
 
-    void showpage (int p, double s = 0.00);
+      void showpage (int p, double s = 0.00);
 
-    void nextpage (int times = 1);
+      void nextpage (int times = 1);
 
-    void prepage (int times = 1);
+      void prepage (int times = 1);
 
-    void halfnextpage (int times = 1);
+      void halfnextpage (int times = 1);
 
-    void halfprepage (int times = 1);
+      void halfprepage (int times = 1);
 
-    void scrollup (int times);
-    void scrolldown (int times);
-    void scrollleft (int times);
-    void scrollright (int times);
+      void scrollup (int times);
+      void scrolldown (int times);
+      void scrollleft (int times);
+      void scrollright (int times);
 
-    bool search (const char *str, bool reverse = false);
+      bool search (const char *str, bool reverse = false);
 
-    bool continuous ();
+      bool continuous ();
 
-    returnType process (int hastimes, int times, guint keyval);
+      returnType process (int hastimes, int times, guint keyval);
 
-    void gotolink (int ct);
+      void gotolink (int ct);
 
-    void returnlink (int ct);
+      void returnlink (int ct);
 
-  private:
-    void blank (int x, int y);
+    private:
+      void blank (int x, int y);
 
-    void blankarea (int x1, int y1, int x2, int y2, guchar *, int width,
-		    int height);
+      void blankarea (int x1, int y1, int x2, int y2, guchar *, int width,
+                      int height);
 
-    void blankaction (double x, double y);
+      void blankaction (double x, double y);
 
-    void togglevisual (int type);
+      void togglevisual (int type);
 
-    int yank (int times);
+      int yank (int times);
 
-    void eventpos (double x, double y, double *rx, double *ry);
+      void eventpos (double x, double y, double *rx, double *ry);
 
-    returnType subprocess (int ct, guint key);
+      returnType subprocess (int ct, guint key);
 
-    bool status_show ();
+      bool status_show ();
 
-    int convertindex (int p);
+      int convertindex (int p);
 
-    void markselection ();
+      void markselection ();
 
-    bool needsearch (const char *str, bool reverse = false);
+      bool needsearch (const char *str, bool reverse = false);
 
-    void refresh ();
+      void refresh ();
 
-    bool reload ();
+      bool reload ();
 
-    bool savelastposition (const char *filename);
+      bool savelastposition (const char *filename);
 
-    bool loadlastposition (const char *filename);
+      bool loadlastposition (const char *filename);
 
-    static void apvlv_doc_on_mouse (GtkAdjustment *, ApvlvDoc *);
+      static void apvlv_doc_on_mouse (GtkAdjustment *, ApvlvDoc *);
 
-    static gboolean apvlv_doc_first_scroll_cb (gpointer);
+      static gboolean apvlv_doc_first_scroll_cb (gpointer);
 
-    static gboolean apvlv_doc_first_copy_cb (gpointer);
+      static gboolean apvlv_doc_first_copy_cb (gpointer);
 
-    static void apvlv_doc_button_event (GtkEventBox * box,
-					GdkEventButton * ev, ApvlvDoc *);
+      static void apvlv_doc_button_event (GtkEventBox * box,
+                                          GdkEventButton * ev, ApvlvDoc *);
 
-    static void apvlv_doc_motion_event (GtkWidget *, GdkEventMotion *,
-					ApvlvDoc *);
+      static void apvlv_doc_motion_event (GtkWidget *, GdkEventMotion *,
+                                          ApvlvDoc *);
 
-    static void apvlv_doc_copytoclipboard_cb (GtkMenuItem * item, ApvlvDoc *);
+      static void apvlv_doc_copytoclipboard_cb (GtkMenuItem * item, ApvlvDoc *);
 
-    static void begin_print (GtkPrintOperation * operation,
-			     GtkPrintContext * context, PrintData * data);
-    static void draw_page (GtkPrintOperation * operation,
-			   GtkPrintContext * context,
-			   gint page_nr, PrintData * data);
-    static void end_print (GtkPrintOperation * operation,
-			   GtkPrintContext * context, PrintData * data);
+      static void begin_print (GtkPrintOperation * operation,
+                               GtkPrintContext * context, PrintData * data);
+      static void draw_page (GtkPrintOperation * operation,
+                             GtkPrintContext * context,
+                             gint page_nr, PrintData * data);
+      static void end_print (GtkPrintOperation * operation,
+                             GtkPrintContext * context, PrintData * data);
 
-    enum
-    { VISUAL_NONE, VISUAL_V, VISUAL_CTRL_V };
-    gint mInVisual;
-    gint mBlankx1, mBlanky1;
-    gint mBlankx2, mBlanky2;
-    gint mLastpress;
-    gint mCurx, mCury;
+      enum
+      { VISUAL_NONE, VISUAL_V, VISUAL_CTRL_V };
+      gint mInVisual;
+      gint mBlankx1, mBlanky1;
+      gint mBlankx2, mBlanky2;
+      gint mLastpress;
+      gint mCurx, mCury;
 
-    ApvlvDocPositionMap mPositions;
+      ApvlvDocPositionMap mPositions;
       vector < ApvlvDocPosition > mLinkPositions;
 
-    ApvlvDocCache *mCurrentCache1, *mCurrentCache2;
-    ApvlvDocCache *newcache (int pagenum);
-    void deletecache (ApvlvDocCache * ac);
+      ApvlvDocCache *mCurrentCache1, *mCurrentCache2;
+      ApvlvDocCache *newcache (int pagenum);
+      void deletecache (ApvlvDocCache * ac);
 
-    bool mAutoScrollPage;
-    bool mAutoScrollDoc;
-    bool mContinuous;
+      bool mAutoScrollPage;
+      bool mAutoScrollDoc;
+      bool mContinuous;
 
-    // image viewer
-    GtkWidget *mImage1, *mImage2;
-  };
+      // image viewer
+      GtkWidget *mImage1, *mImage2;
+    };
 
 }
 

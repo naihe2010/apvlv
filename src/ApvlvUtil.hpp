@@ -41,7 +41,7 @@
 using namespace std;
 
 namespace apvlv
-{
+  {
   // Global files
   extern string helppdf;
   extern string iniexam;
@@ -102,7 +102,8 @@ namespace apvlv
 
 #ifndef S_ISDIR
 #define S_ISDIR(mode)  (((mode) & 0170000) == (0040000))
-#endif				/*  */
+#endif				/* 
+  */
 
 #endif
 
@@ -124,7 +125,7 @@ namespace apvlv
 #endif
 #define errp(...)       logv ("ERROR", __FILE__, __LINE__, __func__, __VA_ARGS__)
   void logv (const char *, const char *, int, const char *, const char *,
-	     ...);
+             ...);
 
 // char macro
 // because every unsigned char is < 256, so use this marco to stand for Ctrl+char, Shift+char

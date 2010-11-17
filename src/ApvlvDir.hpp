@@ -37,105 +37,105 @@
 #include "ApvlvWindow.hpp"
 
 namespace apvlv
-{
+  {
   class ApvlvDir;
   class ApvlvDirNode
-  {
-  public:
-    ApvlvDirNode (GtkTreeIter *, gint);
-    ApvlvDirNode (GtkTreeIter *, bool isdir, const char *, const char *);
-    ~ApvlvDirNode ();
+    {
+    public:
+      ApvlvDirNode (GtkTreeIter *, gint);
+      ApvlvDirNode (GtkTreeIter *, bool isdir, const char *, const char *);
+      ~ApvlvDirNode ();
 
-    //
-    // Get the destination
-    bool dest (const char **rpath, int *pagenum);
+      //
+      // Get the destination
+      bool dest (const char **rpath, int *pagenum);
 
-    //
-    // Get the string
-    const char *phrase ();
+      //
+      // Get the string
+      const char *phrase ();
 
-    //
-    // Get the gtk tree iter
-    const GtkTreeIter *iter ();
+      //
+      // Get the gtk tree iter
+      const GtkTreeIter *iter ();
 
-  private:
+    private:
       GtkTreeIter itr[1];
 
-    gint mPagenum;		/* -1 means dir, 0 means file, > 0 means page num */
-    char filename[0x100];
-    char *realname;
-  };
+      gint mPagenum;		/* -1 means dir, 0 means file, > 0 means page num */
+      char filename[0x100];
+      char *realname;
+    };
 
   class ApvlvDir;
   class ApvlvDirStatus:public ApvlvCoreStatus
-  {
-  public:
-    ApvlvDirStatus (ApvlvDir *);
+    {
+    public:
+      ApvlvDirStatus (ApvlvDir *);
 
-    ~ApvlvDirStatus ();
+      ~ApvlvDirStatus ();
 
-    void active (bool act);
+      void active (bool act);
 
-    void setsize (int, int);
+      void setsize (int, int);
 
-    void show ();
+      void show ();
 
-  private:
+    private:
       ApvlvDir * mDoc;
 #define AD_STATUS_SIZE   4
-    GtkWidget *mStlab[AD_STATUS_SIZE];
-  };
+      GtkWidget *mStlab[AD_STATUS_SIZE];
+    };
 
   class ApvlvDir:public ApvlvCore
-  {
-  public:
-    ApvlvDir (int w, int h);
+    {
+    public:
+      ApvlvDir (int w, int h);
 
-     ~ApvlvDir ();
+      ~ApvlvDir ();
 
-    bool loadfile (const char *file, bool check = true);
+      bool loadfile (const char *file, bool check = true);
 
-    void setactive (bool act);
+      void setactive (bool act);
 
-    returnType process (int hastimes, int times, guint keyval);
+      returnType process (int hastimes, int times, guint keyval);
 
-  private:
+    private:
 
       returnType subprocess (int ct, guint key);
 
-    bool reload ();
+      bool reload ();
 
-    bool enter (guint key);
+      bool enter (guint key);
 
-    void scrollup (int times);
+      void scrollup (int times);
 
-    void scrolldown (int times);
+      void scrolldown (int times);
 
-    void scrollleft (int times);
+      void scrollleft (int times);
 
-    void scrollright (int times);
+      void scrollright (int times);
 
-    bool search (const char *str, bool reverse = false);
+      bool search (const char *str, bool reverse = false);
 
-    bool walk_file_index (GtkTreeIter * titr, ApvlvFileIndexIter iter);
+      bool walk_file_index (GtkTreeIter * titr, ApvlvFileIndexIter iter);
 
-    bool walk_dir_path_index (GtkTreeIter * titr, const char *path);
+      bool walk_dir_path_index (GtkTreeIter * titr, const char *path);
 
-    static void apvlv_dir_on_changed (GtkTreeSelection *, ApvlvDir *);
+      static void apvlv_dir_on_changed (GtkTreeSelection *, ApvlvDir *);
 
-    static gboolean apvlv_dir_first_select_cb (ApvlvDir *);
+      static gboolean apvlv_dir_first_select_cb (ApvlvDir *);
 
-    gint mFirstSelTimer;
+      gint mFirstSelTimer;
 
-    ApvlvFileIndex *mIndex;
+      ApvlvFileIndex *mIndex;
 
-    GList *mDirNodes;
+      GList *mDirNodes;
 
-    GtkWidget *mDirView;
-    GtkTreeStore *mStore;
-    GtkTreeIter mPrevIter, mCurrentIter;
-    GtkTreeSelection *mSelection;
-  };
+      GtkWidget *mDirView;
+      GtkTreeStore *mStore;
+      GtkTreeIter mPrevIter, mCurrentIter;
+      GtkTreeSelection *mSelection;
+    };
 
 }
 

@@ -36,7 +36,7 @@
 #include <fstream>
 
 namespace apvlv
-{
+  {
 #ifndef MAX
 #define MAX(a,b)        ((a) > (b) ? (a) : (b))
 #endif
@@ -53,8 +53,8 @@ namespace apvlv
   {
     if (mRawdata != NULL)
       {
-	delete[]mRawdata;
-	mRawdata = NULL;
+        delete[]mRawdata;
+        mRawdata = NULL;
       }
   }
 
@@ -63,43 +63,43 @@ namespace apvlv
     ApvlvFile *file = NULL;
 
     try
-    {
-      file = new ApvlvPDF (filename);
-    }
+      {
+        file = new ApvlvPDF (filename);
+      }
 
     catch (bad_alloc e)
-    {
-      delete file;
+      {
+        delete file;
 
-      try
-      {
-	file = new ApvlvDJVU (filename);
+        try
+          {
+            file = new ApvlvDJVU (filename);
+          }
+        catch (bad_alloc e)
+          {
+            file = NULL;
+            delete file;
+          }
       }
-      catch (bad_alloc e)
-      {
-	file = NULL;
-	delete file;
-      }
-    }
 
     debug ("new a file: %p", file);
     return file;
   }
 
-ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
-	     check)
+  ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
+          check)
   {
     gchar *wfilename;
 
     if (filename == NULL
-	|| *filename == '\0'
-	|| g_file_test (filename, G_FILE_TEST_IS_REGULAR) == FALSE
-	|| (wfilename =
-	    g_locale_from_utf8 (filename, -1, NULL, NULL, NULL)) == NULL)
+        || *filename == '\0'
+        || g_file_test (filename, G_FILE_TEST_IS_REGULAR) == FALSE
+        || (wfilename =
+              g_locale_from_utf8 (filename, -1, NULL, NULL, NULL)) == NULL)
       {
-	gView->errormessage ("filename error: %s",
-			     filename ? filename : "No name");
-	throw std::bad_alloc ();
+        gView->errormessage ("filename error: %s",
+                             filename ? filename : "No name");
+        throw std::bad_alloc ();
       }
 
     size_t filelen;
@@ -107,28 +107,28 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     int rt = stat (wfilename, &sbuf);
     if (rt < 0)
       {
-	gView->errormessage ("Can't stat the PDF file: %s.", filename);
-	throw std::bad_alloc ();
+        gView->errormessage ("Can't stat the PDF file: %s.", filename);
+        throw std::bad_alloc ();
       }
     filelen = sbuf.st_size;
 
     if (mRawdata != NULL && mRawdataSize < filelen)
       {
-	delete[]mRawdata;
-	mRawdata = NULL;
+        delete[]mRawdata;
+        mRawdata = NULL;
       }
 
     if (mRawdata == NULL)
       {
-	mRawdata = new char[filelen];
-	mRawdataSize = filelen;
+        mRawdata = new char[filelen];
+        mRawdataSize = filelen;
       }
 
     ifstream ifs (wfilename, ios::binary);
     if (ifs.is_open ())
       {
-	ifs.read (mRawdata, filelen);
-	ifs.close ();
+        ifs.read (mRawdata, filelen);
+        ifs.close ();
       }
 
     g_free (wfilename);
@@ -138,39 +138,39 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 
     if (mDoc == NULL && error && error->code == POPPLER_ERROR_ENCRYPTED)
       {
-	GtkWidget *dia = gtk_message_dialog_new (NULL,
-						 GTK_DIALOG_DESTROY_WITH_PARENT,
-						 GTK_MESSAGE_QUESTION,
-						 GTK_BUTTONS_OK_CANCEL,
-						 "%s", error->message);
-	g_error_free (error);
+        GtkWidget *dia = gtk_message_dialog_new (NULL,
+                         GTK_DIALOG_DESTROY_WITH_PARENT,
+                         GTK_MESSAGE_QUESTION,
+                         GTK_BUTTONS_OK_CANCEL,
+                         "%s", error->message);
+        g_error_free (error);
 
 
-	GtkWidget *entry = gtk_entry_new ();
-	gtk_entry_set_visibility (GTK_ENTRY (entry), FALSE);
-	gtk_entry_set_invisible_char (GTK_ENTRY (entry), '*');
-	gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dia)->vbox), entry, TRUE,
-			    TRUE, 10);
-	gtk_widget_show (entry);
+        GtkWidget *entry = gtk_entry_new ();
+        gtk_entry_set_visibility (GTK_ENTRY (entry), FALSE);
+        gtk_entry_set_invisible_char (GTK_ENTRY (entry), '*');
+        gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dia)->vbox), entry, TRUE,
+                            TRUE, 10);
+        gtk_widget_show (entry);
 
-	int ret = gtk_dialog_run (GTK_DIALOG (dia));
-	if (ret == GTK_RESPONSE_OK)
-	  {
-	    gchar *ans = (gchar *) gtk_entry_get_text (GTK_ENTRY (entry));
-	    if (ans != NULL)
-	      {
-		mDoc =
-		  poppler_document_new_from_data (mRawdata, filelen, ans,
-						  NULL);
-	      }
-	  }
+        int ret = gtk_dialog_run (GTK_DIALOG (dia));
+        if (ret == GTK_RESPONSE_OK)
+          {
+            gchar *ans = (gchar *) gtk_entry_get_text (GTK_ENTRY (entry));
+            if (ans != NULL)
+              {
+                mDoc =
+                  poppler_document_new_from_data (mRawdata, filelen, ans,
+                                                  NULL);
+              }
+          }
 
-	gtk_widget_destroy (dia);
+        gtk_widget_destroy (dia);
       }
 
     if (mDoc == NULL)
       {
-	throw std::bad_alloc ();
+        throw std::bad_alloc ();
       }
   }
 
@@ -178,9 +178,9 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
   {
     if (mDoc)
       {
-	debug ("Free the PopplerDocument");
-	debug ("And, Maybe there is some bugs in poppler-glib libiray");
-	g_object_unref (mDoc);
+        debug ("Free the PopplerDocument");
+        debug ("And, Maybe there is some bugs in poppler-glib libiray");
+        g_object_unref (mDoc);
       }
   }
 
@@ -190,8 +190,8 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     gchar *path = absolutepath (filename);
     if (path == NULL)
       {
-	debug ("filename error: %s", filename);
-	return false;
+        debug ("filename error: %s", filename);
+        return false;
       }
 
     GError *error = NULL;
@@ -199,16 +199,16 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     g_free (path);
     if (uri == NULL && error)
       {
-	debug ("%d: %s", error->code, error->message);
-	return false;
+        debug ("%d: %s", error->code, error->message);
+        return false;
       }
 
     if (mDoc && uri != NULL)
       {
-	gboolean ret = poppler_document_save (mDoc, uri, NULL);
-	debug ("write pdf: %p to %s, return %d", mDoc, uri, ret);
-	g_free (uri);
-	return ret == TRUE ? true : false;
+        gboolean ret = poppler_document_save (mDoc, uri, NULL);
+        debug ("write pdf: %p to %s, return %d", mDoc, uri, ret);
+        g_free (uri);
+        return ret == TRUE ? true : false;
       }
     return false;
   }
@@ -218,15 +218,15 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     PopplerPage *page = poppler_document_get_page (mDoc, pn);
     if (page != NULL)
       {
-	if (rot == 90 || rot == 270)
-	  {
-	    poppler_page_get_size (page, y, x);
-	  }
-	else
-	  {
-	    poppler_page_get_size (page, x, y);
-	  }
-	return true;
+        if (rot == 90 || rot == 270)
+          {
+            poppler_page_get_size (page, y, x);
+          }
+        else
+          {
+            poppler_page_get_size (page, x, y);
+          }
+        return true;
       }
     return false;
   }
@@ -241,7 +241,7 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     PopplerPage *page = poppler_document_get_page (mDoc, pn);
     if (page == NULL)
       {
-	return NULL;
+        return NULL;
       }
 
 //    debug ("search %s", str);
@@ -249,22 +249,22 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     GList *list = poppler_page_find_text (page, str);
     if (list == NULL)
       {
-	return NULL;
+        return NULL;
       }
 
     if (reverse)
       {
-	list = g_list_reverse (list);
+        list = g_list_reverse (list);
       }
 
     ApvlvPoses *poses = new ApvlvPoses;
     for (GList * tmp = list; tmp != NULL; tmp = g_list_next (tmp))
       {
-	PopplerRectangle *rect = (PopplerRectangle *) tmp->data;
+        PopplerRectangle *rect = (PopplerRectangle *) tmp->data;
 //      debug ("results: %f-%f,%f-%f", rect->x1, rect->x2, rect->y1,
 //             rect->y2);
-	ApvlvPos pos = { rect->x1, rect->x2, rect->y1, rect->y2 };
-	poses->push_back (pos);
+        ApvlvPos pos = { rect->x1, rect->x2, rect->y1, rect->y2 };
+        poses->push_back (pos);
       }
 
     return poses;
@@ -277,20 +277,20 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     *out = poppler_page_get_text (page, POPPLER_SELECTION_WORD, &rect);
     if (*out != NULL)
       {
-	return true;
+        return true;
       }
     return false;
   }
 
   bool ApvlvPDF::render (int pn, int ix, int iy, double zm, int rot,
-			 GdkPixbuf * pix, char *buffer)
+                         GdkPixbuf * pix, char *buffer)
   {
     PopplerPage *tpage;
 
     if ((tpage = poppler_document_get_page (mDoc, pn)) == NULL)
       {
-	debug ("no this page: %d", pn);
-	return false;
+        debug ("no this page: %d", pn);
+        return false;
       }
 
     poppler_page_render_to_pixbuf (tpage, 0, 0, ix, iy, zm, rot, pix);
@@ -298,8 +298,8 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
   }
 
   bool ApvlvPDF::pageselectsearch (int pn, int ix, int iy,
-				   double zm, int rot, GdkPixbuf * pix,
-				   char *buffer, int sel, ApvlvPoses * poses)
+                                   double zm, int rot, GdkPixbuf * pix,
+                                   char *buffer, int sel, ApvlvPoses * poses)
   {
     ApvlvPos rect = (*poses)[sel];
 
@@ -314,35 +314,35 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     // heightlight the selection
     for (gint y = y1; y < y2; y++)
       {
-	for (gint x = x1; x < x2; x++)
-	  {
-	    gint p = (gint) (y * ix * 3 + (x * 3));
-	    buffer[p + 0] = 0xff - buffer[p + 0];
-	    buffer[p + 1] = 0xff - buffer[p + 0];
-	    buffer[p + 2] = 0xff - buffer[p + 0];
-	  }
+        for (gint x = x1; x < x2; x++)
+          {
+            gint p = (gint) (y * ix * 3 + (x * 3));
+            buffer[p + 0] = 0xff - buffer[p + 0];
+            buffer[p + 1] = 0xff - buffer[p + 0];
+            buffer[p + 2] = 0xff - buffer[p + 0];
+          }
       }
 
     // change the back color of the selection
     for (ApvlvPoses::const_iterator itr = poses->begin ();
-	 itr != poses->end (); itr++)
+         itr != poses->end (); itr++)
       {
-	// Caculate the correct position
-	x1 = (gint) (itr->x1 * zm);
-	x2 = (gint) (itr->x2 * zm);
-	y1 = (gint) (iy - itr->y2 * zm);
-	y2 = (gint) (iy - itr->y1 * zm);
+        // Caculate the correct position
+        x1 = (gint) (itr->x1 * zm);
+        x2 = (gint) (itr->x2 * zm);
+        y1 = (gint) (iy - itr->y2 * zm);
+        y2 = (gint) (iy - itr->y1 * zm);
 
-	for (gint y = y1; y < y2; y++)
-	  {
-	    for (gint x = x1; x < x2; x++)
-	      {
-		gint p = (gint) (y * 3 * ix + (x * 3));
-		buffer[p + 0] = 0xff - buffer[p + 0];
-		buffer[p + 1] = 0xff - buffer[p + 0];
-		buffer[p + 2] = 0xff - buffer[p + 0];
-	      }
-	  }
+        for (gint y = y1; y < y2; y++)
+          {
+            for (gint x = x1; x < x2; x++)
+              {
+                gint p = (gint) (y * 3 * ix + (x * 3));
+                buffer[p + 0] = 0xff - buffer[p + 0];
+                buffer[p + 1] = 0xff - buffer[p + 0];
+                buffer[p + 2] = 0xff - buffer[p + 0];
+              }
+          }
       }
 
     return true;
@@ -354,38 +354,38 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     GList *list = poppler_page_get_link_mapping (page);
     if (list == NULL)
       {
-	return NULL;
+        return NULL;
       }
 
     ApvlvLinks *links = new ApvlvLinks;
 
     for (GList * tmp = list; tmp != NULL; tmp = g_list_next (tmp))
       {
-	PopplerLinkMapping *map = (PopplerLinkMapping *) tmp->data;
-	if (map)
-	  {
-	    PopplerAction *act = map->action;
-	    if (act && *(PopplerActionType *) act == POPPLER_ACTION_GOTO_DEST)
-	      {
-		PopplerDest *pd = ((PopplerActionGotoDest *) act)->dest;
-		if (pd->type == POPPLER_DEST_NAMED)
-		  {
-		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pd->named_dest);
-		    if (destnew != NULL)
-		      {
-			ApvlvLink link = { "", destnew->page_num - 1 };
-			links->insert (links->begin (), link);
-			poppler_dest_free (destnew);
-		      }
-		  }
-		else
-		  {
-		    ApvlvLink link = { "", pd->page_num - 1 };
-		    links->insert (links->begin (), link);
-		  }
-	      }
-	  }
+        PopplerLinkMapping *map = (PopplerLinkMapping *) tmp->data;
+        if (map)
+          {
+            PopplerAction *act = map->action;
+            if (act && *(PopplerActionType *) act == POPPLER_ACTION_GOTO_DEST)
+              {
+                PopplerDest *pd = ((PopplerActionGotoDest *) act)->dest;
+                if (pd->type == POPPLER_DEST_NAMED)
+                  {
+                    PopplerDest *destnew = poppler_document_find_dest (mDoc,
+                                           pd->named_dest);
+                    if (destnew != NULL)
+                      {
+                        ApvlvLink link = { "", destnew->page_num - 1 };
+                        links->insert (links->begin (), link);
+                        poppler_dest_free (destnew);
+                      }
+                  }
+                else
+                  {
+                    ApvlvLink link = { "", pd->page_num - 1 };
+                    links->insert (links->begin (), link);
+                  }
+              }
+          }
       }
 
     return links;
@@ -395,15 +395,15 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
   {
     if (mIndex != NULL)
       {
-	debug ("file %p has index: %p, return", this, mIndex);
-	return mIndex;
+        debug ("file %p has index: %p, return", this, mIndex);
+        return mIndex;
       }
 
     PopplerIndexIter *itr = poppler_index_iter_new (mDoc);
     if (itr == NULL)
       {
-	debug ("no index.");
-	return NULL;
+        debug ("no index.");
+        return NULL;
       }
 
     mIndex = new ApvlvFileIndex;
@@ -418,61 +418,61 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
   }
 
   bool ApvlvPDF::walk_poppler_index_iter (ApvlvFileIndex * titr,
-					  PopplerIndexIter * iter)
+                                          PopplerIndexIter * iter)
   {
     bool has = false;
     do
       {
-	has = false;
-	ApvlvFileIndex *index = NULL;
+        has = false;
+        ApvlvFileIndex *index = NULL;
 
-	PopplerAction *act = poppler_index_iter_get_action (iter);
-	if (act)
-	  {
-	    if (*(PopplerActionType *) act == POPPLER_ACTION_GOTO_DEST)
-	      {
-		PopplerActionGotoDest *pagd = (PopplerActionGotoDest *) act;
-		if (pagd->dest->type == POPPLER_DEST_NAMED)
-		  {
-		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
-								       pagd->
-								       dest->
-								       named_dest);
-		    int pn = 1;
-		    if (destnew != NULL)
-		      {
-			pn = destnew->page_num - 1;
-			poppler_dest_free (destnew);
-		      }
-		    index = new ApvlvFileIndex;
-		    index->page = pn;
-		  }
-		else
-		  {
-		    index = new ApvlvFileIndex;
-		    index->page = pagd->dest->page_num - 1;
-		  }
+        PopplerAction *act = poppler_index_iter_get_action (iter);
+        if (act)
+          {
+            if (*(PopplerActionType *) act == POPPLER_ACTION_GOTO_DEST)
+              {
+                PopplerActionGotoDest *pagd = (PopplerActionGotoDest *) act;
+                if (pagd->dest->type == POPPLER_DEST_NAMED)
+                  {
+                    PopplerDest *destnew = poppler_document_find_dest (mDoc,
+                                           pagd->
+                                           dest->
+                                           named_dest);
+                    int pn = 1;
+                    if (destnew != NULL)
+                      {
+                        pn = destnew->page_num - 1;
+                        poppler_dest_free (destnew);
+                      }
+                    index = new ApvlvFileIndex;
+                    index->page = pn;
+                  }
+                else
+                  {
+                    index = new ApvlvFileIndex;
+                    index->page = pagd->dest->page_num - 1;
+                  }
 
-		if (index != NULL)
-		  {
-		    has = true;
-		    index->title = pagd->title;
-		    titr->children.push_back (*index);
-		    delete index;
-		    index = &(titr->children[titr->children.size () - 1]);
-		    debug ("titr: %p, index: %p", titr, index);
-		  }
-	      }
-	    poppler_action_free (act);
-	  }
+                if (index != NULL)
+                  {
+                    has = true;
+                    index->title = pagd->title;
+                    titr->children.push_back (*index);
+                    delete index;
+                    index = &(titr->children[titr->children.size () - 1]);
+                    debug ("titr: %p, index: %p", titr, index);
+                  }
+              }
+            poppler_action_free (act);
+          }
 
-	PopplerIndexIter *child = poppler_index_iter_get_child (iter);
-	if (child)
-	  {
-	    bool chas = walk_poppler_index_iter (has ? index : titr, child);
-	    has = has ? has : chas;
-	    poppler_index_iter_free (child);
-	  }
+        PopplerIndexIter *child = poppler_index_iter_get_child (iter);
+        if (child)
+          {
+            bool chas = walk_poppler_index_iter (has ? index : titr, child);
+            has = has ? has : chas;
+            poppler_index_iter_free (child);
+          }
       }
     while (poppler_index_iter_next (iter));
     return has;
@@ -486,12 +486,12 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     PopplerPage *page = poppler_document_get_page (mDoc, pn);
     if (page != NULL)
       {
-	poppler_page_render_for_printing (page, cr);
-	return true;
+        poppler_page_render_for_printing (page, cr);
+        return true;
       }
     else
       {
-	return false;
+        return false;
       }
 #endif
   }
@@ -504,54 +504,54 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
       ddjvu_message_wait (ctx);
     while ((msg = ddjvu_message_peek (ctx)))
       {
-	debug ("tag: %d", msg->m_any.tag);
-	switch (msg->m_any.tag)
-	  {
-	  case DDJVU_ERROR:
-	    break;
-	  case DDJVU_INFO:
-	    break;
-	  case DDJVU_PAGEINFO:
-	    break;
-	  default:
-	    break;
-	  }
-	ddjvu_message_pop (ctx);
+        debug ("tag: %d", msg->m_any.tag);
+        switch (msg->m_any.tag)
+          {
+          case DDJVU_ERROR:
+            break;
+          case DDJVU_INFO:
+            break;
+          case DDJVU_PAGEINFO:
+            break;
+          default:
+            break;
+          }
+        ddjvu_message_pop (ctx);
       }
   }
 #endif
 
   ApvlvDJVU::ApvlvDJVU (const char *filename, bool check):ApvlvFile (filename,
-								     check)
+          check)
   {
 #ifdef HAVE_LIBDJVU
     mContext = ddjvu_context_create ("apvlv");
     if (mContext)
       {
-	mDoc = ddjvu_document_create_by_filename (mContext, filename, FALSE);
+        mDoc = ddjvu_document_create_by_filename (mContext, filename, FALSE);
       }
 
     if (mDoc != NULL)
       {
-	if (ddjvu_document_get_type (mDoc) == DDJVU_DOCTYPE_SINGLEPAGE)
-	  {
-	    debug ("djvu type: %d", ddjvu_document_get_type (mDoc));
-	  }
-	else
-	  {
-	    /*  
-	       ddjvu_document_release (mDoc);
-	       mDoc = NULL;
-	       ddjvu_context_release (mContext);
-	       mContext = NULL;
-	       throw std::bad_alloc (); */
-	  }
+        if (ddjvu_document_get_type (mDoc) == DDJVU_DOCTYPE_SINGLEPAGE)
+          {
+            debug ("djvu type: %d", ddjvu_document_get_type (mDoc));
+          }
+        else
+          {
+            /*
+               ddjvu_document_release (mDoc);
+               mDoc = NULL;
+               ddjvu_context_release (mContext);
+               mContext = NULL;
+               throw std::bad_alloc (); */
+          }
       }
     else
       {
-	ddjvu_context_release (mContext);
-	mContext = NULL;
-	throw std::bad_alloc ();
+        ddjvu_context_release (mContext);
+        mContext = NULL;
+        throw std::bad_alloc ();
       }
 #else
     throw std::bad_alloc ();
@@ -563,12 +563,12 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 #ifdef HAVE_LIBDJVU
     if (mContext)
       {
-	ddjvu_context_release (mContext);
+        ddjvu_context_release (mContext);
       }
 
     if (mDoc)
       {
-	ddjvu_document_release (mDoc);
+        ddjvu_document_release (mDoc);
       }
 #endif
   }
@@ -579,13 +579,13 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     FILE *fp = fopen (filename, "wb");
     if (fp != NULL)
       {
-	ddjvu_job_t *job = ddjvu_document_save (mDoc, fp, 0, NULL);
-	while (!ddjvu_job_done (job))
-	  {
-	    handle_ddjvu_messages (mContext, TRUE);
-	  }
-	fclose (fp);
-	return true;
+        ddjvu_job_t *job = ddjvu_document_save (mDoc, fp, 0, NULL);
+        while (!ddjvu_job_done (job))
+          {
+            handle_ddjvu_messages (mContext, TRUE);
+          }
+        fclose (fp);
+        return true;
       }
     return false;
 #else
@@ -600,14 +600,14 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
     ddjvu_pageinfo_t info[1];
     while ((t = ddjvu_document_get_pageinfo (mDoc, 0, info)) < DDJVU_JOB_OK)
       {
-	handle_ddjvu_messages (mContext, true);
+        handle_ddjvu_messages (mContext, true);
       }
 
     if (t == DDJVU_JOB_OK)
       {
-	*x = info->width;
-	*y = info->height;
-	debug ("djvu page 1: %f-%f", *x, *y);
+        *x = info->width;
+        *y = info->height;
+        debug ("djvu page 1: %f-%f", *x, *y);
       }
     return true;
 #else
@@ -625,15 +625,15 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
   }
 
   bool ApvlvDJVU::render (int pn, int ix, int iy, double zm, int rot,
-			  GdkPixbuf * pix, char *buffer)
+                          GdkPixbuf * pix, char *buffer)
   {
 #ifdef HAVE_LIBDJVU
     ddjvu_page_t *tpage;
 
     if ((tpage = ddjvu_page_create_by_pageno (mDoc, pn)) == NULL)
       {
-	debug ("no this page: %d", pn);
-	return false;
+        debug ("no this page: %d", pn);
+        return false;
       }
 
     ddjvu_rect_t prect[1] = { {0, 0, ix, iy}
@@ -646,11 +646,11 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
 
     gint retry = 0;
     while (retry <= 20 && ddjvu_page_render
-	   (tpage, DDJVU_RENDER_COLOR, prect, rrect, format, 3 * ix,
-	    (char *) buffer) == FALSE)
+           (tpage, DDJVU_RENDER_COLOR, prect, rrect, format, 3 * ix,
+            (char *) buffer) == FALSE)
       {
-	usleep (50 * 1000);
-	debug ("fender failed, retry %d", ++retry);
+        usleep (50 * 1000);
+        debug ("fender failed, retry %d", ++retry);
       }
 
     return true;
@@ -660,8 +660,8 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
   }
 
   bool ApvlvDJVU::pageselectsearch (int pn, int ix, int iy, double zm,
-				    int rot, GdkPixbuf * pix, char *buffer,
-				    int sel, ApvlvPoses * poses)
+                                    int rot, GdkPixbuf * pix, char *buffer,
+                                    int sel, ApvlvPoses * poses)
   {
     return false;
   }
@@ -677,7 +677,7 @@ ApvlvPDF::ApvlvPDF (const char *filename, bool check):ApvlvFile (filename,
   }
 
   bool ApvlvDJVU::pagetext (int pn, int x1, int y1, int x2, int y2,
-			    char **out)
+                            char **out)
   {
     return false;
   }

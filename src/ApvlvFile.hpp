@@ -43,15 +43,15 @@
 using namespace std;
 
 namespace apvlv
-{
+  {
   //
   // link to a url, or a page num
   //
   struct ApvlvLink
-  {
-    string mUrl;
-    int mPage;
-  };
+    {
+      string mUrl;
+      int mPage;
+    };
 
   typedef vector < ApvlvLink > ApvlvLinks;
 
@@ -59,138 +59,138 @@ namespace apvlv
   // position of a search result, or just a area
   //
   struct ApvlvPos
-  {
-    double x1, x2, y1, y2;
-  };
+    {
+      double x1, x2, y1, y2;
+    };
 
   typedef vector < ApvlvPos > ApvlvPoses;
 
   struct ApvlvFileIndex
-  {
-    string title;
-    int page;
+    {
+      string title;
+      int page;
       vector < ApvlvFileIndex > children;
-  };
+    };
 
   typedef vector < ApvlvFileIndex >::iterator ApvlvFileIndexIter;
 
   class ApvlvFile
-  {
-  public:
-    ApvlvFile (const char *filename, bool check);
+    {
+    public:
+      ApvlvFile (const char *filename, bool check);
 
       virtual ~ ApvlvFile ();
 
-    static ApvlvFile *newfile (const char *filename, bool check = false);
+      static ApvlvFile *newfile (const char *filename, bool check = false);
 
-    virtual bool writefile (const char *filename) = 0;
+      virtual bool writefile (const char *filename) = 0;
 
-    virtual bool pagesize (int page, int rot, double *x, double *y) = 0;
+      virtual bool pagesize (int page, int rot, double *x, double *y) = 0;
 
-    virtual int pagesum () = 0;
+      virtual int pagesum () = 0;
 
-    virtual bool pagetext (int, int, int, int, int, char **) = 0;
+      virtual bool pagetext (int, int, int, int, int, char **) = 0;
 
-    virtual bool render (int, int, int, double, int, GdkPixbuf *,
-			 char *buffer = NULL) = 0;
+      virtual bool render (int, int, int, double, int, GdkPixbuf *,
+                           char *buffer = NULL) = 0;
 
-    virtual ApvlvPoses *pagesearch (int pn, const char *str, bool reverse =
-				    false) = 0;
+      virtual ApvlvPoses *pagesearch (int pn, const char *str, bool reverse =
+                                        false) = 0;
 
-    virtual bool pageselectsearch (int, int, int, double, int,
-				   GdkPixbuf *, char *, int, ApvlvPoses *) =
-      0;
+      virtual bool pageselectsearch (int, int, int, double, int,
+                                     GdkPixbuf *, char *, int, ApvlvPoses *) =
+                                       0;
 
-    virtual ApvlvLinks *getlinks (int pn) = 0;
+      virtual ApvlvLinks *getlinks (int pn) = 0;
 
-    virtual ApvlvFileIndex *new_index () = 0;
+      virtual ApvlvFileIndex *new_index () = 0;
 
-    virtual void free_index (ApvlvFileIndex *) = 0;
+      virtual void free_index (ApvlvFileIndex *) = 0;
 
-    virtual bool pageprint (int pn, cairo_t * cr) = 0;
+      virtual bool pageprint (int pn, cairo_t * cr) = 0;
 
-  protected:
+    protected:
 
       ApvlvFileIndex * mIndex;
-    unsigned short mIndexRef;
+      unsigned short mIndexRef;
 
-    gchar *mRawdata;
-    guint mRawdataSize;
-  };
+      gchar *mRawdata;
+      guint mRawdataSize;
+    };
 
   class ApvlvPDF:public ApvlvFile
-  {
-  public:
-    ApvlvPDF (const char *filename, bool check = true);
+    {
+    public:
+      ApvlvPDF (const char *filename, bool check = true);
 
-     ~ApvlvPDF ();
+      ~ApvlvPDF ();
 
-    bool writefile (const char *filename);
+      bool writefile (const char *filename);
 
-    bool pagesize (int page, int rot, double *x, double *y);
+      bool pagesize (int page, int rot, double *x, double *y);
 
-    int pagesum ();
+      int pagesum ();
 
-    bool pagetext (int, int, int, int, int, char **);
+      bool pagetext (int, int, int, int, int, char **);
 
-    bool render (int, int, int, double, int, GdkPixbuf *, char *);
+      bool render (int, int, int, double, int, GdkPixbuf *, char *);
 
-    bool pageselectsearch (int, int, int, double, int, GdkPixbuf *,
-			   char *, int, ApvlvPoses *);
+      bool pageselectsearch (int, int, int, double, int, GdkPixbuf *,
+                             char *, int, ApvlvPoses *);
 
-    ApvlvPoses *pagesearch (int pn, const char *s, bool reverse = false);
+      ApvlvPoses *pagesearch (int pn, const char *s, bool reverse = false);
 
-    ApvlvLinks *getlinks (int pn);
+      ApvlvLinks *getlinks (int pn);
 
-    ApvlvFileIndex *new_index ();
+      ApvlvFileIndex *new_index ();
 
-    void free_index (ApvlvFileIndex *);
+      void free_index (ApvlvFileIndex *);
 
-    bool pageprint (int pn, cairo_t * cr);
+      bool pageprint (int pn, cairo_t * cr);
 
-  private:
+    private:
       bool walk_poppler_index_iter (ApvlvFileIndex * titr,
-				    PopplerIndexIter * iter);
+                                    PopplerIndexIter * iter);
 
-    PopplerDocument *mDoc;
-  };
+      PopplerDocument *mDoc;
+    };
 
   class ApvlvDJVU:public ApvlvFile
-  {
-  public:
-    ApvlvDJVU (const char *filename, bool check = true);
+    {
+    public:
+      ApvlvDJVU (const char *filename, bool check = true);
 
-     ~ApvlvDJVU ();
+      ~ApvlvDJVU ();
 
-    bool writefile (const char *filename);
+      bool writefile (const char *filename);
 
-    bool pagesize (int page, int rot, double *x, double *y);
+      bool pagesize (int page, int rot, double *x, double *y);
 
-    int pagesum ();
+      int pagesum ();
 
-    bool pagetext (int, int, int, int, int, char **);
+      bool pagetext (int, int, int, int, int, char **);
 
-    bool render (int, int, int, double, int, GdkPixbuf *, char *);
+      bool render (int, int, int, double, int, GdkPixbuf *, char *);
 
-    bool pageselectsearch (int, int, int, double, int, GdkPixbuf *,
-			   char *, int, ApvlvPoses *);
+      bool pageselectsearch (int, int, int, double, int, GdkPixbuf *,
+                             char *, int, ApvlvPoses *);
 
-    ApvlvPoses *pagesearch (int pn, const char *s, bool reverse = false);
+      ApvlvPoses *pagesearch (int pn, const char *s, bool reverse = false);
 
-    ApvlvLinks *getlinks (int pn);
+      ApvlvLinks *getlinks (int pn);
 
-    ApvlvFileIndex *new_index ();
+      ApvlvFileIndex *new_index ();
 
-    void free_index (ApvlvFileIndex *);
+      void free_index (ApvlvFileIndex *);
 
-    bool pageprint (int pn, cairo_t * cr);
+      bool pageprint (int pn, cairo_t * cr);
 
-  private:
+    private:
 #ifdef HAVE_LIBDJVU
       ddjvu_context_t * mContext;
-    ddjvu_document_t *mDoc;
+      ddjvu_document_t *mDoc;
 #endif
-  };
+    };
 
 };
 

@@ -51,21 +51,21 @@ static void
 usage_exit ()
 {
   fprintf (stdout, "%s Usage:\n"
-	   "%s\n"
-	   "Please send bug report to %s\n",
-	   PACKAGE_NAME,
-	   "\t-h                display this and exit\n"
-	   "\t-v                display version info and exit\n"
-	   "\t-c [file]         set user configuration file\n",
-	   PACKAGE_BUGREPORT);
+           "%s\n"
+           "Please send bug report to %s\n",
+           PACKAGE_NAME,
+           "\t-h                display this and exit\n"
+           "\t-v                display version info and exit\n"
+           "\t-c [file]         set user configuration file\n",
+           PACKAGE_BUGREPORT);
 }
 
 static void
 version_exit ()
 {
   fprintf (stdout, "%s %s-%s\n"
-	   "Please send bug report to %s\n"
-	   "\n", PACKAGE_NAME, PACKAGE_VERSION, RELEASE, PACKAGE_BUGREPORT);
+           "Please send bug report to %s\n"
+           "\n", PACKAGE_NAME, PACKAGE_VERSION, RELEASE, PACKAGE_BUGREPORT);
 }
 #endif
 
@@ -84,35 +84,36 @@ parse_options (int argc, char *argv[])
   return 1;
 #else
   int c, index;
-  static struct option long_options[] = {
-    {"config", required_argument, NULL, 'c'},
-    {"help", no_argument, NULL, 'h'},
-    {"version", no_argument, NULL, 'v'},
-    {0, 0, 0, 0}
-  };
+  static struct option long_options[] =
+    {
+      {"config", required_argument, NULL, 'c'},
+      {"help", no_argument, NULL, 'h'},
+      {"version", no_argument, NULL, 'v'},
+      {0, 0, 0, 0}
+    };
 
   index = 0;
   ini = NULL;
   while ((c = getopt_long (argc, argv, "c:hv", long_options, &index)) != -1)
     {
       switch (c)
-	{
-	case 'c':
-	  ini = absolutepath (optarg);
-	  break;
+        {
+        case 'c':
+          ini = absolutepath (optarg);
+          break;
 
-	case 'h':
-	  usage_exit ();
-	  return -1;
+        case 'h':
+          usage_exit ();
+          return -1;
 
-	case 'v':
-	  version_exit ();
-	  return -1;
+        case 'v':
+          version_exit ();
+          return -1;
 
-	default:
-	  errp ("no command line options");
-	  return -1;
-	}
+        default:
+          errp ("no command line options");
+          return -1;
+        }
     }
 
   if (ini == NULL)
@@ -120,7 +121,7 @@ parse_options (int argc, char *argv[])
       ini = absolutepath (inifile.c_str ());
     }
 
-  /* 
+  /*
    * load the global sys conf file
    * */
   gchar *sysini = g_strdup_printf ("%s/%s", SYSCONFDIR, "apvlvrc");
@@ -130,7 +131,7 @@ parse_options (int argc, char *argv[])
       g_free (sysini);
     }
 
-  /* 
+  /*
    * load the user conf file
    * */
   if (ini != NULL)
@@ -224,14 +225,14 @@ main (int argc, char *argv[])
     {
       path = absolutepath (argv[opt++]);
       if (path == NULL)
-	{
-	  continue;
-	}
+        {
+          continue;
+        }
 
       if (gView->loadfile (path) == false)
-	{
-	  errp ("Can't open document: %s", path);
-	}
+        {
+          errp ("Can't open document: %s", path);
+        }
 
       g_free (path);
     }

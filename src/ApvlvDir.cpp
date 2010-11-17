@@ -41,7 +41,7 @@
 #include <sstream>
 
 namespace apvlv
-{
+  {
   ApvlvDirNode::ApvlvDirNode (GtkTreeIter * ir, gint p)
   {
     *itr = *ir;
@@ -50,7 +50,7 @@ namespace apvlv
   }
 
   ApvlvDirNode::ApvlvDirNode (GtkTreeIter * ir, bool isdir, const char *real,
-			      const char *file)
+                              const char *file)
   {
     *itr = *ir;
     mPagenum = isdir ? -1 : 0;
@@ -62,7 +62,7 @@ namespace apvlv
   {
     if (realname)
       {
-	g_free (realname);
+        g_free (realname);
       }
   }
 
@@ -70,14 +70,14 @@ namespace apvlv
   {
     if (mPagenum == 0 && path != NULL)
       {
-	*path = realname;
-	return true;
+        *path = realname;
+        return true;
       }
 
     else if (mPagenum > 0 && pn != NULL)
       {
-	*pn = mPagenum;
-	return true;
+        *pn = mPagenum;
+        return true;
       }
 
     return false;
@@ -115,7 +115,7 @@ namespace apvlv
 
     mSelection = gtk_tree_view_get_selection (GTK_TREE_VIEW (mDirView));
     g_signal_connect (G_OBJECT (mSelection), "changed",
-		      G_CALLBACK (apvlv_dir_on_changed), this);
+                      G_CALLBACK (apvlv_dir_on_changed), this);
 
     /* Title Column */
     GtkCellRenderer *renderer0 = gtk_cell_renderer_pixbuf_new ();
@@ -144,25 +144,25 @@ namespace apvlv
 
     if (mDirNodes)
       {
-	for (GList * list = mDirNodes; list; list = g_list_next (list))
-	  {
-	    ApvlvDirNode *info = (ApvlvDirNode *) list->data;
-	    delete info;
-	  }
-	g_list_free (mDirNodes);
-	mDirNodes = NULL;
+        for (GList * list = mDirNodes; list; list = g_list_next (list))
+          {
+            ApvlvDirNode *info = (ApvlvDirNode *) list->data;
+            delete info;
+          }
+        g_list_free (mDirNodes);
+        mDirNodes = NULL;
       }
 
     if (mIndex != NULL)
       {
-	mFile->free_index (mIndex);
-	mIndex = NULL;
+        mFile->free_index (mIndex);
+        mIndex = NULL;
       }
 
     if (mFile != NULL)
       {
-	delete mFile;
-	mFile = NULL;
+        delete mFile;
+        mFile = NULL;
       }
 
     loadfile (mFilestr.c_str (), FALSE);
@@ -175,11 +175,11 @@ namespace apvlv
     gchar *rpath;
 
     if (path == NULL
-	|| *path == '\0'
-	|| (rpath = g_locale_from_utf8 (path, -1, NULL, NULL, NULL)) == NULL)
+        || *path == '\0'
+        || (rpath = g_locale_from_utf8 (path, -1, NULL, NULL, NULL)) == NULL)
       {
-	gView->errormessage ("path error: %s", path ? path : "No path");
-	return false;
+        gView->errormessage ("path error: %s", path ? path : "No path");
+        return false;
       }
 
     struct stat buf[1];
@@ -187,43 +187,43 @@ namespace apvlv
     g_free (rpath);
     if (ret < 0)
       {
-	gView->errormessage ("stat error: %d:%s", errno, strerror (errno));
-	return false;
+        gView->errormessage ("stat error: %d:%s", errno, strerror (errno));
+        return false;
       }
 
     if (S_ISDIR (buf->st_mode))
       {
-	mReady = walk_dir_path_index (NULL, path);
+        mReady = walk_dir_path_index (NULL, path);
       }
     else
       {
-	mFile = ApvlvFile::newfile (path);
+        mFile = ApvlvFile::newfile (path);
 
-	if (mFile != NULL && (mIndex = mFile->new_index ()) != NULL)
-	  {
-	    for (ApvlvFileIndexIter itr = mIndex->children.begin ();
-		 itr != mIndex->children.end (); ++itr)
-	      {
-		bool ready = walk_file_index (NULL, itr);
-		if (mReady == false)
-		  {
-		    mReady = ready;
-		  }
-	      }
-	  }
-	else
-	  {
-	    mReady = false;
-	  }
+        if (mFile != NULL && (mIndex = mFile->new_index ()) != NULL)
+          {
+            for (ApvlvFileIndexIter itr = mIndex->children.begin ();
+                 itr != mIndex->children.end (); ++itr)
+              {
+                bool ready = walk_file_index (NULL, itr);
+                if (mReady == false)
+                  {
+                    mReady = ready;
+                  }
+              }
+          }
+        else
+          {
+            mReady = false;
+          }
       }
 
     if (mReady)
       {
-	mFilestr = path;
-	mFirstSelTimer =
-	  g_timeout_add (50,
-			 (gboolean (*)(gpointer)) apvlv_dir_first_select_cb,
-			 this);
+        mFilestr = path;
+        mFirstSelTimer =
+          g_timeout_add (50,
+                         (gboolean (*)(gpointer)) apvlv_dir_first_select_cb,
+                         this);
       }
 
     return mReady;
@@ -233,22 +233,22 @@ namespace apvlv
   {
     if (mDirNodes)
       {
-	for (GList * list = mDirNodes; list; list = g_list_next (list))
-	  {
-	    ApvlvDirNode *info = (ApvlvDirNode *) list->data;
-	    delete info;
-	  }
-	g_list_free (mDirNodes);
+        for (GList * list = mDirNodes; list; list = g_list_next (list))
+          {
+            ApvlvDirNode *info = (ApvlvDirNode *) list->data;
+            delete info;
+          }
+        g_list_free (mDirNodes);
       }
 
     if (mIndex != NULL)
       {
-	mFile->free_index (mIndex);
+        mFile->free_index (mIndex);
       }
 
     if (mFile != NULL)
       {
-	delete mFile;
+        delete mFile;
       }
 
     delete mStatus;
@@ -261,8 +261,8 @@ namespace apvlv
     switch (procmd)
       {
       default:
-	return NO_MATCH;
-	break;
+        return NO_MATCH;
+        break;
       }
 
     return MATCH;
@@ -272,12 +272,12 @@ namespace apvlv
   {
     if (ct == 0)
       {
-	ct++;
+        ct++;
       }
 
     if (mProCmd != 0)
       {
-	return subprocess (ct, key);
+        return subprocess (ct, key);
       }
 
     switch (key)
@@ -285,63 +285,63 @@ namespace apvlv
       case ':':
       case '/':
       case '?':
-	gView->promptcommand (key);
-	return NEED_MORE;
+        gView->promptcommand (key);
+        return NEED_MORE;
 
       case 'n':
-	markposition ('\'');
-	search ("");
-	break;
+        markposition ('\'');
+        search ("");
+        break;
       case 'N':
-	markposition ('\'');
-	search ("", true);
-	break;
+        markposition ('\'');
+        search ("", true);
+        break;
 
       case 't':
       case 'o':
       case GDK_Return:
-	enter (key);
-	break;
+        enter (key);
+        break;
 
       case 'H':
-	scrollto (0.0);
-	break;
+        scrollto (0.0);
+        break;
       case 'M':
-	scrollto (0.5);
-	break;
+        scrollto (0.5);
+        break;
       case 'L':
-	scrollto (1.0);
-	break;
+        scrollto (1.0);
+        break;
 
       case GDK_Up:
       case 'k':
-	scrollup (ct);
-	break;
+        scrollup (ct);
+        break;
 
       case CTRL ('n'):
       case CTRL ('j'):
       case GDK_Down:
       case 'j':
-	scrolldown (ct);
-	break;
+        scrolldown (ct);
+        break;
 
       case GDK_BackSpace:
       case GDK_Left:
       case CTRL ('h'):
       case 'h':
-	scrollleft (ct);
-	break;
+        scrollleft (ct);
+        break;
 
       case GDK_space:
       case GDK_Right:
       case CTRL ('l'):
       case 'l':
-	scrollright (ct);
-	break;
+        scrollright (ct);
+        break;
 
       case 'R':
-	reload ();
-	break;
+        reload ();
+        break;
       }
 
     return MATCH;
@@ -354,61 +354,61 @@ namespace apvlv
     gtk_tree_model_get (GTK_TREE_MODEL (mStore), &mCurrentIter, 0, &node, -1);
     if (node == NULL)
       {
-	return false;
+        return false;
       }
 
     const char *name = NULL;
     int pn = -1;
     if (!node->dest (&name, &pn))
       {
-	return false;
+        return false;
       }
 
     ApvlvCore *ndoc = NULL;
     if (name != NULL)
       {
-	if (gParams->valueb ("content"))
-	  {
-	    ndoc = new ApvlvDir (mWidth, mHeight);
-	    if (!ndoc->loadfile (name))
-	      {
-		delete ndoc;
-		ndoc = NULL;
-	      }
-	  }
+        if (gParams->valueb ("content"))
+          {
+            ndoc = new ApvlvDir (mWidth, mHeight);
+            if (!ndoc->loadfile (name))
+              {
+                delete ndoc;
+                ndoc = NULL;
+              }
+          }
 
-	if (ndoc == NULL)
-	  {
-	    ndoc =
-	      new ApvlvDoc (mWidth, mHeight, gParams->values ("zoom"),
-			    gParams->valueb ("cache"));
-	    if (!ndoc->loadfile (name))
-	      {
-		delete ndoc;
-		ndoc = NULL;
-	      }
-	  }
+        if (ndoc == NULL)
+          {
+            ndoc =
+              new ApvlvDoc (mWidth, mHeight, gParams->values ("zoom"),
+                            gParams->valueb ("cache"));
+            if (!ndoc->loadfile (name))
+              {
+                delete ndoc;
+                ndoc = NULL;
+              }
+          }
       }
     else
       {
-	ndoc =
-	  new ApvlvDoc (mWidth, mHeight, gParams->values ("zoom"),
-			gParams->valueb ("cache"));
-	if (!ndoc->loadfile (filename ()))
-	  {
-	    delete ndoc;
-	    ndoc = NULL;
-	  }
+        ndoc =
+          new ApvlvDoc (mWidth, mHeight, gParams->values ("zoom"),
+                        gParams->valueb ("cache"));
+        if (!ndoc->loadfile (filename ()))
+          {
+            delete ndoc;
+            ndoc = NULL;
+          }
 
-	if (ndoc != NULL)
-	  {
-	    ((ApvlvDoc *) ndoc)->showpage (pn);
-	  }
+        if (ndoc != NULL)
+          {
+            ((ApvlvDoc *) ndoc)->showpage (pn);
+          }
       }
 
     if (ndoc == NULL)
       {
-	return false;
+        return false;
       }
 
     gView->regloaded (ndoc);
@@ -416,19 +416,19 @@ namespace apvlv
     switch (key)
       {
       case GDK_Return:
-	ApvlvWindow::currentWindow ()->setCore (ndoc);
-	break;
+        ApvlvWindow::currentWindow ()->setCore (ndoc);
+        break;
 
       case 'o':
-	ApvlvWindow::currentWindow ()->birth (false, ndoc);
-	break;
+        ApvlvWindow::currentWindow ()->birth (false, ndoc);
+        break;
 
       case 't':
-	gView->newtab (ndoc);
-	break;
+        gView->newtab (ndoc);
+        break;
 
       default:
-	return false;
+        return false;
       }
 
     return true;
@@ -439,22 +439,22 @@ namespace apvlv
     GtkTreePath *path;
 
     if (!mReady
-	|| (path =
-	    gtk_tree_model_get_path (GTK_TREE_MODEL (mStore),
-				     &mCurrentIter)) == NULL)
+        || (path =
+              gtk_tree_model_get_path (GTK_TREE_MODEL (mStore),
+                                       &mCurrentIter)) == NULL)
       {
-	return;
+        return;
       }
 
     for (gboolean ret = TRUE; times > 0 && ret; times--)
       {
-	ret = gtk_tree_path_prev (path);
+        ret = gtk_tree_path_prev (path);
       }
 
     gtk_tree_model_get_iter (GTK_TREE_MODEL (mStore), &mCurrentIter, path);
     gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
     gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL, TRUE,
-				  0.5, 0.0);
+                                  0.5, 0.0);
     gtk_tree_path_free (path);
 
     mStatus->show ();
@@ -470,12 +470,12 @@ namespace apvlv
 
     for (ret = TRUE, itr = mCurrentIter; times > 0 && ret; times--)
       {
-	mCurrentIter = itr;
-	ret = gtk_tree_model_iter_next (GTK_TREE_MODEL (mStore), &itr);
-	if (ret)
-	  {
-	    mCurrentIter = itr;
-	  }
+        mCurrentIter = itr;
+        ret = gtk_tree_model_iter_next (GTK_TREE_MODEL (mStore), &itr);
+        if (ret)
+          {
+            mCurrentIter = itr;
+          }
       }
 
     gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
@@ -484,9 +484,9 @@ namespace apvlv
       gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
     if (path)
       {
-	gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL,
-				      TRUE, 0.5, 0.0);
-	gtk_tree_path_free (path);
+        gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL,
+                                      TRUE, 0.5, 0.0);
+        gtk_tree_path_free (path);
       }
 
     mStatus->show ();
@@ -500,13 +500,13 @@ namespace apvlv
     GtkTreeIter itr;
     for (gboolean ret = TRUE; times > 0 && ret; times--)
       {
-	ret =
-	  gtk_tree_model_iter_parent (GTK_TREE_MODEL (mStore), &itr,
-				      &mCurrentIter);
-	if (ret)
-	  {
-	    mCurrentIter = itr;
-	  }
+        ret =
+          gtk_tree_model_iter_parent (GTK_TREE_MODEL (mStore), &itr,
+                                      &mCurrentIter);
+        if (ret)
+          {
+            mCurrentIter = itr;
+          }
       }
 
     gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
@@ -515,10 +515,10 @@ namespace apvlv
       gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
     if (path)
       {
-	gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL,
-				      TRUE, 0.5, 0.0);
-	gtk_tree_view_collapse_row (GTK_TREE_VIEW (mDirView), path);
-	gtk_tree_path_free (path);
+        gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL,
+                                      TRUE, 0.5, 0.0);
+        gtk_tree_view_collapse_row (GTK_TREE_VIEW (mDirView), path);
+        gtk_tree_path_free (path);
       }
 
     mStatus->show ();
@@ -532,24 +532,24 @@ namespace apvlv
     GtkTreeIter itr;
     for (gboolean ret = TRUE; times > 0 && ret; times--)
       {
-	ret =
-	  gtk_tree_model_iter_children (GTK_TREE_MODEL (mStore), &itr,
-					&mCurrentIter);
-	if (ret)
-	  {
-	    mCurrentIter = itr;
-	  }
+        ret =
+          gtk_tree_model_iter_children (GTK_TREE_MODEL (mStore), &itr,
+                                        &mCurrentIter);
+        if (ret)
+          {
+            mCurrentIter = itr;
+          }
       }
 
     GtkTreePath *path =
       gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
     if (path)
       {
-	gtk_tree_view_expand_to_path (GTK_TREE_VIEW (mDirView), path);
-	gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
-	gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL,
-				      TRUE, 0.5, 0.0);
-	gtk_tree_path_free (path);
+        gtk_tree_view_expand_to_path (GTK_TREE_VIEW (mDirView), path);
+        gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
+        gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL,
+                                      TRUE, 0.5, 0.0);
+        gtk_tree_path_free (path);
       }
 
     mStatus->show ();
@@ -564,93 +564,93 @@ namespace apvlv
 
     if (*str == '\0' && mSearchStr == "")
       {
-	return false;
+        return false;
       }
 
     next = true;
     if (*str != '\0')
       {
-	mSearchStr = str;
-	next = false;
+        mSearchStr = str;
+        next = false;
       }
 
     ApvlvDirNode *info = NULL;
     gtk_tree_model_get (GTK_TREE_MODEL (mStore), &mCurrentIter, 0, &info, -1);
     if (info == NULL || mDirNodes == NULL)
       {
-	gView->errormessage ("can't find word: '%s'", mSearchStr.c_str ());
-	return false;
+        gView->errormessage ("can't find word: '%s'", mSearchStr.c_str ());
+        return false;
       }
 
     GList *list;
     for (list = mDirNodes; list; list = g_list_next (list))
       {
-	if (info == list->data)
-	  {
-	    break;
-	  }
+        if (info == list->data)
+          {
+            break;
+          }
       }
 
     if (list == NULL)
       {
-	gView->errormessage ("can't find word: '%s'", mSearchStr.c_str ());
-	return false;
+        gView->errormessage ("can't find word: '%s'", mSearchStr.c_str ());
+        return false;
       }
 
     if (next)
       {
-	if (reverse)
-	  {
-	    list = g_list_previous (list);
-	  }
-	else
-	  {
-	    list = g_list_next (list);
-	  }
+        if (reverse)
+          {
+            list = g_list_previous (list);
+          }
+        else
+          {
+            list = g_list_next (list);
+          }
       }
 
     bool wrap = gParams->valueb ("wrapscan");
 
     for (GList * origin = list; list != NULL;)
       {
-	info = (ApvlvDirNode *) list->data;
-	if (strstr (info->phrase (), mSearchStr.c_str ()) != NULL)
-	  {
-	    break;
-	  }
+        info = (ApvlvDirNode *) list->data;
+        if (strstr (info->phrase (), mSearchStr.c_str ()) != NULL)
+          {
+            break;
+          }
 
-	if (reverse)
-	  {
-	    list = g_list_previous (list);
-	  }
-	else
-	  {
-	    list = g_list_next (list);
-	  }
+        if (reverse)
+          {
+            list = g_list_previous (list);
+          }
+        else
+          {
+            list = g_list_next (list);
+          }
 
-	if (list == origin)
-	  {
-	    list = NULL;
-	    break;
-	  }
+        if (list == origin)
+          {
+            list = NULL;
+            break;
+          }
 
-	if (list == NULL && wrap)
-	  {
-	    if (reverse)
-	      {
-		list = g_list_last (mDirNodes);
-	      }
-	    else
-	      {
-		list = mDirNodes;
-	      }
-	  }
+        if (list == NULL && wrap)
+          {
+            if (reverse)
+              {
+                list = g_list_last (mDirNodes);
+              }
+            else
+              {
+                list = mDirNodes;
+              }
+          }
       }
 
     if (list == NULL)
       {
-	gView->errormessage ("can't find word: '%s'", mSearchStr.c_str ());
-	return false;
+        gView->errormessage ("can't find word: '%s'", mSearchStr.c_str ());
+        return false;
       }
 
     mCurrentIter = *info->iter ();
@@ -658,11 +658,11 @@ namespace apvlv
       gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
     if (path)
       {
-	gtk_tree_view_expand_to_path (GTK_TREE_VIEW (mDirView), path);
-	gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
-	gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL,
-				      TRUE, 0.5, 0.0);
-	gtk_tree_path_free (path);
+        gtk_tree_view_expand_to_path (GTK_TREE_VIEW (mDirView), path);
+        gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
+        gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mDirView), path, NULL,
+                                      TRUE, 0.5, 0.0);
+        gtk_tree_path_free (path);
       }
 
     mStatus->show ();
@@ -687,35 +687,35 @@ namespace apvlv
     mDirNodes = g_list_append (mDirNodes, node);
 
     GdkPixbuf *pix = gdk_pixbuf_new_from_file_at_size (iconreg.c_str (), 40,
-						       20, NULL);
+                     20, NULL);
     if (pix)
       {
-	gtk_tree_store_set (mStore, nitr, 0, node, 1, pix, 2,
-			    iter->title.c_str (), -1);
-	g_object_unref (pix);
+        gtk_tree_store_set (mStore, nitr, 0, node, 1, pix, 2,
+                            iter->title.c_str (), -1);
+        g_object_unref (pix);
       }
     else
       {
-	gtk_tree_store_set (mStore, nitr, 0, node, 2,
-			    iter->title.c_str (), -1);
+        gtk_tree_store_set (mStore, nitr, 0, node, 2,
+                            iter->title.c_str (), -1);
       }
 
     for (ApvlvFileIndexIter itr = iter->children.begin ();
-	 itr != iter->children.end (); ++itr)
+         itr != iter->children.end (); ++itr)
       {
-	bool chas = walk_file_index (has ? nitr : titr, itr);
-	if (has == false)
-	  {
-	    has = chas;
-	  }
+        bool chas = walk_file_index (has ? nitr : titr, itr);
+        if (has == false)
+          {
+            has = chas;
+          }
       }
 
     return has;
   }
 
   void
-    ApvlvDir::apvlv_dir_on_changed (GtkTreeSelection * selection,
-				    ApvlvDir * dir)
+  ApvlvDir::apvlv_dir_on_changed (GtkTreeSelection * selection,
+                                  ApvlvDir * dir)
   {
     GtkTreeModel *model;
     gtk_tree_selection_get_selected (selection, &model, &dir->mCurrentIter);
@@ -726,8 +726,8 @@ namespace apvlv
     mDoc = doc;
     for (int i = 0; i < AD_STATUS_SIZE; ++i)
       {
-	mStlab[i] = gtk_label_new ("");
-	gtk_box_pack_start (GTK_BOX (mHbox), mStlab[i], FALSE, FALSE, 0);
+        mStlab[i] = gtk_label_new ("");
+        gtk_box_pack_start (GTK_BOX (mHbox), mStlab[i], FALSE, FALSE, 0);
       }
   }
 
@@ -739,9 +739,9 @@ namespace apvlv
   {
     for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
       {
-	gtk_widget_modify_fg (mStlab[i],
-			      (act) ? GTK_STATE_ACTIVE :
-			      GTK_STATE_INSENSITIVE, NULL);
+        gtk_widget_modify_fg (mStlab[i],
+                              (act) ? GTK_STATE_ACTIVE :
+                              GTK_STATE_INSENSITIVE, NULL);
       }
   }
 
@@ -754,7 +754,7 @@ namespace apvlv
     sw[3] = sw[1] >> 1;
     for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
       {
-	gtk_widget_set_size_request (mStlab[i], sw[i], h);
+        gtk_widget_set_size_request (mStlab[i], sw[i], h);
       }
   }
 
@@ -762,20 +762,20 @@ namespace apvlv
   {
     if (mDoc->filename ())
       {
-	char temp[AD_STATUS_SIZE][256];
-	gchar *bn;
-	bn = g_path_get_basename (mDoc->filename ());
-	g_snprintf (temp[0], sizeof temp[0], "%s", bn);
-	g_snprintf (temp[1], sizeof temp[1], "apvlv");
-	g_snprintf (temp[2], sizeof temp[2], "%d%%",
-		    (int) (mDoc->zoomvalue () * 100));
-	g_snprintf (temp[3], sizeof temp[3], "%d%%",
-		    (int) (mDoc->scrollrate () * 100));
-	for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
-	  {
-	    gtk_label_set_text (GTK_LABEL (mStlab[i]), temp[i]);
-	  }
-	g_free (bn);
+        char temp[AD_STATUS_SIZE][256];
+        gchar *bn;
+        bn = g_path_get_basename (mDoc->filename ());
+        g_snprintf (temp[0], sizeof temp[0], "%s", bn);
+        g_snprintf (temp[1], sizeof temp[1], "apvlv");
+        g_snprintf (temp[2], sizeof temp[2], "%d%%",
+                    (int) (mDoc->zoomvalue () * 100));
+        g_snprintf (temp[3], sizeof temp[3], "%d%%",
+                    (int) (mDoc->scrollrate () * 100));
+        for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
+          {
+            gtk_label_set_text (GTK_LABEL (mStlab[i]), temp[i]);
+          }
+        g_free (bn);
       }
   }
 
@@ -784,7 +784,7 @@ namespace apvlv
     GtkTreeIter gtir;
     if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (dir->mStore), &gtir))
       {
-	gtk_tree_selection_select_iter (dir->mSelection, &gtir);
+        gtk_tree_selection_select_iter (dir->mSelection, &gtir);
       }
     return FALSE;
   }
@@ -795,101 +795,101 @@ namespace apvlv
     GDir *dir = g_dir_open (path, 0, NULL);
     if (dir != NULL)
       {
-	const gchar *name;
-	while ((name = g_dir_read_name (dir)) != NULL)
-	  {
-	    if (strcmp (name, ".") == 0)
-	      {
-		debug ("avoid hidden file: %s", name);
-		continue;
-	      }
+        const gchar *name;
+        while ((name = g_dir_read_name (dir)) != NULL)
+          {
+            if (strcmp (name, ".") == 0)
+              {
+                debug ("avoid hidden file: %s", name);
+                continue;
+              }
 
-	    gchar *realname = g_strjoin (PATH_SEP_S, path, name, NULL);
+            gchar *realname = g_strjoin (PATH_SEP_S, path, name, NULL);
 //          debug ("add a item: %s[%s]", name, realname);
 
-	    ApvlvDirNode *node = NULL;
-	    struct stat buf[1];
-	    char *wrealname =
-	      g_locale_from_utf8 (realname, -1, NULL, NULL, NULL);
-	    if (wrealname == NULL)
-	      {
-		g_free (realname);
-		continue;
-	      }
+            ApvlvDirNode *node = NULL;
+            struct stat buf[1];
+            char *wrealname =
+              g_locale_from_utf8 (realname, -1, NULL, NULL, NULL);
+            if (wrealname == NULL)
+              {
+                g_free (realname);
+                continue;
+              }
 
-	    int ret = stat (wrealname, buf);
-	    g_free (wrealname);
+            int ret = stat (wrealname, buf);
+            g_free (wrealname);
 
-	    if (ret < 0)
-	      {
-		g_free (realname);
-		continue;
-	      }
+            if (ret < 0)
+              {
+                g_free (realname);
+                continue;
+              }
 
-	    if (S_ISDIR (buf->st_mode))
-	      {
-		GtkTreeIter mitr[1];
-		gtk_tree_store_append (mStore, mitr, itr);
-		node = new ApvlvDirNode (mitr, true, realname, name);
+            if (S_ISDIR (buf->st_mode))
+              {
+                GtkTreeIter mitr[1];
+                gtk_tree_store_append (mStore, mitr, itr);
+                node = new ApvlvDirNode (mitr, true, realname, name);
 
-		GdkPixbuf *pix =
-		  gdk_pixbuf_new_from_file_at_size (icondir.c_str (), 40, 20,
-						    NULL);
-		if (pix)
-		  {
-		    gtk_tree_store_set (mStore, mitr, 0, node, 1, pix, 2,
-					name, -1);
-		    g_object_unref (pix);
-		  }
-		else
-		  {
-		    gtk_tree_store_set (mStore, mitr, 0, node, 2, name, -1);
-		  }
+                GdkPixbuf *pix =
+                  gdk_pixbuf_new_from_file_at_size (icondir.c_str (), 40, 20,
+                                                    NULL);
+                if (pix)
+                  {
+                    gtk_tree_store_set (mStore, mitr, 0, node, 1, pix, 2,
+                                        name, -1);
+                    g_object_unref (pix);
+                  }
+                else
+                  {
+                    gtk_tree_store_set (mStore, mitr, 0, node, 2, name, -1);
+                  }
 
-		if (!walk_dir_path_index (mitr, realname))
-		  {
-		    gtk_tree_store_remove (mStore, mitr);
-		    delete node;
-		    node = NULL;
-		  }
+                if (!walk_dir_path_index (mitr, realname))
+                  {
+                    gtk_tree_store_remove (mStore, mitr);
+                    delete node;
+                    node = NULL;
+                  }
 
-		if (node != NULL)
-		  {
-		    mDirNodes = g_list_append (mDirNodes, node);
-		    has = true;
-		  }
-	      }
-	    else if (g_ascii_strncasecmp (name + strlen (name) - 4, ".pdf", 4)
-		     == 0
-		     || g_ascii_strncasecmp (name + strlen (name) - 5,
-					     ".djvu", 5) == 0
-		     || g_ascii_strncasecmp (name + strlen (name) - 4, ".djv",
-					     4) == 0)
-	      {
-		GtkTreeIter mitr[1];
-		gtk_tree_store_append (mStore, mitr, itr);
-		node = new ApvlvDirNode (mitr, false, realname, name);
-		mDirNodes = g_list_append (mDirNodes, node);
+                if (node != NULL)
+                  {
+                    mDirNodes = g_list_append (mDirNodes, node);
+                    has = true;
+                  }
+              }
+            else if (g_ascii_strncasecmp (name + strlen (name) - 4, ".pdf", 4)
+                     == 0
+                     || g_ascii_strncasecmp (name + strlen (name) - 5,
+                                             ".djvu", 5) == 0
+                     || g_ascii_strncasecmp (name + strlen (name) - 4, ".djv",
+                                             4) == 0)
+              {
+                GtkTreeIter mitr[1];
+                gtk_tree_store_append (mStore, mitr, itr);
+                node = new ApvlvDirNode (mitr, false, realname, name);
+                mDirNodes = g_list_append (mDirNodes, node);
 
-		GdkPixbuf *pix =
-		  gdk_pixbuf_new_from_file_at_size (iconpdf.c_str (), 40, 20,
-						    NULL);
-		if (pix)
-		  {
-		    gtk_tree_store_set (mStore, mitr, 0, node, 1, pix, 2,
-					name, -1);
-		    g_object_unref (pix);
-		  }
-		else
-		  {
-		    gtk_tree_store_set (mStore, mitr, 0, node, 2, name, -1);
-		  }
+                GdkPixbuf *pix =
+                  gdk_pixbuf_new_from_file_at_size (iconpdf.c_str (), 40, 20,
+                                                    NULL);
+                if (pix)
+                  {
+                    gtk_tree_store_set (mStore, mitr, 0, node, 1, pix, 2,
+                                        name, -1);
+                    g_object_unref (pix);
+                  }
+                else
+                  {
+                    gtk_tree_store_set (mStore, mitr, 0, node, 2, name, -1);
+                  }
 
-		has = true;
-	      }
+                has = true;
+              }
 
-	    g_free (realname);
-	  }
+            g_free (realname);
+          }
       }
     g_dir_close (dir);
 
