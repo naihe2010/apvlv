@@ -37,6 +37,10 @@
 #ifdef HAVE_LIBDJVU
 # include <libdjvu/ddjvuapi.h>
 #endif
+#ifdef HAVE_LIBUMD
+#define LIBUMD_ENABLE_GTK
+# include <umd.h>
+#endif
 
 #include <iostream>
 #include <vector>
@@ -189,6 +193,42 @@ namespace apvlv
 #ifdef HAVE_LIBDJVU
       ddjvu_context_t * mContext;
       ddjvu_document_t *mDoc;
+#endif
+    };
+
+  class ApvlvUMD:public ApvlvFile
+    {
+    public:
+      ApvlvUMD (const char *filename, bool check = true);
+
+      ~ApvlvUMD ();
+
+      bool writefile (const char *filename);
+
+      bool pagesize (int page, int rot, double *x, double *y);
+
+      int pagesum ();
+
+      bool pagetext (int, int, int, int, int, char **);
+
+      bool render (int, int, int, double, int, GdkPixbuf *, char *);
+
+      bool pageselectsearch (int, int, int, double, int, GdkPixbuf *,
+                             char *, int, ApvlvPoses *);
+
+      ApvlvPoses *pagesearch (int pn, const char *s, bool reverse = false);
+
+      ApvlvLinks *getlinks (int pn);
+
+      ApvlvFileIndex *new_index ();
+
+      void free_index (ApvlvFileIndex *);
+
+      bool pageprint (int pn, cairo_t * cr);
+
+    private:
+#ifdef HAVE_LIBUMD
+      umd_t *mUmd;
 #endif
     };
 

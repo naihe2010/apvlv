@@ -29,6 +29,10 @@
 #include "ApvlvUtil.hpp"
 #include "ApvlvView.hpp"
 
+#ifdef HAVE_LIBUMD
+#define LIBUMD_ENABLE_GTK
+#include <umd.h>
+#endif
 #include <glib.h>
 
 #include <sys/stat.h>
@@ -73,12 +77,19 @@ namespace apvlv
 
         try
           {
-            file = new ApvlvDJVU (filename);
+            file = new ApvlvUMD (filename);
           }
         catch (bad_alloc e)
           {
-            file = NULL;
-            delete file;
+            try
+              {
+                file = new ApvlvDJVU (filename);
+              }
+            catch (bad_alloc e)
+              {
+                file = NULL;
+                delete file;
+              }
           }
       }
 
@@ -695,4 +706,126 @@ namespace apvlv
   {
     return false;
   }
+
+  ApvlvUMD::ApvlvUMD (const char *filename, bool check):ApvlvFile (filename,
+          check)
+  {
+#ifdef HAVE_LIBUMD
+    mUmd = umd_new_from_file (filename);
+    if (mUmd == NULL)
+      {
+        throw std::bad_alloc ();
+      }
+#else
+    throw std::bad_alloc ();
+#endif
+  }
+
+  ApvlvUMD::~ApvlvUMD ()
+  {
+#ifdef HAVE_LIBUMD
+    if (mUmd)
+      {
+        umd_destroy (mUmd);
+      }
+#endif
+  }
+
+  bool ApvlvUMD::writefile (const char *filename)
+  {
+#ifdef HAVE_LIBUMD
+    if (umd_write_file (mUmd, filename) == 0)
+      {
+        return true;
+      }
+    return false;
+#else
+    return false;
+#endif
+  }
+
+  bool ApvlvUMD::pagesize (int pn, int rot, double *x, double *y)
+  {
+#ifdef HAVE_LIBUMD
+    umd_page_t * page;
+
+    page = umd_get_nth_page (mUmd, pn);
+    if (page)
+      {
+        int ix, iy;
+        umd_page_get_size (page, &ix, &iy);
+        *x = ix;
+        *y = iy;
+        return true;
+      }
+    return false;
+#else
+    return false;
+#endif
+  }
+
+  int ApvlvUMD::pagesum ()
+  {
+#ifdef HAVE_LIBUMD
+    return mUmd ? umd_get_page_n (mUmd) : 0;
+#else
+    return 0;
+#endif
+  }
+
+  bool ApvlvUMD::render (int pn, int ix, int iy, double zm, int rot,
+                         GdkPixbuf * pix, char *buffer)
+  {
+#ifdef HAVE_LIBUMD
+    umd_page_t * page;
+
+    page = umd_get_nth_page (mUmd, pn);
+    if (page)
+      {
+        umd_page_render (page, 0, 0, ix, iy, zm, rot, (unsigned char *) buffer, 3 * ix);
+        return true;
+      }
+    return false;
+#else
+    return false;
+#endif
+  }
+
+  bool ApvlvUMD::pageselectsearch (int pn, int ix, int iy, double zm,
+                                   int rot, GdkPixbuf * pix, char *buffer,
+                                   int sel, ApvlvPoses * poses)
+  {
+    return false;
+  }
+
+  ApvlvPoses *ApvlvUMD::pagesearch (int pn, const char *str, bool reverse)
+  {
+    return NULL;
+  }
+
+  ApvlvLinks *ApvlvUMD::getlinks (int pn)
+  {
+    return NULL;
+  }
+
+  bool ApvlvUMD::pagetext (int pn, int x1, int y1, int x2, int y2,
+                           char **out)
+  {
+    return false;
+  }
+
+  ApvlvFileIndex *ApvlvUMD::new_index ()
+  {
+    return NULL;
+  }
+
+  void ApvlvUMD::free_index (ApvlvFileIndex * index)
+  {
+  }
+
+  bool ApvlvUMD::pageprint (int pn, cairo_t * cr)
+  {
+    return false;
+  }
+
 }

@@ -3,7 +3,7 @@ dnl APVLV - Alf's PDF Viewer Like Vim
 dnl
  
 AC_PREREQ([2.61])
-AC_INIT(apvlv, 0.0.9.8, naihe2010@gmail.com)
+AC_INIT(apvlv, 0.1.0, naihe2010@gmail.com)
 AC_COPYRIGHT([Copyright (C) 2008 Alf's Software.])
 
 if test -e .svn; then
@@ -91,6 +91,7 @@ if test x$apvlv_debug = xyes; then
 fi
 
 AC_ARG_WITH([djvu], AS_HELP_STRING([--without-djvu], [Build without djvu support]))
+AC_ARG_WITH([umd], AS_HELP_STRING([--without-umd], [Build without umd support]))
 
 if test "x$with_djvu" != "xno"; then
 AC_CHECK_HEADER([libdjvu/ddjvuapi.h],
@@ -99,6 +100,13 @@ AC_CHECK_HEADER([libdjvu/ddjvuapi.h],
                               LIBS="-ldjvulibre $LIBS"
                               , AC_MSG_WARN(Libdjvu library was not found))
                  ], )
+fi
+
+if test "x$with_umd" != "xno"; then
+AC_CHECK_HEADERS([umd.h],
+                 AC_DEFINE([HAVE_LIBUMD], 1, [Define to 1 if you have libumd]) 
+                 LIBS="-lumd -lz $LIBS"
+                 , AC_MSG_WARN(Libumd library was not found))
 fi
 
 PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.4.0, CPPFLAGS="$CPPFLAGS $GTK_CFLAGS"; LIBS="$LIBS $GTK_LIBS")
