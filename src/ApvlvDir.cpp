@@ -861,10 +861,17 @@ namespace apvlv
               }
             else if (g_ascii_strncasecmp (name + strlen (name) - 4, ".pdf", 4)
                      == 0
+#ifdef HAVE_LIBUMD
                      || g_ascii_strncasecmp (name + strlen (name) - 5,
                                              ".djvu", 5) == 0
                      || g_ascii_strncasecmp (name + strlen (name) - 4, ".djv",
-                                             4) == 0)
+                                             4) == 0
+#endif
+#ifdef HAVE_LIBUMD
+                     || g_ascii_strncasecmp (name + strlen (name) - 4,
+                                             ".umd", 4) == 0
+#endif
+                    )
               {
                 GtkTreeIter mitr[1];
                 gtk_tree_store_append (mStore, mitr, itr);

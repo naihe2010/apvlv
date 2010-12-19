@@ -48,9 +48,9 @@ using namespace std;
 
 namespace apvlv
   {
-  //
-  // link to a url, or a page num
-  //
+//
+// link to a url, or a page num
+//
   struct ApvlvLink
     {
       string mUrl;
@@ -59,9 +59,9 @@ namespace apvlv
 
   typedef vector < ApvlvLink > ApvlvLinks;
 
-  //
-  // position of a search result, or just a area
-  //
+//
+// position of a search result, or just a area
+//
   struct ApvlvPos
     {
       double x1, x2, y1, y2;

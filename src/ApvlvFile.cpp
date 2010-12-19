@@ -816,11 +816,52 @@ namespace apvlv
 
   ApvlvFileIndex *ApvlvUMD::new_index ()
   {
+#ifdef HAVE_LIBUMD
+    if (mIndex != NULL)
+      {
+        debug ("file %p has index: %p, return", this, mIndex);
+        return mIndex;
+      }
+
+    int cpt_n = umd_get_chapter_n (mUmd);
+    if (cpt_n <= 0)
+      {
+        debug ("no index.");
+        return NULL;
+      }
+
+    mIndex = new ApvlvFileIndex;
+    for (int i = 0;
+         i < cpt_n;
+         ++ i)
+      {
+        umd_chapter_t * chapter = umd_get_nth_chapter (mUmd, i);
+        if (chapter)
+          {
+            ApvlvFileIndex inx;
+
+            inx.title = chapter->title;
+            inx.page = chapter->page_index;
+
+            mIndex->children.push_back (inx);
+
+            free (chapter->title);
+            free (chapter->content);
+            free (chapter);
+          }
+      }
+
+    return mIndex;
+#else
     return NULL;
+#endif
   }
 
   void ApvlvUMD::free_index (ApvlvFileIndex * index)
   {
+#ifdef HAVE_LIBUMD
+    delete mIndex;
+#endif
   }
 
   bool ApvlvUMD::pageprint (int pn, cairo_t * cr)
