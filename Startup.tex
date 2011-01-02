@@ -1,10 +1,10 @@
 \documentclass[a4paper,12pt]{article}
 % \usepackage{graphicx}
 \usepackage[top=2in,bottom=1in,left=1.25in,right=1.25in]{geometry}
-\usepackage{color} % für eigene Farben (zusätzlich zu den vordefinierten)
-\definecolor{darkblue}{rgb}{0,0,.5} % Definition für dunkelblau
-\definecolor{darkred}{rgb}{.5,0,0} %Definition für dunkelrot
-\definecolor{indigo}{RGB}{75,0,139} %Definition für dunkelrot
+\usepackage{color} 
+\definecolor{darkblue}{rgb}{0,0,.5} 
+\definecolor{darkred}{rgb}{.5,0,0} 
+\definecolor{indigo}{RGB}{75,0,139}
 
 
 \usepackage[pdftex,
@@ -67,7 +67,7 @@ type & :help setting$<$Enter$>$   & for help on settings \\ %
 
 \apvlv is open source software, and was created by Alf. It is in active development. %Now, it is still growing.
 
-As its name suggests, \apvlv allows you to read your PDF files in Vim-style! A focus is set on simplicity and minimalistic GUI. This way you have more space for the actual document.
+As its name suggests, \apvlv allows you to read your PDF/\-DJVU/\-UMD files in Vim-style! A focus is set on simplicity and minimalistic GUI. This way you have more space for the actual document.
 
 \apvlv's key bindings are inspired by the design and high efficiency of Vim commands making its use a joy for all accustomed Vim users. For example, one can use $<$Ctrl-f$>$ to forward page, $<$Ctrl-b$>$ to previous page, 'k','j','h','l' to scroll page up, down, left or right, and so on. 
 Furthermore, \apvlv can understand how many times you want to run the command. E.g. typing '20' and  $<$Ctrl-f$>$ will go 20 pages forward.
@@ -114,11 +114,11 @@ If not, run '\texttt{export PATH="/usr/local/bin:\$PATH"}' to append the path.
 
 \item o
 
-display a file chooser dialog to select a PDF file to open.
+display a file chooser dialog to select a PDF/\-DJVU/\-UMD file to open.
 
 \item O
 
-select a directory to display. After you selected the directory within the dialog, press enter and \apvlv will recursively search the path for PDFs. You will be presented with a vim-style navigation of your folders which allows you to easily access another document.
+select a directory to display. After you selected the directory within the dialog, press enter and \apvlv will recursively search the path for PDFs/DJVUs/UMDs. You will be presented with a vim-style navigation of your folders which allows you to easily access another document.
 
 \item R
 
@@ -271,23 +271,16 @@ make the current window bigger.
 
 \end{description}
 
-And, all of the commands can be map to other keys.
-
-For example, if you put 
-'map $<$C-n$>$ o'
-in your .apvlvrc.
-
-Then, you type $<$Ctrl-n$>$ will run the 'o' command, that is, show a file chooser dialog to select a PDF file to open.
-
-Becareful, You Should not map a command to itself.
-
-So, 'map god god' will make the application to loop test the command 'god' for ever.
+\noindent All commands can be mapped to other keys. For example, if you put \\
+'map $<$C-n$>$ o'\\
+in your .apvlvrc. Then, typing $<$Ctrl-n$>$ will run the 'o' command, that is, show a file chooser dialog to select a PDF/DJVU/UMD file to open.\\
+\noindent Be careful, do NOT map a command to itself! 'map god god' will make the application to loop test the command 'god' for ever.
 
 \newpage
 
 \section{Setting}\label{setting}
 
-\apvlv support these settings. You can set any of them in .apvlvrc.
+\apvlv supports settings set in a file called .apvlvrc.
 
 \begin{description}
 
@@ -297,20 +290,19 @@ If set yes, \apvlv will be in full screen mode after startup.
 
 \item width=$<$int$>$
 
-When fullscreen is not set to yes, this is the window width.
+When fullscreen is not set to yes, this is the window width in pixels.
 
 \item height=$<$int$>$
 
-When fullscreen is not set to yes, this is the window height.
+When fullscreen is not set to yes, this is the window height in pixels.
 
 \item defaultdir=$<$path$>$
 
-When display the open dialog, this is the default directory.
+When display the file open dialog ('o'), this is the default directory.
 
-\item zoom
+\item zoom < normal | fitwidth | fitheight | =<value> >
 
-This argument has 4 types.
-
+Zoom settings can be set in four different modes, select one:
 \begin{enumerate}
 
 \item normal
@@ -319,15 +311,14 @@ the default zoom value will be set by the application itself.
 
 \item fitwidth
 
-the default zoom value will let the page width eque to the window width
+zoom will be set to fit the page width to the window width.
 
 \item fitheight
-
-the default zoom value will let the page height eque to the window height
+zoom will set to fit the page height to the window height.
 
 \item custom
 
-set a custom value. like zoom=1.0, zoom=1.2, zoom=0.8, ...
+set a custom value e.g. zoom=1.0, zoom=1.2, zoom=0.8.
 
 \end{enumerate}
 
@@ -388,7 +379,7 @@ Selection a line under the curcor to clipboard
 
 Selection a page under the curcor to clipboard
 
-\item guioptions
+\item guioptions=< m | T >
 
 Weather show menu and tool bar. m means menu bar, T means tool bar.
 
