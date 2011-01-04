@@ -25,7 +25,7 @@ IF (NOT WIN32)
         LINK_DIRECTORIES (${POPPLER_LIBRARY_DIRS})
 ELSE (NOT WIN32)
 	INCLUDE_DIRECTORIES (${CMAKE_HOME_DIRECTORY}/win32/poppler-src)
-	LINK_DIRECTORIES (${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_HOME_DIRECTORY}/win32/freetype235)
+	LINK_DIRECTORIES (${CMAKE_HOME_DIRECTORY}/win32 ${CMAKE_HOME_DIRECTORY}/win32/freetype235)
         SET (POPPLER_LIBRARIES poppler.lib jpeg.lib freetype-static.lib)
 ENDIF (NOT WIN32)
 
@@ -78,12 +78,50 @@ IF (APVLV_WITH_UMD)
 ENDIF (APVLV_WITH_UMD)
 
 IF (WIN32)
-	ADD_SUBDIRECTORY (${CMAKE_HOME_DIRECTORY}/win32/poppler-src .)
+        CMAKE_POLICY (SET CMP0013 NEW)
+	ADD_SUBDIRECTORY (${CMAKE_HOME_DIRECTORY}/win32/poppler-src ${CMAKE_HOME_DIRECTORY}/win32)
         ADD_DEPENDENCIES (apvlv poppler)
 ENDIF (WIN32)
 
 IF (WIN32)
         INSTALL (TARGETS apvlv DESTINATION .)
+        FIND_FILE (LIBATK libatk-1.0-0.dll)
+        FIND_FILE (LIBGIO libgio-2.0-0.dll)
+        FIND_FILE (LIBCAIRO libcairo-2.dll)
+        FIND_FILE (LIBPANGOCAIRO libpangocairo-1.0-0.dll)
+        FIND_FILE (LIBPANGOFT2 libpangoft2-1.0-0.dll)
+        FIND_FILE (LIBGDKPIXBUF libgdk_pixbuf-2.0-0.dll)
+        FIND_FILE (LIBGDK libgdk-win32-2.0-0.dll)
+        FIND_FILE (LIBGLIB libglib-2.0-0.dll)
+        FIND_FILE (LIBGMODULE libgmodule-2.0-0.dll)
+        FIND_FILE (LIBPANGO libpango-1.0-0.dll)
+        FIND_FILE (LIBGTHREAD libgthread-2.0-0.dll)
+        FIND_FILE (LIBPNG libpng12-0.dll)
+        FIND_FILE (LIBGTK libgtk-win32-2.0-0.dll)
+        FIND_FILE (LIBGOBJECT libgobject-2.0-0.dll)
+        FIND_FILE (LIBPANGOWIN32 libpangowin32-1.0-0.dll)
+        FIND_FILE (LIBZLIB1 zlib1.dll)
+        INSTALL (FILES
+                ${LIBATK}
+                ${LIBGIO}
+                ${LIBCAIRO}
+                ${LIBPANGOCAIRO}
+                ${LIBGDKPIXBUF}
+                ${LIBGDK}
+                ${LIBGLIB}
+                ${LIBGMODULE}
+                ${LIBPANGO}
+                ${LIBGTHREAD}
+                ${LIBPNG}
+                ${LIBGTK}
+                ${LIBGOBJECT}
+                ${LIBPANGOFT2}
+                ${LIBPANGOWIN32}
+                ${LIBZLIB1}
+                DESTINATION .)
+        INSTALL (FILES 
+                ${CMAKE_HOME_DIRECTORY}/win32/freetype235/freetype6.dll
+                DESTINATION .)
 ELSE (WIN32)
         INSTALL (TARGETS apvlv DESTINATION bin)
 ENDIF (WIN32)

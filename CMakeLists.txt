@@ -40,48 +40,10 @@ ADD_DEFINITIONS (-DPACKAGE_NAME="apvlv"
 ADD_SUBDIRECTORY (src)
 
 IF (WIN32)
-        FIND_FILE (LIBATK libatk-1.0-0.dll)
-        FIND_FILE (LIBEXPAT libexpat-1.dll)
-        FIND_FILE (LIBFONTCONFIG libfontconfig-1.dll)
-        FIND_FILE (LIBGIO libgio-2.0-0.dll)
-        FIND_FILE (LIBCAIRO libcairo-2.dll)
-        FIND_FILE (LIBPANGOCAIRO libpangocairo-1.0-0.dll)
-        FIND_FILE (LIBPANGOFT2 libpangoft2-1.0-0.dll)
-        FIND_FILE (LIBGDKPIXBUF libgdk_pixbuf-2.0-0.dll)
-        FIND_FILE (LIBGDK libgdk-win32-2.0-0.dll)
-        FIND_FILE (LIBGLIB libglib-2.0-0.dll)
-        FIND_FILE (LIBGMODULE libgmodule-2.0-0.dll)
-        FIND_FILE (LIBPANGO libpango-1.0-0.dll)
-        FIND_FILE (LIBGTHREAD libgthread-2.0-0.dll)
-        FIND_FILE (LIBPNG libpng14-14.dll)
-        FIND_FILE (LIBGTK libgtk-win32-2.0-0.dll)
-        FIND_FILE (LIBGOBJECT libgobject-2.0-0.dll)
-        FIND_FILE (LIBPANGOWIN32 libpangowin32-1.0-0.dll)
-        FIND_FILE (LIBZLIB1 zlib1.dll)
-        INSTALL (FILES
-                ${LIBATK}
-                ${LIBEXPAT}
-                ${LIBFONTCONFIG}
-                ${LIBGIO}
-                ${LIBCAIRO}
-                ${LIBPANGOCAIRO}
-                ${LIBGDKPIXBUF}
-                ${LIBGDK}
-                ${LIBGLIB}
-                ${LIBGMODULE}
-                ${LIBPANGO}
-                ${LIBGTHREAD}
-                ${LIBPNG}
-                ${LIBGTK}
-                ${LIBGOBJECT}
-                ${LIBPANGOFT2}
-                ${LIBPANGOWIN32}
-                ${LIBZLIB1}
-                DESTINATION .)
         INSTALL (FILES apvlvrc.example DESTINATION "."
                  RENAME _apvlvrc)
-        INSTALL (FILES apvlvrc.example Startup.pdf DESTINATION ${DOCDIR})
-        INSTALL (DIRECTORY icons DESTINATION ${DOCDIR}
+        INSTALL (FILES apvlvrc.example Startup.pdf DESTINATION ".")
+        INSTALL (DIRECTORY icons DESTINATION "." 
                  PATTERN ".svn" EXCLUDE)
 ELSE (WIN32)
         INSTALL (FILES apvlvrc.example DESTINATION ${SYSCONFDIR}
