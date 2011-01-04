@@ -22,24 +22,6 @@
 /* Enable multithreading support. */
 #define MULTITHREADED 1
 
-/* Name of package */
-#define PACKAGE "poppler"
-
-/* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT ""
-
-/* Define to the full name of this package. */
-#define PACKAGE_NAME "poppler"
-
-/* Define to the full name and version of this package. */
-#define PACKAGE_STRING "poppler 0.12.2"
-
-/* Define to the one symbol short name of this package. */
-#define PACKAGE_TARNAME "poppler"
-
-/* Define to the version of this package. */
-#define PACKAGE_VERSION "0.12.2"
-
 /* Poppler data dir */
 #define POPPLER_DATADIR "poppler-data"
 
@@ -51,9 +33,6 @@
 
 /* Throw exceptions to deal with not enough memory and similar problems */
 /* #undef USE_EXCEPTIONS */
-
-/* Version number of package */
-#define VERSION "0.12.2"
 
 #define snprintf _snprintf
 #define unlink _unlink
