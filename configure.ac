@@ -73,7 +73,7 @@ AC_ARG_WITH(docdir,
 AC_SUBST(DOCDIR)
 AC_DEFINE_UNQUOTED(DOCDIR, ["$docdir"], [The documents directory])
 
-mandir="$prefix/man"
+mandir="$prefix/share/man"
 AC_ARG_WITH(mandir,
             [[  --with-mandir=DIR       directory for man page of apvlv [PREFIX/man]]], 
             [ case "$withval" in
