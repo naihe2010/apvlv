@@ -175,6 +175,7 @@ main (int argc, char *argv[])
   int opt = parse_options (argc, argv);
   if (opt < 0)
     {
+      errp ("Parse options failed.\n");
       return 1;
     }
 
@@ -194,6 +195,7 @@ main (int argc, char *argv[])
   gchar *rpath = g_locale_to_utf8 (path, -1, NULL, NULL, NULL);
   if (rpath == NULL)
     {
+      errp ("Convert path: '%s' to utf8 failed.\n", path);
       return 1;
     }
 
@@ -201,11 +203,13 @@ main (int argc, char *argv[])
   g_free (rpath);
   if (path == NULL)
     {
+      errp ("Convert '%s' to absolute path failed.\n", rpath);
       return 1;
     }
 
   if (g_file_test (path, G_FILE_TEST_IS_REGULAR) == FALSE)
     {
+      errp ("File '%s' is not readble.\n", path);
       g_free (path);
       return 1;
     }

@@ -1,19 +1,6 @@
-CMAKE_MINIMUM_REQUIRED (VERSION 2.6)
-
-ADD_DEFINITIONS (-DPACKAGE_NAME="apvlv"
-                 -DPACKAGE_VERSION="${PROJECT_MAJOR}.${PROJECT_MINOR}.${PROJECT_PATCH}"
-                 -DPACKAGE_BUGREPORT="Alf <naihe2010@gmail.com>"
-                 -DRELEASE="rel"
-                 -DPROJECT_MAJOR="${PROJECT_MAJOR}"
-                 -DPROJECT_MINOR="${PROJECT_MINOR}"
-                 -DPROJECT_PATCH="${PROJECT_PATCH}"
-)
-
 IF (WIN32)
-        ADD_DEFINITIONS (-DDOCDIR=".")
+        SET (CMAKE_C_FLAGS "-D_CRT_SECURE_NO_WARNINGS")
 ELSE (WIN32)
-        ADD_DEFINITIONS (-DDOCDIR="${CMAKE_PREFIX}/share/apvlv/doc")
-        ADD_DEFINITIONS (-DSYSCONFDIR="/etc")
         OPTION (APVLV_ENABLE_DEBUG "If build binary with debug infomations." OFF)
         SET (CMAKE_C_FLAGS "-Wall -fno-strict-aliasing")
         IF (APVLV_ENABLE_DEBUG)
@@ -78,7 +65,25 @@ TARGET_LINK_LIBRARIES (apvlv
                        ${GTHREAD2_LIBRARIES}
                        ${POPPLER_LIBRARIES}) 
 
+OPTION (APVLV_WITH_DJVU "If build apvlv with djvu format support." ON)
+IF (APVLV_WITH_DJVU)
+        ADD_DEFINITIONS (-DHAVE_LIBDJVU)
+        TARGET_LINK_LIBRARIES (apvlv -ldjvulibre)
+ENDIF (APVLV_WITH_DJVU)
+
+OPTION (APVLV_WITH_UMD "If build binary with umd format support." ON)
+IF (APVLV_WITH_UMD)
+        ADD_DEFINITIONS (-DHAVE_LIBUMD)
+        TARGET_LINK_LIBRARIES (apvlv -lumd)
+ENDIF (APVLV_WITH_UMD)
+
 IF (WIN32)
 	ADD_SUBDIRECTORY (${CMAKE_HOME_DIRECTORY}/win32/poppler-src .)
         ADD_DEPENDENCIES (apvlv poppler)
+ENDIF (WIN32)
+
+IF (WIN32)
+        INSTALL (TARGETS apvlv DESTINATION .)
+ELSE (WIN32)
+        INSTALL (TARGETS apvlv DESTINATION bin)
 ENDIF (WIN32)
