@@ -115,7 +115,11 @@ namespace apvlv
 
   gchar *ApvlvCore::checkmd5 ()
   {
+#ifdef WIN32
+    struct _stat32 sbuf[1];
+#else
     struct stat sbuf[1];
+#endif
     int rt = g_stat (mFilestr.c_str (), sbuf);
     if (rt < 0)
       {

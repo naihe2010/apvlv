@@ -1,5 +1,4 @@
 INCLUDE_DIRECTORIES (
-	C:/gtk+/include
 	../msvc
 	../freetype235/include
 	../freetype235/include/freetype2
@@ -104,7 +103,6 @@ poppler/FileSpec.h
 poppler/PopplerCache.h
 poppler/Decrypt.h
 poppler/UnicodeCClassTables.h
-poppler/DCTStream.h
 poppler/JPXStream.h
 poppler/PSOutputDev.h
 poppler/Gfx.h
@@ -201,7 +199,6 @@ poppler/Parser.cc
 poppler/BuiltinFontTables.cc
 poppler/Link.cc
 poppler/PopplerCache.cc
-poppler/DCTStream.cc
 poppler/GfxFont.cc
 poppler/Sound.cc
 poppler/FileSpec.cc

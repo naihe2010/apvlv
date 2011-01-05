@@ -31,7 +31,7 @@ ELSE (NOT WIN32)
 			  ${CMAKE_BINARY_DIR}/libumd-out 
                           ${CMAKE_HOME_DIRECTORY}/win32/libumd-src/libiconv-1.9.2-1-lib/lib
 	                  ${CMAKE_HOME_DIRECTORY}/win32/libumd-src/zlib125-dll/lib)
-        SET (POPPLER_LIBRARIES poppler.lib jpeg.lib freetype-static.lib)
+        SET (POPPLER_LIBRARIES poppler.lib freetype-static.lib)
 ENDIF (NOT WIN32)
 
 SET (HEADERS
@@ -79,19 +79,25 @@ ENDIF (APVLV_WITH_DJVU)
 OPTION (APVLV_WITH_UMD "If build binary with umd format support." ON)
 IF (APVLV_WITH_UMD)
         ADD_DEFINITIONS (-DHAVE_LIBUMD)
+        IF (NOT WIN32)
         TARGET_LINK_LIBRARIES (apvlv -lumd)
+        ENDIF (NOT WIN32)
 ENDIF (APVLV_WITH_UMD)
 
 IF (WIN32)
         CMAKE_POLICY (SET CMP0013 NEW)
-	ADD_SUBDIRECTORY (${CMAKE_HOME_DIRECTORY}/win32/poppler-src ${CMAKE_BINARY_DIR}/poppler-out)
+        ADD_SUBDIRECTORY (${CMAKE_HOME_DIRECTORY}/win32/poppler-src ${CMAKE_BINARY_DIR}/poppler-out)
         ADD_DEPENDENCIES (apvlv poppler)
 
-	IF (APVLV_WITH_UMD)
-		ADD_SUBDIRECTORY (${CMAKE_HOME_DIRECTORY}/win32/libumd-src ${CMAKE_BINARY_DIR}/libumd-out)
+        IF (APVLV_WITH_UMD)
+                ADD_SUBDIRECTORY (${CMAKE_HOME_DIRECTORY}/win32/libumd-src ${CMAKE_BINARY_DIR}/libumd-out)
                 ADD_DEPENDENCIES (apvlv umd)
-		TARGET_LINK_LIBRARIES (apvlv umd.lib libiconv.lib zdll.lib)
+                TARGET_LINK_LIBRARIES (apvlv umd.lib libiconv.lib zdll.lib)
         ENDIF (APVLV_WITH_UMD)
+ELSE (WIN32)
+        IF (STREQU ${CMAKE_BUILD_TYPE} "Release")
+                ADD_DEFINITIONS (-DNDEBUG)
+        ENDIF (STREQU ${CMAKE_BUILD_TYPE} "Release")
 ENDIF (WIN32)
 
 IF (WIN32)
@@ -107,12 +113,11 @@ IF (WIN32)
         FIND_FILE (LIBGMODULE libgmodule-2.0-0.dll)
         FIND_FILE (LIBPANGO libpango-1.0-0.dll)
         FIND_FILE (LIBGTHREAD libgthread-2.0-0.dll)
-        FIND_FILE (LIBPNG libpng12-0.dll)
+        FIND_FILE (LIBPNG libpng14-14.dll)
         FIND_FILE (LIBGTK libgtk-win32-2.0-0.dll)
         FIND_FILE (LIBGOBJECT libgobject-2.0-0.dll)
         FIND_FILE (LIBPANGOWIN32 libpangowin32-1.0-0.dll)
         FIND_FILE (LIBZLIB1 zlib1.dll)
-        FIND_FILE (LIBJPEG62 jpeg62.dll)
         INSTALL (FILES
                 ${LIBATK}
                 ${LIBGIO}
@@ -130,7 +135,6 @@ IF (WIN32)
                 ${LIBPANGOFT2}
                 ${LIBPANGOWIN32}
                 ${LIBZLIB1}
-                ${LIBJPEG62}
                 DESTINATION .)
         INSTALL (FILES 
                 ${CMAKE_HOME_DIRECTORY}/win32/freetype235/freetype6.dll

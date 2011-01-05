@@ -1,5 +1,5 @@
 /* Use libjpeg instead of builtin jpeg decoder. */
-#define ENABLE_LIBJPEG 1
+/* #undef ENABLE_LIBJPEG */
 
 /* Have FreeType2 include files */
 #define HAVE_FREETYPE_H 1
