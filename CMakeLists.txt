@@ -25,7 +25,7 @@ ELSE (WIN32)
         ADD_DEFINITIONS (-DDOCDIR="${DOCDIR}")
 
         SET (MANDIR 
-             "${CMAKE_PREFIX}/share/man"
+             "${CMAKE_INSTALL_PREFIX}/share/man"
              CACHE PATH
              "Directory for man page of apvlv [PREFIX/share/man]"
         )
