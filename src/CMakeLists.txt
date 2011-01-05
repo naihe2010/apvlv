@@ -11,11 +11,16 @@ ELSE (WIN32)
 ENDIF (WIN32)
 
 FIND_PACKAGE (PkgConfig)
+PKG_CHECK_MODULES (FREETYPE2 freetype2 REQUIRED)
 PKG_CHECK_MODULES (GTK2 gtk+-2.0 REQUIRED)
 PKG_CHECK_MODULES (GLIB2 glib-2.0 REQUIRED)
 PKG_CHECK_MODULES (GTHREAD2 gthread-2.0 REQUIRED)
-INCLUDE_DIRECTORIES (${GTK2_INCLUDE_DIRS} ${GLIB2_INCLUDE_DIRS} ${GTHREAD2_INCLUDE_DIRS})
-LINK_DIRECTORIES (${GTK2_LIBRARY_DIRS} 
+INCLUDE_DIRECTORIES (${FREETYPE2_INCLUDE_DIRS} 
+                     ${GTK2_INCLUDE_DIRS} 
+                     ${GLIB2_INCLUDE_DIRS} 
+                     ${GTHREAD2_INCLUDE_DIRS})
+LINK_DIRECTORIES (${FREETYPE2_LIBRARY_DIRS}
+                  ${GTK2_LIBRARY_DIRS} 
                   ${GLIB2_LIBRARY_DIRS} 
                   ${GTHREAD2_LIBRARY_DIRS})
 
@@ -24,14 +29,14 @@ IF (NOT WIN32)
         INCLUDE_DIRECTORIES (${POPPLER_INCLUDE_DIRS})
         LINK_DIRECTORIES (${POPPLER_LIBRARY_DIRS})
 ELSE (NOT WIN32)
-	INCLUDE_DIRECTORIES (${CMAKE_HOME_DIRECTORY}/win32/poppler-src 
-		             ${CMAKE_HOME_DIRECTORY}/win32/libumd-src
+        INCLUDE_DIRECTORIES (${CMAKE_HOME_DIRECTORY}/win32/poppler-src 
+                             ${CMAKE_HOME_DIRECTORY}/win32/libumd-src
         )
-	LINK_DIRECTORIES (${CMAKE_BINARY_DIR}/poppler-out ${CMAKE_HOME_DIRECTORY}/win32/freetype235 
-			  ${CMAKE_BINARY_DIR}/libumd-out 
+        LINK_DIRECTORIES (${CMAKE_BINARY_DIR}/poppler-out
+                          ${CMAKE_BINARY_DIR}/libumd-out 
                           ${CMAKE_HOME_DIRECTORY}/win32/libumd-src/libiconv-1.9.2-1-lib/lib
-	                  ${CMAKE_HOME_DIRECTORY}/win32/libumd-src/zlib125-dll/lib)
-        SET (POPPLER_LIBRARIES poppler.lib freetype-static.lib)
+                          ${CMAKE_HOME_DIRECTORY}/win32/libumd-src/zlib125-dll/lib)
+        SET (POPPLER_LIBRARIES poppler.lib freetype.lib)
 ENDIF (NOT WIN32)
 
 SET (HEADERS
@@ -118,6 +123,7 @@ IF (WIN32)
         FIND_FILE (LIBGOBJECT libgobject-2.0-0.dll)
         FIND_FILE (LIBPANGOWIN32 libpangowin32-1.0-0.dll)
         FIND_FILE (LIBZLIB1 zlib1.dll)
+        FIND_FILE (FREETYPE6 freetype6.dll)
         INSTALL (FILES
                 ${LIBATK}
                 ${LIBGIO}
@@ -135,9 +141,7 @@ IF (WIN32)
                 ${LIBPANGOFT2}
                 ${LIBPANGOWIN32}
                 ${LIBZLIB1}
-                DESTINATION .)
-        INSTALL (FILES 
-                ${CMAKE_HOME_DIRECTORY}/win32/freetype235/freetype6.dll
+                ${FREETYPE6}
                 DESTINATION .)
         INSTALL (FILES
                 ${CMAKE_HOME_DIRECTORY}/win32/libumd-src/libiconv-1.9.2-1-lib/lib/libiconv2.dll

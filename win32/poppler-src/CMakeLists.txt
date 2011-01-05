@@ -1,7 +1,5 @@
 INCLUDE_DIRECTORIES (
 	../msvc
-	../freetype235/include
-	../freetype235/include/freetype2
 	.
 	fofi
 	goo
