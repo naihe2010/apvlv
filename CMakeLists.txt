@@ -45,6 +45,8 @@ IF (WIN32)
         INSTALL (FILES apvlvrc.example Startup.pdf DESTINATION ".")
         INSTALL (DIRECTORY icons DESTINATION "." 
                  PATTERN ".svn" EXCLUDE)
+        INSTALL (DIRECTORY ${CMAKE_HOME_DIRECTORY}/win32/poppler-data DESTINATION "." 
+                 PATTERN ".svn" EXCLUDE)
 ELSE (WIN32)
         INSTALL (FILES apvlvrc.example DESTINATION ${SYSCONFDIR}
                  RENAME apvlvrc)

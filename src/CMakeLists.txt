@@ -112,6 +112,7 @@ IF (WIN32)
         FIND_FILE (LIBGOBJECT libgobject-2.0-0.dll)
         FIND_FILE (LIBPANGOWIN32 libpangowin32-1.0-0.dll)
         FIND_FILE (LIBZLIB1 zlib1.dll)
+        FIND_FILE (LIBJPEG62 jpeg62.dll)
         INSTALL (FILES
                 ${LIBATK}
                 ${LIBGIO}
@@ -129,9 +130,14 @@ IF (WIN32)
                 ${LIBPANGOFT2}
                 ${LIBPANGOWIN32}
                 ${LIBZLIB1}
+                ${LIBJPEG62}
                 DESTINATION .)
         INSTALL (FILES 
                 ${CMAKE_HOME_DIRECTORY}/win32/freetype235/freetype6.dll
+                DESTINATION .)
+        INSTALL (FILES
+                ${CMAKE_HOME_DIRECTORY}/win32/libumd-src/libiconv-1.9.2-1-lib/lib/libiconv2.dll
+                ${CMAKE_HOME_DIRECTORY}/win32/libumd-src/libiconv-1.9.2-1-lib/lib/libintl3.dll
                 DESTINATION .)
 ELSE (WIN32)
         INSTALL (TARGETS apvlv DESTINATION bin)
