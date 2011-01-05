@@ -66,6 +66,13 @@ IF (UNIX)
         SET (CPACK_SET_DESTDIR ON)
         SET (CPACK_GENERATOR RPM)
         SET (CPACK_RPM_PACKAGE_REQUIRES "gtk2 >= 2.10.4")
+
+        SET (CPACK_SOURCE_GENERATOR TGZ)
+        SET (CPACK_SOURCE_IGNORE_FILES 
+             ${CMAKE_BINARY_DIR} 
+             ".svn" 
+             "win32"
+        )
 ELSE (UNIX)
         SET (CPACK_GENERATOR NSIS)
         SET (CPACK_NSIS_CONTACT "Alf <naihe2010@gmail.com>")
