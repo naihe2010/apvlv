@@ -4,6 +4,8 @@ apvlv 0.1.0
 News features
 
    * UMD file support
+   * using CMake for auto build tool
+   * add rpm and deb installation package
 
 ===========
 
