@@ -711,7 +711,17 @@ namespace apvlv
           check)
   {
 #ifdef HAVE_LIBUMD
-    mUmd = umd_new_from_file (filename);
+    gchar * lname = g_locale_from_utf8 (filename, -1, NULL, NULL, NULL);
+    if (lname)
+      {
+        mUmd = umd_new_from_file (lname);
+        g_free (lname);
+      }
+    else
+      {
+        mUmd = umd_new_from_file (filename);
+      }
+
     if (mUmd == NULL)
       {
         throw std::bad_alloc ();
