@@ -24,8 +24,13 @@ IF (NOT WIN32)
         INCLUDE_DIRECTORIES (${POPPLER_INCLUDE_DIRS})
         LINK_DIRECTORIES (${POPPLER_LIBRARY_DIRS})
 ELSE (NOT WIN32)
-	INCLUDE_DIRECTORIES (${CMAKE_HOME_DIRECTORY}/win32/poppler-src)
-	LINK_DIRECTORIES (${CMAKE_HOME_DIRECTORY}/win32 ${CMAKE_HOME_DIRECTORY}/win32/freetype235)
+	INCLUDE_DIRECTORIES (${CMAKE_HOME_DIRECTORY}/win32/poppler-src 
+		             ${CMAKE_HOME_DIRECTORY}/win32/libumd-src
+        )
+	LINK_DIRECTORIES (${CMAKE_BINARY_DIR}/poppler-out ${CMAKE_HOME_DIRECTORY}/win32/freetype235 
+			  ${CMAKE_BINARY_DIR}/libumd-out 
+                          ${CMAKE_HOME_DIRECTORY}/win32/libumd-src/libiconv-1.9.2-1-lib/lib
+	                  ${CMAKE_HOME_DIRECTORY}/win32/libumd-src/zlib125-dll/lib)
         SET (POPPLER_LIBRARIES poppler.lib jpeg.lib freetype-static.lib)
 ENDIF (NOT WIN32)
 
@@ -79,8 +84,14 @@ ENDIF (APVLV_WITH_UMD)
 
 IF (WIN32)
         CMAKE_POLICY (SET CMP0013 NEW)
-	ADD_SUBDIRECTORY (${CMAKE_HOME_DIRECTORY}/win32/poppler-src ${CMAKE_HOME_DIRECTORY}/win32)
+	ADD_SUBDIRECTORY (${CMAKE_HOME_DIRECTORY}/win32/poppler-src ${CMAKE_BINARY_DIR}/poppler-out)
         ADD_DEPENDENCIES (apvlv poppler)
+
+	IF (APVLV_WITH_UMD)
+		ADD_SUBDIRECTORY (${CMAKE_HOME_DIRECTORY}/win32/libumd-src ${CMAKE_BINARY_DIR}/libumd-out)
+                ADD_DEPENDENCIES (apvlv umd)
+		TARGET_LINK_LIBRARIES (apvlv umd.lib libiconv.lib zdll.lib)
+        ENDIF (APVLV_WITH_UMD)
 ENDIF (WIN32)
 
 IF (WIN32)
