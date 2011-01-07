@@ -16,9 +16,11 @@ IF (NOT WIN32)
         LINK_DIRECTORIES (${POPPLER_LIBRARY_DIRS})
 ELSE (NOT WIN32)
         INCLUDE_DIRECTORIES (${POPPLER_DIR}
-                             ${LIBUMD_DIR})
+                             ${LIBUMD_DIR}
+                             ${DJVULIBRE_DIR}/include)
         LINK_DIRECTORIES (${CMAKE_BINARY_DIR}/poppler-out
-                          ${CMAKE_BINARY_DIR}/libumd-out)
+                          ${CMAKE_BINARY_DIR}/libumd-out
+                          ${DJVULIBRE_DIR})
         SET (POPPLER_LIBRARIES poppler.lib freetype.lib)
 ENDIF (NOT WIN32)
 
@@ -61,7 +63,9 @@ TARGET_LINK_LIBRARIES (apvlv
 OPTION (APVLV_WITH_DJVU "If build apvlv with djvu format support." ON)
 IF (APVLV_WITH_DJVU)
         ADD_DEFINITIONS (-DHAVE_LIBDJVU)
+        IF (NOT WIN32)
         TARGET_LINK_LIBRARIES (apvlv -ldjvulibre)
+        ENDIF (NOT WIN32)
 ENDIF (APVLV_WITH_DJVU)
 
 OPTION (APVLV_WITH_UMD "If build binary with umd format support." ON)
@@ -78,6 +82,9 @@ IF (WIN32)
                 ADD_DEPENDENCIES (apvlv umd)
                 TARGET_LINK_LIBRARIES (apvlv umd.lib zdll.lib)
         ENDIF (APVLV_WITH_UMD)
+        IF (APVLV_WITH_DJVU)
+                TARGET_LINK_LIBRARIES (apvlv libdjvulibre.lib)
+        ENDIF (APVLV_WITH_DJVU)
 ENDIF (WIN32)
 
 IF (WIN32)
@@ -117,6 +124,8 @@ IF (WIN32)
                 ${LIBPANGOWIN32}
                 ${LIBZLIB1}
                 ${FREETYPE6}
+                ${DJVULIBRE_DIR}/libdjvulibre.dll
+                ${DJVULIBRE_DIR}/libjpeg.dll
                 DESTINATION .)
 ELSE (WIN32)
         INSTALL (TARGETS apvlv DESTINATION bin)
