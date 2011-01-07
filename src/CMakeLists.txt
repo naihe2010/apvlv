@@ -10,32 +10,15 @@ ELSE (WIN32)
         ENDIF (APVLV_ENABLE_DEBUG)
 ENDIF (WIN32)
 
-FIND_PACKAGE (PkgConfig)
-PKG_CHECK_MODULES (FREETYPE2 freetype2 REQUIRED)
-PKG_CHECK_MODULES (GTK2 gtk+-2.0 REQUIRED)
-PKG_CHECK_MODULES (GLIB2 glib-2.0 REQUIRED)
-PKG_CHECK_MODULES (GTHREAD2 gthread-2.0 REQUIRED)
-INCLUDE_DIRECTORIES (${FREETYPE2_INCLUDE_DIRS} 
-                     ${GTK2_INCLUDE_DIRS} 
-                     ${GLIB2_INCLUDE_DIRS} 
-                     ${GTHREAD2_INCLUDE_DIRS})
-LINK_DIRECTORIES (${FREETYPE2_LIBRARY_DIRS}
-                  ${GTK2_LIBRARY_DIRS} 
-                  ${GLIB2_LIBRARY_DIRS} 
-                  ${GTHREAD2_LIBRARY_DIRS})
-
 IF (NOT WIN32)
         PKG_CHECK_MODULES (POPPLER poppler-glib REQUIRED)
         INCLUDE_DIRECTORIES (${POPPLER_INCLUDE_DIRS})
         LINK_DIRECTORIES (${POPPLER_LIBRARY_DIRS})
 ELSE (NOT WIN32)
-        INCLUDE_DIRECTORIES (${CMAKE_HOME_DIRECTORY}/win32/poppler-src 
-                             ${CMAKE_HOME_DIRECTORY}/win32/libumd-src
-        )
+        INCLUDE_DIRECTORIES (${POPPLER_DIR}
+                             ${LIBUMD_DIR})
         LINK_DIRECTORIES (${CMAKE_BINARY_DIR}/poppler-out
-                          ${CMAKE_BINARY_DIR}/libumd-out 
-                          ${CMAKE_HOME_DIRECTORY}/win32/libumd-src/libiconv-1.9.2-1-lib/lib
-                          ${CMAKE_HOME_DIRECTORY}/win32/libumd-src/zlib125-dll/lib)
+                          ${CMAKE_BINARY_DIR}/libumd-out)
         SET (POPPLER_LIBRARIES poppler.lib freetype.lib)
 ENDIF (NOT WIN32)
 
@@ -90,14 +73,10 @@ IF (APVLV_WITH_UMD)
 ENDIF (APVLV_WITH_UMD)
 
 IF (WIN32)
-        CMAKE_POLICY (SET CMP0013 NEW)
-        ADD_SUBDIRECTORY (${CMAKE_HOME_DIRECTORY}/win32/poppler-src ${CMAKE_BINARY_DIR}/poppler-out)
         ADD_DEPENDENCIES (apvlv poppler)
-
         IF (APVLV_WITH_UMD)
-                ADD_SUBDIRECTORY (${CMAKE_HOME_DIRECTORY}/win32/libumd-src ${CMAKE_BINARY_DIR}/libumd-out)
                 ADD_DEPENDENCIES (apvlv umd)
-                TARGET_LINK_LIBRARIES (apvlv umd.lib libiconv.lib zdll.lib)
+                TARGET_LINK_LIBRARIES (apvlv umd.lib zdll.lib)
         ENDIF (APVLV_WITH_UMD)
 ENDIF (WIN32)
 
@@ -138,10 +117,6 @@ IF (WIN32)
                 ${LIBPANGOWIN32}
                 ${LIBZLIB1}
                 ${FREETYPE6}
-                DESTINATION .)
-        INSTALL (FILES
-                ${CMAKE_HOME_DIRECTORY}/win32/libumd-src/libiconv-1.9.2-1-lib/lib/libiconv2.dll
-                ${CMAKE_HOME_DIRECTORY}/win32/libumd-src/libiconv-1.9.2-1-lib/lib/libintl3.dll
                 DESTINATION .)
 ELSE (WIN32)
         INSTALL (TARGETS apvlv DESTINATION bin)
