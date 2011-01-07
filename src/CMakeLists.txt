@@ -1,28 +1,15 @@
 IF (WIN32)
         ADD_DEFINITIONS (-D_CRT_SECURE_NO_WARNINGS)
 ELSE (WIN32)
-        OPTION (APVLV_ENABLE_DEBUG "If build binary with debug infomations." OFF)
         SET (CMAKE_CXX_FLAGS "-Wall -fno-strict-aliasing")
+
+        OPTION (APVLV_ENABLE_DEBUG "If build binary with debug infomations." OFF)
         IF (APVLV_ENABLE_DEBUG)
                 SET (CMAKE_CXX_FLAGS "-D_DEBUG -g ${CMAKE_CXX_FLAGS}")
         ELSE (APVLV_ENABLE_DEBUG)
                 SET (CMAKE_CXX_FLAGS "-O2 ${CMAKE_CXX_FLAGS}")
         ENDIF (APVLV_ENABLE_DEBUG)
 ENDIF (WIN32)
-
-IF (NOT WIN32)
-        PKG_CHECK_MODULES (POPPLER poppler-glib REQUIRED)
-        INCLUDE_DIRECTORIES (${POPPLER_INCLUDE_DIRS})
-        LINK_DIRECTORIES (${POPPLER_LIBRARY_DIRS})
-ELSE (NOT WIN32)
-        INCLUDE_DIRECTORIES (${POPPLER_DIR}
-                             ${LIBUMD_DIR}
-                             ${DJVULIBRE_DIR}/include)
-        LINK_DIRECTORIES (${CMAKE_BINARY_DIR}/poppler-out
-                          ${CMAKE_BINARY_DIR}/libumd-out
-                          ${DJVULIBRE_DIR})
-        SET (POPPLER_LIBRARIES poppler.lib freetype.lib)
-ENDIF (NOT WIN32)
 
 SET (HEADERS
      ApvlvCmds.hpp
@@ -54,37 +41,18 @@ SET (SOURCES
 )
 
 ADD_EXECUTABLE (apvlv ${HEADERS} ${SOURCES})
+
 TARGET_LINK_LIBRARIES (apvlv
                        ${GTK2_LIBRARIES} 
                        ${GLIB2_LIBRARIES} 
                        ${GTHREAD2_LIBRARIES}
-                       ${POPPLER_LIBRARIES}) 
-
-OPTION (APVLV_WITH_DJVU "If build apvlv with djvu format support." ON)
-IF (APVLV_WITH_DJVU)
-        ADD_DEFINITIONS (-DHAVE_LIBDJVU)
-        IF (NOT WIN32)
-        TARGET_LINK_LIBRARIES (apvlv -ldjvulibre)
-        ENDIF (NOT WIN32)
-ENDIF (APVLV_WITH_DJVU)
-
-OPTION (APVLV_WITH_UMD "If build binary with umd format support." ON)
-IF (APVLV_WITH_UMD)
-        ADD_DEFINITIONS (-DHAVE_LIBUMD)
-        IF (NOT WIN32)
-        TARGET_LINK_LIBRARIES (apvlv -lumd)
-        ENDIF (NOT WIN32)
-ENDIF (APVLV_WITH_UMD)
+                       ${APVLV_REQ_LIBRARIES}) 
 
 IF (WIN32)
         ADD_DEPENDENCIES (apvlv poppler)
         IF (APVLV_WITH_UMD)
                 ADD_DEPENDENCIES (apvlv umd)
-                TARGET_LINK_LIBRARIES (apvlv umd.lib zdll.lib)
         ENDIF (APVLV_WITH_UMD)
-        IF (APVLV_WITH_DJVU)
-                TARGET_LINK_LIBRARIES (apvlv libdjvulibre.lib)
-        ENDIF (APVLV_WITH_DJVU)
 ENDIF (WIN32)
 
 IF (WIN32)

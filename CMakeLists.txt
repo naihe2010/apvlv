@@ -53,13 +53,53 @@ LINK_DIRECTORIES (${FREETYPE2_LIBRARY_DIRS}
 
 IF (WIN32)
         SET (POPPLER_DIR ${CMAKE_HOME_DIRECTORY}/win32/poppler-src)
-        ADD_SUBDIRECTORY (${POPPLER_DIR} ${CMAKE_BINARY_DIR}/poppler-out)
 
-        SET (LIBUMD_DIR ${CMAKE_HOME_DIRECTORY}/win32/libumd-trunk)
-        ADD_SUBDIRECTORY (${LIBUMD_DIR} ${CMAKE_BINARY_DIR}/libumd-out)
+        INCLUDE_DIRECTORIES (${POPPLER_DIR})
+        LINK_DIRECTORIES (${CMAKE_BINARY_DIR}/poppler-build)
+        SET (APVLV_REQ_LIBRARIES poppler.lib freetype.lib)
 
-        SET (DJVULIBRE_DIR ${CMAKE_HOME_DIRECTORY}/win32/djvulibre)
+        ADD_SUBDIRECTORY (${POPPLER_DIR} ${CMAKE_BINARY_DIR}/poppler-build)
+ELSE (WIN32)
+        PKG_CHECK_MODULES (POPPLER poppler-glib REQUIRED)
+        INCLUDE_DIRECTORIES (${POPPLER_INCLUDE_DIRS})
+        LINK_DIRECTORIES (${POPPLER_LIBRARY_DIRS})
+        SET (APVLV_REQ_LIBRARIES ${POPPLER_LIBRARIES})
 ENDIF (WIN32)
+
+OPTION (APVLV_WITH_DJVU "If build apvlv with djvu format support." ON)
+IF (APVLV_WITH_DJVU)
+        ADD_DEFINITIONS (-DHAVE_LIBDJVU)
+
+        IF (WIN32)
+                SET (DJVULIBRE_DIR ${CMAKE_HOME_DIRECTORY}/win32/djvulibre)
+
+                INCLUDE_DIRECTORIES (${DJVULIBRE_DIR}/include)
+                LINK_DIRECTORIES (${DJVULIBRE_DIR})
+                SET (APVLV_REQ_LIBRARIES libdjvulibre.lib
+                     ${APVLV_REQ_LIBRARIES})
+        ELSE (WIN32)
+                SET (APVLV_REQ_LIBRARIES -ldjvulibre
+                     ${APVLV_REQ_LIBRARIES})
+        ENDIF (WIN32)
+ENDIF (APVLV_WITH_DJVU)
+
+OPTION (APVLV_WITH_UMD "If build binary with umd format support." ON)
+IF (APVLV_WITH_UMD)
+        ADD_DEFINITIONS (-DHAVE_LIBUMD)
+
+        IF (WIN32)
+                SET (LIBUMD_DIR ${CMAKE_HOME_DIRECTORY}/win32/libumd-trunk)
+                ADD_SUBDIRECTORY (${LIBUMD_DIR} ${CMAKE_BINARY_DIR}/libumd-build)
+
+                INCLUDE_DIRECTORIES (${LIBUMD_DIR})
+                LINK_DIRECTORIES (${CMAKE_BINARY_DIR}/libumd-build)
+                SET (APVLV_REQ_LIBRARIES umd.lib zdll.lib
+                     ${APVLV_REQ_LIBRARIES})
+        ELSE (WIN32)
+                SET (APVLV_REQ_LIBRARIES -lumd
+                     ${APVLV_REQ_LIBRARIES})
+        ENDIF (WIN32)
+ENDIF (APVLV_WITH_UMD)
 
 ADD_SUBDIRECTORY (src)
 
