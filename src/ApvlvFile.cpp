@@ -65,35 +65,56 @@ namespace apvlv
   ApvlvFile *ApvlvFile::newfile (const char *filename, bool check)
   {
     ApvlvFile *file = NULL;
+    static const char *type_phrase[] =
+    {
+      ".PDF",
+      ".umd",
+      ".djvu"
+    };
+
+    size_t i;
+    for (i = 0; i < 3; ++ i)
+      {
+        if (strcasecmp (filename + strlen (filename) - strlen (type_phrase[i]),
+                        type_phrase[i]) == 0)
+          {
+            break;
+          }
+      }
+
+    if (i == 3)
+      {
+        debug ("not a valid file: %s, treate as a PDF file", filename);
+        i = 0;
+      }
 
     try
       {
-        file = new ApvlvPDF (filename);
+        switch (i)
+          {
+          case 0:
+            file = new ApvlvPDF (filename);
+            break;
+
+          case 1:
+            file = new ApvlvUMD (filename);
+            break;
+
+          case 2:
+            file = new ApvlvDJVU (filename);
+            break;
+
+          default:
+            ;
+          }
       }
 
     catch (bad_alloc e)
       {
         delete file;
-
-        try
-          {
-            file = new ApvlvUMD (filename);
-          }
-        catch (bad_alloc e)
-          {
-            try
-              {
-                file = new ApvlvDJVU (filename);
-              }
-            catch (bad_alloc e)
-              {
-                file = NULL;
-                delete file;
-              }
-          }
+        file = NULL;
       }
 
-    debug ("new a file: %p", file);
     return file;
   }
 
