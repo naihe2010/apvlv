@@ -70,11 +70,12 @@ namespace apvlv
 
   ApvlvInfo::~ApvlvInfo ()
   {
-    while (mFileHead != NULL)
+    for (GSList *list = mFileHead;
+         list != NULL;
+         list = g_slist_next (list))
       {
-        infofile *fp = (infofile *) (mFileHead->data);
+        infofile *fp = (infofile *) (list->data);
         delete fp;
-        mFileHead = g_slist_next (mFileHead);
       }
     g_slist_free (mFileHead);
   }

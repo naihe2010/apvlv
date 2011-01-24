@@ -447,6 +447,7 @@ namespace apvlv
 
   void ApvlvPDF::free_index (ApvlvFileIndex * index)
   {
+    delete index;
   }
 
   bool ApvlvPDF::walk_poppler_index_iter (ApvlvFileIndex * titr,
