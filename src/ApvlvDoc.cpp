@@ -125,6 +125,11 @@ namespace apvlv
     savelastposition (filename ());
     mPositions.clear ();
 
+    if (mFile)
+      {
+        delete mFile;
+      }
+
     delete mStatus;
   }
 
@@ -824,6 +829,11 @@ namespace apvlv
           }
       }
 
+    if (mFile)
+      {
+        delete mFile;
+        mFile = NULL;
+      }
     mReady = false;
 
     mFile = ApvlvFile::newfile (filename);

@@ -210,8 +210,6 @@ namespace apvlv
   {
     if (mDoc)
       {
-        debug ("Free the PopplerDocument");
-        debug ("And, Maybe there is some bugs in poppler-glib libiray");
         g_object_unref (mDoc);
       }
   }
