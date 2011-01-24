@@ -1386,6 +1386,10 @@ namespace apvlv
       {
         mRotatevalue += 360;
       }
+    while (mRotatevalue > 360)
+      {
+        mRotatevalue -= 360;
+      }
     refresh ();
     return true;
   }
