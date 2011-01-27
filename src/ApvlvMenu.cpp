@@ -123,6 +123,7 @@ namespace apvlv
 
   void ApvlvMenu::setsize (gint w, gint h)
   {
+    gtk_widget_set_size_request (mMenu, w, h);
   }
 
   static void apvlv_menu_on_file_open ()

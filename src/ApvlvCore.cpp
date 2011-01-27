@@ -517,6 +517,16 @@ namespace apvlv
   {
   }
 
+  int ApvlvCore::getskip ()
+  {
+    return mSkip;
+  }
+
+  void ApvlvCore::setskip (int ct)
+  {
+    mSkip = ct;
+  }
+
   void ApvlvCore::returnlink (int ct)
   {
   }

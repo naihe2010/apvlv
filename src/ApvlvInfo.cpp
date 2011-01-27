@@ -98,7 +98,7 @@ namespace apvlv
         if (fp)
           {
             os << "'" << i << "\t";
-            os << fp->page << "\t";
+            os << fp->page << ':' << fp->skip << "\t";
             os << fp->rate << "\t";
             os << fp->file << endl;
           }
@@ -145,7 +145,7 @@ namespace apvlv
     return fp;
   }
 
-  bool ApvlvInfo::file (int page, double rate, const char *filename)
+  bool ApvlvInfo::file (int page, double rate, const char *filename, int skip)
   {
     infofile *fp;
 
@@ -157,6 +157,7 @@ namespace apvlv
 
     fp->page = page;
     fp->rate = rate;
+    fp->skip = skip;
     update ();
 
     return true;
@@ -164,7 +165,7 @@ namespace apvlv
 
   bool ApvlvInfo::ini_add_position (const char *str)
   {
-    const char *p;
+    const char *p, *s;
 
     p = strchr (str + 2, '\t');	/* Skip the ' and the digit */
     if (p == NULL)
@@ -177,6 +178,25 @@ namespace apvlv
         p++;
       }
     int page = atoi (p);
+    int skip;
+
+    s = strchr (p, ':');
+    for (;s && p < s; ++p)
+      {
+        if (!isdigit (*p))
+          {
+            break;
+          }
+      }
+    if (p == s)
+      {
+        ++ p;
+        skip = atoi (p);
+      }
+    else
+      {
+        skip = 0;
+      }
 
     p = strchr (p, '\t');
     if (p == NULL)
@@ -208,6 +228,7 @@ namespace apvlv
     infofile *fp = new infofile;
     fp->page = page;
     fp->rate = rate;
+    fp->skip = skip;
     fp->file = p;
     mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
     return true;

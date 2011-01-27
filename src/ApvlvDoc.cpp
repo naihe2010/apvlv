@@ -616,6 +616,7 @@ namespace apvlv
         markposition ('\'');
         if (has)
           {
+            ct += mSkip;
             showpage (ct - 1);
           }
         else
@@ -667,6 +668,9 @@ namespace apvlv
         yank (ct);
         mInVisual = VISUAL_NONE;
         blank (mCurx, mCury);
+        break;
+      case ('s'):
+        setskip (ct);
         break;
       default:
         return NO_MATCH;
@@ -738,7 +742,7 @@ namespace apvlv
         return false;
       }
 
-    bool ret = gInfo->file (mPagenum, scrollrate (), filename);
+    bool ret = gInfo->file (mPagenum, scrollrate (), filename, mSkip);
 
     return ret;
   }
@@ -765,6 +769,7 @@ namespace apvlv
     // correctly check
     mScrollvalue = fp->rate;
     showpage (fp->page);
+    setskip (fp->skip);
 
     // Warning
     // I can't think a better way to scroll correctly when

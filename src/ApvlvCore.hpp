@@ -146,6 +146,9 @@ namespace apvlv
 
       virtual void returnlink (int ct);
 
+      virtual int getskip ();
+      virtual void setskip (int ct);
+
       virtual void setsize (int wid, int hei);
 
       virtual returnType process (int has, int times, guint keyval);
@@ -192,6 +195,8 @@ namespace apvlv
       bool mAdjInchg;
 
       int mPagenum;
+
+      int mSkip;
 
       double mPagex, mPagey;
 

@@ -42,6 +42,7 @@ namespace apvlv
   struct infofile
     {
       int page;
+      int skip;
       double rate;
       string file;
     };
@@ -56,7 +57,7 @@ namespace apvlv
 
       infofile *file (int);
       infofile *file (const char *);
-      bool file (int, double, const char *);
+      bool file (int, double, const char *, int);
 
     private:
       string mFileName;

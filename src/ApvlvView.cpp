@@ -47,7 +47,7 @@ namespace apvlv
   {
   ApvlvView *gView = NULL;
 
-  const int ApvlvView::APVLV_MENU_HEIGHT = 20;
+  const int ApvlvView::APVLV_MENU_HEIGHT = 30;
   const int ApvlvView::APVLV_CMD_BAR_HEIGHT = 20;
   const int ApvlvView::APVLV_TABS_HEIGHT = 36;
 
@@ -87,7 +87,7 @@ namespace apvlv
     if (strchr (gParams->values ("guioptions"), 'm') != NULL)
       {
         mMenu->setsize (mWidth, APVLV_MENU_HEIGHT - 1);
-        gtk_box_pack_start (GTK_BOX (mViewBox), mMenu->widget (), TRUE, TRUE,
+        gtk_box_pack_start (GTK_BOX (mViewBox), mMenu->widget (), FALSE, FALSE,
                             0);
       }
 
@@ -113,7 +113,7 @@ namespace apvlv
       }
 
     mCommandBar = gtk_entry_new ();
-    gtk_box_pack_end (GTK_BOX (mViewBox), mCommandBar, TRUE, TRUE, 0);
+    gtk_box_pack_end (GTK_BOX (mViewBox), mCommandBar, FALSE, FALSE, 0);
 
     g_signal_connect (G_OBJECT (mMainWindow), "size-allocate",
                       G_CALLBACK (apvlv_view_resized_cb), this);
@@ -902,6 +902,10 @@ namespace apvlv
                 gParams->push ("cache", "no");
                 crtadoc ()->usecache (false);
               }
+            else if (subcmd == "skip")
+              {
+                crtadoc ()->setskip (atoi (argu.c_str ()));
+              }
             else
               {
                 gParams->push (subcmd, argu);
@@ -967,7 +971,9 @@ namespace apvlv
         else if (cmd == "goto" || cmd == "g")
           {
             crtadoc ()->markposition ('\'');
-            crtadoc ()->showpage (atoi (subcmd.c_str ()) - 1);
+            int p = atoi (subcmd.c_str ());
+            p += crtadoc ()->getskip ();
+            crtadoc ()->showpage (p - 1);
           }
         else if ((cmd == "help" || cmd == "h") && subcmd == "info")
           {
@@ -1046,10 +1052,14 @@ namespace apvlv
                     break;
                   }
               }
-            if (isn && crtadoc ()
-                && atoi (cmd.c_str ()) != crtadoc ()->pagenumber ())
+            if (isn && crtadoc ())
               {
-                crtadoc ()->showpage (atoi (cmd.c_str ()) - 1);
+                int p = atoi (cmd.c_str ());
+                p += crtadoc ()->getskip ();
+                if (p != crtadoc ()->pagenumber ())
+                  {
+                    crtadoc ()->showpage (p - 1);
+                  }
               }
             else
               {
