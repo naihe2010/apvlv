@@ -132,6 +132,7 @@ namespace apvlv
       {
         fp = new infofile;
         fp->page = 0;
+        fp->skip = 0;
         fp->rate = 0.0;
         fp->file = filename;
         mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
