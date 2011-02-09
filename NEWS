@@ -4,6 +4,7 @@ apvlv 0.1.1
 News features
 
    * add '[int]s' to support skip some pages for some document
+   * sorted in dir mode by filename
 
 apvlv 0.1.0
 ===========

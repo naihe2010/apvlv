@@ -126,7 +126,9 @@ namespace apvlv
     gtk_tree_view_column_add_attribute (column, renderer0, "pixbuf", 1);
     gtk_tree_view_column_add_attribute (column, renderer, "text", 2);
     gtk_tree_view_column_set_sort_column_id (column, 2);
+    gtk_tree_view_column_set_sort_order (column, GTK_SORT_ASCENDING);
     gtk_tree_view_append_column (GTK_TREE_VIEW (mDirView), column);
+    gtk_tree_view_column_clicked (column);
 
     mStatus = new ApvlvDirStatus (this);
 
