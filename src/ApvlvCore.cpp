@@ -118,6 +118,7 @@ namespace apvlv
 #if !GLIB_CHECK_VERSION (2, 16, 0)
     #define G_MD5_CHECKSUM                              0
     #define g_compute_checksum_for_string(a,b,c)        g_strdup ("")
+    #define g_compute_checksum_for_data(a,b,c)          g_strdup ("")
     debug ("your glib not support md5 checksum");
     gView->infomessage ("Please disable autoload in $HOME/.apvlvrc or update your glib to 2.16 or highter.");
     return NULL;
