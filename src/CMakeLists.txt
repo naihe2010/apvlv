@@ -58,6 +58,8 @@ ENDIF (WIN32)
 IF (WIN32)
         INSTALL (TARGETS apvlv DESTINATION .)
         FIND_FILE (LIBATK libatk-1.0-0.dll)
+        FIND_FILE (LIBEXPAT1 libexpat-1.dll)
+        FIND_FILE (LIBFONTCONFIG1 libfontconfig-1.dll)
         FIND_FILE (LIBGIO libgio-2.0-0.dll)
         FIND_FILE (LIBCAIRO libcairo-2.dll)
         FIND_FILE (LIBPANGOCAIRO libpangocairo-1.0-0.dll)
@@ -76,6 +78,8 @@ IF (WIN32)
         FIND_FILE (FREETYPE6 freetype6.dll)
         INSTALL (FILES
                 ${LIBATK}
+                ${LIBEXPAT1}
+                ${LIBFONTCONFIG1}
                 ${LIBGIO}
                 ${LIBCAIRO}
                 ${LIBPANGOCAIRO}
