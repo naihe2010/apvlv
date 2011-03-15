@@ -73,29 +73,13 @@ namespace apvlv
       gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
     mHaj =
       gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
-
-    mReloadTimer = 0;
-    mCheckMD5 = NULL;
-
-    if (gParams->valuei ("autoreload") > 0)
-      {
-        mReloadTimer = g_timeout_add (gParams->valuei ("autoreload") * 1000,
-                                      apvlv_core_check_reload, this);
-      }
   }
 
   ApvlvCore::~ApvlvCore ()
   {
-    if (mReloadTimer)
+    if (mGMonitor)
       {
-        g_source_remove (mReloadTimer);
-        mReloadTimer = 0;
-      }
-
-    if (mCheckMD5)
-      {
-        g_free (mCheckMD5);
-        mCheckMD5 = NULL;
+        mGMonitor = NULL;
       }
 
     g_object_unref (mVbox);
@@ -104,117 +88,6 @@ namespace apvlv
   bool ApvlvCore::reload ()
   {
     return true;
-  }
-
-  static gboolean add_token (const char *name, void *data)
-  {
-    string *str = (string *) data;
-    str->append (name);
-    return TRUE;
-  }
-
-  gchar *ApvlvCore::checkmd5 ()
-  {
-#if !GLIB_CHECK_VERSION (2, 16, 0)
-    #define G_MD5_CHECKSUM                              0
-    #define g_compute_checksum_for_string(a,b,c)        g_strdup ("")
-    #define g_compute_checksum_for_data(a,b,c)          g_strdup ("")
-    debug ("your glib not support md5 checksum");
-    gView->infomessage ("Please disable autoload in $HOME/.apvlvrc or update your glib to 2.16 or highter.");
-    return NULL;
-#endif
-#ifdef WIN32
-    struct _stat32 sbuf[1];
-#else
-    struct stat sbuf[1];
-#endif
-    int rt = g_stat (mFilestr.c_str (), sbuf);
-    if (rt < 0)
-      {
-        gView->errormessage ("stat file: %s error.", mFilestr.c_str ());
-        return NULL;
-      }
-
-    time_t now = time (NULL);
-
-    if (S_ISDIR (sbuf->st_mode))
-      {
-        string data;
-        walkdir (mFilestr.c_str (), add_token, &data);
-        gchar *md5 = g_compute_checksum_for_string (G_CHECKSUM_MD5, data.c_str
-                     (), -1);
-        return md5;
-      }
-
-    else if (now - sbuf->st_mtime < 2)
-      {
-        debug ("File is modifing, skiped.\n");
-        return mCheckMD5;
-      }
-
-    else
-      {
-        guchar *data = new guchar[sbuf->st_size];
-
-        ifstream ifs (mFilestr.c_str (), ios::binary);
-        if (ifs.is_open ())
-          {
-            ifs.read ((char *) data, sbuf->st_size);
-            ifs.close ();
-          }
-
-        gchar *md5 = g_compute_checksum_for_data (G_CHECKSUM_MD5, data,
-                     sbuf->st_size);
-
-        delete[]data;
-
-        return md5;
-      }
-
-    return NULL;
-  }
-
-  gboolean ApvlvCore::apvlv_core_check_reload (gpointer data)
-  {
-    ApvlvCore *core = (ApvlvCore *) data;
-
-    if (core->mInuse == false)
-      {
-        return TRUE;
-      }
-
-    if (core->mCheckMD5 == NULL)
-      {
-        core->mCheckMD5 = core->checkmd5 ();
-        return TRUE;
-      }
-    else
-      {
-        gchar *newmd5 = core->checkmd5 ();
-        if (newmd5 == NULL)
-          {
-            debug ("%d: get check sum failed", time (NULL));
-            return TRUE;
-          }
-
-        if (strcmp (newmd5, core->mCheckMD5) == 0)
-          {
-            debug ("%d: file is not changed.", time (NULL));
-            g_free (newmd5);
-            return TRUE;
-          }
-        else
-          {
-            debug ("%d: file is modified, reload it.", time (NULL));
-            gView->infomessage
-            ("Contents is modified, apvlv reload it automatically");
-            g_free (core->mCheckMD5);
-            core->mCheckMD5 = newmd5;
-            core->reload ();
-          }
-      }
-
-    return TRUE;
   }
 
   void ApvlvCore::inuse (bool use)

@@ -892,6 +892,32 @@ namespace apvlv
           }
 
         mInVisual = VISUAL_NONE;
+
+        if (gParams->valuei ("autoreload") > 0)
+          {
+            mGFile = g_file_new_for_path (filename);
+            if (mGFile)
+              {
+                GError *error = NULL;
+                mGMonitor = g_file_monitor_file (mGFile, G_FILE_MONITOR_NONE, NULL, &error);
+                if (error != NULL)
+                  {
+                    debug ("Create file monitor failed: %s\n", error->message);
+                    g_error_free (error);
+                  }
+              }
+            else
+              {
+                mGMonitor = NULL;
+              }
+
+            if (mGMonitor)
+              {
+                g_file_monitor_set_rate_limit (mGMonitor, gParams->valuei ("autoreload") * 1000);
+                g_signal_connect (G_OBJECT (mGMonitor), "changed", G_CALLBACK (apvlv_doc_monitor_callback), this);
+                debug ("connect changed callback to : %p\n", mGMonitor);
+              }
+          }
       }
 
     return mFile == NULL ? false : true;
@@ -1581,6 +1607,21 @@ namespace apvlv
     delete data;
   }
 #endif
+
+  void 
+  ApvlvDoc::apvlv_doc_monitor_callback (GFileMonitor *fm, GFile *gf1, GFile *gf2, GFileMonitorEvent ev, ApvlvDoc *doc)
+    {
+      if (doc->mInuse == false)
+        {
+          return;
+        }
+
+      if (ev == G_FILE_MONITOR_EVENT_CHANGED)
+        {
+          gView->errormessage ("Contents is modified, apvlv reload it automatically");
+          doc->reload ();
+        }
+    }
 
   void
   ApvlvDoc::apvlv_doc_button_event (GtkEventBox * box,

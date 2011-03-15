@@ -125,6 +125,8 @@ namespace apvlv
 
       static gboolean apvlv_dir_first_select_cb (ApvlvDir *);
 
+      static void apvlv_dir_monitor_callback (GFileMonitor *, GFile *, GFile *, GFileMonitorEvent, ApvlvDir *);
+
       gint mFirstSelTimer;
 
       ApvlvFileIndex *mIndex;

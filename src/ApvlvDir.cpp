@@ -195,10 +195,12 @@ namespace apvlv
 
     if (S_ISDIR (buf->st_mode))
       {
+        mType = CORE_DIR;
         mReady = walk_dir_path_index (NULL, path);
       }
     else
       {
+        mType = CORE_CONTENT;
         mFile = ApvlvFile::newfile (path);
 
         if (mFile != NULL && (mIndex = mFile->new_index ()) != NULL)
@@ -226,6 +228,31 @@ namespace apvlv
           g_timeout_add (50,
                          (gboolean (*)(gpointer)) apvlv_dir_first_select_cb,
                          this);
+
+        if (gParams->valuei ("autoreload") > 0)
+          {
+            mGFile = g_file_new_for_path (path);
+            if (mGFile)
+              {
+                GError *error = NULL;
+                mGMonitor = g_file_monitor (mGFile, G_FILE_MONITOR_NONE, NULL, NULL);
+                if (error != NULL)
+                  {
+                    debug ("Create file monitor failed: %s\n", error->message);
+                    g_error_free (error);
+                  }
+              }
+            else
+              {
+                mGMonitor = NULL;
+              }
+
+            if (mGMonitor)
+              {
+                g_file_monitor_set_rate_limit (mGMonitor, gParams->valuei ("autoreload") * 1000);
+                g_signal_connect (G_OBJECT (mGMonitor), "changed", G_CALLBACK (apvlv_dir_monitor_callback), this);
+              }
+          }
       }
 
     return mReady;
@@ -790,6 +817,17 @@ namespace apvlv
       }
     return FALSE;
   }
+
+  void ApvlvDir::apvlv_dir_monitor_callback (GFileMonitor *gfm, GFile *gf1, GFile *gf2, GFileMonitorEvent ev, ApvlvDir *dir)
+    {
+      if (ev == G_FILE_MONITOR_EVENT_CHANGED
+          || ev == G_FILE_MONITOR_EVENT_DELETED
+          || ev == G_FILE_MONITOR_EVENT_CREATED)
+        {
+          gView->errormessage ("Contents is modified, apvlv reload it automatically");
+          dir->reload ();
+        }
+    }
 
   bool ApvlvDir::walk_dir_path_index (GtkTreeIter * itr, const char *path)
   {
