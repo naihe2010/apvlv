@@ -155,7 +155,7 @@ main (int argc, char *argv[])
   ApvlvParams sParams;
   gParams = &sParams;
 
-  gchar *infopath = absolutepath ("~/.apvlvinfo");
+  gchar *infopath = absolutepath (sessionfile.c_str ());
   ApvlvInfo sInfo (infopath);
   g_free (infopath);
   gInfo = &sInfo;
