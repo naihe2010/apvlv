@@ -42,7 +42,7 @@ class ApvlvDir;
 class ApvlvDirNode
 {
 public:
-  ApvlvDirNode (ApvlvDir *, GtkTreeIter *, gint);
+  ApvlvDirNode (ApvlvDir *, GtkTreeIter *, gint, const char *);
   ApvlvDirNode (ApvlvDir *, GtkTreeIter *, bool isdir, const char *, const char *);
   ~ApvlvDirNode ();
 
@@ -56,7 +56,7 @@ public:
 
   //
   // Get the gtk tree iter
-  const GtkTreeIter *iter ();
+  GtkTreeIter *iter ();
 
 private:
   static void apvlv_dirnode_monitor_callback (GFileMonitor *, GFile *, GFile *, GFileMonitorEvent, ApvlvDirNode *);
@@ -127,6 +127,8 @@ private:
   bool walk_file_index (GtkTreeIter * titr, ApvlvFileIndexIter iter);
 
   bool walk_dir_path_index (GtkTreeIter * titr, const char *path);
+
+  void apvlv_dir_change_node (ApvlvDirNode *, GFile *, GFileMonitorEvent);
 
   static void apvlv_dir_on_changed (GtkTreeSelection *, ApvlvDir *);
 
