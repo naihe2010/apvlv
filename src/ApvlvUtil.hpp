@@ -41,15 +41,15 @@
 using namespace std;
 
 namespace apvlv
-  {
-  // Global files
-  extern string helppdf;
-  extern string iniexam;
-  extern string inifile;
-  extern string icondir;
-  extern string iconreg;
-  extern string iconpdf;
-  extern string sessionfile;
+{
+// Global files
+extern string helppdf;
+extern string iniexam;
+extern string inifile;
+extern string icondir;
+extern string iconreg;
+extern string iconpdf;
+extern string sessionfile;
 
 #ifndef PATH_MAX
 #define PATH_MAX 4096
@@ -63,36 +63,36 @@ namespace apvlv
 #define PATH_SEP_S  "/"
 #endif
 
-  int apvlv_system (const char *);
+int apvlv_system (const char *);
 
-  char *absolutepath (const char *path);
+char *absolutepath (const char *path);
 
-  bool filecpy (const char *dst, const char *src);
+bool filecpy (const char *dst, const char *src);
 
 #define CORE_NONE       0
 #define CORE_DOC        1
 #define CORE_CONTENT    2
 #define CORE_DIR        3
 
-  GtkWidget *replace_widget (GtkWidget * owid, GtkWidget * nwid);
+GtkWidget *replace_widget (GtkWidget * owid, GtkWidget * nwid);
 
-  // command type
-  enum
-  {
-    CMD_NONE,
-    CMD_MESSAGE,
-    CMD_CMD
-  };
+// command type
+enum
+{
+  CMD_NONE,
+  CMD_MESSAGE,
+  CMD_CMD
+};
 
-  // function return type
-  typedef enum
-  {
-    MATCH,
-    NEED_MORE,
-    NO_MATCH,
-  } returnType;
+// function return type
+typedef enum
+{
+  MATCH,
+  NEED_MORE,
+  NO_MATCH,
+} returnType;
 
-  // some windows macro
+// some windows macro
 #ifdef WIN32
 #include <wtypes.h>
 #include <winbase.h>
@@ -103,13 +103,13 @@ namespace apvlv
 #ifndef S_ISDIR
 #define S_ISDIR(mode)  (((mode) & 0170000) == (0040000))
 #endif				/* 
-  */
+*/
 
 #endif
 
-  gboolean walkdir (const char *, gboolean (*)(const char *, void *), void *);
+gboolean walkdir (const char *, gboolean (*)(const char *, void *), void *);
 
-  // log system
+// log system
 #if defined DEBUG || defined _DEBUG
 #define debug(...)      logv ("DEBUG", __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define asst(s)         do {                    \
@@ -124,8 +124,8 @@ namespace apvlv
 #define asst(s)
 #endif
 #define errp(...)       logv ("ERROR", __FILE__, __LINE__, __func__, __VA_ARGS__)
-  void logv (const char *, const char *, int, const char *, const char *,
-             ...);
+void logv (const char *, const char *, int, const char *, const char *,
+           ...);
 
 // char macro
 // because every unsigned char is < 256, so use this marco to stand for Ctrl+char, Shift+char

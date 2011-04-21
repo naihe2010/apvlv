@@ -42,146 +42,146 @@
 using namespace std;
 
 namespace apvlv
+{
+typedef enum
+{
+  CT_CMD,
+  CT_STRING,
+  CT_STRING_RETURN
+} cmdType;
+
+typedef map < guint, const char *>KeyStringMap;
+typedef map < const char *, guint > StringKeyMap;
+
+class ApvlvCmd;
+typedef vector < guint > ApvlvCmdKeyv;
+typedef map < ApvlvCmdKeyv, ApvlvCmd * >ApvlvCmdMap;
+
+class ApvlvCmd
+{
+public:
+  ApvlvCmd ();
+
+  ~ApvlvCmd ();
+
+  void process ();
+
+  void push (const char *s, cmdType type = CT_CMD);
+
+  bool append (GdkEventKey * key);
+
+  const char *append (const char *s);
+
+  bool cmp (ApvlvCmd & cmd);
+
+  void type (cmdType type);
+
+  cmdType type ();
+
+  void bemap (bool bemap);
+
+  bool bemap ();
+
+  void canmap (bool canmap);
+
+  bool canmap ();
+
+  void hascount (bool hascount);
+
+  bool hascount ();
+
+  const char *c_str ();
+
+  ApvlvCmdKeyv *keyvalv_p ();
+
+  ApvlvCmdKeyv keyvalv ();
+
+  void precount (gint precount);
+
+  gint precount ();
+
+  gint keyval (guint id);
+
+  void next (ApvlvCmd * cmd);
+
+  ApvlvCmd *next ();
+
+  void origin (ApvlvCmd * cmd);
+
+  ApvlvCmd *origin ();
+
+private:
+
+  // command type
+  cmdType mType;
+
+  // if cmd is be mapped
+  bool mBeMap;
+
+  // if cmd can be mapped
+  bool mCanMap;
+
+  // if has count
+  bool mHasPreCount;
+
+  // how to descripe this command in .apvlvrc
+  // like <C-d><C-w>, <S-b>s, or :run, :vsp, ...
+  string mStrCommand;
+
+  // key's value list
+  ApvlvCmdKeyv mKeyVals;
+
+  // cmd's pre count
+  gint mPreCount;
+
+  // next command
+  ApvlvCmd *mNext;
+
+  // when a key is map to other, this is the origin cmd.
+  // after a maped key was processed, return to this cmds
+  ApvlvCmd *mOrigin;
+};
+
+class ApvlvCmds
+{
+public:
+  ApvlvCmds ();
+
+  ~ApvlvCmds ();
+
+  void append (GdkEventKey * gev);
+
+  bool buildmap (const char *os, const char *ms);
+
+private:
+
+  ApvlvCmd * process (ApvlvCmd * cmd);
+
+  returnType ismap (ApvlvCmdKeyv * ack);
+
+  ApvlvCmd *getmap (const char *os);
+
+  ApvlvCmd *getmap (ApvlvCmd * cmd);
+
+  static gboolean apvlv_cmds_timeout_cb (gpointer);
+
+  ApvlvCmdMap mMaps;
+
+  ApvlvCmd *mCmdHead;
+
+  enum cmdState
   {
-  typedef enum
-  {
-    CT_CMD,
-    CT_STRING,
-    CT_STRING_RETURN
-  } cmdType;
+    GETTING_COUNT,
+    GETTING_CMD,
+    CMD_OK,
+  } mState;
 
-  typedef map < guint, const char *>KeyStringMap;
-  typedef map < const char *, guint > StringKeyMap;
+  gint mTimeoutTimer;
 
-  class ApvlvCmd;
-  typedef vector < guint > ApvlvCmdKeyv;
-  typedef map < ApvlvCmdKeyv, ApvlvCmd * >ApvlvCmdMap;
+  string mCountString;
+};
 
-  class ApvlvCmd
-    {
-    public:
-      ApvlvCmd ();
-
-      ~ApvlvCmd ();
-
-      void process ();
-
-      void push (const char *s, cmdType type = CT_CMD);
-
-      bool append (GdkEventKey * key);
-
-      const char *append (const char *s);
-
-      bool cmp (ApvlvCmd & cmd);
-
-      void type (cmdType type);
-
-      cmdType type ();
-
-      void bemap (bool bemap);
-
-      bool bemap ();
-
-      void canmap (bool canmap);
-
-      bool canmap ();
-
-      void hascount (bool hascount);
-
-      bool hascount ();
-
-      const char *c_str ();
-
-      ApvlvCmdKeyv *keyvalv_p ();
-
-      ApvlvCmdKeyv keyvalv ();
-
-      void precount (gint precount);
-
-      gint precount ();
-
-      gint keyval (guint id);
-
-      void next (ApvlvCmd * cmd);
-
-      ApvlvCmd *next ();
-
-      void origin (ApvlvCmd * cmd);
-
-      ApvlvCmd *origin ();
-
-    private:
-
-      // command type
-      cmdType mType;
-
-      // if cmd is be mapped
-      bool mBeMap;
-
-      // if cmd can be mapped
-      bool mCanMap;
-
-      // if has count
-      bool mHasPreCount;
-
-      // how to descripe this command in .apvlvrc
-      // like <C-d><C-w>, <S-b>s, or :run, :vsp, ...
-      string mStrCommand;
-
-      // key's value list
-      ApvlvCmdKeyv mKeyVals;
-
-      // cmd's pre count
-      gint mPreCount;
-
-      // next command
-      ApvlvCmd *mNext;
-
-      // when a key is map to other, this is the origin cmd.
-      // after a maped key was processed, return to this cmds
-      ApvlvCmd *mOrigin;
-    };
-
-  class ApvlvCmds
-    {
-    public:
-      ApvlvCmds ();
-
-      ~ApvlvCmds ();
-
-      void append (GdkEventKey * gev);
-
-      bool buildmap (const char *os, const char *ms);
-
-    private:
-
-      ApvlvCmd * process (ApvlvCmd * cmd);
-
-      returnType ismap (ApvlvCmdKeyv * ack);
-
-      ApvlvCmd *getmap (const char *os);
-
-      ApvlvCmd *getmap (ApvlvCmd * cmd);
-
-      static gboolean apvlv_cmds_timeout_cb (gpointer);
-
-      ApvlvCmdMap mMaps;
-
-      ApvlvCmd *mCmdHead;
-
-      enum cmdState
-      {
-        GETTING_COUNT,
-        GETTING_CMD,
-        CMD_OK,
-      } mState;
-
-      gint mTimeoutTimer;
-
-      string mCountString;
-    };
-
-  extern ApvlvCmds *gCmds;
+extern ApvlvCmds *gCmds;
 }
 
 #endif
