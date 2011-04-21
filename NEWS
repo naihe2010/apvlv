@@ -5,6 +5,8 @@ News features
 
    * add '[int]s' to support skip some pages for some document
    * sorted in dir mode by filename
+   * using 't' to open file in new tab window
+   * using 'T' to open directory in new tab window
 
 apvlv 0.1.0
 ===========

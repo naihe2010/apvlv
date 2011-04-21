@@ -597,12 +597,6 @@ returnType ApvlvDoc::process (int has, int ct, guint key)
     case 'R':
       reload ();
       break;
-    case 'o':
-      gView->open ();
-      break;
-    case 'O':
-      gView->opendir ();
-      break;
     case CTRL (']'):
       gotolink (ct);
       break;
