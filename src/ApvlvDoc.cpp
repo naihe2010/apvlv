@@ -603,6 +603,14 @@ returnType ApvlvDoc::process (int has, int ct, guint key)
     case CTRL ('t'):
       returnlink (ct);
       break;
+    case 't':
+      gView->newtab (helppdf.c_str ());
+      gView->open ();
+      break;
+    case 'T':
+      gView->newtab (helppdf.c_str ());
+      gView->opendir ();
+      break;
     case 'r':
       rotate (ct);
       break;

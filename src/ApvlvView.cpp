@@ -831,14 +831,6 @@ returnType ApvlvView::process (int has, int ct, guint key)
     case 'O':
       opendir ();
       break;
-    case 't':
-      newtab (helppdf.c_str ());
-      open ();
-      break;
-    case 'T':
-      newtab (helppdf.c_str ());
-      opendir ();
-      break;
     case 'g':
       mProCmd = 'g';
       return NEED_MORE;
