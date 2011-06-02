@@ -611,6 +611,12 @@ returnType ApvlvDoc::process (int has, int ct, guint key)
       gView->newtab (helppdf.c_str ());
       gView->opendir ();
       break;
+    case 'o':
+      gView->open ();
+      break;
+    case 'O':
+      gView->opendir ();
+      break;
     case 'r':
       rotate (ct);
       break;

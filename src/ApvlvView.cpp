@@ -825,12 +825,6 @@ returnType ApvlvView::process (int has, int ct, guint key)
     case 'f':
       fullscreen ();
       break;
-    case 'o':
-      open ();
-      break;
-    case 'O':
-      opendir ();
-      break;
     case 'g':
       mProCmd = 'g';
       return NEED_MORE;
