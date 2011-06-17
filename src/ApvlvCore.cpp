@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2008 Alf.
  *
- * Contact: Alf <naihe2010@gmail.com>
+ * Contact: Alf <naihe2010@126.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +22,7 @@
  */
 /* @CFILE ApvlvCore.cpp
  *
- *  Author: Alf <naihe2010@gmail.com>
+ *  Author: Alf <naihe2010@126.com>
  */
 /* @date Created: 2009/01/04 09:34:51 Alf*/
 

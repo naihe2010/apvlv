@@ -33,7 +33,7 @@ ENDIF (WIN32)
 
 ADD_DEFINITIONS (-DPACKAGE_NAME="apvlv"
                  -DPACKAGE_VERSION="${PACKAGE_VERSION}"
-                 -DPACKAGE_BUGREPORT="Alf <naihe2010@gmail.com>"
+                 -DPACKAGE_BUGREPORT="Alf <naihe2010@126.com>"
                  -DRELEASE="rel"
 )
 
@@ -128,7 +128,7 @@ SET (CPACK_PACKAGE_VERSION_PATCH ${PROJECT_PATCH})
 
 IF (UNIX)
         SET (CPACK_SET_DESTDIR ON)
-        SET (CPACK_PACKAGE_CONTACT "Alf <naihe2010@gmail.com>")
+        SET (CPACK_PACKAGE_CONTACT "Alf <naihe2010@126.com>")
         SET (CPACK_GENERATOR RPM DEB)
         SET (CPACK_RPM_PACKAGE_REQUIRES "gtk2 >= 2.10.4")
         SET (CPACK_DEBIAN_PACKAGE_DEPENDS 
@@ -142,7 +142,7 @@ IF (UNIX)
         )
 ELSE (UNIX)
         SET (CPACK_GENERATOR NSIS)
-        SET (CPACK_NSIS_CONTACT "Alf <naihe2010@gmail.com>")
+        SET (CPACK_NSIS_CONTACT "Alf <naihe2010@126.com>")
         SET (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateShortCut '\$DESKTOP\\\\apvlv.lnk' '\$INSTDIR\\\\apvlv.exe'")
         SET (CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '\$DESKTOP\\\\gsftc.lnk'")
 ENDIF (UNIX)
