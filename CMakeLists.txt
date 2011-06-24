@@ -4,7 +4,7 @@ PROJECT (apvlv)
 
 SET (PROJECT_MAJOR      "0")
 SET (PROJECT_MINOR      "1")
-SET (PROJECT_PATCH      "1")
+SET (PROJECT_PATCH      "2")
 SET (PACKAGE_VERSION "${PROJECT_MAJOR}.${PROJECT_MINOR}.${PROJECT_PATCH}")
 
 IF (WIN32)
@@ -137,6 +137,8 @@ IF (UNIX)
         SET (CPACK_SOURCE_GENERATOR TGZ)
         SET (CPACK_SOURCE_IGNORE_FILES 
              ${CMAKE_BINARY_DIR} 
+             ".git"
+             ".gitignore"
              ".svn" 
              "win32"
         )
