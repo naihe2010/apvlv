@@ -302,9 +302,14 @@ ApvlvPoses *ApvlvPDF::pagesearch (int pn, const char *str, bool reverse)
 
 bool ApvlvPDF::pagetext (int pn, int x1, int y1, int x2, int y2, char **out)
 {
-  PopplerRectangle rect = { x1, y1, x2, y2 };
   PopplerPage *page = poppler_document_get_page (mDoc, pn);
+#if POPPLER_CHECK_VERSION(0, 15, 1)
+  PopplerRectangle rect = { x1, y2, x2, y1 };
+  *out = poppler_page_get_selected_text (page, POPPLER_SELECTION_WORD, &rect);
+#else
+  PopplerRectangle rect = { x1, y1, x2, y2 };
   *out = poppler_page_get_text (page, POPPLER_SELECTION_WORD, &rect);
+#endif
   if (*out != NULL)
     {
       return true;
