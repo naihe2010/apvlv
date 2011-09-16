@@ -26,9 +26,9 @@
  */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
-#include "ApvlvUtil.hpp"
-#include "ApvlvCmds.hpp"
-#include "ApvlvParams.hpp"
+#include "ApvlvUtil.h"
+#include "ApvlvCmds.h"
+#include "ApvlvParams.h"
 
 #include <iostream>
 #include <fstream>

@@ -26,7 +26,7 @@
  */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
-#include "ApvlvUtil.hpp"
+#include "ApvlvUtil.h"
 
 #include <gtk/gtk.h>
 

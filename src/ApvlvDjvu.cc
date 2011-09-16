@@ -1,0 +1,232 @@
+/*
+* This file is part of the apvlv package
+* Copyright (C) <2010>  <Alf>
+*
+* Contact: Alf <naihe2010@126.com>
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along
+* with this program; if not, write to the Free Software Foundation, Inc.,
+* 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*
+*/
+/* @CFILE ApvlvDjvu.cpp xxxxxxxxxxxxxxxxxxxxxxxxxx.
+*
+*  Author: Alf <naihe2010@126.com>
+*/
+/* @date Created: 2011/09/16 13:49:38 Alf*/
+
+#include "ApvlvUtil.h"
+#include "ApvlvDjvu.h"
+
+namespace apvlv
+{
+#ifdef HAVE_LIBDJVU
+void handle_ddjvu_messages (ddjvu_context_t * ctx, int wait)
+{
+  const ddjvu_message_t *msg;
+  if (wait)
+    ddjvu_message_wait (ctx);
+  while ((msg = ddjvu_message_peek (ctx)))
+    {
+      debug ("tag: %d", msg->m_any.tag);
+      switch (msg->m_any.tag)
+        {
+        case DDJVU_ERROR:
+          break;
+        case DDJVU_INFO:
+          break;
+        case DDJVU_PAGEINFO:
+          break;
+        default:
+          break;
+        }
+      ddjvu_message_pop (ctx);
+    }
+}
+#endif
+
+ApvlvDJVU::ApvlvDJVU (const char *filename, bool check):ApvlvFile (filename,
+      check)
+{
+#ifdef HAVE_LIBDJVU
+  mContext = ddjvu_context_create ("apvlv");
+  if (mContext)
+    {
+      mDoc = ddjvu_document_create_by_filename (mContext, filename, FALSE);
+    }
+
+  if (mDoc != NULL)
+    {
+      if (ddjvu_document_get_type (mDoc) == DDJVU_DOCTYPE_SINGLEPAGE)
+        {
+          debug ("djvu type: %d", ddjvu_document_get_type (mDoc));
+        }
+      else
+        {
+          /*
+             ddjvu_document_release (mDoc);
+             mDoc = NULL;
+             ddjvu_context_release (mContext);
+             mContext = NULL;
+             throw std::bad_alloc (); */
+        }
+    }
+  else
+    {
+      ddjvu_context_release (mContext);
+      mContext = NULL;
+      throw std::bad_alloc ();
+    }
+#else
+  throw std::bad_alloc ();
+#endif
+}
+
+ApvlvDJVU::~ApvlvDJVU ()
+{
+#ifdef HAVE_LIBDJVU
+  if (mContext)
+    {
+      ddjvu_context_release (mContext);
+    }
+
+  if (mDoc)
+    {
+      ddjvu_document_release (mDoc);
+    }
+#endif
+}
+
+bool ApvlvDJVU::writefile (const char *filename)
+{
+#ifdef HAVE_LIBDJVU
+  FILE *fp = fopen (filename, "wb");
+  if (fp != NULL)
+    {
+      ddjvu_job_t *job = ddjvu_document_save (mDoc, fp, 0, NULL);
+      while (!ddjvu_job_done (job))
+        {
+          handle_ddjvu_messages (mContext, TRUE);
+        }
+      fclose (fp);
+      return true;
+    }
+  return false;
+#else
+  return false;
+#endif
+}
+
+bool ApvlvDJVU::pagesize (int pn, int rot, double *x, double *y)
+{
+#ifdef HAVE_LIBDJVU
+  ddjvu_status_t t;
+  ddjvu_pageinfo_t info[1];
+  while ((t = ddjvu_document_get_pageinfo (mDoc, 0, info)) < DDJVU_JOB_OK)
+    {
+      handle_ddjvu_messages (mContext, true);
+    }
+
+  if (t == DDJVU_JOB_OK)
+    {
+      *x = info->width;
+      *y = info->height;
+      debug ("djvu page 1: %f-%f", *x, *y);
+    }
+  return true;
+#else
+  return false;
+#endif
+}
+
+int ApvlvDJVU::pagesum ()
+{
+#ifdef HAVE_LIBDJVU
+  return mDoc ? ddjvu_document_get_pagenum (mDoc) : 0;
+#else
+  return 0;
+#endif
+}
+
+bool ApvlvDJVU::render (int pn, int ix, int iy, double zm, int rot,
+                        GdkPixbuf * pix, char *buffer)
+{
+#ifdef HAVE_LIBDJVU
+  ddjvu_page_t *tpage;
+
+  if ((tpage = ddjvu_page_create_by_pageno (mDoc, pn)) == NULL)
+    {
+      debug ("no this page: %d", pn);
+      return false;
+    }
+
+  ddjvu_rect_t prect[1] = { {0, 0, ix, iy}
+  };
+  ddjvu_rect_t rrect[1] = { {0, 0, ix, iy}
+  };
+  ddjvu_format_t *format =
+    ddjvu_format_create (DDJVU_FORMAT_RGB24, 0, NULL);
+  ddjvu_format_set_row_order (format, TRUE);
+
+  gint retry = 0;
+  while (retry <= 20 && ddjvu_page_render
+         (tpage, DDJVU_RENDER_COLOR, prect, rrect, format, 3 * ix,
+          (char *) buffer) == FALSE)
+    {
+      usleep (50 * 1000);
+      debug ("fender failed, retry %d", ++retry);
+    }
+
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool ApvlvDJVU::pageselectsearch (int pn, int ix, int iy, double zm,
+                                  int rot, GdkPixbuf * pix, char *buffer,
+                                  int sel, ApvlvPoses * poses)
+{
+  return false;
+}
+
+ApvlvPoses *ApvlvDJVU::pagesearch (int pn, const char *str, bool reverse)
+{
+  return NULL;
+}
+
+ApvlvLinks *ApvlvDJVU::getlinks (int pn)
+{
+  return NULL;
+}
+
+bool ApvlvDJVU::pagetext (int pn, int x1, int y1, int x2, int y2,
+                          char **out)
+{
+  return false;
+}
+
+ApvlvFileIndex *ApvlvDJVU::new_index ()
+{
+  return NULL;
+}
+
+void ApvlvDJVU::free_index (ApvlvFileIndex * index)
+{
+}
+
+bool ApvlvDJVU::pageprint (int pn, cairo_t * cr)
+{
+  return false;
+}
+}

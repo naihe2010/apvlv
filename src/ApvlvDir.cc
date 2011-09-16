@@ -26,9 +26,9 @@
  */
 /* @date Created: 2009/01/03 23:28:26 Alf*/
 
-#include "ApvlvView.hpp"
-#include "ApvlvParams.hpp"
-#include "ApvlvDir.hpp"
+#include "ApvlvView.h"
+#include "ApvlvParams.h"
+#include "ApvlvDir.h"
 
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>

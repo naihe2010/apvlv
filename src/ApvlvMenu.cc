@@ -25,8 +25,8 @@
 */
 /* @date Created: 2010/01/21 15:09:58 Alf*/
 
-#include "ApvlvView.hpp"
-#include "ApvlvMenu.hpp"
+#include "ApvlvView.h"
+#include "ApvlvMenu.h"
 
 namespace apvlv
 {

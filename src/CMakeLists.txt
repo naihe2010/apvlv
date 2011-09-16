@@ -12,32 +12,40 @@ ELSE (WIN32)
 ENDIF (WIN32)
 
 SET (HEADERS
-     ApvlvCmds.hpp
-     ApvlvCore.hpp
-     ApvlvDir.hpp
-     ApvlvDoc.hpp
-     ApvlvFile.hpp
-     ApvlvInfo.hpp
-     ApvlvMenu.hpp
-     ApvlvParams.hpp
-     ApvlvUtil.hpp
-     ApvlvView.hpp
-     ApvlvWindow.hpp
+     ApvlvCmds.h
+     ApvlvCore.h
+     ApvlvDir.h
+     ApvlvDoc.h
+     ApvlvFile.h
+     ApvlvPdf.h
+     ApvlvUmd.h
+     ApvlvDjvu.h
+     ApvlvHtm.h
+     ApvlvInfo.h
+     ApvlvMenu.h
+     ApvlvParams.h
+     ApvlvUtil.h
+     ApvlvView.h
+     ApvlvWindow.h
 )
 
 SET (SOURCES
-     ApvlvCmds.cpp
-     ApvlvCore.cpp
-     ApvlvDir.cpp
-     ApvlvDoc.cpp
-     ApvlvFile.cpp
-     ApvlvInfo.cpp
-     ApvlvMenu.cpp
-     ApvlvParams.cpp
-     ApvlvUtil.cpp
-     ApvlvView.cpp
-     ApvlvWindow.cpp
-     main.cpp
+     ApvlvCmds.cc
+     ApvlvCore.cc
+     ApvlvDir.cc
+     ApvlvDoc.cc
+     ApvlvFile.cc
+     ApvlvPdf.cc
+     ApvlvUmd.cc
+     ApvlvDjvu.cc
+     ApvlvHtm.cc
+     ApvlvInfo.cc
+     ApvlvMenu.cc
+     ApvlvParams.cc
+     ApvlvUtil.cc
+     ApvlvView.cc
+     ApvlvWindow.cc
+     main.cc
 )
 
 ADD_EXECUTABLE (apvlv ${HEADERS} ${SOURCES})

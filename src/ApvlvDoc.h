@@ -33,9 +33,9 @@
 # include "config.hpp"
 #endif
 
-#include "ApvlvFile.hpp"
-#include "ApvlvCore.hpp"
-#include "ApvlvUtil.hpp"
+#include "ApvlvFile.h"
+#include "ApvlvCore.h"
+#include "ApvlvUtil.h"
 
 #include <gtk/gtk.h>
 

@@ -25,7 +25,7 @@
 */
 /* @date Created: 2010/02/23 15:00:42 Alf*/
 
-#include "ApvlvInfo.hpp"
+#include "ApvlvInfo.h"
 
 #include <cstdlib>
 #include <cstring>

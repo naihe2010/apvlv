@@ -33,8 +33,8 @@
 # include "config.hpp"
 #endif
 
-#include "ApvlvFile.hpp"
-#include "ApvlvUtil.hpp"
+#include "ApvlvFile.h"
+#include "ApvlvUtil.h"
 
 #include <gtk/gtk.h>
 

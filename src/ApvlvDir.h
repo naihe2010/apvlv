@@ -33,8 +33,8 @@
 # include "config.hpp"
 #endif
 
-#include "ApvlvCore.hpp"
-#include "ApvlvWindow.hpp"
+#include "ApvlvCore.h"
+#include "ApvlvWindow.h"
 
 namespace apvlv
 {

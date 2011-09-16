@@ -26,9 +26,9 @@
  */
 /* @date Created: 2009/01/04 09:34:51 Alf*/
 
-#include "ApvlvParams.hpp"
-#include "ApvlvView.hpp"
-#include "ApvlvCore.hpp"
+#include "ApvlvParams.h"
+#include "ApvlvView.h"
+#include "ApvlvCore.h"
 
 #include <glib/gstdio.h>
 

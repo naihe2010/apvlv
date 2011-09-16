@@ -26,11 +26,11 @@
  */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
-#include "ApvlvUtil.hpp"
-#include "ApvlvParams.hpp"
-#include "ApvlvInfo.hpp"
-#include "ApvlvView.hpp"
-#include "ApvlvDoc.hpp"
+#include "ApvlvUtil.h"
+#include "ApvlvParams.h"
+#include "ApvlvInfo.h"
+#include "ApvlvView.h"
+#include "ApvlvDoc.h"
 
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>

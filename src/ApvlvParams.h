@@ -33,7 +33,7 @@
 # include "config.hpp"
 #endif
 
-#include "ApvlvUtil.hpp"
+#include "ApvlvUtil.h"
 
 #include <iostream>
 #include <string>

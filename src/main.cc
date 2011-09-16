@@ -26,11 +26,11 @@
  */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
-#include "ApvlvView.hpp"
-#include "ApvlvCmds.hpp"
-#include "ApvlvParams.hpp"
-#include "ApvlvInfo.hpp"
-#include "ApvlvUtil.hpp"
+#include "ApvlvView.h"
+#include "ApvlvCmds.h"
+#include "ApvlvParams.h"
+#include "ApvlvInfo.h"
+#include "ApvlvUtil.h"
 
 #include <locale.h>
 #ifndef WIN32
