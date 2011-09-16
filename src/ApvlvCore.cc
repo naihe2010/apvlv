@@ -132,7 +132,7 @@ ApvlvCore *ApvlvCore::copy ()
 
 const char *ApvlvCore::filename ()
 {
-  return mReady && mFilestr.length () > 0 ? mFilestr.c_str () : NULL;
+  return mFilestr.length () > 0 ? mFilestr.c_str () : NULL;
 }
 
 gint ApvlvCore::pagenumber ()

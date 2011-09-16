@@ -29,11 +29,13 @@
 #include "ApvlvParams.h"
 #include "ApvlvInfo.h"
 #include "ApvlvDir.h"
+#include "ApvlvHtm.h"
 #include "ApvlvCmds.h"
 #include "ApvlvView.h"
 
 #include <glib.h>
 #include <glib/gprintf.h>
+#include <gio/gio.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <gdk/gdkkeysyms.h>
@@ -205,14 +207,21 @@ void ApvlvView::open ()
   gtk_file_filter_add_mime_type (filter, "PDF File");
   gtk_file_filter_add_pattern (filter, "*.pdf");
   gtk_file_filter_add_pattern (filter, "*.PDF");
-#ifdef HAVE_LIBDJVU
+#ifdef APVLV_WITH_DJVU
   gtk_file_filter_add_mime_type (filter, "DJVU File");
   gtk_file_filter_add_pattern (filter, "*.djvu");
 #endif
-#ifdef HAVE_LIBUMD
+#ifdef APVLV_WITH_UMD
   gtk_file_filter_add_mime_type (filter, "UMD File");
   gtk_file_filter_add_pattern (filter, "*.UMD");
   gtk_file_filter_add_pattern (filter, "*.umd");
+#endif
+#ifdef APVLV_WITH_HTML
+  gtk_file_filter_add_mime_type (filter, "HTML File");
+  gtk_file_filter_add_pattern (filter, "*.HTM");
+  gtk_file_filter_add_pattern (filter, "*.htm");
+  gtk_file_filter_add_pattern (filter, "*.HTML");
+  gtk_file_filter_add_pattern (filter, "*.html");
 #endif
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dia), filter);
 
@@ -222,7 +231,17 @@ void ApvlvView::open ()
       gchar *filename =
         gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dia));
 
-      loadfile (filename);
+      if (g_ascii_strcasecmp (filename + strlen (filename) - 4,
+                              ".htm") == 0
+          || g_ascii_strcasecmp (filename + strlen (filename) - 5,
+                                 ".html") == 0)
+        {
+          loadhtml (filename);
+        }
+      else
+        {
+          loadfile (filename);
+        }
       g_free (filename);
     }
   gtk_widget_destroy (dia);
@@ -266,6 +285,27 @@ bool ApvlvView::loaddir (const char *path)
       int w, h;
       currentWindow ()->getsize (&w, &h);
       ndoc = new ApvlvDir (w, h);
+      if (!ndoc->loadfile (path))
+        {
+          delete ndoc;
+          return false;
+        }
+      regloaded (ndoc);
+    }
+
+  currentWindow ()->setCore (ndoc);
+  updatetabname ();
+  return true;
+}
+
+bool ApvlvView::loadhtml (const char *path)
+{
+  ApvlvCore *ndoc = hasloaded (path, CORE_DIR);
+  if (ndoc == NULL)
+    {
+      int w, h;
+      currentWindow ()->getsize (&w, &h);
+      ndoc = new ApvlvHTML (w, h);
       if (!ndoc->loadfile (path))
         {
           delete ndoc;
@@ -918,7 +958,14 @@ bool ApvlvView::runcmd (const char *str)
       else if ((cmd == "o"
                 || cmd == "open" || cmd == "doc") && subcmd != "")
         {
-          if (g_file_test (subcmd.c_str (), G_FILE_TEST_IS_DIR))
+          if (g_ascii_strcasecmp (subcmd.c_str () + subcmd.length () - 4,
+                                  ".htm") == 0
+              || g_ascii_strcasecmp (subcmd.c_str () + subcmd.length () - 5,
+                                     ".html") == 0)
+            {
+              ret = loadhtml (subcmd.c_str ());
+            }
+          else if (g_file_test (subcmd.c_str (), G_FILE_TEST_IS_DIR))
             {
               ret = loaddir (subcmd.c_str ());
             }

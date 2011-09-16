@@ -85,6 +85,8 @@ public:
 
   bool loaddir (const char *path);
 
+  bool loadhtml (const char *path);
+
   ApvlvCore *hasloaded (const char *filename, int type);
 
   void regloaded (ApvlvCore *);

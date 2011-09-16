@@ -74,13 +74,13 @@ ApvlvFile *ApvlvFile::newfile (const char *filename, bool check)
   ApvlvFile *file = NULL;
   static const char *type_phrase[] =
   {
-    ".PDF",
+    ".pdf",
     ".umd",
-    ".djvu"
+    ".djvu",
   };
 
   size_t i;
-  for (i = 0; i < 3; ++ i)
+  for (i = 0; i < 4; ++ i)
     {
       if (strcasecmp (filename + strlen (filename) - strlen (type_phrase[i]),
                       type_phrase[i]) == 0)
@@ -89,7 +89,7 @@ ApvlvFile *ApvlvFile::newfile (const char *filename, bool check)
         }
     }
 
-  if (i == 3)
+  if (i == 4)
     {
       debug ("not a valid file: %s, treate as a PDF file", filename);
       i = 0;
@@ -104,7 +104,7 @@ ApvlvFile *ApvlvFile::newfile (const char *filename, bool check)
           break;
 
         case 1:
-#ifdef HAVE_LIBUMD
+#ifdef APVLV_WITH_UMD
           file = new ApvlvUMD (filename);
 #else
           file = NULL;
@@ -112,7 +112,7 @@ ApvlvFile *ApvlvFile::newfile (const char *filename, bool check)
           break;
 
         case 2:
-#ifdef HAVE_DJVU
+#ifdef APVLV_WITH_DJVU
           file = new ApvlvDJVU (filename);
 #else
           file = NULL;

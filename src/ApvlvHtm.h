@@ -28,4 +28,65 @@
 #ifndef _APVLV_HTM_H_
 #define _APVLV_HTM_H_
 
+#include "ApvlvCore.h"
+
+#include <gtk/gtk.h>
+#include <webkit/webkit.h>
+
+namespace apvlv
+{
+class ApvlvHTML;
+class ApvlvHTMLStatus:public ApvlvCoreStatus
+{
+public:
+  ApvlvHTMLStatus (ApvlvHTML *);
+
+  ~ApvlvHTMLStatus ();
+
+  void active (bool act);
+
+  void setsize (int, int);
+
+  void show ();
+
+private:
+  ApvlvHTML * mDoc;
+#define AD_STATUS_SIZE   4
+  GtkWidget *mStlab[AD_STATUS_SIZE];
+};
+
+class ApvlvHTML:public ApvlvCore
+{
+public:
+  ApvlvHTML (int w, int h);
+
+  ~ApvlvHTML ();
+
+  bool loadfile (const char *file, bool check = true);
+
+  void setactive (bool act);
+
+  returnType process (int hastimes, int times, guint keyval);
+
+private:
+
+  returnType subprocess (int ct, guint key);
+
+  bool reload ();
+
+  bool enter (guint key);
+
+  bool search (const char *str, bool reverse = false);
+
+  static void apvlv_dir_on_changed (GtkTreeSelection *, ApvlvHTML *);
+
+  static void apvlv_dir_monitor_callback (GFileMonitor *, GFile *, GFile *, GFileMonitorEvent, ApvlvHTML *);
+
+  static gboolean apvlv_html_ready_cb (WebKitWebView *wid, WebKitWebFrame *frame, ApvlvHTML *htm);
+
+  GtkWidget *mHtmlView;
+};
+
+}
+
 #endif
