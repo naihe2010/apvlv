@@ -27,16 +27,19 @@
 
 #include "ApvlvFile.h"
 #include "ApvlvPdf.h"
-#include "ApvlvUmd.h"
-#include "ApvlvDjvu.h"
-#include "ApvlvHtm.h"
 #include "ApvlvUtil.h"
 #include "ApvlvView.h"
 
-#ifdef HAVE_LIBUMD
-#define LIBUMD_ENABLE_GTK
-#include <umd.h>
+#ifdef APVLV_WITH_UMD
+ #include "ApvlvUmd.h"
 #endif
+#ifdef APVLV_WITH_DJVU
+ #include "ApvlvDjvu.h"
+#endif
+#ifdef APVLV_WITH_HTML
+ #include "ApvlvHtm.h"
+#endif
+
 #include <glib.h>
 
 #include <sys/stat.h>
@@ -101,11 +104,19 @@ ApvlvFile *ApvlvFile::newfile (const char *filename, bool check)
           break;
 
         case 1:
+#ifdef HAVE_LIBUMD
           file = new ApvlvUMD (filename);
+#else
+          file = NULL;
+#endif
           break;
 
         case 2:
+#ifdef HAVE_DJVU
           file = new ApvlvDJVU (filename);
+#else
+          file = NULL;
+#endif
           break;
 
         default:

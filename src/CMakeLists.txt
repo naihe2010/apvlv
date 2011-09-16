@@ -11,6 +11,39 @@ ELSE (WIN32)
         ENDIF (APVLV_ENABLE_DEBUG)
 ENDIF (WIN32)
 
+FIND_PACKAGE (PkgConfig)
+
+IF (WIN32)
+        SET (POPPLER_DIR ${CMAKE_HOME_DIRECTORY}/win32/poppler-src)
+
+        INCLUDE_DIRECTORIES (${POPPLER_DIR})
+        LINK_DIRECTORIES (${CMAKE_BINARY_DIR}/poppler-build)
+        SET (APVLV_REQ_LIBRARIES poppler.lib freetype.lib)
+
+        ADD_SUBDIRECTORY (${POPPLER_DIR} ${CMAKE_BINARY_DIR}/poppler-build)
+ELSE (WIN32)
+        PKG_CHECK_MODULES (POPPLER poppler-glib REQUIRED)
+        INCLUDE_DIRECTORIES (${POPPLER_INCLUDE_DIRS})
+        LINK_DIRECTORIES (${POPPLER_LIBRARY_DIRS})
+        SET (APVLV_REQ_LIBRARIES ${POPPLER_LIBRARIES})
+ENDIF (WIN32)
+
+PKG_CHECK_MODULES (FREETYPE2 freetype2 REQUIRED)
+PKG_CHECK_MODULES (GTK2 gtk+-2.0 REQUIRED)
+PKG_CHECK_MODULES (GLIB2 glib-2.0 REQUIRED)
+PKG_CHECK_MODULES (GTHREAD2 gthread-2.0 REQUIRED)
+PKG_CHECK_MODULES (WEBKIT1 webkit-1.0 OPTIONAL)
+INCLUDE_DIRECTORIES (${FREETYPE2_INCLUDE_DIRS} 
+                     ${GTK2_INCLUDE_DIRS} 
+                     ${GLIB2_INCLUDE_DIRS} 
+                     ${GTHREAD2_INCLUDE_DIRS}
+                     ${WEBKIT1_INCLUDE_DIRS})
+LINK_DIRECTORIES (${FREETYPE2_LIBRARY_DIRS}
+                  ${GTK2_LIBRARY_DIRS} 
+                  ${GLIB2_LIBRARY_DIRS} 
+                  ${GTHREAD2_LIBRARY_DIRS}
+                  ${WEBKIT1_LIBRARY_DIRS})
+
 SET (HEADERS
      ApvlvCmds.h
      ApvlvCore.h
@@ -18,9 +51,6 @@ SET (HEADERS
      ApvlvDoc.h
      ApvlvFile.h
      ApvlvPdf.h
-     ApvlvUmd.h
-     ApvlvDjvu.h
-     ApvlvHtm.h
      ApvlvInfo.h
      ApvlvMenu.h
      ApvlvParams.h
@@ -36,9 +66,6 @@ SET (SOURCES
      ApvlvDoc.cc
      ApvlvFile.cc
      ApvlvPdf.cc
-     ApvlvUmd.cc
-     ApvlvDjvu.cc
-     ApvlvHtm.cc
      ApvlvInfo.cc
      ApvlvMenu.cc
      ApvlvParams.cc
@@ -48,13 +75,69 @@ SET (SOURCES
      main.cc
 )
 
+OPTION (APVLV_WITH_DJVU "If build apvlv with djvu format support." OFF)
+IF (APVLV_WITH_DJVU)
+        ADD_DEFINITIONS (-DAPVLV_WITH_DJVU)
+
+        IF (WIN32)
+                SET (DJVULIBRE_DIR ${CMAKE_HOME_DIRECTORY}/win32/djvulibre)
+
+                INCLUDE_DIRECTORIES (${DJVULIBRE_DIR}/include)
+                LINK_DIRECTORIES (${DJVULIBRE_DIR})
+                SET (APVLV_REQ_LIBRARIES libdjvulibre.lib
+                     ${APVLV_REQ_LIBRARIES})
+        ELSE (WIN32)
+                SET (APVLV_REQ_LIBRARIES -ldjvulibre
+                     ${APVLV_REQ_LIBRARIES})
+        ENDIF (WIN32)
+ENDIF (APVLV_WITH_DJVU)
+
+IF (APVLV_WITH_DJVU)
+     SET (HEADERS ${HEADERS} ApvlvDjvu.h)
+     SET (SOURCES ${SOURCES} ApvlvDjvu.cc)
+ENDIF (APVLV_WITH_DJVU)
+
+OPTION (APVLV_WITH_UMD "If build binary with umd format support." OFF)
+IF (APVLV_WITH_UMD)
+        ADD_DEFINITIONS (-DAPVLV_WITH_UMD)
+
+        IF (WIN32)
+                SET (LIBUMD_DIR ${CMAKE_HOME_DIRECTORY}/win32/libumd-trunk)
+                ADD_SUBDIRECTORY (${LIBUMD_DIR} ${CMAKE_BINARY_DIR}/libumd-build)
+
+                INCLUDE_DIRECTORIES (${LIBUMD_DIR})
+                LINK_DIRECTORIES (${CMAKE_BINARY_DIR}/libumd-build)
+                SET (APVLV_REQ_LIBRARIES umd.lib zdll.lib
+                     ${APVLV_REQ_LIBRARIES})
+        ELSE (WIN32)
+                SET (APVLV_REQ_LIBRARIES -lumd
+                     ${APVLV_REQ_LIBRARIES})
+        ENDIF (WIN32)
+ENDIF (APVLV_WITH_UMD)
+
+IF (APVLV_WITH_UMD)
+     SET (HEADERS ${HEADERS} ApvlvUmd.h)
+     SET (SOURCES ${SOURCES} ApvlvUmd.cc)
+ENDIF (APVLV_WITH_UMD)
+
+OPTION (APVLV_WITH_HTML "If build binary with html format support." OFF)
+IF (APVLV_WITH_HTML)
+        ADD_DEFINITIONS (-DAPVLV_WITH_HTML)
+ENDIF (APVLV_WITH_HTML)
+
+IF (APVLV_WITH_HTML)
+     SET (HEADERS ${HEADERS} ApvlvHtm.h)
+     SET (SOURCES ${SOURCES} ApvlvHtm.cc)
+ENDIF (APVLV_WITH_HTML)
+
 ADD_EXECUTABLE (apvlv ${HEADERS} ${SOURCES})
 
 TARGET_LINK_LIBRARIES (apvlv
                        ${GTK2_LIBRARIES} 
                        ${GLIB2_LIBRARIES} 
                        ${GTHREAD2_LIBRARIES}
-                       ${APVLV_REQ_LIBRARIES}) 
+                       ${WEBKIT1_LIBRARIES}
+                       ${APVLV_REQ_LIBRARIES})
 
 IF (WIN32)
         ADD_DEPENDENCIES (apvlv poppler)

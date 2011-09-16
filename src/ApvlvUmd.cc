@@ -25,14 +25,17 @@
 */
 /* @date Created: 2011/09/16 13:56:35 Alf*/
 
+#include "ApvlvUtil.h"
 #include "ApvlvUmd.h"
+
+#define LIBUMD_ENABLE_GTK
+#include <umd.h>
 
 namespace apvlv
 {
 ApvlvUMD::ApvlvUMD (const char *filename, bool check):ApvlvFile (filename,
       check)
 {
-#ifdef HAVE_LIBUMD
   gchar * lname = g_locale_from_utf8 (filename, -1, NULL, NULL, NULL);
   if (lname)
     {
@@ -48,37 +51,27 @@ ApvlvUMD::ApvlvUMD (const char *filename, bool check):ApvlvFile (filename,
     {
       throw std::bad_alloc ();
     }
-#else
-  throw std::bad_alloc ();
-#endif
 }
 
 ApvlvUMD::~ApvlvUMD ()
 {
-#ifdef HAVE_LIBUMD
   if (mUmd)
     {
       umd_destroy (mUmd);
     }
-#endif
 }
 
 bool ApvlvUMD::writefile (const char *filename)
 {
-#ifdef HAVE_LIBUMD
   if (umd_write_file (mUmd, filename) == 0)
     {
       return true;
     }
   return false;
-#else
-  return false;
-#endif
 }
 
 bool ApvlvUMD::pagesize (int pn, int rot, double *x, double *y)
 {
-#ifdef HAVE_LIBUMD
   umd_page_t * page;
 
   page = umd_get_nth_page (mUmd, pn);
@@ -91,24 +84,16 @@ bool ApvlvUMD::pagesize (int pn, int rot, double *x, double *y)
       return true;
     }
   return false;
-#else
-  return false;
-#endif
 }
 
 int ApvlvUMD::pagesum ()
 {
-#ifdef HAVE_LIBUMD
   return mUmd ? umd_get_page_n (mUmd) : 0;
-#else
-  return 0;
-#endif
 }
 
 bool ApvlvUMD::render (int pn, int ix, int iy, double zm, int rot,
                        GdkPixbuf * pix, char *buffer)
 {
-#ifdef HAVE_LIBUMD
   umd_page_t * page;
 
   page = umd_get_nth_page (mUmd, pn);
@@ -118,9 +103,6 @@ bool ApvlvUMD::render (int pn, int ix, int iy, double zm, int rot,
       return true;
     }
   return false;
-#else
-  return false;
-#endif
 }
 
 bool ApvlvUMD::pageselectsearch (int pn, int ix, int iy, double zm,
@@ -148,7 +130,6 @@ bool ApvlvUMD::pagetext (int pn, int x1, int y1, int x2, int y2,
 
 ApvlvFileIndex *ApvlvUMD::new_index ()
 {
-#ifdef HAVE_LIBUMD
   if (mIndex != NULL)
     {
       debug ("file %p has index: %p, return", this, mIndex);
@@ -184,16 +165,11 @@ ApvlvFileIndex *ApvlvUMD::new_index ()
     }
 
   return mIndex;
-#else
-  return NULL;
-#endif
 }
 
 void ApvlvUMD::free_index (ApvlvFileIndex * index)
 {
-#ifdef HAVE_LIBUMD
   delete mIndex;
-#endif
 }
 
 bool ApvlvUMD::pageprint (int pn, cairo_t * cr)

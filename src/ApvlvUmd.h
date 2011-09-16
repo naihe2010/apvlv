@@ -30,6 +30,9 @@
 
 #include "ApvlvFile.h"
 
+#define LIBUMD_ENABLE_GTK
+#include <umd.h>
+
 namespace apvlv
 {
 class ApvlvUMD:public ApvlvFile
@@ -63,9 +66,7 @@ public:
   bool pageprint (int pn, cairo_t * cr);
 
 private:
-#ifdef HAVE_LIBUMD
   umd_t *mUmd;
-#endif
 };
 
 }

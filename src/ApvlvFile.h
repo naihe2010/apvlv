@@ -34,13 +34,6 @@
 
 #include <gtk/gtk.h>
 #include <glib/poppler.h>
-#ifdef HAVE_LIBDJVU
-# include <libdjvu/ddjvuapi.h>
-#endif
-#ifdef HAVE_LIBUMD
-#define LIBUMD_ENABLE_GTK
-# include <umd.h>
-#endif
 
 #include <iostream>
 #include <vector>

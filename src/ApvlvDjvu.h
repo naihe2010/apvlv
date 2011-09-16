@@ -30,6 +30,8 @@
 
 #include "ApvlvFile.h"
 
+#include <libdjvu/ddjvuapi.h>
+
 namespace apvlv
 {
 class ApvlvDJVU:public ApvlvFile
@@ -63,10 +65,8 @@ public:
   bool pageprint (int pn, cairo_t * cr);
 
 private:
-#ifdef HAVE_LIBDJVU
   ddjvu_context_t * mContext;
   ddjvu_document_t *mDoc;
-#endif
 };
 }
 

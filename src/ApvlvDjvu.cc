@@ -30,7 +30,6 @@
 
 namespace apvlv
 {
-#ifdef HAVE_LIBDJVU
 void handle_ddjvu_messages (ddjvu_context_t * ctx, int wait)
 {
   const ddjvu_message_t *msg;
@@ -53,12 +52,10 @@ void handle_ddjvu_messages (ddjvu_context_t * ctx, int wait)
       ddjvu_message_pop (ctx);
     }
 }
-#endif
 
 ApvlvDJVU::ApvlvDJVU (const char *filename, bool check):ApvlvFile (filename,
       check)
 {
-#ifdef HAVE_LIBDJVU
   mContext = ddjvu_context_create ("apvlv");
   if (mContext)
     {
@@ -87,14 +84,10 @@ ApvlvDJVU::ApvlvDJVU (const char *filename, bool check):ApvlvFile (filename,
       mContext = NULL;
       throw std::bad_alloc ();
     }
-#else
-  throw std::bad_alloc ();
-#endif
 }
 
 ApvlvDJVU::~ApvlvDJVU ()
 {
-#ifdef HAVE_LIBDJVU
   if (mContext)
     {
       ddjvu_context_release (mContext);
@@ -104,12 +97,10 @@ ApvlvDJVU::~ApvlvDJVU ()
     {
       ddjvu_document_release (mDoc);
     }
-#endif
 }
 
 bool ApvlvDJVU::writefile (const char *filename)
 {
-#ifdef HAVE_LIBDJVU
   FILE *fp = fopen (filename, "wb");
   if (fp != NULL)
     {
@@ -122,14 +113,10 @@ bool ApvlvDJVU::writefile (const char *filename)
       return true;
     }
   return false;
-#else
-  return false;
-#endif
 }
 
 bool ApvlvDJVU::pagesize (int pn, int rot, double *x, double *y)
 {
-#ifdef HAVE_LIBDJVU
   ddjvu_status_t t;
   ddjvu_pageinfo_t info[1];
   while ((t = ddjvu_document_get_pageinfo (mDoc, 0, info)) < DDJVU_JOB_OK)
@@ -144,24 +131,16 @@ bool ApvlvDJVU::pagesize (int pn, int rot, double *x, double *y)
       debug ("djvu page 1: %f-%f", *x, *y);
     }
   return true;
-#else
-  return false;
-#endif
 }
 
 int ApvlvDJVU::pagesum ()
 {
-#ifdef HAVE_LIBDJVU
   return mDoc ? ddjvu_document_get_pagenum (mDoc) : 0;
-#else
-  return 0;
-#endif
 }
 
 bool ApvlvDJVU::render (int pn, int ix, int iy, double zm, int rot,
                         GdkPixbuf * pix, char *buffer)
 {
-#ifdef HAVE_LIBDJVU
   ddjvu_page_t *tpage;
 
   if ((tpage = ddjvu_page_create_by_pageno (mDoc, pn)) == NULL)
@@ -188,9 +167,6 @@ bool ApvlvDJVU::render (int pn, int ix, int iy, double zm, int rot,
     }
 
   return true;
-#else
-  return false;
-#endif
 }
 
 bool ApvlvDJVU::pageselectsearch (int pn, int ix, int iy, double zm,
