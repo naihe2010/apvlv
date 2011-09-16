@@ -28,10 +28,6 @@
 #ifndef _APVLV_INFO_H_
 #define _APVLV_INOF_H_
 
-#ifdef HAVE_CONFIG_H
-# include "config.hpp"
-#endif
-
 #include <glib.h>
 #include <string>
 

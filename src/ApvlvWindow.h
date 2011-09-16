@@ -29,10 +29,6 @@
 #ifndef _APVLV_WINDOW_H_
 #define _APVLV_WINDOW_H_
 
-#ifdef HAVE_CONFIG_H
-# include "config.hpp"
-#endif
-
 #include "ApvlvCore.h"
 #include "ApvlvDoc.h"
 

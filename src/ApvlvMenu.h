@@ -28,10 +28,6 @@
 #ifndef _APVLV_MENU_H_
 #define _APVLV_MENU_H_
 
-#ifdef HAVE_CONFIG_H
-#include "config.hpp"
-#endif
-
 #include <gtk/gtk.h>
 
 namespace apvlv

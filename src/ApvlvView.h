@@ -29,10 +29,6 @@
 #ifndef _APVLV_VIEW_H_
 #define _APVLV_VIEW_H_
 
-#ifdef HAVE_CONFIG_H
-# include "config.hpp"
-#endif
-
 #include "ApvlvMenu.h"
 #include "ApvlvDoc.h"
 #include "ApvlvWindow.h"

@@ -29,10 +29,6 @@
 #ifndef _APVLV_PARAMS_H_
 #define _APVLV_PARAMS_H_
 
-#ifdef HAVE_CONFIG_H
-# include "config.hpp"
-#endif
-
 #include "ApvlvUtil.h"
 
 #include <iostream>

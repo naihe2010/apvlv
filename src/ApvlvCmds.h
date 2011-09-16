@@ -29,10 +29,6 @@
 #ifndef _APVLV_CMDS_H_
 #define _APVLV_CMDS_H_
 
-#ifdef HAVE_CONFIG_H
-# include "config.hpp"
-#endif
-
 #include <gtk/gtk.h>
 
 #include <iostream>
