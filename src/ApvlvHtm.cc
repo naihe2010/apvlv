@@ -38,7 +38,7 @@ ApvlvHTML::ApvlvHTML (int w, int h)
 {
   mAdjInchg = false;
 
-  mZoominit = false;
+  mZoomrate = 1.0;
 
   mLines = 50;
   mChars = 80;
@@ -58,7 +58,7 @@ ApvlvHTML::ApvlvHTML (int w, int h)
 
   mRotatevalue = 0;
 
-  mHtmlView = webkit_web_view_new ();
+  mHtmlView = GTK_WIDGET (apvlv_html_new_webview ());
   gtk_container_add (GTK_CONTAINER (mScrollwin), mHtmlView);
 
   mStatus = new ApvlvHTMLStatus (this);
@@ -92,8 +92,6 @@ bool ApvlvHTML::loadfile (const char *path, bool check)
     {
       webkit_web_view_load_uri (WEBKIT_WEB_VIEW (mHtmlView), uri);
       g_free (uri);
-
-      g_signal_connect (G_OBJECT (mHtmlView), "document-load-finished", G_CALLBACK (apvlv_html_ready_cb), this);
     }
   else
     {
@@ -173,17 +171,11 @@ returnType ApvlvHTML::process (int has, int ct, guint key)
     {
     case GDK_Page_Down:
     case CTRL ('f'):
-      nextpage (ct);
+      webkit_web_view_go_forward (WEBKIT_WEB_VIEW (mHtmlView));
       break;
     case GDK_Page_Up:
     case CTRL ('b'):
-      prepage (ct);
-      break;
-    case CTRL ('d'):
-      halfnextpage (ct);
-      break;
-    case CTRL ('u'):
-      halfprepage (ct);
+      webkit_web_view_go_back (WEBKIT_WEB_VIEW (mHtmlView));
       break;
     case ':':
     case '/':
@@ -229,13 +221,7 @@ returnType ApvlvHTML::process (int has, int ct, guint key)
       scrollright (ct);
       break;
     case 'R':
-      reload ();
-      break;
-    case CTRL (']'):
-      gotolink (ct);
-      break;
-    case CTRL ('t'):
-      returnlink (ct);
+      webkit_web_view_reload (WEBKIT_WEB_VIEW (mHtmlView));
       break;
     case 't':
       gView->newtab (helppdf.c_str ());
@@ -250,9 +236,6 @@ returnType ApvlvHTML::process (int has, int ct, guint key)
       break;
     case 'O':
       gView->opendir ();
-      break;
-    case 'r':
-      rotate (ct);
       break;
     case 'G':
       markposition ('\'');
@@ -308,11 +291,6 @@ returnType ApvlvHTML::process (int has, int ct, guint key)
     }
 
   return MATCH;
-}
-
-bool ApvlvHTML::enter (guint key)
-{
-  return true;
 }
 
 bool ApvlvHTML::search (const char *str, bool reverse)
@@ -406,6 +384,72 @@ void ApvlvHTML::apvlv_dir_monitor_callback (GFileMonitor *gfm, GFile *gf1, GFile
       gView->errormessage ("Contents is modified, apvlv reload it automatically");
       dir->reload ();
     }
+}
+
+void ApvlvHTML::setzoom (const char *z)
+{
+  if (z != NULL)
+    {
+      if (strcasecmp (z, "normal") == 0)
+        {
+          mZoommode = NORMAL;
+          mZoomrate = 1.2;
+        }
+      /*  
+          else if (strcasecmp (z, "fitwidth") == 0)
+          {
+          mZoommode = FITWIDTH;
+          }
+          else if (strcasecmp (z, "fitheight") == 0)
+          {
+          mZoommode = FITHEIGHT;
+          }*/
+      else
+        {
+          double d = atof (z);
+          if (d > 0)
+            {
+              mZoommode = CUSTOM;
+              mZoomrate = d;
+            }
+
+          webkit_web_view_set_zoom_level (WEBKIT_WEB_VIEW (mHtmlView), mZoomrate);
+          mStatus->show ();
+        }
+    }
+}
+
+GtkWidget * ApvlvHTML::apvlv_html_new_webview ()
+{
+  GtkWidget *view = webkit_web_view_new ();
+  webkit_web_view_set_editable (WEBKIT_WEB_VIEW (view), FALSE);
+  webkit_web_view_set_zoom_level (WEBKIT_WEB_VIEW (view), mZoomrate);
+  webkit_web_view_set_full_content_zoom (WEBKIT_WEB_VIEW (view), TRUE);
+
+  gtk_widget_add_events (GTK_WIDGET (view), GDK_BUTTON_PRESS_MASK);
+  g_signal_connect (G_OBJECT (view), "create-web-view", G_CALLBACK (apvlv_html_clicked_cb), this);
+  g_signal_connect (G_OBJECT (view), "load-finished", G_CALLBACK (apvlv_html_ready_cb), this);
+
+  return view;
+}
+
+gboolean
+ApvlvHTML::apvlv_html_replace_webview (WebKitWebView *view, ApvlvHTML *htm)
+{
+  gtk_container_remove (GTK_CONTAINER (htm->mScrollwin), htm->mHtmlView);
+  gtk_container_add (GTK_CONTAINER (htm->mScrollwin), GTK_WIDGET (view));
+  htm->mHtmlView = GTK_WIDGET (view);
+  gtk_widget_show_all (htm->mScrollwin);
+  return TRUE;
+}
+
+WebKitWebView *
+ApvlvHTML::apvlv_html_clicked_cb (WebKitWebView *wid, WebKitWebFrame *frame, ApvlvHTML *htm)
+{
+  debug ("clicked OK\n");
+  GtkWidget *view = htm->apvlv_html_new_webview ();
+  g_signal_connect (G_OBJECT (view), "web-view-ready", G_CALLBACK (apvlv_html_replace_webview), htm);
+  return WEBKIT_WEB_VIEW (view);
 }
 
 gboolean 

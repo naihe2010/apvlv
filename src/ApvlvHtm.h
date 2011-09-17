@@ -74,14 +74,18 @@ private:
 
   bool reload ();
 
-  bool enter (guint key);
+  void setzoom (const char *z);
 
   bool search (const char *str, bool reverse = false);
+
+  GtkWidget * apvlv_html_new_webview ();
 
   static void apvlv_dir_on_changed (GtkTreeSelection *, ApvlvHTML *);
 
   static void apvlv_dir_monitor_callback (GFileMonitor *, GFile *, GFile *, GFileMonitorEvent, ApvlvHTML *);
 
+  static gboolean apvlv_html_replace_webview (WebKitWebView *wid, ApvlvHTML *htm);
+  static WebKitWebView * apvlv_html_clicked_cb (WebKitWebView *wid, WebKitWebFrame *frame, ApvlvHTML *htm);
   static gboolean apvlv_html_ready_cb (WebKitWebView *wid, WebKitWebFrame *frame, ApvlvHTML *htm);
 
   GtkWidget *mHtmlView;
