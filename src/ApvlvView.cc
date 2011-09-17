@@ -231,6 +231,7 @@ void ApvlvView::open ()
       gchar *filename =
         gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dia));
 
+#ifdef APVLV_WITH_HTML
       if (g_ascii_strcasecmp (filename + strlen (filename) - 4,
                               ".htm") == 0
           || g_ascii_strcasecmp (filename + strlen (filename) - 5,
@@ -239,6 +240,7 @@ void ApvlvView::open ()
           loadhtml (filename);
         }
       else
+#endif
         {
           loadfile (filename);
         }
@@ -298,6 +300,7 @@ bool ApvlvView::loaddir (const char *path)
   return true;
 }
 
+#ifdef APVLV_WITH_HTML
 bool ApvlvView::loadhtml (const char *path)
 {
   ApvlvCore *ndoc = hasloaded (path, CORE_DIR);
@@ -318,6 +321,7 @@ bool ApvlvView::loadhtml (const char *path)
   updatetabname ();
   return true;
 }
+#endif
 
 bool ApvlvView::loadfile (string file)
 {
@@ -958,7 +962,12 @@ bool ApvlvView::runcmd (const char *str)
       else if ((cmd == "o"
                 || cmd == "open" || cmd == "doc") && subcmd != "")
         {
-          if (g_ascii_strncasecmp (subcmd.c_str (), "http://", 7) == 0
+          if (g_file_test (subcmd.c_str (), G_FILE_TEST_IS_DIR))
+            {
+              ret = loaddir (subcmd.c_str ());
+            }
+#ifdef APVLV_WITH_HTML
+          else if (g_ascii_strncasecmp (subcmd.c_str (), "http://", 7) == 0
               || g_ascii_strcasecmp (subcmd.c_str () + subcmd.length () - 4,
                                      ".htm") == 0
               || g_ascii_strcasecmp (subcmd.c_str () + subcmd.length () - 5,
@@ -966,10 +975,7 @@ bool ApvlvView::runcmd (const char *str)
             {
               ret = loadhtml (subcmd.c_str ());
             }
-          else if (g_file_test (subcmd.c_str (), G_FILE_TEST_IS_DIR))
-            {
-              ret = loaddir (subcmd.c_str ());
-            }
+#endif
           else if (g_file_test (subcmd.c_str (), G_FILE_TEST_EXISTS))
             {
               ret = loadfile (subcmd.c_str ());
