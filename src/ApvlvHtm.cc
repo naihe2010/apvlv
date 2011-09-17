@@ -78,12 +78,10 @@ bool ApvlvHTML::reload ()
 
 bool ApvlvHTML::loadfile (const char *path, bool check)
 {
-  gchar * lname = g_locale_from_utf8 (path, -1, NULL, NULL, NULL);
   gchar * uri;
-  if (lname)
+  if (g_ascii_strncasecmp (path, "http://", 7) == 0)
     {
-      uri = g_filename_to_uri (lname, NULL, NULL);
-      g_free (lname);
+      uri = g_strdup (path);
     }
   else
     {

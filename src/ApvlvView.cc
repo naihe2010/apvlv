@@ -958,8 +958,9 @@ bool ApvlvView::runcmd (const char *str)
       else if ((cmd == "o"
                 || cmd == "open" || cmd == "doc") && subcmd != "")
         {
-          if (g_ascii_strcasecmp (subcmd.c_str () + subcmd.length () - 4,
-                                  ".htm") == 0
+          if (g_ascii_strncasecmp (subcmd.c_str (), "http://", 7) == 0
+              || g_ascii_strcasecmp (subcmd.c_str () + subcmd.length () - 4,
+                                     ".htm") == 0
               || g_ascii_strcasecmp (subcmd.c_str () + subcmd.length () - 5,
                                      ".html") == 0)
             {
