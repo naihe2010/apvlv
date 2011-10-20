@@ -77,7 +77,7 @@ _poppler_page_render_to_pixbuf (PopplerPage *page,
 				int src_width, int src_height,
 				double scale,
 				int rotation,
-				GBool printing,
+				gboolean printing,
 				GdkPixbuf *pixbuf)
 {
   cairo_t *cr;
@@ -158,7 +158,7 @@ poppler_page_render_to_pixbuf (PopplerPage *page,
   _poppler_page_render_to_pixbuf (page, src_x, src_y,
 				  src_width, src_height,
 				  scale, rotation,
-				  gFalse,
+				  FALSE,
 				  pixbuf);
 }
 #endif
