@@ -20,7 +20,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-/* @CPPFILE ApvlvView.cpp
+/* @CPPFILE ApvlvView.cc
  *
  *  Author: Alf <naihe2010@126.com>
  */
@@ -209,7 +209,15 @@ void ApvlvView::open ()
   gtk_file_filter_add_pattern (filter, "*.PDF");
 #ifdef APVLV_WITH_DJVU
   gtk_file_filter_add_mime_type (filter, "DJVU File");
+  gtk_file_filter_add_pattern (filter, "*.DJV");
+  gtk_file_filter_add_pattern (filter, "*.djv");
+  gtk_file_filter_add_pattern (filter, "*.DJVU");
   gtk_file_filter_add_pattern (filter, "*.djvu");
+#endif
+#ifdef APVLV_WITH_TXT
+  gtk_file_filter_add_mime_type (filter, "TXT File");
+  gtk_file_filter_add_pattern (filter, "*.TXT");
+  gtk_file_filter_add_pattern (filter, "*.txt");
 #endif
 #ifdef APVLV_WITH_UMD
   gtk_file_filter_add_mime_type (filter, "UMD File");

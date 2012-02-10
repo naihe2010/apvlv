@@ -19,7 +19,7 @@
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 *
 */
-/* @CFILE ApvlvFile.cpp xxxxxxxxxxxxxxxxxxxxxxxxxx.
+/* @CFILE ApvlvFile.cc
 *
 *  Author: Alf <naihe2010@126.com>
 */
@@ -30,11 +30,14 @@
 #include "ApvlvUtil.h"
 #include "ApvlvView.h"
 
-#ifdef APVLV_WITH_UMD
- #include "ApvlvUmd.h"
-#endif
 #ifdef APVLV_WITH_DJVU
  #include "ApvlvDjvu.h"
+#endif
+#ifdef APVLV_WITH_TXT
+ #include "ApvlvTxt.h"
+#endif
+#ifdef APVLV_WITH_UMD
+ #include "ApvlvUmd.h"
 #endif
 #ifdef APVLV_WITH_HTML
  #include "ApvlvHtm.h"
@@ -75,12 +78,14 @@ ApvlvFile *ApvlvFile::newfile (const char *filename, bool check)
   static const char *type_phrase[] =
   {
     ".pdf",
-    ".umd",
+    ".djv",
     ".djvu",
+    ".txt",
+    ".umd",
   };
 
   size_t i;
-  for (i = 0; i < 4; ++ i)
+  for (i = 0; i < 5; ++ i)
     {
       if (strcasecmp (filename + strlen (filename) - strlen (type_phrase[i]),
                       type_phrase[i]) == 0)
@@ -89,7 +94,7 @@ ApvlvFile *ApvlvFile::newfile (const char *filename, bool check)
         }
     }
 
-  if (i == 4)
+  if (i == 5)
     {
       debug ("not a valid file: %s, treate as a PDF file", filename);
       i = 0;
@@ -104,16 +109,25 @@ ApvlvFile *ApvlvFile::newfile (const char *filename, bool check)
           break;
 
         case 1:
-#ifdef APVLV_WITH_UMD
-          file = new ApvlvUMD (filename);
+        case 2:
+#ifdef APVLV_WITH_DJVU
+          file = new ApvlvDJVU (filename);
 #else
           file = NULL;
 #endif
           break;
 
-        case 2:
-#ifdef APVLV_WITH_DJVU
-          file = new ApvlvDJVU (filename);
+        case 3:
+#ifdef APVLV_WITH_TXT
+          file = new ApvlvTXT (filename);
+#else
+          file = NULL;
+#endif
+          break;
+
+        case 4:
+#ifdef APVLV_WITH_UMD
+          file = new ApvlvUMD (filename);
 #else
           file = NULL;
 #endif

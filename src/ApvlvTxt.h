@@ -19,28 +19,52 @@
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 *
 */
-/* @CFILE ApvlvUmd.h
+/* @CFILE ApvlvTxt.h
 *
 *  Author: Alf <naihe2010@126.com>
 */
-/* @date Created: 2011/09/16 13:55:19 Alf*/
+/* @date Created: 2012/01/16 11:05:10 Alf*/
 
-#ifndef _APVLV_UMD_H_
-#define _APVLV_UMD_H_
+#ifndef _APVLV_TXT_H_
+#define _APVLV_TXT_H_
 
 #include "ApvlvFile.h"
 
-#define LIBUMD_ENABLE_GTK
-#include <umd.h>
-
 namespace apvlv
 {
-class ApvlvUMD:public ApvlvFile
+class ApvlvTxt;
+class ApvlvTxtPage
 {
 public:
-  ApvlvUMD (const char *filename, bool check = true);
+  ApvlvTxtPage (int pn, const gchar *, gsize);
+  ~ApvlvTxtPage ();
 
-  ~ApvlvUMD ();
+  bool pagesize (int rot, double *x, double *y);
+
+  bool render (int, int, double, int, GdkPixbuf *, char *);
+
+private:
+  int mId;
+  GString *mContent;
+
+  guchar *mRenderBuf;
+
+  gdouble mZoomrate;
+
+  gint mWidth, mHeight;
+
+  guint mLayoutWidth, mLayoutHeight;
+  guint mStride;
+
+  gboolean self_render (int);
+};
+
+class ApvlvTXT:public ApvlvFile
+{
+public:
+  ApvlvTXT (const char *filename, bool check = true);
+
+  ~ApvlvTXT ();
 
   bool writefile (const char *filename);
 
@@ -66,7 +90,13 @@ public:
   bool pageprint (int pn, cairo_t * cr);
 
 private:
-  umd_t *mUmd;
+  GString *mContent;
+  gsize mLength;
+
+  gint mPageCount;
+  GPtrArray *mPages;
+
+  gboolean load_pages ();
 };
 
 }

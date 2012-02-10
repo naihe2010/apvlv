@@ -20,7 +20,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-/* @CFILE ApvlvDir.cpp
+/* @CFILE ApvlvDir.cc
  *
  *  Author: Alf <naihe2010@126.com>
  */
@@ -895,15 +895,25 @@ void ApvlvDir::apvlv_dir_change_node (ApvlvDirNode *node, GFile *gf1, GFileMonit
 
   if (g_ascii_strncasecmp (basename + strlen (basename) - 4, ".pdf", 4)
       != 0
-#ifdef HAVE_LIBUMD
+#ifdef APVLV_WITH_DJVU
       && g_ascii_strncasecmp (basename + strlen (basename) - 5,
                               ".djvu", 5) != 0
       && g_ascii_strncasecmp (basename + strlen (basename) - 4, ".djv",
                               4) != 0
 #endif
-#ifdef HAVE_LIBUMD
+#ifdef APVLV_WITH_TXT
+      && g_ascii_strncasecmp (basename + strlen (basename) - 4,
+                              ".txt", 4) != 0
+#endif
+#ifdef APVLV_WITH_UMD
       && g_ascii_strncasecmp (basename + strlen (basename) - 4,
                               ".umd", 4) != 0
+#endif
+#ifdef APVLV_WITH_HTML
+      && g_ascii_strncasecmp (basename + strlen (basename) - 4,
+                              ".htm", 4) != 0
+      && g_ascii_strncasecmp (basename + strlen (basename) - 4,
+                              ".html", 5) != 0
 #endif
      )
     {
@@ -917,7 +927,7 @@ void ApvlvDir::apvlv_dir_change_node (ApvlvDirNode *node, GFile *gf1, GFileMonit
       debug ("delete file: %s", name);
 
       GList *listnode;
-      ApvlvDirNode *nnode;
+      ApvlvDirNode *nnode = NULL;
       for (listnode = g_list_first (mDirNodes);
            listnode != NULL;
            listnode = g_list_next (listnode))
@@ -1022,23 +1032,33 @@ bool ApvlvDir::walk_dir_path_index (GtkTreeIter * itr, const char *path)
             }
           else if (g_ascii_strncasecmp (name + strlen (name) - 4, ".pdf", 4)
                    == 0
-#ifdef HAVE_LIBUMD
+#ifdef APVLV_WITH_DJVU
                    || g_ascii_strncasecmp (name + strlen (name) - 5,
                                            ".djvu", 5) == 0
                    || g_ascii_strncasecmp (name + strlen (name) - 4, ".djv",
                                            4) == 0
 #endif
-#ifdef HAVE_LIBUMD
+#ifdef APVLV_WITH_TXT
+                   || g_ascii_strncasecmp (name + strlen (name) - 4,
+                                           ".txt", 4) == 0
+#endif
+#ifdef APVLV_WITH_UMD
                    || g_ascii_strncasecmp (name + strlen (name) - 4,
                                            ".umd", 4) == 0
 #endif
-                  )
-            {
-              node = new ApvlvDirNode (this, itr, false, realname, name);
-              mDirNodes = g_list_append (mDirNodes, node);
+#ifdef APVLV_WITH_HTML
+                   || g_ascii_strncasecmp (name + strlen (name) - 4,
+                                           ".htm", 4) == 0
+                   || g_ascii_strncasecmp (name + strlen (name) - 4,
+                                           ".html", 5) == 0
+#endif
+                   )
+                     {
+                       node = new ApvlvDirNode (this, itr, false, realname, name);
+                       mDirNodes = g_list_append (mDirNodes, node);
 
-              has = true;
-            }
+                       has = true;
+                     }
 
           g_free (realname);
         }

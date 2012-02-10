@@ -90,11 +90,9 @@ IF (APVLV_WITH_DJVU)
                 SET (APVLV_REQ_LIBRARIES -ldjvulibre
                      ${APVLV_REQ_LIBRARIES})
         ENDIF (WIN32)
-ENDIF (APVLV_WITH_DJVU)
 
-IF (APVLV_WITH_DJVU)
-     SET (HEADERS ${HEADERS} ApvlvDjvu.h)
-     SET (SOURCES ${SOURCES} ApvlvDjvu.cc)
+        SET (HEADERS ${HEADERS} ApvlvDjvu.h)
+        SET (SOURCES ${SOURCES} ApvlvDjvu.cc)
 ENDIF (APVLV_WITH_DJVU)
 
 OPTION (APVLV_WITH_UMD "If build binary with umd format support." OFF)
@@ -113,21 +111,25 @@ IF (APVLV_WITH_UMD)
                 SET (APVLV_REQ_LIBRARIES -lumd
                      ${APVLV_REQ_LIBRARIES})
         ENDIF (WIN32)
+
+        SET (HEADERS ${HEADERS} ApvlvUmd.h)
+        SET (SOURCES ${SOURCES} ApvlvUmd.cc)
 ENDIF (APVLV_WITH_UMD)
 
-IF (APVLV_WITH_UMD)
-     SET (HEADERS ${HEADERS} ApvlvUmd.h)
-     SET (SOURCES ${SOURCES} ApvlvUmd.cc)
-ENDIF (APVLV_WITH_UMD)
+OPTION (APVLV_WITH_TXT "If build binary with txt format support." OFF)
+IF (APVLV_WITH_TXT)
+        ADD_DEFINITIONS (-DAPVLV_WITH_TXT)
+
+        SET (HEADERS ${HEADERS} ApvlvTxt.h)
+        SET (SOURCES ${SOURCES} ApvlvTxt.cc)
+ENDIF (APVLV_WITH_TXT)
 
 OPTION (APVLV_WITH_HTML "If build binary with html format support." OFF)
 IF (APVLV_WITH_HTML)
         ADD_DEFINITIONS (-DAPVLV_WITH_HTML)
-ENDIF (APVLV_WITH_HTML)
 
-IF (APVLV_WITH_HTML)
-     SET (HEADERS ${HEADERS} ApvlvHtm.h)
-     SET (SOURCES ${SOURCES} ApvlvHtm.cc)
+        SET (HEADERS ${HEADERS} ApvlvHtm.h)
+        SET (SOURCES ${SOURCES} ApvlvHtm.cc)
 ENDIF (APVLV_WITH_HTML)
 
 ADD_EXECUTABLE (apvlv ${HEADERS} ${SOURCES})

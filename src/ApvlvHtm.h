@@ -19,7 +19,7 @@
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 *
 */
-/* @CFILE ApvlvHtm.hpp xxxxxxxxxxxxxxxxxxxxxxxxxx.
+/* @CFILE ApvlvHtm.h
 *
 *  Author: Alf <naihe2010@126.com>
 */
