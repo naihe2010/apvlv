@@ -58,6 +58,7 @@ usage_exit ()
            "\t-v                display version info and exit\n"
            "\t-c [file]         set user configuration file\n",
            PACKAGE_BUGREPORT);
+  exit (0);
 }
 
 static void
@@ -66,6 +67,7 @@ version_exit ()
   fprintf (stdout, "%s %s-%s\n"
            "Please send bug report to %s\n"
            "\n", PACKAGE_NAME, PACKAGE_VERSION, RELEASE, PACKAGE_BUGREPORT);
+  exit (0);
 }
 #endif
 
