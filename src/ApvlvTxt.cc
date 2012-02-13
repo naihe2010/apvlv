@@ -35,10 +35,10 @@ namespace apvlv
 #define DOUBLE_EQ(a,b)                  (fabs ((a) - (b)) < 0.0001)
 #define DOUBLE_NE(a,b)                  (!DOUBLE_EQ(a,b))
 
-const gint PAGE_CHARACTER_COUNT = 20000;
+const gint PAGE_CHARACTER_COUNT = 10000;
 const gdouble PAGE_RENDER_ZOOM = 1.0;
 const gint PAGE_RENDER_WIDTH = 200;
-const gint PAGE_RENDER_HEIGHT = 800;
+const gint PAGE_RENDER_HEIGHT = 1200;
 
 ApvlvTxtPage::ApvlvTxtPage (int id, const gchar *str, gsize size)
   {
@@ -75,13 +75,14 @@ ApvlvTXT::ApvlvTXT (const char *filename, bool check):ApvlvFile (filename,
       check)
 {
   gboolean ok;
-  gchar *content;
+  gchar *content; 
+  const gchar *begin;
   gsize length;
 
   gchar * lname = g_locale_from_utf8 (filename, -1, NULL, NULL, NULL);
   if (lname)
     {
-      ok = g_file_get_contents (lname, &content, NULL, NULL);
+      ok = g_file_get_contents (lname, &content, &length, NULL);
       g_free (lname);
     }
   else
@@ -94,13 +95,15 @@ ApvlvTXT::ApvlvTXT (const char *filename, bool check):ApvlvFile (filename,
       throw std::bad_alloc ();
     }
 
+  debug ("total chars: %d", length);
   gchar *content2 = NULL;
   gsize len2;
-  if (g_utf8_validate (content, length, NULL) == FALSE)
+  if (g_utf8_validate (content, length, &begin) == FALSE
+      && begin == content)
     {
       content2 = g_locale_to_utf8 (content, length, NULL, &len2, NULL);
     }
-  
+
   if (content2)
     {
       mContent = g_string_new_len (content2, len2);
@@ -113,6 +116,7 @@ ApvlvTXT::ApvlvTXT (const char *filename, bool check):ApvlvFile (filename,
   g_free (content);
 
   mLength = g_utf8_strlen (mContent->str, mContent->len);
+  debug ("total Character: %d", mLength);
 
   load_pages ();
 }
@@ -123,6 +127,11 @@ ApvlvTXT::~ApvlvTXT ()
     {
       g_string_free (mContent, TRUE);
     }
+
+  if (mPages)
+    {
+      g_ptr_array_free (mPages, TRUE);
+    }
 }
 
 gboolean
@@ -130,6 +139,7 @@ ApvlvTXT::load_pages ()
 {
   ApvlvTxtPage *page;
   gchar *b, *e;
+  gunichar unic;
   gsize i, len;
 
   mPages = g_ptr_array_new_with_free_func (txt_page_free);
@@ -141,13 +151,21 @@ ApvlvTXT::load_pages ()
     {
       len = (i + PAGE_CHARACTER_COUNT) > mLength ? mLength - i : PAGE_CHARACTER_COUNT;
 
-      b = mContent->str + i;
-      e = g_utf8_offset_to_pointer (mContent->str, len);
+      b = g_utf8_offset_to_pointer (mContent->str, i);
+      e = g_utf8_offset_to_pointer (b, len);
+      unic = g_utf8_get_char (e);
+      while (g_unichar_isspace (unic) == FALSE && *e != '\0')
+        {
+          ++ len;
+          e = g_utf8_next_char (e);
+          unic = g_utf8_get_char (e);
+        } 
       page = new ApvlvTxtPage (mPageCount, 
                                b,
                                e - b);
       g_ptr_array_add (mPages, page);
     }
+  debug ("total page: %d", mPageCount);
 
   return TRUE;
 }
@@ -200,11 +218,11 @@ bool ApvlvTxtPage::pagesize (int rot, double *px, double *py)
 
   if (px)
     {
-      *px = mWidth;
+      *px = mWidth + 2;
     }
   if (py)
     {
-      *py = mHeight;
+      *py = mHeight + 2;
     }
 
   return true;
@@ -284,7 +302,7 @@ gboolean ApvlvTxtPage::self_render (int rot)
 
   mLayoutWidth = PAGE_RENDER_WIDTH * mZoomrate;
   mLayoutHeight = PAGE_RENDER_HEIGHT * mZoomrate;
-  mStride = mLayoutWidth * 4;
+  mStride = cairo_format_stride_for_width (CAIRO_FORMAT_RGB24, mLayoutWidth);
 
   mRenderBuf = (guchar *) g_malloc (mStride * mLayoutHeight);
   g_return_val_if_fail (mRenderBuf, false);
@@ -295,11 +313,14 @@ gboolean ApvlvTxtPage::self_render (int rot)
                                          mLayoutHeight, mStride);
   if (surface == NULL)
     {
+      g_free (mRenderBuf);
       return false;
     }
+
   cr = cairo_create (surface);
   if (cr == NULL)
     {
+      g_free (mRenderBuf);
       cairo_surface_destroy (surface);
       return false;
     }
@@ -323,7 +344,8 @@ gboolean ApvlvTxtPage::self_render (int rot)
   pango_layout_set_width (layout, wunits);
   pango_layout_set_height (layout, hunits);
   pango_layout_set_wrap (layout, PANGO_WRAP_WORD_CHAR);
-  pango_layout_set_spacing (layout, 8);
+  pango_layout_set_spacing (layout, 80);
+  pango_layout_set_indent (layout, 160);
 
   pango_layout_set_text (layout, mContent->str, mContent->len);
 
@@ -331,6 +353,7 @@ gboolean ApvlvTxtPage::self_render (int rot)
   pango_cairo_show_layout (cr, layout);
 
   pango_layout_get_pixel_size (layout, &mWidth, &mHeight);
+  debug ("txt page size: %d:%d", mWidth, mHeight);
 
   cairo_surface_destroy (surface);
   cairo_destroy (cr);
