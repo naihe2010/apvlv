@@ -29,9 +29,12 @@
 #include "ApvlvParams.h"
 #include "ApvlvInfo.h"
 #include "ApvlvDir.h"
-#include "ApvlvHtm.h"
 #include "ApvlvCmds.h"
 #include "ApvlvView.h"
+
+#ifdef APVLV_WITH_HTML
+# include "ApvlvHtm.h"
+#endif
 
 #include <glib.h>
 #include <glib/gprintf.h>
