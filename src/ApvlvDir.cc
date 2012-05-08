@@ -50,7 +50,7 @@ ApvlvDirNode::ApvlvDirNode (ApvlvDir *dir, GtkTreeIter * ir, gint p, const char 
 
   GtkTreeIter nitr[1];
   gtk_tree_store_append (dir->mStore, itr, ir);
-  *itr = *nitr;
+  *nitr = *itr;
 
   GdkPixbuf *pix = gdk_pixbuf_new_from_file_at_size (iconreg.c_str (), 40,
                    20, NULL);
