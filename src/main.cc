@@ -87,12 +87,12 @@ parse_options (int argc, char *argv[])
 #else
   int c, index;
   static struct option long_options[] =
-  {
-    {"config", required_argument, NULL, 'c'},
-    {"help", no_argument, NULL, 'h'},
-    {"version", no_argument, NULL, 'v'},
-    {0, 0, 0, 0}
-  };
+    {
+      {"config", required_argument, NULL, 'c'},
+      {"help", no_argument, NULL, 'h'},
+      {"version", no_argument, NULL, 'v'},
+      {0, 0, 0, 0}
+    };
 
   index = 0;
   ini = NULL;

@@ -1,28 +1,28 @@
 /*
-* This file is part of the apvlv package
-* Copyright (C) <2010>  <Alf>
-*
-* Contact: Alf <naihe2010@126.com>
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along
-* with this program; if not, write to the Free Software Foundation, Inc.,
-* 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-*
-*/
+ * This file is part of the apvlv package
+ * Copyright (C) <2010>  <Alf>
+ *
+ * Contact: Alf <naihe2010@126.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ */
 /* @CFILE ApvlvPdf.h
-*
-*  Author: Alf <naihe2010@126.com>
-*/
+ *
+ *  Author: Alf <naihe2010@126.com>
+ */
 /* @date Created: 2011/09/16 13:50:04 Alf*/
 
 #ifndef _APVLV_PDF_H_
@@ -32,41 +32,41 @@
 
 namespace apvlv
 {
-class ApvlvPDF:public ApvlvFile
-{
-public:
-  ApvlvPDF (const char *filename, bool check = true);
+  class ApvlvPDF:public ApvlvFile
+  {
+  public:
+    ApvlvPDF (const char *filename, bool check = true);
 
-  ~ApvlvPDF ();
+    ~ApvlvPDF ();
 
-  bool writefile (const char *filename);
+    bool writefile (const char *filename);
 
-  bool pagesize (int page, int rot, double *x, double *y);
+    bool pagesize (int page, int rot, double *x, double *y);
 
-  int pagesum ();
+    int pagesum ();
 
-  bool pagetext (int, int, int, int, int, char **);
+    bool pagetext (int, int, int, int, int, char **);
 
-  bool render (int, int, int, double, int, GdkPixbuf *, char *);
+    bool render (int, int, int, double, int, GdkPixbuf *, char *);
 
-  bool pageselectsearch (int, int, int, double, int, GdkPixbuf *,
-                         char *, int, ApvlvPoses *);
+    bool pageselectsearch (int, int, int, double, int, GdkPixbuf *,
+			   char *, int, ApvlvPoses *);
 
-  ApvlvPoses *pagesearch (int pn, const char *s, bool reverse = false);
+    ApvlvPoses *pagesearch (int pn, const char *s, bool reverse = false);
 
-  ApvlvLinks *getlinks (int pn);
+    ApvlvLinks *getlinks (int pn);
 
-  ApvlvFileIndex *new_index ();
+    ApvlvFileIndex *new_index ();
 
-  void free_index (ApvlvFileIndex *);
+    void free_index (ApvlvFileIndex *);
 
-  bool pageprint (int pn, cairo_t * cr);
+    bool pageprint (int pn, cairo_t * cr);
 
-private:
-  bool walk_poppler_index_iter (ApvlvFileIndex * titr,
-                                PopplerIndexIter * iter);
+  private:
+    bool walk_poppler_index_iter (ApvlvFileIndex * titr,
+				  PopplerIndexIter * iter);
 
-  PopplerDocument *mDoc;
-};
+    PopplerDocument *mDoc;
+  };
 }
 #endif

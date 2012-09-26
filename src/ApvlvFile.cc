@@ -1,28 +1,28 @@
 /*
-* This file is part of the apvlv package
-* Copyright (C) <2008>  <Alf>
-*
-* Contact: Alf <naihe2010@126.com>
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along
-* with this program; if not, write to the Free Software Foundation, Inc.,
-* 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-*
-*/
+ * This file is part of the apvlv package
+ * Copyright (C) <2008>  <Alf>
+ *
+ * Contact: Alf <naihe2010@126.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ */
 /* @CFILE ApvlvFile.cc
-*
-*  Author: Alf <naihe2010@126.com>
-*/
+ *
+ *  Author: Alf <naihe2010@126.com>
+ */
 /* @date Created: 2009/11/20 19:38:30 Alf*/
 
 #include "ApvlvFile.h"
@@ -31,16 +31,16 @@
 #include "ApvlvView.h"
 
 #ifdef APVLV_WITH_DJVU
- #include "ApvlvDjvu.h"
+#include "ApvlvDjvu.h"
 #endif
 #ifdef APVLV_WITH_TXT
- #include "ApvlvTxt.h"
+#include "ApvlvTxt.h"
 #endif
 #ifdef APVLV_WITH_UMD
- #include "ApvlvUmd.h"
+#include "ApvlvUmd.h"
 #endif
 #ifdef APVLV_WITH_HTML
- #include "ApvlvHtm.h"
+#include "ApvlvHtm.h"
 #endif
 
 #include <glib.h>
@@ -55,96 +55,96 @@ namespace apvlv
 #define MAX(a,b)        ((a) > (b) ? (a) : (b))
 #endif
 
-ApvlvFile::ApvlvFile (const char *filename, bool check)
-{
-  mIndex = NULL;
-
-  mRawdata = NULL;
-  mRawdataSize = 0;
-}
-
-ApvlvFile::~ApvlvFile ()
-{
-  if (mRawdata != NULL)
-    {
-      delete[]mRawdata;
-      mRawdata = NULL;
-    }
-}
-
-ApvlvFile *ApvlvFile::newfile (const char *filename, bool check)
-{
-  ApvlvFile *file = NULL;
-  static const char *type_phrase[] =
+  ApvlvFile::ApvlvFile (const char *filename, bool check)
   {
-    ".pdf",
-    ".djv",
-    ".djvu",
-    ".txt",
-    ".umd",
-  };
+    mIndex = NULL;
 
-  size_t i;
-  for (i = 0; i < 5; ++ i)
-    {
-      if (strcasecmp (filename + strlen (filename) - strlen (type_phrase[i]),
-                      type_phrase[i]) == 0)
-        {
-          break;
-        }
-    }
+    mRawdata = NULL;
+    mRawdataSize = 0;
+  }
 
-  if (i == 5)
-    {
-      debug ("not a valid file: %s, treate as a PDF file", filename);
-      i = 0;
-    }
+  ApvlvFile::~ApvlvFile ()
+  {
+    if (mRawdata != NULL)
+      {
+	delete[]mRawdata;
+	mRawdata = NULL;
+      }
+  }
 
-  try
-    {
-      switch (i)
-        {
-        case 0:
-          file = new ApvlvPDF (filename);
-          break;
+  ApvlvFile *ApvlvFile::newfile (const char *filename, bool check)
+  {
+    ApvlvFile *file = NULL;
+    static const char *type_phrase[] =
+      {
+	".pdf",
+	".djv",
+	".djvu",
+	".txt",
+	".umd",
+      };
 
-        case 1:
-        case 2:
+    size_t i;
+    for (i = 0; i < 5; ++ i)
+      {
+	if (strcasecmp (filename + strlen (filename) - strlen (type_phrase[i]),
+			type_phrase[i]) == 0)
+	  {
+	    break;
+	  }
+      }
+
+    if (i == 5)
+      {
+	debug ("not a valid file: %s, treate as a PDF file", filename);
+	i = 0;
+      }
+
+    try
+      {
+	switch (i)
+	  {
+	  case 0:
+	    file = new ApvlvPDF (filename);
+	    break;
+
+	  case 1:
+	  case 2:
 #ifdef APVLV_WITH_DJVU
-          file = new ApvlvDJVU (filename);
+	    file = new ApvlvDJVU (filename);
 #else
-          file = NULL;
+	    file = NULL;
 #endif
-          break;
+	    break;
 
-        case 3:
+	  case 3:
 #ifdef APVLV_WITH_TXT
-          file = new ApvlvTXT (filename);
+	    file = new ApvlvTXT (filename);
 #else
-          file = NULL;
+	    file = NULL;
 #endif
-          break;
+	    break;
 
-        case 4:
+	  case 4:
 #ifdef APVLV_WITH_UMD
-          file = new ApvlvUMD (filename);
+	    file = new ApvlvUMD (filename);
 #else
-          file = NULL;
+	    file = NULL;
 #endif
-          break;
+	    break;
 
-        default:
-          ;
-        }
-    }
+	  default:
+	    ;
+	  }
+      }
 
-  catch (bad_alloc e)
-    {
-      delete file;
-      file = NULL;
-    }
+    catch (bad_alloc e)
+      {
+	delete file;
+	file = NULL;
+      }
 
-  return file;
-}
+    return file;
+  }
 
 }
