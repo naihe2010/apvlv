@@ -57,6 +57,7 @@ SET (HEADERS
      ApvlvUtil.h
      ApvlvView.h
      ApvlvWindow.h
+     ApvlvCompletion.h
 )
 
 SET (SOURCES
@@ -72,6 +73,7 @@ SET (SOURCES
      ApvlvUtil.cc
      ApvlvView.cc
      ApvlvWindow.cc
+     ApvlvCompletion.cc
      main.cc
 )
 

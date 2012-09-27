@@ -32,6 +32,7 @@
 #include "ApvlvMenu.h"
 #include "ApvlvDoc.h"
 #include "ApvlvWindow.h"
+#include "ApvlvCompletion.h"
 
 #include <gtk/gtk.h>
 
@@ -122,7 +123,7 @@ namespace apvlv
 
     bool destroy;
 
-    GCompletion *filecompleteinit (const char *s);
+    ApvlvCompletion *filecompleteinit (const char *s);
 
     bool runcmd (const char *cmd);
 

@@ -599,9 +599,9 @@ namespace apvlv
     mDocs.push_back (core);
   }
 
-  GCompletion *ApvlvView::filecompleteinit (const char *path)
+  ApvlvCompletion *ApvlvView::filecompleteinit (const char *path)
   {
-    GCompletion *gcomp = g_completion_new (NULL);
+    ApvlvCompletion *comp = new ApvlvCompletion;
     GList *list = g_list_alloc ();
     gchar *dname, *bname;
     const gchar *name;
@@ -644,7 +644,7 @@ namespace apvlv
 	    g_free (fname);
 
 	    debug ("add a item: %s", (char *) list->data);
-	    g_completion_add_items (gcomp, list);
+	    comp->add_items (list);
 	  }
 	g_free (bname);
 	g_dir_close (dir);
@@ -653,7 +653,7 @@ namespace apvlv
 
     g_list_free (list);
 
-    return gcomp;
+    return comp;
   }
 
   void ApvlvView::promptcommand (char ch)
@@ -722,7 +722,7 @@ namespace apvlv
 
   void ApvlvView::cmd_auto (const char *ps)
   {
-    GCompletion *gcomp = NULL;
+    ApvlvCompletion *comp = NULL;
 
     stringstream ss (ps);
     string cmd, np, argu;
@@ -742,26 +742,26 @@ namespace apvlv
 
     if (cmd == "o" || cmd == "open" || cmd == "TOtext")
       {
-	gcomp = filecompleteinit (np.c_str ());
+	comp = filecompleteinit (np.c_str ());
       }
     else if (cmd == "doc")
       {
-	gcomp = g_completion_new (NULL);
+	comp = new ApvlvCompletion;
 	GList *list = g_list_alloc ();
 	size_t i;
 	for (i = 0; i < mDocs.size (); ++i)
 	  {
 	    list->data = g_strdup (((ApvlvCore *) mDocs[i])->filename ());
-	    g_completion_add_items (gcomp, list);
+	    comp->add_items (list);
 	  }
 	g_list_free (list);
       }
 
-    if (gcomp != NULL)
+    if (comp != NULL)
       {
 	char *comtext = NULL;
 	debug ("find match: %s", np.c_str ());
-	g_completion_complete (gcomp, np.c_str (), &comtext);
+	comp->complete (np.c_str (), &comtext);
 	if (comtext != NULL)
 	  {
 	    char text[PATH_MAX];
@@ -792,7 +792,7 @@ namespace apvlv
 	    debug ("no get match");
 	  }
 
-	g_completion_free (gcomp);
+	delete comp;
       }
   }
 
