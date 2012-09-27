@@ -149,9 +149,19 @@ namespace apvlv
 	return false;
       }
 
-    ddjvu_rect_t prect[1] = { {0, 0, ix, iy}
+    ddjvu_rect_t prect[1] = { {
+	static_cast <unsigned int> (0),
+	static_cast <unsigned int> (0),
+	static_cast <unsigned int> (ix),
+	static_cast <unsigned int> (iy)
+      }
     };
-    ddjvu_rect_t rrect[1] = { {0, 0, ix, iy}
+    ddjvu_rect_t rrect[1] = { {
+	static_cast <unsigned int> (0),
+	static_cast <unsigned int> (0),
+	static_cast <unsigned int> (ix),
+	static_cast <unsigned int> (iy)
+      }
     };
     ddjvu_format_t *format =
       ddjvu_format_create (DDJVU_FORMAT_RGB24, 0, NULL);

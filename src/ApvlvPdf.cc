@@ -58,10 +58,10 @@ copy_cairo_surface_to_pixbuf (cairo_surface_t *surface,
     {
       src = (unsigned int *) (cairo_data + y * cairo_rowstride);
       dst = pixbuf_data + y * pixbuf_rowstride;
-      for (x = 0; x < cairo_width; x++) 
+      for (x = 0; x < cairo_width; x++)
 	{
 	  dst[0] = (*src >> 16) & 0xff;
-	  dst[1] = (*src >> 8) & 0xff; 
+	  dst[1] = (*src >> 8) & 0xff;
 	  dst[2] = (*src >> 0) & 0xff;
 	  if (pixbuf_n_channels == 4)
 	    dst[3] = (*src >> 24) & 0xff;
@@ -126,9 +126,9 @@ _poppler_page_render_to_pixbuf (PopplerPage *page,
 /**
  * poppler_page_render_to_pixbuf:
  * @page: the page to render from
- * @src_x: x coordinate of upper left corner  
- * @src_y: y coordinate of upper left corner  
- * @src_width: width of rectangle to render  
+ * @src_x: x coordinate of upper left corner
+ * @src_y: y coordinate of upper left corner
+ * @src_width: width of rectangle to render
  * @src_height: height of rectangle to render
  * @scale: scale specified as pixels per point
  * @rotation: rotate the document by the specified degree
@@ -354,7 +354,12 @@ namespace apvlv
   {
     PopplerPage *page = poppler_document_get_page (mDoc, pn);
 #if POPPLER_CHECK_VERSION(0, 15, 1)
-    PopplerRectangle rect = { x1, y2, x2, y1 };
+    PopplerRectangle rect = {
+      static_cast <gdouble> (x1),
+      static_cast <gdouble> (y2),
+      static_cast <gdouble> (x2),
+      static_cast <gdouble> (y1)
+    };
     *out = poppler_page_get_selected_text (page, POPPLER_SELECTION_WORD, &rect);
 #else
     PopplerRectangle rect = { x1, y1, x2, y2 };
