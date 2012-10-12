@@ -329,6 +329,7 @@ namespace apvlv
     GList *list = poppler_page_find_text (page, str);
     if (list == NULL)
       {
+	g_object_unref(page);
 	return NULL;
       }
 
@@ -345,7 +346,12 @@ namespace apvlv
 	//             rect->y2);
 	ApvlvPos pos = { rect->x1, rect->x2, rect->y1, rect->y2 };
 	poses->push_back (pos);
+
+	poppler_rectangle_free(rect);
       }
+
+    g_list_free(list);
+    g_object_unref(page);
 
     return poses;
   }
