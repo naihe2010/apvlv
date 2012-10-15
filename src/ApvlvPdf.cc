@@ -306,6 +306,7 @@ namespace apvlv
 	  {
 	    poppler_page_get_size (page, x, y);
 	  }
+	g_object_unref(page);
 	return true;
       }
     return false;
@@ -371,6 +372,7 @@ namespace apvlv
     PopplerRectangle rect = { x1, y1, x2, y2 };
     *out = poppler_page_get_text (page, POPPLER_SELECTION_WORD, &rect);
 #endif
+    g_object_unref(page);
     if (*out != NULL)
       {
 	return true;
@@ -390,6 +392,7 @@ namespace apvlv
       }
 
     poppler_page_render_to_pixbuf (tpage, 0, 0, ix, iy, zm, rot, pix);
+    g_object_unref(tpage);
     return true;
   }
 
@@ -450,6 +453,7 @@ namespace apvlv
     GList *list = poppler_page_get_link_mapping (page);
     if (list == NULL)
       {
+	g_object_unref(page);
 	return NULL;
       }
 
@@ -484,6 +488,8 @@ namespace apvlv
 	  }
       }
 
+    g_list_free(list);
+    g_object_unref(page);
     return links;
   }
 
@@ -584,6 +590,7 @@ namespace apvlv
     if (page != NULL)
       {
 	poppler_page_render_for_printing (page, cr);
+	g_object_unref(page);
 	return true;
       }
     else
