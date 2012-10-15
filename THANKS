@@ -1,6 +1,7 @@
 I would like to give thanks to the following for their support and
 contributions:
 
+        - Ian Munsie <darkstarsword@gmail.com>, for he fixing some memory leaks in ApvlvPDF::pagesearch 
         - Nico <zon3r@yahoo.com>, for his inverted feature code contribution.
           And, the code is copy from evince, and the author is Juanjo MarÃ­n.
           Thanks !!!
