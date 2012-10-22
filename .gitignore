@@ -1,1 +1,4 @@
 /build
+*~
+cscope.files
+cscope.out

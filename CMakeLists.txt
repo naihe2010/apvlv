@@ -5,55 +5,60 @@ PROJECT (apvlv)
 SET (PROJECT_MAJOR      "0")
 SET (PROJECT_MINOR      "1")
 SET (PROJECT_PATCH      "4")
+FIND_PACKAGE (Git)
+IF (GIT_FOUND)
+  EXEC_PROGRAM (${GIT_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ARGS "log -1 --format='%h'"
+    OUTPUT_VARIABLE PROJECT_PATCH)
+ENDIF (GIT_FOUND)
+
 SET (PACKAGE_VERSION "${PROJECT_MAJOR}.${PROJECT_MINOR}.${PROJECT_PATCH}")
 
 IF (WIN32)
-        ADD_DEFINITIONS (-DDOCDIR=".")
+  ADD_DEFINITIONS (-DDOCDIR=".")
 ELSE (WIN32)
-        SET (SYSCONFDIR 
-             "/etc"
-             CACHE PATH
-             "Directory for system configuration of apvlv [/etc]"
-        )
-        ADD_DEFINITIONS (-DSYSCONFDIR="${SYSCONFDIR}")
+  SET (SYSCONFDIR
+    "/etc"
+    CACHE PATH
+    "Directory for system configuration of apvlv [/etc]"
+    )
+  ADD_DEFINITIONS (-DSYSCONFDIR="${SYSCONFDIR}")
 
-        SET (DOCDIR 
-             "${CMAKE_INSTALL_PREFIX}/share/doc/apvlv"
-             CACHE PATH
-             "Directory for documentations of apvlv [PREFIX/share/doc/apvlv]"
-        )
-        ADD_DEFINITIONS (-DDOCDIR="${DOCDIR}")
+  SET (DOCDIR
+    "${CMAKE_INSTALL_PREFIX}/share/doc/apvlv"
+    CACHE PATH
+    "Directory for documentations of apvlv [PREFIX/share/doc/apvlv]"
+    )
+  ADD_DEFINITIONS (-DDOCDIR="${DOCDIR}")
 
-        SET (MANDIR 
-             "${CMAKE_INSTALL_PREFIX}/share/man"
-             CACHE PATH
-             "Directory for man page of apvlv [PREFIX/share/man]"
-        )
+  SET (MANDIR
+    "${CMAKE_INSTALL_PREFIX}/share/man"
+    CACHE PATH
+    "Directory for man page of apvlv [PREFIX/share/man]"
+    )
 ENDIF (WIN32)
 
 ADD_DEFINITIONS (-DPACKAGE_NAME="apvlv"
-                 -DPACKAGE_VERSION="${PACKAGE_VERSION}"
-                 -DPACKAGE_BUGREPORT="Alf <naihe2010@126.com>"
-                 -DRELEASE="rel"
-)
+  -DPACKAGE_VERSION="${PACKAGE_VERSION}"
+  -DPACKAGE_BUGREPORT="Alf <naihe2010@126.com>"
+  -DRELEASE="rel"
+  )
 
 ADD_SUBDIRECTORY (src)
 
 IF (WIN32)
-        INSTALL (FILES apvlvrc.example DESTINATION "."
-                 RENAME _apvlvrc)
-        INSTALL (FILES apvlvrc.example Startup.pdf DESTINATION ".")
-        INSTALL (DIRECTORY icons DESTINATION "." 
-                 PATTERN ".svn" EXCLUDE)
-        INSTALL (DIRECTORY ${CMAKE_HOME_DIRECTORY}/win32/poppler-data DESTINATION "." 
-                 PATTERN ".svn" EXCLUDE)
+  INSTALL (FILES apvlvrc.example DESTINATION "."
+    RENAME _apvlvrc)
+  INSTALL (FILES apvlvrc.example Startup.pdf DESTINATION ".")
+  INSTALL (DIRECTORY icons DESTINATION ".")
+  INSTALL (DIRECTORY ${CMAKE_HOME_DIRECTORY}/win32/poppler-data DESTINATION ".")
 ELSE (WIN32)
-        INSTALL (FILES apvlvrc.example DESTINATION ${SYSCONFDIR}
-                 RENAME apvlvrc)
-        INSTALL (FILES apvlvrc.example Startup.pdf Startup.tex DESTINATION ${DOCDIR})
-        INSTALL (DIRECTORY icons DESTINATION ${DOCDIR}
-                 PATTERN ".svn" EXCLUDE)
-        INSTALL (FILES apvlv.1 DESTINATION ${MANDIR}/man1)
+  INSTALL (FILES apvlvrc.example DESTINATION ${SYSCONFDIR}
+    RENAME apvlvrc)
+  INSTALL (FILES apvlvrc.example Startup.pdf Startup.tex DESTINATION ${DOCDIR})
+  INSTALL (DIRECTORY icons DESTINATION ${DOCDIR})
+  INSTALL (FILES apvlv.1 DESTINATION ${MANDIR}/man1)
 ENDIF (WIN32)
 
 SET (CPACK_PACKAGE_VENDOR "Alf")
@@ -63,26 +68,25 @@ SET (CPACK_PACKAGE_VERSION_MINOR ${PROJECT_MINOR})
 SET (CPACK_PACKAGE_VERSION_PATCH ${PROJECT_PATCH})
 
 IF (UNIX)
-        SET (CPACK_SET_DESTDIR ON)
-        SET (CPACK_PACKAGE_CONTACT "Alf <naihe2010@126.com>")
-        SET (CPACK_GENERATOR RPM DEB)
-        SET (CPACK_RPM_PACKAGE_REQUIRES "gtk2 >= 2.10.4")
-        SET (CPACK_DEBIAN_PACKAGE_DEPENDS 
-             "libpoppler-glib3 (>= 0.8.7-4), poppler-data (>= 0.2.0-2)")
+  SET (CPACK_SET_DESTDIR ON)
+  SET (CPACK_PACKAGE_CONTACT "Alf <naihe2010@126.com>")
+  SET (CPACK_GENERATOR RPM DEB)
+  SET (CPACK_RPM_PACKAGE_REQUIRES "gtk2 >= 2.10.4")
+  SET (CPACK_DEBIAN_PACKAGE_DEPENDS
+    "libpoppler-glib3 (>= 0.8.7-4), poppler-data (>= 0.2.0-2)")
 
-        SET (CPACK_SOURCE_GENERATOR TGZ)
-        SET (CPACK_SOURCE_IGNORE_FILES 
-             ${CMAKE_BINARY_DIR} 
-             ".git"
-             ".gitignore"
-             ".svn" 
-             "win32"
-        )
+  SET (CPACK_SOURCE_GENERATOR TGZ)
+  SET (CPACK_SOURCE_IGNORE_FILES
+    ${CMAKE_BINARY_DIR}
+    ".git"
+    ".gitignore"
+    "win32"
+    )
 ELSE (UNIX)
-        SET (CPACK_GENERATOR NSIS)
-        SET (CPACK_NSIS_CONTACT "Alf <naihe2010@126.com>")
-        SET (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateShortCut '\$DESKTOP\\\\apvlv.lnk' '\$INSTDIR\\\\apvlv.exe'")
-        SET (CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '\$DESKTOP\\\\gsftc.lnk'")
+  SET (CPACK_GENERATOR NSIS)
+  SET (CPACK_NSIS_CONTACT "Alf <naihe2010@126.com>")
+  SET (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateShortCut '\$DESKTOP\\\\apvlv.lnk' '\$INSTDIR\\\\apvlv.exe'")
+  SET (CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '\$DESKTOP\\\\gsftc.lnk'")
 ENDIF (UNIX)
 
 INCLUDE(CPack)
