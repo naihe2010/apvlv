@@ -191,9 +191,13 @@ IF (WIN32)
     ${LIBPANGOWIN32}
     ${LIBZLIB1}
     ${FREETYPE6}
-    ${DJVULIBRE_DIR}/libdjvulibre.dll
-    ${DJVULIBRE_DIR}/libjpeg.dll
     DESTINATION .)
+  IF (APVLV_WITH_DJVU)
+    INSTALL (FILES
+      ${DJVULIBRE_DIR}/libdjvulibre.dll
+      ${DJVULIBRE_DIR}/libjpeg.dll
+      DESTINATION .)
+  ENDIF (APVLV_WITH_DJVU)
 ELSE (WIN32)
   INSTALL (TARGETS apvlv DESTINATION bin)
 ENDIF (WIN32)

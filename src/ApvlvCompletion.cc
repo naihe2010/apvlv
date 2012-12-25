@@ -36,7 +36,7 @@ namespace apvlv
     mArray = g_ptr_array_new ();
     mCache = NULL;
 #else
-    mComp = g_completion_new ();
+    mComp = g_completion_new (NULL);
 #endif
   }
 
@@ -88,7 +88,7 @@ namespace apvlv
 
     return mCache;
 #else
-    return g_completion_complete (mComp, str, context);
+    return g_completion_complete (mComp, prefix, context);
 #endif
   }
 
