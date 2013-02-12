@@ -395,7 +395,7 @@ namespace apvlv
 
       case 't':
       case 'o':
-      case GDK_Return:
+      case GDK_KEY_Return:
 	enter (key);
 	break;
 
@@ -409,27 +409,27 @@ namespace apvlv
 	scrollto (1.0);
 	break;
 
-      case GDK_Up:
+      case GDK_KEY_Up:
       case 'k':
 	scrollup (ct);
 	break;
 
       case CTRL ('n'):
       case CTRL ('j'):
-      case GDK_Down:
+      case GDK_KEY_Down:
       case 'j':
 	scrolldown (ct);
       break;
 
-      case GDK_BackSpace:
-      case GDK_Left:
+      case GDK_KEY_BackSpace:
+      case GDK_KEY_Left:
       case CTRL ('h'):
       case 'h':
 	scrollleft (ct);
 	break;
 
-      case GDK_space:
-      case GDK_Right:
+      case GDK_KEY_space:
+      case GDK_KEY_Right:
       case CTRL ('l'):
       case 'l':
 	scrollright (ct);
@@ -511,7 +511,7 @@ namespace apvlv
 
     switch (key)
       {
-      case GDK_Return:
+      case GDK_KEY_Return:
 	ApvlvWindow::currentWindow ()->setCore (ndoc);
 	break;
 

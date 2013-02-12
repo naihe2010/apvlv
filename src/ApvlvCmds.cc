@@ -52,19 +52,19 @@ namespace apvlv
   {
     switch (k)
       {
-      case GDK_Shift_L:
-      case GDK_Shift_R:
-      case GDK_Shift_Lock:
-      case GDK_Meta_L:
-      case GDK_Meta_R:
-      case GDK_Alt_L:
-      case GDK_Alt_R:
-      case GDK_Super_L:
-      case GDK_Super_R:
-      case GDK_Hyper_L:
-      case GDK_Hyper_R:
-      case GDK_Control_L:
-      case GDK_Control_R:
+      case GDK_KEY_Shift_L:
+      case GDK_KEY_Shift_R:
+      case GDK_KEY_Shift_Lock:
+      case GDK_KEY_Meta_L:
+      case GDK_KEY_Meta_R:
+      case GDK_KEY_Alt_L:
+      case GDK_KEY_Alt_R:
+      case GDK_KEY_Super_L:
+      case GDK_KEY_Super_R:
+      case GDK_KEY_Hyper_L:
+      case GDK_KEY_Hyper_R:
+      case GDK_KEY_Control_L:
+      case GDK_KEY_Control_R:
 	return true;
       default:
 	return false;
@@ -361,33 +361,33 @@ namespace apvlv
 
     if (SK.empty ())
       {
-	SK["<BS>"] = GDK_BackSpace;
-	SK["<Tab>"] = GDK_Tab;
-	SK["<CR>"] = GDK_Return;
-	SK["<Esc>"] = GDK_Escape;
-	SK["<Space>"] = GDK_space;
-	SK["<lt>"] = GDK_less;
-	SK["<Bslash>"] = GDK_backslash;
-	SK["<Bar>"] = GDK_bar;
-	SK["<Del>"] = GDK_Delete;
-	SK["<Up>"] = GDK_Up;
-	SK["<Down>"] = GDK_Down;
-	SK["<Left>"] = GDK_Left;
-	SK["<Right>"] = GDK_Right;
-	SK["<Help>"] = GDK_Help;
-	SK["<Insert>"] = GDK_Insert;
-	SK["<Home>"] = GDK_Home;
-	SK["<End>"] = GDK_End;
-	SK["<PageUp>"] = GDK_Page_Up;
-	SK["<PageDown>"] = GDK_Page_Down;
-	SK["<KP_Up>"] = GDK_KP_Up;
-	SK["<KP_Down>"] = GDK_KP_Down;
-	SK["<KP_Left>"] = GDK_KP_Left;
-	SK["<KP_Right>"] = GDK_KP_Right;
-	SK["<KP_Prior>"] = GDK_KP_Prior;
-	SK["<KP_Next>"] = GDK_KP_Next;
-	SK["<KP_Home>"] = GDK_KP_Home;
-	SK["<KP_End>"] = GDK_KP_End;
+	SK["<BS>"] = GDK_KEY_BackSpace;
+	SK["<Tab>"] = GDK_KEY_Tab;
+	SK["<CR>"] = GDK_KEY_Return;
+	SK["<Esc>"] = GDK_KEY_Escape;
+	SK["<Space>"] = GDK_KEY_space;
+	SK["<lt>"] = GDK_KEY_less;
+	SK["<Bslash>"] = GDK_KEY_backslash;
+	SK["<Bar>"] = GDK_KEY_bar;
+	SK["<Del>"] = GDK_KEY_Delete;
+	SK["<Up>"] = GDK_KEY_Up;
+	SK["<Down>"] = GDK_KEY_Down;
+	SK["<Left>"] = GDK_KEY_Left;
+	SK["<Right>"] = GDK_KEY_Right;
+	SK["<Help>"] = GDK_KEY_Help;
+	SK["<Insert>"] = GDK_KEY_Insert;
+	SK["<Home>"] = GDK_KEY_Home;
+	SK["<End>"] = GDK_KEY_End;
+	SK["<PageUp>"] = GDK_KEY_Page_Up;
+	SK["<PageDown>"] = GDK_KEY_Page_Down;
+	SK["<KP_Up>"] = GDK_KEY_KP_Up;
+	SK["<KP_Down>"] = GDK_KEY_KP_Down;
+	SK["<KP_Left>"] = GDK_KEY_KP_Left;
+	SK["<KP_Right>"] = GDK_KEY_KP_Right;
+	SK["<KP_Prior>"] = GDK_KEY_KP_Prior;
+	SK["<KP_Next>"] = GDK_KEY_KP_Next;
+	SK["<KP_Home>"] = GDK_KEY_KP_Home;
+	SK["<KP_End>"] = GDK_KEY_KP_End;
       }
   }
 

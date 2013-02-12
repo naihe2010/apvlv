@@ -15,5 +15,5 @@ License (GPL).
     Requirements
     ============
 
-    GTK+ version 2.6.0 or higher ( http://www.gtk.org/ )
+    GTK+ version 3.0 or higher ( http://www.gtk.org/ )
     Poppler version 0.5.0 with glib bindings ( http://poppler.freedesktop.org/ )

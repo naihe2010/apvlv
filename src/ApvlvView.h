@@ -187,7 +187,7 @@ namespace apvlv
 					  ApvlvView * view);
 
     static void apvlv_notebook_switch_cb (GtkWidget * wid,
-					  GtkNotebookPage * page, guint num,
+					  GtkNotebook * notebook, guint num,
 					  ApvlvView * view);
 
     ApvlvWindow *mRootWindow;

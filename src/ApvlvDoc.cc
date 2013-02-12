@@ -34,7 +34,6 @@
 
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
-#include <gtk/gtkprintoperation.h>
 
 #include <cstdlib>
 #include <cmath>
@@ -78,11 +77,11 @@ namespace apvlv
 
     if (mContinuous && gParams->valuei ("continuouspad") > 0)
       {
-	vbox = gtk_vbox_new (FALSE, gParams->valuei ("continuouspad"));
+       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, gParams->valuei ("continuouspad"));
       }
     else
       {
-	vbox = gtk_vbox_new (FALSE, 0);
+       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
       }
 
     ebox = gtk_event_box_new ();
@@ -534,11 +533,11 @@ namespace apvlv
 
     switch (key)
       {
-      case GDK_Page_Down:
+      case GDK_KEY_Page_Down:
       case CTRL ('f'):
 	nextpage (ct);
       break;
-      case GDK_Page_Up:
+      case GDK_KEY_Page_Up:
       case CTRL ('b'):
 	prepage (ct);
       break;
@@ -559,11 +558,11 @@ namespace apvlv
 	break;
       case 'M':
 	scrollto (0.5);
-	blank (0, mVaj->upper / 2);
+	blank (0, gtk_adjustment_get_upper(mVaj) / 2);
 	break;
       case 'L':
 	scrollto (1.0);
-	blank (0, mVaj->upper);
+	blank (0, gtk_adjustment_get_upper(mVaj));
 	break;
       case '0':
 	scrollleft (mChars);
@@ -572,24 +571,24 @@ namespace apvlv
 	scrollright (mChars);
 	break;
       case CTRL ('p'):
-      case GDK_Up:
+      case GDK_KEY_Up:
       case 'k':
 	scrollup (ct);
       break;
       case CTRL ('n'):
       case CTRL ('j'):
-      case GDK_Down:
+      case GDK_KEY_Down:
       case 'j':
 	scrolldown (ct);
       break;
-      case GDK_BackSpace:
-      case GDK_Left:
+      case GDK_KEY_BackSpace:
+      case GDK_KEY_Left:
       case CTRL ('h'):
       case 'h':
 	scrollleft (ct);
 	break;
-      case GDK_space:
-      case GDK_Right:
+      case GDK_KEY_space:
+      case GDK_KEY_Right:
       case CTRL ('l'):
       case 'l':
 	scrollright (ct);
@@ -1102,14 +1101,15 @@ namespace apvlv
     debug ("x1: %d, y1: %d, x2: %d, y2: %d", x1, y1, x2, y2);
 
     // make the selection at the page center
-    gdouble val = ((y1 + y2) - mVaj->page_size) / 2;
+    gdouble val = ((y1 + y2) - gtk_adjustment_get_page_size(mVaj)) / 2;
     debug ("upper: %f, lower: %f, page_size: %f, val: %f",
-	   mVaj->upper, mVaj->lower, mVaj->page_size, val);
-    if (val + mVaj->page_size > mVaj->upper - mVaj->lower - 5)
+	   gtk_adjustment_get_upper(mVaj), gtk_adjustment_get_lower(mVaj),
+          gtk_adjustment_get_page_size(mVaj), val);
+    if (val + gtk_adjustment_get_page_size(mVaj) > gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_lower(mVaj) - 5)
       {
 	debug ("set value: %f",
-	       mVaj->upper - mVaj->lower - mVaj->page_size - 5);
-	gtk_adjustment_set_value (mVaj, mVaj->upper - mVaj->lower - mVaj->page_size - 5);	/* just for avoid the auto scroll page */
+	       gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_lower(mVaj) - gtk_adjustment_get_page_size(mVaj) - 5);
+	gtk_adjustment_set_value (mVaj, gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_lower(mVaj) - gtk_adjustment_get_page_size(mVaj) - 5);	/* just for avoid the auto scroll page */
       }
     else if (val > 5)
       {
@@ -1118,14 +1118,14 @@ namespace apvlv
       }
     else
       {
-	debug ("set value: %f", mVaj->lower + 5);
-	gtk_adjustment_set_value (mVaj, mVaj->lower + 5);	/* avoid auto scroll page */
+	debug ("set value: %f", gtk_adjustment_get_lower(mVaj) + 5);
+	gtk_adjustment_set_value (mVaj, gtk_adjustment_get_lower(mVaj) + 5);	/* avoid auto scroll page */
       }
 
-    val = ((x1 + x2) - mHaj->page_size) / 2;
-    if (val + mHaj->page_size > mHaj->upper)
+    val = ((x1 + x2) - gtk_adjustment_get_page_size(mHaj)) / 2;
+    if (val + gtk_adjustment_get_page_size(mHaj) > gtk_adjustment_get_upper(mHaj))
       {
-	gtk_adjustment_set_value (mHaj, mHaj->upper);
+	gtk_adjustment_set_value (mHaj, gtk_adjustment_get_upper(mHaj));
       }
     else if (val > 0)
       {
@@ -1133,7 +1133,7 @@ namespace apvlv
       }
     else
       {
-	gtk_adjustment_set_value (mHaj, mHaj->lower);
+	gtk_adjustment_set_value (mHaj, gtk_adjustment_get_lower(mHaj));
       }
 
     mCurrentCache1->set (mPagenum, mZoomrate, mRotatevalue);
@@ -1164,12 +1164,12 @@ namespace apvlv
 	return;
       }
 
-    gdouble sub = mVaj->upper - mVaj->lower;
+    gdouble sub = gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_lower(mVaj);
     mVrate = sub / mLines;
     gint opage = mPagenum, npage = mPagenum;
 
     gint ny1 = mCury - mVrate * times;
-    if (ny1 < mVaj->value)
+    if (ny1 < gtk_adjustment_get_value(mVaj))
       {
 	ApvlvCore::scrollup (times);
 	npage = mPagenum;
@@ -1187,7 +1187,7 @@ namespace apvlv
 	  }
 	else
 	  {
-	    blank (mCurx, mVaj->upper / 2);
+	    blank (mCurx, gtk_adjustment_get_upper(mVaj) / 2);
 	  }
       }
   }
@@ -1203,12 +1203,12 @@ namespace apvlv
 	return;
       }
 
-    gdouble sub = mVaj->upper - mVaj->lower;
+    gdouble sub = gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_lower(mVaj);
     mVrate = sub / mLines;
     gint opage = mPagenum, npage = mPagenum;
 
     gint ny1 = mCury + mVrate * times;
-    if (ny1 - mVaj->value >= mVaj->page_size)
+    if (ny1 - gtk_adjustment_get_value(mVaj) >= gtk_adjustment_get_page_size(mVaj))
       {
 	ApvlvCore::scrolldown (times);
 	npage = mPagenum;
@@ -1226,7 +1226,7 @@ namespace apvlv
 	  }
 	else
 	  {
-	    blank (mCurx, mVaj->upper / 2);
+	    blank (mCurx, gtk_adjustment_get_upper(mVaj) / 2);
 	  }
       }
   }
@@ -1242,11 +1242,11 @@ namespace apvlv
 	return;
       }
 
-    gdouble sub = mHaj->upper - mHaj->lower;
+    gdouble sub = gtk_adjustment_get_upper(mHaj) - gtk_adjustment_get_lower(mHaj);
     mHrate = sub / mChars;
 
     gint nx1 = mCurx - mHrate * times;
-    if (nx1 < mHaj->upper - mHaj->page_size)
+    if (nx1 < gtk_adjustment_get_upper(mHaj) - gtk_adjustment_get_page_size(mHaj))
       {
 	ApvlvCore::scrollleft (times);
       }
@@ -1264,11 +1264,11 @@ namespace apvlv
 	return;
       }
 
-    gdouble sub = mHaj->upper - mHaj->lower;
+    gdouble sub = gtk_adjustment_get_upper(mHaj) - gtk_adjustment_get_lower(mHaj);
     mHrate = sub / mChars;
 
     gint nx1 = mCurx + mHrate * times;
-    if (nx1 > mHaj->page_size)
+    if (nx1 > gtk_adjustment_get_page_size(mHaj))
       {
 	ApvlvCore::scrollright (times);
       }
@@ -1556,11 +1556,11 @@ namespace apvlv
 	return;
       }
 
-    if (adj->upper - adj->lower == adj->page_size + adj->value)
+    if (gtk_adjustment_get_upper(adj) - gtk_adjustment_get_lower(adj) == gtk_adjustment_get_page_size(adj) + gtk_adjustment_get_value(adj))
       {
 	doc->scrolldown (1);
       }
-    else if (adj->value == 0)
+    else if (gtk_adjustment_get_value(adj) == 0)
       {
 	doc->scrollup (1);
       }
@@ -1573,8 +1573,8 @@ namespace apvlv
     if (!retry)
       {
 	doc->blank (0,
-		    doc->mScrollvalue * (doc->mVaj->upper - doc->mVaj->lower -
-					 doc->mVaj->page_size));
+		    doc->mScrollvalue * (gtk_adjustment_get_upper(doc->mVaj) - gtk_adjustment_get_lower(doc->mVaj) -
+					 gtk_adjustment_get_page_size(doc->mVaj)));
       }
     return retry;
   }
@@ -1709,7 +1709,9 @@ namespace apvlv
     int dw, dh;
     if (rx != NULL)
       {
-	dw = mPagex * mZoomrate - mScrollwin->allocation.width;
+	      GtkAllocation allocation;
+	      gtk_widget_get_allocation(mScrollwin, &allocation);
+	      dw = mPagex * mZoomrate - allocation.width;
 	dw = dw >> 1;
 	if (dw >= 0)
 	  {
@@ -1720,7 +1722,9 @@ namespace apvlv
 
     if (ry != NULL)
       {
-	dh = mPagey * mZoomrate - mScrollwin->allocation.height;
+	      GtkAllocation allocation;
+	      gtk_widget_get_allocation(mScrollwin, &allocation);
+	dh = mPagey * mZoomrate - allocation.height;
 	dh = dh >> 1;
 	if (dh >= 0)
 	  {
@@ -2108,7 +2112,7 @@ namespace apvlv
     sw[3] = sw[1] >> 1;
     for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
       {
-	gtk_widget_set_usize (mStlab[i], sw[i], h);
+	gtk_widget_set_size_request (mStlab[i], sw[i], h);
       }
   }
 

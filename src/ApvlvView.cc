@@ -84,7 +84,7 @@ namespace apvlv
 				     w > 1 ? w : 800, h > 1 ? h : 600);
       }
 
-    mViewBox = gtk_vbox_new (FALSE, 0);
+    mViewBox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add (GTK_CONTAINER (mMainWindow), mViewBox);
 
     mMenu = new ApvlvMenu ();
@@ -425,7 +425,7 @@ namespace apvlv
     GtkWidget *tabname = gtk_label_new (base);
     g_free (base);
 
-    GtkWidget *parentbox = gtk_vbox_new (false, 0);
+    GtkWidget *parentbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add (GTK_CONTAINER (parentbox),
 		       mTabList[mCurrTabPos].root->widget ());
 
@@ -673,24 +673,30 @@ namespace apvlv
   void ApvlvView::errormessage (const char *str, ...)
   {
     gchar estr[512];
+    gint pos;
     va_list vap;
     va_start (vap, str);
     vsnprintf (estr, sizeof estr, str, vap);
     va_end (vap);
     gtk_entry_set_text (GTK_ENTRY (mCommandBar), "ERROR: ");
-    gtk_entry_append_text (GTK_ENTRY (mCommandBar), estr);
+    gtk_editable_set_position(GTK_EDITABLE (mCommandBar), -1);
+    pos = gtk_editable_get_position (GTK_EDITABLE (mCommandBar));
+    gtk_editable_insert_text(GTK_EDITABLE (mCommandBar), estr, -1, &pos);
     cmd_show (CMD_MESSAGE);
   }
 
   void ApvlvView::infomessage (const char *str, ...)
   {
     gchar estr[512];
+    gint pos;
     va_list vap;
     va_start (vap, str);
     vsnprintf (estr, sizeof estr, str, vap);
     va_end (vap);
     gtk_entry_set_text (GTK_ENTRY (mCommandBar), "INFO: ");
-    gtk_entry_append_text (GTK_ENTRY (mCommandBar), estr);
+    gtk_editable_set_position(GTK_EDITABLE (mCommandBar), -1);
+    pos = gtk_editable_get_position (GTK_EDITABLE (mCommandBar));
+    gtk_editable_insert_text(GTK_EDITABLE (mCommandBar), estr, -1, &pos);
     cmd_show (CMD_MESSAGE);
   }
 
@@ -705,7 +711,7 @@ namespace apvlv
 
     gtk_widget_show (mCommandBar);
     gtk_widget_grab_focus (mCommandBar);
-    gtk_entry_set_position (GTK_ENTRY (mCommandBar), -1);
+    gtk_editable_set_position (GTK_EDITABLE (mCommandBar), -1);
   }
 
   void ApvlvView::cmd_hide ()
@@ -1142,9 +1148,11 @@ namespace apvlv
 				    ApvlvView * view)
   {
     int w, h;
+    GtkAllocation allocation;
 
-    w = view->mViewBox->allocation.width - 12;
-    h = view->mViewBox->allocation.height - 12;
+    gtk_widget_get_allocation(view->mViewBox, &allocation);
+    w = allocation.width - 12;
+    h = allocation.height - 12;
     if (w != view->mWidth || h != view->mHeight)
       {
 	view->mWidth = w;
@@ -1175,7 +1183,7 @@ namespace apvlv
 	view->mInHistroy = false;
 
 	GdkEventKey *gek = (GdkEventKey *) ev;
-	if (gek->keyval == GDK_Return)
+	if (gek->keyval == GDK_KEY_Return)
 	  {
 	    gchar *str =
 	      (gchar *) gtk_entry_get_text (GTK_ENTRY (view->mCommandBar));
@@ -1200,7 +1208,7 @@ namespace apvlv
 		return TRUE;
 	      }
 	  }
-	else if (gek->keyval == GDK_Tab)
+	else if (gek->keyval == GDK_KEY_Tab)
 	  {
 	    gchar *str =
 	      (gchar *) gtk_entry_get_text (GTK_ENTRY (view->mCommandBar));
@@ -1210,7 +1218,7 @@ namespace apvlv
 	      }
 	    return TRUE;
 	  }
-	else if (gek->keyval == GDK_BackSpace)
+	else if (gek->keyval == GDK_KEY_BackSpace)
 	  {
 	    gchar *str =
 	      (gchar *) gtk_entry_get_text (GTK_ENTRY (view->mCommandBar));
@@ -1221,13 +1229,13 @@ namespace apvlv
 		return TRUE;
 	      }
 	  }
-	else if (gek->keyval == GDK_Escape)
+	else if (gek->keyval == GDK_KEY_Escape)
 	  {
 	    view->cmd_hide ();
 	    view->mCurrHistroy = view->mCmdHistroy.size () - 1;
 	    return TRUE;
 	  }
-	else if (gek->keyval == GDK_Up)
+	else if (gek->keyval == GDK_KEY_Up)
 	  {
 	    if (view->mCmdHistroy.size () == 0)
 	      {
@@ -1242,7 +1250,7 @@ namespace apvlv
 				view->mCmdHistroy[0].c_str ());
 	    return TRUE;
 	  }
-	else if (gek->keyval == GDK_Down)
+	else if (gek->keyval == GDK_KEY_Down)
 	  {
 	    if (view->mCmdHistroy.size () == 0)
 	      {
@@ -1283,7 +1291,7 @@ namespace apvlv
 
   void
   ApvlvView::apvlv_notebook_switch_cb (GtkWidget * wid,
-				       GtkNotebookPage * page, guint pnum,
+				       GtkNotebook * notebook, guint pnum,
 				       ApvlvView * view)
   {
     view->mCurrTabPos = pnum;
