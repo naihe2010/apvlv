@@ -53,7 +53,7 @@ namespace apvlv
     mSearchResults = NULL;
     mSearchStr = "";
 
-    mVbox = gtk_vbox_new (FALSE, 0);
+    mVbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
     g_object_ref (mVbox);
 
     mScrollwin = gtk_scrolled_window_new (NULL, NULL);
@@ -185,8 +185,9 @@ namespace apvlv
 
   double ApvlvCore::scrollrate ()
   {
-    double maxv = mVaj->upper - mVaj->lower - mVaj->page_size;
-    double val = mVaj->value / maxv;
+    gdouble maxv = gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_lower(mVaj)
+	    - gtk_adjustment_get_page_size(mVaj);
+    gdouble val = gtk_adjustment_get_value(mVaj) / maxv;
     if (val > 1.0)
       {
 	return 1.00;
@@ -206,10 +207,11 @@ namespace apvlv
     if (!mReady)
       return FALSE;
 
-    if (mVaj->upper != mVaj->lower)
+    if (gtk_adjustment_get_upper(mVaj) != gtk_adjustment_get_lower(mVaj))
       {
-	double maxv = mVaj->upper - mVaj->lower - mVaj->page_size;
-	double val = maxv * s;
+	gdouble maxv = gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_lower(mVaj)
+		- gtk_adjustment_get_page_size(mVaj);
+	gdouble val = maxv * s;
 	gtk_adjustment_set_value (mVaj, val);
 	mStatus->show ();
 	return TRUE;
@@ -227,16 +229,16 @@ namespace apvlv
       return;
 
     gdouble val = gtk_adjustment_get_value (mVaj);
-    gdouble sub = mVaj->upper - mVaj->lower;
+    gdouble sub = gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_lower(mVaj);
     mVrate = sub / mLines;
 
-    if (val - mVrate * times > mVaj->lower)
+    if (val - mVrate * times > gtk_adjustment_get_lower(mVaj))
       {
 	gtk_adjustment_set_value (mVaj, val - mVrate * times);
       }
-    else if (val > mVaj->lower)
+    else if (val > gtk_adjustment_get_lower(mVaj))
       {
-	gtk_adjustment_set_value (mVaj, mVaj->lower);
+	gtk_adjustment_set_value (mVaj, gtk_adjustment_get_lower(mVaj));
       }
     else
       {
@@ -245,8 +247,8 @@ namespace apvlv
 	    if (gParams->valueb ("continuous"))
 	      {
 		showpage (mPagenum - 1,
-			  ((mVaj->upper / 2) - mVrate * times) / (sub -
-								  mVaj->page_size));
+			  ((gtk_adjustment_get_upper(mVaj) / 2) - mVrate * times) / (sub -
+								  gtk_adjustment_get_page_size(mVaj)));
 	      }
 	    else
 	      {
@@ -264,16 +266,16 @@ namespace apvlv
       return;
 
     gdouble val = gtk_adjustment_get_value (mVaj);
-    gdouble sub = mVaj->upper - mVaj->lower;
+    gdouble sub = gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_lower(mVaj);
     mVrate = sub / mLines;
 
-    if (val + mVrate * times + mVaj->page_size < mVaj->upper)
+    if (val + mVrate * times + gtk_adjustment_get_page_size(mVaj) < gtk_adjustment_get_upper(mVaj))
       {
 	gtk_adjustment_set_value (mVaj, val + mVrate * times);
       }
-    else if (val + mVaj->page_size < mVaj->upper)
+    else if (val + gtk_adjustment_get_page_size(mVaj) < gtk_adjustment_get_upper(mVaj))
       {
-	gtk_adjustment_set_value (mVaj, mVaj->upper - mVaj->page_size);
+	gtk_adjustment_set_value (mVaj, gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_page_size(mVaj));
       }
     else
       {
@@ -281,7 +283,7 @@ namespace apvlv
 	  {
 	    if (gParams->valueb ("continuous"))
 	      {
-		showpage (mPagenum + 1, (sub - mVaj->page_size) / 2 / sub);
+		showpage (mPagenum + 1, (sub - gtk_adjustment_get_page_size(mVaj)) / 2 / sub);
 	      }
 	    else
 	      {
@@ -298,15 +300,15 @@ namespace apvlv
     if (!mReady)
       return;
 
-    mHrate = (mHaj->upper - mHaj->lower) / mChars;
-    gdouble val = mHaj->value - mHrate * times;
-    if (val > mVaj->lower)
+    mHrate = (gtk_adjustment_get_upper(mHaj) - gtk_adjustment_get_lower(mHaj)) / mChars;
+    gdouble val = gtk_adjustment_get_value(mHaj) - mHrate * times;
+    if (val > gtk_adjustment_get_lower(mVaj))
       {
 	gtk_adjustment_set_value (mHaj, val);
       }
     else
       {
-	gtk_adjustment_set_value (mHaj, mHaj->lower);
+	gtk_adjustment_set_value (mHaj, gtk_adjustment_get_lower(mHaj));
       }
   }
 
@@ -315,15 +317,15 @@ namespace apvlv
     if (!mReady)
       return;
 
-    mHrate = (mHaj->upper - mHaj->lower) / mChars;
-    gdouble val = mHaj->value + mHrate * times;
-    if (val + mHaj->page_size < mHaj->upper)
+    mHrate = (gtk_adjustment_get_upper(mHaj) - gtk_adjustment_get_lower(mHaj)) / mChars;
+    gdouble val = gtk_adjustment_get_value(mHaj) + mHrate * times;
+    if (val + gtk_adjustment_get_page_size(mHaj) < gtk_adjustment_get_upper(mHaj))
       {
 	gtk_adjustment_set_value (mHaj, val);
       }
     else
       {
-	gtk_adjustment_set_value (mHaj, mHaj->upper - mHaj->page_size);
+	gtk_adjustment_set_value (mHaj, gtk_adjustment_get_upper(mHaj) - gtk_adjustment_get_page_size(mHaj));
       }
   }
 
@@ -426,7 +428,7 @@ namespace apvlv
 
   ApvlvCoreStatus::ApvlvCoreStatus ()
   {
-    mHbox = gtk_hbox_new (FALSE, 0);
+    mHbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   }
 
   ApvlvCoreStatus::~ApvlvCoreStatus ()
