@@ -371,7 +371,11 @@ namespace apvlv
     nwindow2->m_parent = this;
     m_daughter = nwindow2;
 
+#if GTK_CHECK_VERSION (3, 0, 0)
     mPaned = gtk_paned_new (vsp == false ? GTK_ORIENTATION_VERTICAL : GTK_ORIENTATION_HORIZONTAL);
+#else
+    mPaned = vsp == false ? gtk_vpaned_new () : gtk_hpaned_new ();
+#endif
     g_object_ref (mPaned);
     g_signal_connect (G_OBJECT (mPaned), "button-release-event",
 		      G_CALLBACK (apvlv_window_paned_resized_cb), this);

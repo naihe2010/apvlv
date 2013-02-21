@@ -77,11 +77,19 @@ namespace apvlv
 
     if (mContinuous && gParams->valuei ("continuouspad") > 0)
       {
-       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, gParams->valuei ("continuouspad"));
+#if GTK_CHECK_VERSION (3, 0, 0)
+	vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, gParams->valuei ("continuouspad"));
+#else
+	vbox = gtk_vbox_new (FALSE, gParams->valuei ("continuouspad"));
+#endif
       }
     else
       {
-       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+#if GTK_CHECK_VERSION (3, 0, 0)
+	vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+#else
+	vbox = gtk_vbox_new (FALSE, 0);
+#endif
       }
 
     ebox = gtk_event_box_new ();
@@ -1104,7 +1112,7 @@ namespace apvlv
     gdouble val = ((y1 + y2) - gtk_adjustment_get_page_size(mVaj)) / 2;
     debug ("upper: %f, lower: %f, page_size: %f, val: %f",
 	   gtk_adjustment_get_upper(mVaj), gtk_adjustment_get_lower(mVaj),
-          gtk_adjustment_get_page_size(mVaj), val);
+	   gtk_adjustment_get_page_size(mVaj), val);
     if (val + gtk_adjustment_get_page_size(mVaj) > gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_lower(mVaj) - 5)
       {
 	debug ("set value: %f",
@@ -1709,9 +1717,9 @@ namespace apvlv
     int dw, dh;
     if (rx != NULL)
       {
-	      GtkAllocation allocation;
-	      gtk_widget_get_allocation(mScrollwin, &allocation);
-	      dw = mPagex * mZoomrate - allocation.width;
+	GtkAllocation allocation;
+	gtk_widget_get_allocation(mScrollwin, &allocation);
+	dw = mPagex * mZoomrate - allocation.width;
 	dw = dw >> 1;
 	if (dw >= 0)
 	  {
@@ -1722,8 +1730,8 @@ namespace apvlv
 
     if (ry != NULL)
       {
-	      GtkAllocation allocation;
-	      gtk_widget_get_allocation(mScrollwin, &allocation);
+	GtkAllocation allocation;
+	gtk_widget_get_allocation(mScrollwin, &allocation);
 	dh = mPagey * mZoomrate - allocation.height;
 	dh = dh >> 1;
 	if (dh >= 0)

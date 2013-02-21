@@ -53,7 +53,11 @@ namespace apvlv
     mSearchResults = NULL;
     mSearchStr = "";
 
+#if GTK_CHECK_VERSION (3, 0, 0)
     mVbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+#else
+    mVbox = gtk_vbox_new (FALSE, 0);
+#endif
     g_object_ref (mVbox);
 
     mScrollwin = gtk_scrolled_window_new (NULL, NULL);
@@ -186,7 +190,7 @@ namespace apvlv
   double ApvlvCore::scrollrate ()
   {
     gdouble maxv = gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_lower(mVaj)
-	    - gtk_adjustment_get_page_size(mVaj);
+      - gtk_adjustment_get_page_size(mVaj);
     gdouble val = gtk_adjustment_get_value(mVaj) / maxv;
     if (val > 1.0)
       {
@@ -210,7 +214,7 @@ namespace apvlv
     if (gtk_adjustment_get_upper(mVaj) != gtk_adjustment_get_lower(mVaj))
       {
 	gdouble maxv = gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_lower(mVaj)
-		- gtk_adjustment_get_page_size(mVaj);
+	  - gtk_adjustment_get_page_size(mVaj);
 	gdouble val = maxv * s;
 	gtk_adjustment_set_value (mVaj, val);
 	mStatus->show ();
@@ -248,7 +252,7 @@ namespace apvlv
 	      {
 		showpage (mPagenum - 1,
 			  ((gtk_adjustment_get_upper(mVaj) / 2) - mVrate * times) / (sub -
-								  gtk_adjustment_get_page_size(mVaj)));
+										     gtk_adjustment_get_page_size(mVaj)));
 	      }
 	    else
 	      {
@@ -428,7 +432,11 @@ namespace apvlv
 
   ApvlvCoreStatus::ApvlvCoreStatus ()
   {
+#if GTK_CHECK_VERSION (3, 0, 0)
     mHbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+#else
+    mHbox = gtk_hbox_new (FALSE, 0);
+#endif
   }
 
   ApvlvCoreStatus::~ApvlvCoreStatus ()

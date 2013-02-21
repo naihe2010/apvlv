@@ -84,7 +84,11 @@ namespace apvlv
 				     w > 1 ? w : 800, h > 1 ? h : 600);
       }
 
+#if GTK_CHECK_VERSION(3, 0, 0)
     mViewBox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+#else
+    mViewBox = gtk_vbox_new (FALSE, 0);
+#endif
     gtk_container_add (GTK_CONTAINER (mMainWindow), mViewBox);
 
     mMenu = new ApvlvMenu ();
@@ -425,7 +429,11 @@ namespace apvlv
     GtkWidget *tabname = gtk_label_new (base);
     g_free (base);
 
+#if GTK_CHECK_VERSION (3, 0, 0)
     GtkWidget *parentbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+#else
+    GtkWidget *parentbox = gtk_vbox_new (FALSE, 0);
+#endif
     gtk_container_add (GTK_CONTAINER (parentbox),
 		       mTabList[mCurrTabPos].root->widget ());
 
