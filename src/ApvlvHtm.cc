@@ -169,11 +169,11 @@ namespace apvlv
 
     switch (key)
       {
-      case GDK_Page_Down:
+      case GDK_KEY_Page_Down:
       case CTRL ('f'):
 	webkit_web_view_go_forward (WEBKIT_WEB_VIEW (mHtmlView));
       break;
-      case GDK_Page_Up:
+      case GDK_KEY_Page_Up:
       case CTRL ('b'):
 	webkit_web_view_go_back (WEBKIT_WEB_VIEW (mHtmlView));
       break;
@@ -198,24 +198,24 @@ namespace apvlv
 	scrollright (mChars);
 	break;
       case CTRL ('p'):
-      case GDK_Up:
+      case GDK_KEY_Up:
       case 'k':
 	scrollup (ct);
       break;
       case CTRL ('n'):
       case CTRL ('j'):
-      case GDK_Down:
+      case GDK_KEY_Down:
       case 'j':
 	scrolldown (ct);
       break;
-      case GDK_BackSpace:
-      case GDK_Left:
+      case GDK_KEY_BackSpace:
+      case GDK_KEY_Left:
       case CTRL ('h'):
       case 'h':
 	scrollleft (ct);
 	break;
-      case GDK_space:
-      case GDK_Right:
+      case GDK_KEY_space:
+      case GDK_KEY_Right:
       case CTRL ('l'):
       case 'l':
 	scrollright (ct);
@@ -395,15 +395,15 @@ namespace apvlv
 	    mZoommode = NORMAL;
 	    mZoomrate = 1.2;
 	  }
-	/*  
-	    else if (strcasecmp (z, "fitwidth") == 0)
-	    {
-	    mZoommode = FITWIDTH;
-	    }
-	    else if (strcasecmp (z, "fitheight") == 0)
-	    {
-	    mZoommode = FITHEIGHT;
-	    }*/
+	/*
+	  else if (strcasecmp (z, "fitwidth") == 0)
+	  {
+	  mZoommode = FITWIDTH;
+	  }
+	  else if (strcasecmp (z, "fitheight") == 0)
+	  {
+	  mZoommode = FITHEIGHT;
+	  }*/
 	else
 	  {
 	    double d = atof (z);
@@ -452,7 +452,7 @@ namespace apvlv
     return WEBKIT_WEB_VIEW (view);
   }
 
-  gboolean 
+  gboolean
   ApvlvHTML::apvlv_html_ready_cb (WebKitWebView *wid, WebKitWebFrame *frame, ApvlvHTML *htm)
   {
     debug ("load OK\n");
