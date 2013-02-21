@@ -231,7 +231,7 @@ namespace apvlv
 	GtkWidget *entry = gtk_entry_new ();
 	gtk_entry_set_visibility (GTK_ENTRY (entry), FALSE);
 	gtk_entry_set_invisible_char (GTK_ENTRY (entry), '*');
-	gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dia)->vbox), entry, TRUE,
+	gtk_box_pack_start (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dia))), entry, TRUE,
 			    TRUE, 10);
 	gtk_widget_show (entry);
 

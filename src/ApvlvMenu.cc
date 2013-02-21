@@ -211,7 +211,7 @@ namespace apvlv
       };
 
     dia = gtk_about_dialog_new ();
-    gtk_about_dialog_set_name (GTK_ABOUT_DIALOG (dia), PACKAGE_NAME);
+    gtk_about_dialog_set_program_name (GTK_ABOUT_DIALOG (dia), PACKAGE_NAME);
     gtk_about_dialog_set_version (GTK_ABOUT_DIALOG (dia), PACKAGE_VERSION);
     gtk_about_dialog_set_authors (GTK_ABOUT_DIALOG (dia), author);
     gtk_about_dialog_set_artists (GTK_ABOUT_DIALOG (dia), author);
