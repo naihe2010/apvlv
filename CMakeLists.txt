@@ -43,6 +43,12 @@ ELSE (WIN32)
     CACHE PATH
     "Directory for man page of apvlv [PREFIX/share/man]"
     )
+
+  SET (APPLICATIONSDIR
+    "${CMAKE_INSTALL_PREFIX}/share/applications"
+    CACHE PATH
+    "Directory for desktop file of apvlv [PREFIX/share/applications]"
+    )
 ENDIF (WIN32)
 
 ADD_DEFINITIONS (-DPACKAGE_NAME="apvlv"
@@ -65,6 +71,7 @@ ELSE (WIN32)
   INSTALL (FILES apvlvrc.example Startup.pdf Startup.tex DESTINATION ${DOCDIR})
   INSTALL (DIRECTORY icons DESTINATION ${DOCDIR})
   INSTALL (FILES apvlv.1 DESTINATION ${MANDIR}/man1)
+  INSTALL (FILES apvlv.desktop DESTINATION ${APPLICATIONSDIR})
 ENDIF (WIN32)
 
 SET (CPACK_PACKAGE_VENDOR "Alf")
