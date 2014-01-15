@@ -629,15 +629,7 @@ namespace apvlv
 	break;
       case 'G':
 	markposition ('\'');
-	if (has)
-	  {
-	    ct += mSkip;
-	    showpage (ct - 1);
-	  }
-	else
-	  {
-	    showpage (-1);
-	  }
+	showpage (mFile->pagesum () - 1);
 	break;
       case 'm':
       case '\'':
