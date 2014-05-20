@@ -727,7 +727,8 @@ namespace apvlv
 
     if (mFile != NULL)
       {
-	mFile->pagesize (0, mRotatevalue, &mPagex, &mPagey);
+	gint pn = max(0, pagenumber() - 1);
+	mFile->pagesize (pn, mRotatevalue, &mPagex, &mPagey);
 
 	if (mZoommode == FITWIDTH)
 	  {
