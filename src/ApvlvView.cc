@@ -1182,6 +1182,21 @@ namespace apvlv
     return FALSE;
   }
 
+  bool
+  isalt_escape(GdkEventKey *event)
+  {
+    /* Grab the default modifier mask... */
+    guint modifiers = gtk_accelerator_get_default_mod_mask();
+
+    if(event->keyval == GDK_bracketleft &&
+        /* ...so we can ignore mod keys like numlock and capslock. */
+        (event->state & modifiers) == GDK_CONTROL_MASK) {
+            return true;
+    }
+
+    return false;
+  }
+
   gint
   ApvlvView::apvlv_view_commandbar_cb (GtkWidget * wid, GdkEvent * ev,
 				       ApvlvView * view)
@@ -1237,7 +1252,7 @@ namespace apvlv
 		return TRUE;
 	      }
 	  }
-	else if (gek->keyval == GDK_KEY_Escape)
+	else if (gek->keyval == GDK_KEY_Escape || isalt_escape(gek))
 	  {
 	    view->cmd_hide ();
 	    view->mCurrHistroy = view->mCmdHistroy.size () - 1;
