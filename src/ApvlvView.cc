@@ -1188,7 +1188,7 @@ namespace apvlv
     /* Grab the default modifier mask... */
     guint modifiers = gtk_accelerator_get_default_mod_mask();
 
-    if(event->keyval == GDK_bracketleft &&
+    if(event->keyval == GDK_KEY_bracketleft &&
         /* ...so we can ignore mod keys like numlock and capslock. */
         (event->state & modifiers) == GDK_CONTROL_MASK) {
             return true;
