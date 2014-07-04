@@ -987,6 +987,16 @@ namespace apvlv
 	else if ((cmd == "o"
 		  || cmd == "open" || cmd == "doc") && subcmd != "")
 	  {
+		char *home = NULL;
+
+		if(subcmd[0] == '~') {
+			home = getenv("HOME");
+
+			if(home) {
+				subcmd.replace(0, 1, home);
+			}
+		}
+
 	    if (g_file_test (subcmd.c_str (), G_FILE_TEST_IS_DIR))
 	      {
 		ret = loaddir (subcmd.c_str ());
