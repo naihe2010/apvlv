@@ -1130,6 +1130,10 @@ namespace apvlv
 	    crtadoc ()->writefile (subcmd.size () >
 				   0 ? subcmd.c_str () : NULL);
 	  }
+	else if (cmd == "toc")
+	  {
+	    loadfile (crtadoc ()->filename ());
+	  }
 	else
 	  {
 	    bool isn = true;
