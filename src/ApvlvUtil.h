@@ -130,3 +130,8 @@ namespace apvlv
 
 }
 #endif
+
+// Local Variables:
+// mode: c++
+// mode: c++
+// End:

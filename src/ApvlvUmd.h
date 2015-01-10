@@ -19,7 +19,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/* @CFILE ApvlvUmd.h
+/* @CPPFILE ApvlvUmd.h
  *
  *  Author: Alf <naihe2010@126.com>
  */
@@ -71,3 +71,7 @@ namespace apvlv
 
 }
 #endif
+
+/* Local Variables: */
+/* mode: c++ */
+/* End: */

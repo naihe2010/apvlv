@@ -609,3 +609,7 @@ namespace apvlv
     return win->resize_children () == TRUE ? FALSE : FALSE;
   }
 }
+
+// Local Variables:
+// mode: c++
+// End:

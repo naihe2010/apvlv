@@ -35,16 +35,18 @@
 #include <vector>
 #include <map>
 
+#include "ApvlvUtil.h"
+
 using namespace std;
 
 namespace apvlv
 {
   typedef enum
-  {
-    CT_CMD,
-    CT_STRING,
-    CT_STRING_RETURN
-  } cmdType;
+    {
+      CT_CMD,
+      CT_STRING,
+      CT_STRING_RETURN
+    } cmdType;
 
   typedef map < guint, const char *>KeyStringMap;
   typedef map < const char *, guint > StringKeyMap;
@@ -166,11 +168,11 @@ namespace apvlv
     ApvlvCmd *mCmdHead;
 
     enum cmdState
-    {
-      GETTING_COUNT,
-      GETTING_CMD,
-      CMD_OK,
-    } mState;
+      {
+        GETTING_COUNT,
+        GETTING_CMD,
+        CMD_OK,
+      } mState;
 
     gint mTimeoutTimer;
 
@@ -181,3 +183,7 @@ namespace apvlv
 }
 
 #endif
+
+// Local Variables:
+// mode: c++
+// End:

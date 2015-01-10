@@ -236,3 +236,7 @@ namespace apvlv
     return false;
   }
 }
+
+// Local Variables:
+// mode: c++
+// End:

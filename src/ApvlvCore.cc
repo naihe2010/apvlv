@@ -20,7 +20,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-/* @CFILE ApvlvCore.cc
+/* @CPPFILE ApvlvCore.cc
  *
  *  Author: Alf <naihe2010@126.com>
  */
@@ -460,3 +460,7 @@ namespace apvlv
   {
   }
 }
+
+// Local Variables:
+// mode: c++
+// End:

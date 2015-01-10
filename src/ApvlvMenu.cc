@@ -19,7 +19,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/* @CFILE ApvlvMenu.cc
+/* @CPPFILE ApvlvMenu.cc
  *
  *  Author: Alf <naihe2010@126.com>
  */
@@ -222,3 +222,7 @@ namespace apvlv
     gtk_widget_destroy (dia);
   }
 };
+
+// Local Variables:
+// mode: c++
+// End:

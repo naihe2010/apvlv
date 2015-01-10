@@ -1403,3 +1403,7 @@ namespace apvlv
     gtk_notebook_set_current_page (GTK_NOTEBOOK (mTabContainer), mCurrTabPos);
   }
 }
+
+// Local Variables:
+// mode: c++
+// End:

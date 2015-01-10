@@ -19,7 +19,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/* @CFILE ApvlvDjvu.cc
+/* @CPPFILE ApvlvDjvu.cc
  *
  *  Author: Alf <naihe2010@126.com>
  */
@@ -216,3 +216,7 @@ namespace apvlv
     return false;
   }
 }
+
+// Local Variables:
+// mode: c++
+// End:
