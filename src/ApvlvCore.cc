@@ -61,17 +61,9 @@ namespace apvlv
     g_object_ref (mVbox);
 
     mScrollwin = gtk_scrolled_window_new (NULL, NULL);
-    if (gParams->valueb ("scrollbar"))
-      {
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin),
-					GTK_POLICY_AUTOMATIC,
-					GTK_POLICY_AUTOMATIC);
-      }
-    else
-      {
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin),
-					GTK_POLICY_NEVER, GTK_POLICY_NEVER);
-      }
+    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin),
+                                    GTK_POLICY_AUTOMATIC,
+                                    GTK_POLICY_AUTOMATIC);
 
     mVaj =
       gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
