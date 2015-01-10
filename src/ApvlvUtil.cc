@@ -46,6 +46,7 @@ namespace apvlv
 
 #ifdef WIN32
   string helppdf = "~\\Startup.pdf";
+  string mainmenubar_glade = "~\\main_menubar.glade";
   string iniexam = "~\\apvlvrc.example";
   string iconreg = "~\\icons\\reg.png";
   string icondir = "~\\icons\\dir.png";
@@ -54,6 +55,7 @@ namespace apvlv
   string sessionfile = "~\\_apvlvinfo";
 #else
   string helppdf = string (DOCDIR) + "/Startup.pdf";
+  string mainmenubar_glade = string (DOCDIR) + "/main_menubar.glade";
   string iniexam = string (DOCDIR) + "/apvlvrc.example";
   string iconreg = string (DOCDIR) + "/icons/reg.png";
   string icondir = string (DOCDIR) + "/icons/dir.png";

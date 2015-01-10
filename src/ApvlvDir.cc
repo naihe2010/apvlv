@@ -818,9 +818,15 @@ namespace apvlv
   {
     for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
       {
+#if GTK_CHECK_VERSION(3, 0, 0)
+        gtk_widget_override_color (mStlab[i],
+                                   (act) ? GTK_STATE_FLAG_ACTIVE:
+                                   GTK_STATE_FLAG_INSENSITIVE, NULL);
+#else
 	gtk_widget_modify_fg (mStlab[i],
 			      (act) ? GTK_STATE_ACTIVE :
 			      GTK_STATE_INSENSITIVE, NULL);
+#endif
       }
   }
 

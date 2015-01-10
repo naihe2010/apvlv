@@ -25,111 +25,32 @@
  */
 /* @date Created: 2010/01/21 15:09:58 Alf*/
 
+#include <gtk/gtk.h>
+
 #include "ApvlvView.h"
+#include "ApvlvUtil.h"
 #include "ApvlvMenu.h"
 
 namespace apvlv
 {
-  static void apvlv_menu_on_file_open ();
-  static void apvlv_menu_on_file_opentab ();
-  static void apvlv_menu_on_file_saveas ();
-  static void apvlv_menu_on_file_print ();
-  static void apvlv_menu_on_file_quit ();
-  static void apvlv_menu_on_page_prev ();
-  static void apvlv_menu_on_page_next ();
-  static void apvlv_menu_on_page_scrollup ();
-  static void apvlv_menu_on_page_scrolldown ();
-  static void apvlv_menu_on_tools_jumpto ();
-  static void apvlv_menu_on_tools_jumpback ();
-  static void apvlv_menu_on_help_about ();
+  extern "C" void apvlv_menu_on_file_open ();
+  extern "C" void apvlv_menu_on_file_opentab ();
+  extern "C" void apvlv_menu_on_file_saveas ();
+  extern "C" void apvlv_menu_on_file_print ();
+  extern "C" void apvlv_menu_on_file_quit ();
+  extern "C" void apvlv_menu_on_page_previous ();
+  extern "C" void apvlv_menu_on_page_next ();
+  extern "C" void apvlv_menu_on_page_scrollup ();
+  extern "C" void apvlv_menu_on_page_scrolldown ();
+  extern "C" void apvlv_menu_on_tools_jumpto ();
+  extern "C" void apvlv_menu_on_tools_jumpback ();
+  extern "C" void apvlv_menu_on_help_about ();
 
   ApvlvMenu::ApvlvMenu ()
   {
-    const GtkActionEntry action_entries[] =
-      {
-	{"File", NULL, "File", NULL, NULL, NULL},
-	{"Open", NULL, "Open", NULL, NULL, apvlv_menu_on_file_open},
-	{
-	  "OpenTab", ":tabnew", "Open Tab...", NULL, NULL,
-	  apvlv_menu_on_file_opentab
-	},
-	{
-	  "SaveAs", ":w", "Save As...", NULL, NULL,
-	  apvlv_menu_on_file_saveas
-	},
-	{
-	  "Print", ":p[rint]", "Print", NULL, NULL,
-	  apvlv_menu_on_file_print
-	},
-	{"Quit", ":q[uit]", "Quit", NULL, NULL, apvlv_menu_on_file_quit},
-	{"Page", NULL, "Page", NULL, NULL, NULL},
-	{
-	  "Previous", "<PageUp>", "Previous", NULL, NULL,
-	  apvlv_menu_on_page_prev
-	},
-	{
-	  "Next", "<PageDown>", "Next", NULL, NULL,
-	  apvlv_menu_on_page_next
-	},
-	{
-	  "ScrollUp", "<Up>", "ScrollUp", NULL, NULL,
-	  apvlv_menu_on_page_scrollup
-	},
-	{
-	  "ScrollDown", "<Down>", "ScrollDown", NULL, NULL,
-	  apvlv_menu_on_page_scrolldown
-	},
-	{"Tools", NULL, "Tools", NULL, NULL, NULL},
-	{
-	  "JumpTo", "<Ctrl>]", "JumpTo", NULL, NULL,
-	  apvlv_menu_on_tools_jumpto
-	},
-	{
-	  "JumpBack", "<Ctrl>t", "JumpBack", NULL, NULL,
-	  apvlv_menu_on_tools_jumpback
-	},
-	{"Help", NULL, "Help", NULL, NULL, NULL},
-	{
-	  "About", NULL, "About", NULL, NULL,
-	  apvlv_menu_on_help_about
-	},
-      };
-
-    const char *menu_string =
-      "<ui>"
-      "<menubar>"
-      "<menu name=\"File\" action=\"File\">"
-      "<menuitem name=\"Open\" action=\"Open\" />"
-      "<menuitem name=\"OpenTab\" action=\"OpenTab\" />"
-      "<menuitem name=\"SaveAs\" action=\"SaveAs\" />"
-      "<menuitem name=\"Print\" action=\"Print\" />"
-      "<menuitem name=\"Quit\" action=\"Quit\" />"
-      "</menu>"
-      "<menu name=\"Page\" action=\"Page\">"
-      "<menuitem name=\"Previous\" action=\"Previous\" />"
-      "<menuitem name=\"Next\" action=\"Next\" />"
-      "<menuitem name=\"ScrollUp\" action=\"ScrollUp\" />"
-      "<menuitem name=\"ScrollDown\" action=\"ScrollDown\" />"
-      "</menu>"
-      "<menu name=\"Tools\" action=\"Tools\">"
-      "<menuitem name=\"JumpTo\" action=\"JumpTo\" />"
-      "<menuitem name=\"JumpBack\" action=\"JumpBack\" />"
-      "</menu>"
-      "<menu name=\"Help\" action=\"Help\">"
-      "<menuitem name=\"About\" action=\"About\" />"
-      "</menu>" "</menubar>" "</ui>";
-
-    GtkUIManager *manager = gtk_ui_manager_new ();
-
-    GtkActionGroup *group = gtk_action_group_new ("action");
-    gtk_action_group_add_actions (group, action_entries, sizeof
-				  (action_entries) / sizeof
-				  (action_entries[0]), NULL);
-    gtk_ui_manager_insert_action_group (manager, group, 0);
-
-    gtk_ui_manager_add_ui_from_string (manager, menu_string, -1, NULL);
-
-    mMenu = gtk_ui_manager_get_widget (manager, "/ui/menubar");
+    GtkBuilder *builder = gtk_builder_new_from_file (mainmenubar_glade.c_str());
+    gtk_builder_connect_signals (builder, NULL);
+    mMenu = GTK_WIDGET (gtk_builder_get_object (builder, "main_menubar"));
   }
 
   ApvlvMenu::~ApvlvMenu ()
@@ -141,82 +62,81 @@ namespace apvlv
     return mMenu;
   }
 
-  void ApvlvMenu::setsize (gint w, gint h)
+  extern "C" void ApvlvMenu::setsize (gint w, gint h)
   {
     gtk_widget_set_size_request (mMenu, w, h);
   }
 
-  static void apvlv_menu_on_file_open ()
+  extern "C" void apvlv_menu_on_file_open ()
   {
     gView->open ();
   }
 
-  static void apvlv_menu_on_file_opentab ()
+  extern "C" void apvlv_menu_on_file_opentab ()
   {
     gView->newtab (helppdf.c_str ());
   }
 
-  static void apvlv_menu_on_file_saveas ()
+  extern "C" void apvlv_menu_on_file_saveas ()
   {
     //        gView->save ();
   }
 
-  static void apvlv_menu_on_file_print ()
+  extern "C" void apvlv_menu_on_file_print ()
   {
     //       gView->print ();
   }
 
-  static void apvlv_menu_on_file_quit ()
+  extern "C" void apvlv_menu_on_file_quit ()
   {
     gView->quit ();
   }
 
-  static void apvlv_menu_on_page_prev ()
+  extern "C" void apvlv_menu_on_page_previous ()
   {
     gView->crtadoc ()->prepage (1);
   }
 
-  static void apvlv_menu_on_page_next ()
+  extern "C" void apvlv_menu_on_page_next ()
   {
     gView->crtadoc ()->nextpage (1);
   }
 
-  static void apvlv_menu_on_page_scrollup ()
+  extern "C" void apvlv_menu_on_page_scrollup ()
   {
     gView->crtadoc ()->scrollup (1);
   }
 
-  static void apvlv_menu_on_page_scrolldown ()
+  extern "C" void apvlv_menu_on_page_scrolldown ()
   {
     gView->crtadoc ()->scrolldown (1);
   }
 
-  static void apvlv_menu_on_tools_jumpto ()
+  extern "C" void apvlv_menu_on_tools_jumpto ()
   {
     gView->crtadoc ()->gotolink (1);
   }
 
-  static void apvlv_menu_on_tools_jumpback ()
+  extern "C" void apvlv_menu_on_tools_jumpback ()
   {
     gView->crtadoc ()->returnlink (1);
   }
 
-  static void apvlv_menu_on_help_about ()
+  extern "C" void apvlv_menu_on_help_about ()
   {
-    GtkWidget *dia = NULL;
     static const char *author[] =
       {
-	"Alf",
-	NULL
+        "Alf",
+        NULL
       };
 
-    dia = gtk_about_dialog_new ();
+    GtkWidget *dia = gtk_about_dialog_new ();
     gtk_about_dialog_set_program_name (GTK_ABOUT_DIALOG (dia), PACKAGE_NAME);
     gtk_about_dialog_set_version (GTK_ABOUT_DIALOG (dia), PACKAGE_VERSION);
     gtk_about_dialog_set_authors (GTK_ABOUT_DIALOG (dia), author);
     gtk_about_dialog_set_artists (GTK_ABOUT_DIALOG (dia), author);
     gtk_about_dialog_set_website (GTK_ABOUT_DIALOG (dia),
-				  "http://naihe2010.cublog.cn");
+                                  "http://naihe2010.github.io/apvlv");
     gtk_about_dialog_set_copyright (GTK_ABOUT_DIALOG (dia), "GNU");
     gtk_dialog_run (GTK_DIALOG (dia));
     gtk_widget_destroy (dia);

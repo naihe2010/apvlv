@@ -40,6 +40,7 @@ namespace apvlv
 {
   // Global files
   extern string helppdf;
+  extern string mainmenubar_glade;
   extern string iniexam;
   extern string inifile;
   extern string icondir;
@@ -74,19 +75,19 @@ namespace apvlv
 
   // command type
   enum
-  {
-    CMD_NONE,
-    CMD_MESSAGE,
-    CMD_CMD
-  };
+    {
+      CMD_NONE,
+      CMD_MESSAGE,
+      CMD_CMD
+    };
 
   // function return type
   typedef enum
-  {
-    MATCH,
-    NEED_MORE,
-    NO_MATCH,
-  } returnType;
+    {
+      MATCH,
+      NEED_MORE,
+      NO_MATCH,
+    } returnType;
 
   // some windows macro
 #ifdef WIN32
@@ -98,7 +99,7 @@ namespace apvlv
 
 #ifndef S_ISDIR
 #define S_ISDIR(mode)  (((mode) & 0170000) == (0040000))
-#endif				/* 
+#endif				/*
 				 */
 
 #endif

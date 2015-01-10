@@ -196,9 +196,9 @@ namespace apvlv
     GtkWidget *dia = gtk_file_chooser_dialog_new ("Open ...",
 						  GTK_WINDOW (mMainWindow),
 						  GTK_FILE_CHOOSER_ACTION_SAVE,
-						  GTK_STOCK_CANCEL,
+						  ("_Cancel"),
 						  GTK_RESPONSE_CANCEL,
-						  GTK_STOCK_OK,
+						  ("_OK"),
 						  GTK_RESPONSE_ACCEPT,
 						  NULL);
     infofile *fp = gInfo->file (0);
@@ -271,9 +271,9 @@ namespace apvlv
     GtkWidget *dia = gtk_file_chooser_dialog_new ("",
 						  GTK_WINDOW (mMainWindow),
 						  GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
-						  GTK_STOCK_CANCEL,
+						  ("_Cancel"),
 						  GTK_RESPONSE_CANCEL,
-						  GTK_STOCK_OK,
+						  ("_OK"),
 						  GTK_RESPONSE_ACCEPT,
 						  NULL);
     infofile *fp = gInfo->file (0);
@@ -987,15 +987,15 @@ namespace apvlv
 	else if ((cmd == "o"
 		  || cmd == "open" || cmd == "doc") && subcmd != "")
 	  {
-		char *home = NULL;
+            char *home = NULL;
 
-		if(subcmd[0] == '~') {
-			home = getenv("HOME");
+            if(subcmd[0] == '~') {
+              home = getenv("HOME");
 
-			if(home) {
-				subcmd.replace(0, 1, home);
-			}
-		}
+              if(home) {
+                subcmd.replace(0, 1, home);
+              }
+            }
 
 	    if (g_file_test (subcmd.c_str (), G_FILE_TEST_IS_DIR))
 	      {
@@ -1203,9 +1203,9 @@ namespace apvlv
     guint modifiers = gtk_accelerator_get_default_mod_mask();
 
     if(event->keyval == GDK_KEY_bracketleft &&
-        /* ...so we can ignore mod keys like numlock and capslock. */
-        (event->state & modifiers) == GDK_CONTROL_MASK) {
-            return true;
+       /* ...so we can ignore mod keys like numlock and capslock. */
+       (event->state & modifiers) == GDK_CONTROL_MASK) {
+      return true;
     }
 
     return false;
