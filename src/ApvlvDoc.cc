@@ -2173,7 +2173,7 @@ namespace apvlv
 	g_snprintf (temp[2], sizeof temp[2], "%d%%",
 		    (int) (mDoc->zoomvalue () * 100));
 	g_snprintf (temp[3], sizeof temp[3], "%d%%",
-                (int) ((sr + pn - 1.0) / totpn * 1000));
+                (int) ((sr + pn - 1.0) / totpn * 100));
 	for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
 	  {
 	    gtk_label_set_text (GTK_LABEL (mStlab[i]), temp[i]);
