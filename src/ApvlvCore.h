@@ -55,7 +55,7 @@ namespace apvlv
 
     virtual void setsize (int w, int h);
 
-    virtual void show ();
+    virtual void show (bool mContinuous = false);
 
   protected:
     GtkWidget * mHbox;

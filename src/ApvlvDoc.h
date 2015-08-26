@@ -134,7 +134,7 @@ namespace apvlv
 
     void setsize (int, int);
 
-    void show ();
+    void show (bool mContinuous = false);
 
   private:
     ApvlvDoc * mDoc;
@@ -199,6 +199,8 @@ namespace apvlv
     void gotolink (int ct);
 
     void returnlink (int ct);
+
+    void srtranslate(int &rtimes, double &sr, bool single2continuous);
 
   private:
     void blank (int x, int y);
