@@ -448,7 +448,7 @@ namespace apvlv
   {
   }
 
-  void ApvlvCoreStatus::show ()
+  void ApvlvCoreStatus::show (bool mContinuous)
   {
   }
 }

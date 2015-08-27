@@ -885,7 +885,7 @@ namespace apvlv
 
 	loadlastposition (filename);
 
-	mStatus->show ();
+	mStatus->show (mContinuous);
 
 	setactive (true);
 
@@ -1040,7 +1040,32 @@ namespace apvlv
 	gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), buf);
       }
 
-    mStatus->show ();
+    mStatus->show (mContinuous);
+  }
+
+  void ApvlvDoc::srtranslate(int &rtimes, double &sr, bool single2continuous)
+  {
+    gdouble winv = gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_lower(mVaj),
+            pagewidth = gtk_adjustment_get_page_size(mVaj),
+            maxv = winv - pagewidth,
+            maxv2 = (winv - 2 * pagewidth) / 2,
+            value;
+
+    if (single2continuous)
+    {
+      value = 0.5 * pagewidth + sr * maxv2;
+      sr = (value - 0.5 * pagewidth) / maxv;
+    } else {
+      value = 0.5 * pagewidth + sr * maxv;
+      if (value > 0.5 * winv) {
+        rtimes += 1;
+        value -= 0.5 * winv;
+      }
+
+      if (value > 0.5 * (winv - pagewidth)) sr = 1;
+      else if (value > 0.5 * pagewidth) sr = (value - 0.5 * pagewidth) / maxv2;
+      else sr = 0;
+    }
   }
 
   void ApvlvDoc::halfnextpage (int times)
@@ -1048,18 +1073,22 @@ namespace apvlv
     double sr = scrollrate ();
     int rtimes = times / 2;
 
+    if (mAutoScrollPage && mContinuous) srtranslate(rtimes, sr, false);
+
     if (times % 2 != 0)
       {
-	if (sr > 0.5)
-	  {
-	    sr = 0;
-	    rtimes += 1;
-	  }
-	else
-	  {
-	    sr = 1;
-	  }
+    if (sr > 0.5)
+      {
+        sr = 0;
+        rtimes += 1;
       }
+    else
+      {
+        sr = 1;
+      }
+      }
+
+    if (mAutoScrollPage && mContinuous) srtranslate(rtimes, sr, true);
 
     showpage (mPagenum + rtimes, sr);
   }
@@ -1068,6 +1097,8 @@ namespace apvlv
   {
     double sr = scrollrate ();
     int rtimes = times / 2;
+
+    if (mAutoScrollPage && mContinuous) srtranslate(rtimes, sr, false);
 
     if (times % 2 != 0)
       {
@@ -1081,6 +1112,8 @@ namespace apvlv
 	    sr = 0;
 	  }
       }
+
+    if (mAutoScrollPage && mContinuous) srtranslate(rtimes, sr, true);
 
     showpage (mPagenum - rtimes, sr);
   }
@@ -2122,22 +2155,25 @@ namespace apvlv
       }
   }
 
-  void ApvlvDocStatus::show ()
+  void ApvlvDocStatus::show (bool mContinuous)
   {
     if (mDoc->filename ())
       {
-	gint pn = mDoc->pagenumber ();
+	gint pn = mDoc->pagenumber (),
+         totpn = mDoc->file ()->pagesum ();
+    gdouble sr = mDoc->scrollrate ();
+    int tmprtimes = 0;
+    mDoc->srtranslate(tmprtimes, sr, false);
 
 	char temp[AD_STATUS_SIZE][256];
 	gchar *bn;
 	bn = g_path_get_basename (mDoc->filename ());
 	g_snprintf (temp[0], sizeof temp[0], "%s", bn);
-	g_snprintf (temp[1], sizeof temp[1], "%d/%d", pn,
-		    mDoc->file ()->pagesum ());
+	g_snprintf (temp[1], sizeof temp[1], "%d/%d", pn, totpn);
 	g_snprintf (temp[2], sizeof temp[2], "%d%%",
 		    (int) (mDoc->zoomvalue () * 100));
 	g_snprintf (temp[3], sizeof temp[3], "%d%%",
-		    (int) (mDoc->scrollrate () * 100));
+                (int) ((sr + pn - 1.0) / totpn * 100));
 	for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
 	  {
 	    gtk_label_set_text (GTK_LABEL (mStlab[i]), temp[i]);
