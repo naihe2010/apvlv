@@ -33,7 +33,7 @@
 
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
-#ifndef WIN32
+#ifdef __linux__
 #include <gdk/gdkx.h>
 #endif
 
