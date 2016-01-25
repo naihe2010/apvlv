@@ -902,8 +902,25 @@ namespace apvlv
 
 	if (gParams->valuei ("autoreload") > 0)
 	  {
-	    mGFile = g_file_new_for_path (filename);
-	    if (mGFile)
+            if (g_file_test (filename, G_FILE_TEST_IS_SYMLINK))
+              {
+                gchar *realname = g_file_read_link (filename, NULL);
+                if (realname)
+                  {
+                    mGFile = g_file_new_for_path (realname);
+                    g_free (realname);
+                  }
+                else
+                  {
+                    mGFile = NULL;
+                  }
+              }
+            else
+              {
+                mGFile = g_file_new_for_path (filename);
+              }
+
+            if (mGFile)
 	      {
 		GError *error = NULL;
 		mGMonitor = g_file_monitor_file (mGFile, G_FILE_MONITOR_NONE, NULL, &error);
@@ -1046,16 +1063,16 @@ namespace apvlv
   void ApvlvDoc::srtranslate(int &rtimes, double &sr, bool single2continuous)
   {
     gdouble winv = gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_lower(mVaj),
-            pagewidth = gtk_adjustment_get_page_size(mVaj),
-            maxv = winv - pagewidth,
-            maxv2 = (winv - 2 * pagewidth) / 2,
-            value;
+      pagewidth = gtk_adjustment_get_page_size(mVaj),
+      maxv = winv - pagewidth,
+      maxv2 = (winv - 2 * pagewidth) / 2,
+      value;
 
     if (single2continuous)
-    {
-      value = 0.5 * pagewidth + sr * maxv2;
-      sr = (value - 0.5 * pagewidth) / maxv;
-    } else {
+      {
+        value = 0.5 * pagewidth + sr * maxv2;
+        sr = (value - 0.5 * pagewidth) / maxv;
+      } else {
       value = 0.5 * pagewidth + sr * maxv;
       if (value > 0.5 * winv) {
         rtimes += 1;
@@ -1077,15 +1094,15 @@ namespace apvlv
 
     if (times % 2 != 0)
       {
-    if (sr > 0.5)
-      {
-        sr = 0;
-        rtimes += 1;
-      }
-    else
-      {
-        sr = 1;
-      }
+        if (sr > 0.5)
+          {
+            sr = 0;
+            rtimes += 1;
+          }
+        else
+          {
+            sr = 1;
+          }
       }
 
     if (mAutoScrollPage && mContinuous) srtranslate(rtimes, sr, true);
@@ -1712,277 +1729,277 @@ namespace apvlv
 	gtk_widget_show (item);
 
 	g_signal_connect (item, "activate",
-          G_CALLBACK (apvlv_doc_copytoclipboard_cb), doc);
+                          G_CALLBACK (apvlv_doc_copytoclipboard_cb), doc);
 
 	gtk_menu_popup (GTK_MENU (menu), NULL, NULL, NULL, NULL, 0, 0);
       }
-      }
+  }
 
-        void
-          ApvlvDoc::apvlv_doc_copytoclipboard_cb (GtkMenuItem * item,
-          ApvlvDoc * doc)
-        {
-        doc->yank (1);
-        doc->mInVisual = VISUAL_NONE;
-        doc->blank (doc->mCurx, doc->mCury);
-      }
+  void
+  ApvlvDoc::apvlv_doc_copytoclipboard_cb (GtkMenuItem * item,
+                                          ApvlvDoc * doc)
+  {
+    doc->yank (1);
+    doc->mInVisual = VISUAL_NONE;
+    doc->blank (doc->mCurx, doc->mCury);
+  }
 
-        void
-          ApvlvDoc::apvlv_doc_motion_event (GtkWidget * box,
-          GdkEventMotion * motion, ApvlvDoc * doc)
-        {
-        doc->mInVisual = VISUAL_V;
-        double rx, ry;
-        doc->eventpos (motion->x, motion->y, &rx, &ry);
-        doc->blank (rx, ry);
-      }
+  void
+  ApvlvDoc::apvlv_doc_motion_event (GtkWidget * box,
+                                    GdkEventMotion * motion, ApvlvDoc * doc)
+  {
+    doc->mInVisual = VISUAL_V;
+    double rx, ry;
+    doc->eventpos (motion->x, motion->y, &rx, &ry);
+    doc->blank (rx, ry);
+  }
 
-        void ApvlvDoc::eventpos (double x, double y, double *rx, double *ry)
-        {
-        int dw, dh;
-        if (rx != NULL)
-          {
+  void ApvlvDoc::eventpos (double x, double y, double *rx, double *ry)
+  {
+    int dw, dh;
+    if (rx != NULL)
+      {
 	GtkAllocation allocation;
 	gtk_widget_get_allocation(mScrollwin, &allocation);
 	dw = mPagex * mZoomrate - allocation.width;
 	dw = dw >> 1;
 	if (dw >= 0)
 	  {
-        dw = 0;
-      }
+            dw = 0;
+          }
 	*rx = x + dw;
       }
 
-        if (ry != NULL)
-          {
+    if (ry != NULL)
+      {
 	GtkAllocation allocation;
 	gtk_widget_get_allocation(mScrollwin, &allocation);
 	dh = mPagey * mZoomrate - allocation.height;
 	dh = dh >> 1;
 	if (dh >= 0)
 	  {
-        dh = 0;
-      }
+            dh = 0;
+          }
 	*ry = y + dh;
       }
-      }
+  }
 
-        ApvlvDocCache::ApvlvDocCache (ApvlvFile * file)
-        {
-        mFile = file;
-        mPagenum = -1;
-        mLines = NULL;
-        mData = NULL;
-        mSize = 0;
-        mBuf = NULL;
-        mLinks = NULL;
-      }
+  ApvlvDocCache::ApvlvDocCache (ApvlvFile * file)
+  {
+    mFile = file;
+    mPagenum = -1;
+    mLines = NULL;
+    mData = NULL;
+    mSize = 0;
+    mBuf = NULL;
+    mLinks = NULL;
+  }
 
-        void ApvlvDocCache::set (guint p, double zm, guint rot, bool delay)
-        {
-        mPagenum = p;
-        mZoom = zm;
-        mRotate = rot;
+  void ApvlvDocCache::set (guint p, double zm, guint rot, bool delay)
+  {
+    mPagenum = p;
+    mZoom = zm;
+    mRotate = rot;
 
-        if (mLines != NULL)
-          {
+    if (mLines != NULL)
+      {
 	delete mLines;
 	mLines = NULL;
       }
 
-        if (mData != NULL)
-          {
+    if (mData != NULL)
+      {
 	delete[]mData;
 	mData = NULL;
       }
-        if (mBuf != NULL)
-          {
+    if (mBuf != NULL)
+      {
 	g_object_unref (mBuf);
 	mBuf = NULL;
       }
-        if (mLinks != NULL)
-          {
+    if (mLinks != NULL)
+      {
 	delete mLinks;
 	mLinks = NULL;
       }
-        mInverted = gParams->valueb ("inverted");
+    mInverted = gParams->valueb ("inverted");
 
-        load (this);
-      }
+    load (this);
+  }
 
-        void ApvlvDocCache::load (ApvlvDocCache * ac)
-        {
-        int c = ac->mFile->pagesum ();
+  void ApvlvDocCache::load (ApvlvDocCache * ac)
+  {
+    int c = ac->mFile->pagesum ();
 
-        if (ac->mPagenum < 0 || ac->mPagenum >= c)
-          {
+    if (ac->mPagenum < 0 || ac->mPagenum >= c)
+      {
 	debug ("no this page: %d", ac->mPagenum);
 	return;
       }
 
-        double tpagex, tpagey;
-        ac->mFile->pagesize (ac->mPagenum, ac->mRotate, &tpagex, &tpagey);
+    double tpagex, tpagey;
+    ac->mFile->pagesize (ac->mPagenum, ac->mRotate, &tpagex, &tpagey);
 
-        ac->mWidth = MAX ((tpagex * ac->mZoom + 0.5), 1);
-        ac->mHeight = MAX ((tpagey * ac->mZoom + 0.5), 1);
+    ac->mWidth = MAX ((tpagex * ac->mZoom + 0.5), 1);
+    ac->mHeight = MAX ((tpagey * ac->mZoom + 0.5), 1);
 
-        // this is very import to get the double times size data
-        // the 2ed chunk data will be for output
-        ac->mSize = ac->mWidth * ac->mHeight * 3;
-        guchar *dat = new guchar[2 * ac->mSize];
+    // this is very import to get the double times size data
+    // the 2ed chunk data will be for output
+    ac->mSize = ac->mWidth * ac->mHeight * 3;
+    guchar *dat = new guchar[2 * ac->mSize];
 
-        GdkPixbuf *bu = gdk_pixbuf_new_from_data (dat, GDK_COLORSPACE_RGB,
-          FALSE,
-          8,
-          ac->mWidth, ac->mHeight,
-          3 * ac->mWidth,
-          NULL, NULL);
-        debug ("ac->mFile: %p", ac->mFile);
-        ac->mFile->render (ac->mPagenum, ac->mWidth, ac->mHeight, ac->mZoom,
-          ac->mRotate, bu, (char *) dat);
-        if (ac->mInverted)
-          {
+    GdkPixbuf *bu = gdk_pixbuf_new_from_data (dat, GDK_COLORSPACE_RGB,
+                                              FALSE,
+                                              8,
+                                              ac->mWidth, ac->mHeight,
+                                              3 * ac->mWidth,
+                                              NULL, NULL);
+    debug ("ac->mFile: %p", ac->mFile);
+    ac->mFile->render (ac->mPagenum, ac->mWidth, ac->mHeight, ac->mZoom,
+                       ac->mRotate, bu, (char *) dat);
+    if (ac->mInverted)
+      {
 	invert_pixbuf (bu);
       }
-        // backup the pixbuf data
-        memcpy (dat + ac->mSize, dat, ac->mSize);
+    // backup the pixbuf data
+    memcpy (dat + ac->mSize, dat, ac->mSize);
 
-        if (ac->mLinks)
-          {
+    if (ac->mLinks)
+      {
 	delete ac->mLinks;
       }
-        ac->mLinks = ac->mFile->getlinks (ac->mPagenum);
-        debug ("has mLinkMappings: %p", ac->mLinks);
+    ac->mLinks = ac->mFile->getlinks (ac->mPagenum);
+    debug ("has mLinkMappings: %p", ac->mLinks);
 
-        ac->mData = dat;
-        ac->mBuf = bu;
+    ac->mData = dat;
+    ac->mBuf = bu;
 
-        ac->preparelines (0, 0, tpagex, tpagey);
-      }
+    ac->preparelines (0, 0, tpagex, tpagey);
+  }
 
-        ApvlvDocCache::~ApvlvDocCache ()
-        {
-        if (mLinks)
-          {
+  ApvlvDocCache::~ApvlvDocCache ()
+  {
+    if (mLinks)
+      {
 	delete mLinks;
       }
 
-        if (mLines != NULL)
-          {
+    if (mLines != NULL)
+      {
 	delete mLines;
       }
 
-        if (mData != NULL)
-          {
+    if (mData != NULL)
+      {
 	delete[]mData;
       }
 
-        if (mBuf != NULL)
-          {
+    if (mBuf != NULL)
+      {
 	g_object_unref (mBuf);
       }
-      }
+  }
 
-        guint ApvlvDocCache::getpagenum ()
-        {
-        return mPagenum;
-      }
+  guint ApvlvDocCache::getpagenum ()
+  {
+    return mPagenum;
+  }
 
-        /*
-         * get the cache data
-         * @param: wait, if not wait, not wait the buffer be prepared
-         * @return: the buffer
-         * */
-        guchar *ApvlvDocCache::getdata (bool wait)
-        {
-        memcpy (mData, mData + mSize, mSize);
-        return mData;
-      }
+  /*
+   * get the cache data
+   * @param: wait, if not wait, not wait the buffer be prepared
+   * @return: the buffer
+   * */
+  guchar *ApvlvDocCache::getdata (bool wait)
+  {
+    memcpy (mData, mData + mSize, mSize);
+    return mData;
+  }
 
-        /*
-         * get the cache GdkPixbuf
-         * @param: wait, if not wait, not wait the pixbuf be prepared
-         * @return: the buffer
-         * */
-        GdkPixbuf *ApvlvDocCache::getbuf (bool wait)
-        {
-        return mBuf;
-      }
+  /*
+   * get the cache GdkPixbuf
+   * @param: wait, if not wait, not wait the pixbuf be prepared
+   * @return: the buffer
+   * */
+  GdkPixbuf *ApvlvDocCache::getbuf (bool wait)
+  {
+    return mBuf;
+  }
 
-        double ApvlvDocCache::getwidth ()
-        {
-        return mWidth;
-      }
+  double ApvlvDocCache::getwidth ()
+  {
+    return mWidth;
+  }
 
-        double ApvlvDocCache::getheight ()
-        {
-        return mHeight;
-      }
+  double ApvlvDocCache::getheight ()
+  {
+    return mHeight;
+  }
 
-        ApvlvLinks *ApvlvDocCache::getlinks ()
-        {
-        return mLinks;
-      }
+  ApvlvLinks *ApvlvDocCache::getlinks ()
+  {
+    return mLinks;
+  }
 
-        bool ApvlvDocCache::canselect ()
-        {
-        return mLines != NULL ? true : false;
-      }
+  bool ApvlvDocCache::canselect ()
+  {
+    return mLines != NULL ? true : false;
+  }
 
-        ApvlvWord *ApvlvDocCache::getword (int x, int y)
-        {
-        ApvlvLine *line;
+  ApvlvWord *ApvlvDocCache::getword (int x, int y)
+  {
+    ApvlvLine *line;
 
-        line = getline (x, y);
-        if (line != NULL)
-          {
+    line = getline (x, y);
+    if (line != NULL)
+      {
 	vector < ApvlvWord >::iterator itr;
 	for (itr = line->mWords.begin (); itr != line->mWords.end (); itr++)
 	  {
-        debug ("itr: %f,%f", itr->pos.y1, itr->pos.y2);
-        if (x >= itr->pos.x1 && x <= itr->pos.x2)
-          {
-        return &(*itr);
+            debug ("itr: %f,%f", itr->pos.y1, itr->pos.y2);
+            if (x >= itr->pos.x1 && x <= itr->pos.x2)
+              {
+                return &(*itr);
+              }
+          }
       }
-      }
-      }
-        return NULL;
-      }
+    return NULL;
+  }
 
-        ApvlvLine *ApvlvDocCache::getline (double x, double y)
-        {
-        debug ("getline: %f", y);
+  ApvlvLine *ApvlvDocCache::getline (double x, double y)
+  {
+    debug ("getline: %f", y);
 
-        if (mLines == NULL)
-          {
+    if (mLines == NULL)
+      {
 	return NULL;
       }
 
-        vector < ApvlvLine >::iterator itr;
-        for (itr = mLines->begin (); itr != mLines->end (); itr++)
-          {
+    vector < ApvlvLine >::iterator itr;
+    for (itr = mLines->begin (); itr != mLines->end (); itr++)
+      {
 	debug ("itr: %f,%f", itr->pos.y1, itr->pos.y2);
 	if (y >= itr->pos.y2 && y <= itr->pos.y1)
 	  {
-        return &(*itr);
+            return &(*itr);
+          }
       }
-      }
-        return NULL;
-      }
+    return NULL;
+  }
 
-        void ApvlvDocCache::preparelines (double x1, double y1, double x2,
-          double y2)
-        {
-        if (strcmp (gParams->values ("doubleclick"), "page") == 0
-          || strcmp (gParams->values ("doubleclick"), "none") == 0)
-          {
+  void ApvlvDocCache::preparelines (double x1, double y1, double x2,
+                                    double y2)
+  {
+    if (strcmp (gParams->values ("doubleclick"), "page") == 0
+        || strcmp (gParams->values ("doubleclick"), "none") == 0)
+      {
 	return;
       }
 
-        gchar *content = NULL;
-        mFile->pagetext (mPagenum, x1, y1, x2, y2, &content);
-        if (content != NULL)
-          {
+    gchar *content = NULL;
+    mFile->pagetext (mPagenum, x1, y1, x2, y2, &content);
+    if (content != NULL)
+      {
 	ApvlvPoses *results;
 	string word;
 
@@ -1992,144 +2009,144 @@ namespace apvlv
 
 	if (strcmp (gParams->values ("doubleclick"), "word") == 0)
 	  {
-        stringstream ss (content);
-        while (!ss.eof ())
-          {
-        ss >> word;
-        results = mFile->pagesearch (mPagenum, word.c_str ());
-        if (results != NULL)
-          {
-        lastpos = prepare_add (lastpos, results, word.c_str ());
-        delete results;
-      }
-      }
-      }
+            stringstream ss (content);
+            while (!ss.eof ())
+              {
+                ss >> word;
+                results = mFile->pagesearch (mPagenum, word.c_str ());
+                if (results != NULL)
+                  {
+                    lastpos = prepare_add (lastpos, results, word.c_str ());
+                    delete results;
+                  }
+              }
+          }
 	else
 	  {
-        gchar **v, *p;
-        int i;
+            gchar **v, *p;
+            int i;
 
-        v = g_strsplit (content, "\n", -1);
-        if (v != NULL)
-          {
-        for (i = 0; v[i] != NULL; ++i)
-          {
-        p = v[i];
-        while (*p != '\0' && isspace (*p))
-          {
-        p++;
-      }
-        if (*p == '\0')
-          {
-        continue;
-      }
-        debug ("search [%s]", p);
-        results = mFile->pagesearch (mPagenum, p);
-        if (results != NULL)
-          {
-        lastpos = prepare_add (lastpos, results, p);
-        delete results;
-      }
-      }
-        g_strfreev (v);
-      }
-      }
+            v = g_strsplit (content, "\n", -1);
+            if (v != NULL)
+              {
+                for (i = 0; v[i] != NULL; ++i)
+                  {
+                    p = v[i];
+                    while (*p != '\0' && isspace (*p))
+                      {
+                        p++;
+                      }
+                    if (*p == '\0')
+                      {
+                        continue;
+                      }
+                    debug ("search [%s]", p);
+                    results = mFile->pagesearch (mPagenum, p);
+                    if (results != NULL)
+                      {
+                        lastpos = prepare_add (lastpos, results, p);
+                        delete results;
+                      }
+                  }
+                g_strfreev (v);
+              }
+          }
 
 	vector < ApvlvLine >::iterator it;
 	for (it = mLines->begin (); it != mLines->end (); it++)
 	  {
-        //              debug ("line: %f, %f, %f, %f", it->pos.x1, it->pos.y1,
-        //                     it->pos.x2, it->pos.y2);
-        vector < ApvlvWord >::iterator wit;
-        for (wit = it->mWords.begin (); wit != it->mWords.end (); wit++)
-          {
-        //                 debug ("word: %f, %f, %f, %f: %s", wit->pos.x1, wit->pos.y1,
-        //                         wit->pos.x2, wit->pos.y2, wit->word.c_str ());
-      }
-      }
+            //              debug ("line: %f, %f, %f, %f", it->pos.x1, it->pos.y1,
+            //                     it->pos.x2, it->pos.y2);
+            vector < ApvlvWord >::iterator wit;
+            for (wit = it->mWords.begin (); wit != it->mWords.end (); wit++)
+              {
+                //                 debug ("word: %f, %f, %f, %f: %s", wit->pos.x1, wit->pos.y1,
+                //                         wit->pos.x2, wit->pos.y2, wit->word.c_str ());
+              }
+          }
 	g_free (content);
       }
-      }
+  }
 
-        ApvlvPos ApvlvDocCache::prepare_add (ApvlvPos & lastpos,
-          ApvlvPoses * results, const char *word)
-        {
-        ApvlvPoses::iterator itr;
-        for (itr = results->begin (); itr != results->end (); itr++)
-          {
+  ApvlvPos ApvlvDocCache::prepare_add (ApvlvPos & lastpos,
+                                       ApvlvPoses * results, const char *word)
+  {
+    ApvlvPoses::iterator itr;
+    for (itr = results->begin (); itr != results->end (); itr++)
+      {
 	itr->x1 *= mZoom;
 	itr->x2 *= mZoom;
 	itr->y1 = mHeight - itr->y1 * mZoom;
 	itr->y2 = mHeight - itr->y2 * mZoom;
 
 	if ((lastpos.y2 < itr->y2)
-          || (lastpos.y2 - itr->y2 < 0.0001 && lastpos.x2 < itr->x2))
+            || (lastpos.y2 - itr->y2 < 0.0001 && lastpos.x2 < itr->x2))
 	  {
-        debug ("[%s] x1:%f, x2:%f, y1:%f, y2:%f", word, itr->x1,
-          itr->x2, itr->y1, itr->y2);
-        break;
-      }
+            debug ("[%s] x1:%f, x2:%f, y1:%f, y2:%f", word, itr->x1,
+                   itr->x2, itr->y1, itr->y2);
+            break;
+          }
       }
 
-        if (itr == results->end ())
-          {
+    if (itr == results->end ())
+      {
 	itr = results->begin ();
       }
 
-        //      debug ("itr: %f, %f, %f, %f", itr->x1, itr->y1, itr->x2, itr->y2);
-        vector < ApvlvLine >::iterator litr;
-        for (litr = mLines->begin (); litr != mLines->end (); litr++)
-          {
+    //      debug ("itr: %f, %f, %f, %f", itr->x1, itr->y1, itr->x2, itr->y2);
+    vector < ApvlvLine >::iterator litr;
+    for (litr = mLines->begin (); litr != mLines->end (); litr++)
+      {
 	//          debug ("litr: %f, %f", litr->pos.y1, litr->pos.y2);
 	if (fabs (itr->y1 - litr->pos.y1) < 0.0001
-                                            && fabs (itr->y2 - litr->pos.y2) < 0.0001)
+            && fabs (itr->y2 - litr->pos.y2) < 0.0001)
 	  {
-        break;
-      }
+            break;
+          }
       }
 
-        ApvlvWord aword = { *itr, word };
-        if (litr != mLines->end ())
-          {
+    ApvlvWord aword = { *itr, word };
+    if (litr != mLines->end ())
+      {
 	litr->mWords.push_back (aword);
 	if (itr->x1 < litr->pos.x1)
 	  {
-        litr->pos.x1 = itr->x1;
-      }
+            litr->pos.x1 = itr->x1;
+          }
 	if (itr->x2 > litr->pos.x2)
 	  {
-        litr->pos.x2 = itr->x2;
+            litr->pos.x2 = itr->x2;
+          }
       }
-      }
-        else
-          {
+    else
+      {
 	ApvlvLine line;
 	line.pos = *itr;
 	line.mWords.push_back (aword);
 	mLines->push_back (line);
       }
 
-        return *itr;
-      }
+    return *itr;
+  }
 
-        ApvlvDocStatus::ApvlvDocStatus (ApvlvDoc * doc)
-        {
-        mDoc = doc;
-        for (int i = 0; i < AD_STATUS_SIZE; ++i)
-          {
+  ApvlvDocStatus::ApvlvDocStatus (ApvlvDoc * doc)
+  {
+    mDoc = doc;
+    for (int i = 0; i < AD_STATUS_SIZE; ++i)
+      {
 	mStlab[i] = gtk_label_new ("");
 	gtk_box_pack_start (GTK_BOX (mHbox), mStlab[i], FALSE, FALSE, 0);
       }
-      }
+  }
 
-        ApvlvDocStatus::~ApvlvDocStatus ()
-        {
-      }
+  ApvlvDocStatus::~ApvlvDocStatus ()
+  {
+  }
 
-        void ApvlvDocStatus::active (bool act)
-        {
-        for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
-          {
+  void ApvlvDocStatus::active (bool act)
+  {
+    for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
+      {
 #if GTK_CHECK_VERSION(3, 0, 0)
         gtk_widget_override_color (mStlab[i],
                                    (act)? GTK_STATE_FLAG_ACTIVE:
@@ -2160,10 +2177,10 @@ namespace apvlv
     if (mDoc->filename ())
       {
 	gint pn = mDoc->pagenumber (),
-         totpn = mDoc->file ()->pagesum ();
-    gdouble sr = mDoc->scrollrate ();
-    int tmprtimes = 0;
-    mDoc->srtranslate(tmprtimes, sr, false);
+          totpn = mDoc->file ()->pagesum ();
+        gdouble sr = mDoc->scrollrate ();
+        int tmprtimes = 0;
+        mDoc->srtranslate(tmprtimes, sr, false);
 
 	char temp[AD_STATUS_SIZE][256];
 	gchar *bn;
@@ -2173,7 +2190,7 @@ namespace apvlv
 	g_snprintf (temp[2], sizeof temp[2], "%d%%",
 		    (int) (mDoc->zoomvalue () * 100));
 	g_snprintf (temp[3], sizeof temp[3], "%d%%",
-                (int) ((sr + pn - 1.0) / totpn * 100));
+                    (int) ((sr + pn - 1.0) / totpn * 100));
 	for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
 	  {
 	    gtk_label_set_text (GTK_LABEL (mStlab[i]), temp[i]);
