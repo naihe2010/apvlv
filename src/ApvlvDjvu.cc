@@ -173,7 +173,8 @@ namespace apvlv
 	    (char *) buffer) == FALSE)
       {
 	usleep (50 * 1000);
-	debug ("fender failed, retry %d", ++retry);
+        ++ retry;
+	debug ("fender failed, retry %d", retry);
       }
 
     return true;
