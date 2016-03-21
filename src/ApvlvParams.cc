@@ -90,7 +90,7 @@ namespace apvlv
 	return false;
       }
 
-    while ((getline (os, str)) != NULL)
+    while ((getline (os, str)))
       {
 	string argu, data, crap;
 	stringstream is (str);
