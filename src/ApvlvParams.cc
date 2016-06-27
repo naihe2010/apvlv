@@ -36,7 +36,11 @@
 
 namespace apvlv
 {
+#if __cplusplus > 199711L
+  ApvlvParams *gParams = nullptr;
+#else
   ApvlvParams *gParams = NULL;
+#endif
 
   ApvlvParams::ApvlvParams ()
   {
@@ -74,7 +78,11 @@ namespace apvlv
 
   bool ApvlvParams::loadfile (const char *filename)
   {
+#if __cplusplus > 199711L
+    if (filename == nullptr
+#else
     if (filename == NULL
+#endif
 	|| g_file_test (filename, G_FILE_TEST_IS_REGULAR) == FALSE)
       {
 	return false;
@@ -197,7 +205,11 @@ namespace apvlv
       {
 	return it->second.c_str ();
       }
+#if __cplusplus > 199711L
+    return nullptr;
+#else
     return NULL;
+#endif
   }
 
   int ApvlvParams::valuei (const char *s)
