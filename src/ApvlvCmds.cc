@@ -192,7 +192,7 @@ namespace apvlv
   const char *ApvlvCmd::append (const char *s)
   {
     size_t len;
-    char *e;
+    char *e = strchr((char *)s, '>');
 
     len = strlen (s);
 
@@ -200,7 +200,7 @@ namespace apvlv
 
     if (len >= 4
 	&& *s == '<'
-	&& (e = strchr ((char *) s, '>')) != '\0' && *(s + 2) != '-')
+	&& (*e != '\0' && *(s + 2) != '-'))
       {
 	e++;
 	StringKeyMap::iterator it;
