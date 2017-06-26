@@ -90,7 +90,7 @@ namespace apvlv
   {
     mInuse = use;
 
-    if (mInuse == false && gView->hasloaded (filename (), type ()) == false)
+    if (mInuse == false && gView->hasloaded (filename (), type ()) == NULL)
       {
 	debug ("core :%p is not needed, delete it\n", this);
 	delete this;
