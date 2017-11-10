@@ -55,11 +55,11 @@ namespace apvlv
   string sessionfile = "~\\_apvlvinfo";
 #else
   string helppdf = string (DOCDIR) + "/Startup.pdf";
-  string mainmenubar_glade = string (DOCDIR) + "/main_menubar.glade";
+  string mainmenubar_glade = string (LIBDIR) + "/main_menubar.glade";
   string iniexam = string (DOCDIR) + "/apvlvrc.example";
-  string iconreg = string (DOCDIR) + "/icons/reg.png";
-  string icondir = string (DOCDIR) + "/icons/dir.png";
-  string iconpdf = string (DOCDIR) + "/icons/pdf.png";
+  string iconreg = string (PIXMAPDIR) + "/icons/reg.png";
+  string icondir = string (PIXMAPDIR) + "/icons/dir.png";
+  string iconpdf = string (PIXMAPDIR) + "/icons/pdf.png";
   string inifile = "~/.apvlvrc";
   string sessionfile = "~/.apvlvinfo";
 #endif

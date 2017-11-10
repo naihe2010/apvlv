@@ -38,6 +38,20 @@ ELSE (WIN32)
     )
   ADD_DEFINITIONS (-DDOCDIR="${DOCDIR}")
 
+  SET (LIBDIR
+    "${CMAKE_INSTALL_PREFIX}/lib/apvlv"
+    CACHE PATH
+    "Directory for lib of apvlv [PREFIX/lib/apvlv]"
+    )
+  ADD_DEFINITIONS (-DLIBDIR="${LIBDIR}")
+
+  SET (PIXMAPDIR
+    "${CMAKE_INSTALL_PREFIX}/share/pixmaps/apvlv"
+    CACHE PATH
+    "Directory for pixmaps of apvlv [PREFIX/share/pixmaps/apvlv]"
+    )
+  ADD_DEFINITIONS (-DPIXMAPDIR="${PIXMAPDIR}")
+
   SET (MANDIR
     "${CMAKE_INSTALL_PREFIX}/share/man"
     CACHE PATH
@@ -83,10 +97,10 @@ SET (CPACK_PACKAGE_VERSION_PATCH ${PROJECT_PATCH})
 IF (UNIX)
   SET (CPACK_SET_DESTDIR ON)
   SET (CPACK_PACKAGE_CONTACT "Alf <naihe2010@126.com>")
-  SET (CPACK_GENERATOR RPM DEB)
+  SET (CPACK_GENERATOR DEB)
   SET (CPACK_RPM_PACKAGE_REQUIRES "gtk2")
   SET (CPACK_DEBIAN_PACKAGE_DEPENDS
-    "libpoppler-glib3 (>= 0.8.7-4), poppler-data (>= 0.2.0-2)")
+    "libpoppler-glib8 (>= 0.8.7-4), poppler-data (>= 0.2.0-2)")
 
   SET (CPACK_SOURCE_GENERATOR TGZ)
   SET (CPACK_SOURCE_IGNORE_FILES
