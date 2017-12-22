@@ -1173,6 +1173,7 @@ namespace apvlv
     GtkAllocation allocation;
 
     gtk_widget_get_allocation(view->mViewBox, &allocation);
+    debug ("view resized: %d:%d", allocation.width, allocation.height);
     w = allocation.width - 12;
     h = allocation.height - 12;
     if (w != view->mWidth || h != view->mHeight)

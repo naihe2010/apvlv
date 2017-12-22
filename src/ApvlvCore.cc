@@ -214,7 +214,7 @@ namespace apvlv
       }
     else
       {
-	debug ("fatal a timer error, try again!");
+	//debug ("fatal a timer error, try again!");
 	return FALSE;
       }
   }

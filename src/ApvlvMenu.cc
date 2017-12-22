@@ -48,7 +48,8 @@ namespace apvlv
 
   ApvlvMenu::ApvlvMenu ()
   {
-    GtkBuilder *builder = gtk_builder_new_from_file (mainmenubar_glade.c_str());
+    GtkBuilder *builder = gtk_builder_new();
+    gtk_builder_add_from_file (builder, mainmenubar_glade.c_str(), NULL);
     gtk_builder_connect_signals (builder, NULL);
     mMenu = GTK_WIDGET (gtk_builder_get_object (builder, "main_menubar"));
   }

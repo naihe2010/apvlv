@@ -98,7 +98,7 @@ namespace apvlv
 		      G_CALLBACK (apvlv_doc_button_event), this);
     g_signal_connect (G_OBJECT (ebox), "motion-notify-event",
 		      G_CALLBACK (apvlv_doc_motion_event), this);
-    gtk_container_add (GTK_CONTAINER (mScrollwin), ebox);
+    gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mScrollwin), ebox);
 
     mImage1 = gtk_image_new ();
     gtk_box_pack_start (GTK_BOX (vbox), mImage1, TRUE, TRUE, 0);
@@ -854,7 +854,7 @@ namespace apvlv
 
     mFile = ApvlvFile::newfile (filename);
 
-    debug ("mFile = %p", mFile);
+    //debug ("mFile = %p", mFile);
     if (mFile != NULL)
       {
 	mFilestr = filename;
@@ -867,7 +867,7 @@ namespace apvlv
 	    mAutoScrollPage = false;
 	  }
 
-	debug ("pagesum () = %d", mFile->pagesum ());
+	//debug ("pagesum () = %d", mFile->pagesum ());
 
 	if (mCurrentCache1 != NULL)
 	  {
@@ -1001,7 +1001,7 @@ namespace apvlv
     if (rp < 0)
       return;
 
-    debug ("show page: %d", rp);
+    //debug ("show page: %d", rp);
     mAdjInchg = true;
 
     if (mAutoScrollPage && mContinuous && !mAutoScrollDoc)
@@ -1026,7 +1026,7 @@ namespace apvlv
       {
 	mZoominit = true;
 	setzoom (NULL);
-	debug ("zoom rate: %f", mZoomrate);
+	//debug ("zoom rate: %f", mZoomrate);
       }
 
     refresh ();
@@ -1858,7 +1858,7 @@ namespace apvlv
                                               ac->mWidth, ac->mHeight,
                                               3 * ac->mWidth,
                                               NULL, NULL);
-    debug ("ac->mFile: %p", ac->mFile);
+    //debug ("ac->mFile: %p", ac->mFile);
     ac->mFile->render (ac->mPagenum, ac->mWidth, ac->mHeight, ac->mZoom,
                        ac->mRotate, bu, (char *) dat);
     if (ac->mInverted)
@@ -1873,7 +1873,7 @@ namespace apvlv
 	delete ac->mLinks;
       }
     ac->mLinks = ac->mFile->getlinks (ac->mPagenum);
-    debug ("has mLinkMappings: %p", ac->mLinks);
+    //debug ("has mLinkMappings: %p", ac->mLinks);
 
     ac->mData = dat;
     ac->mBuf = bu;

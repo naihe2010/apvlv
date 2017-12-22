@@ -177,7 +177,7 @@ namespace apvlv
     mStore =
       gtk_tree_store_new (3, G_TYPE_POINTER, G_TYPE_OBJECT, G_TYPE_STRING);
     mDirView = gtk_tree_view_new_with_model (GTK_TREE_MODEL (mStore));
-    gtk_container_add (GTK_CONTAINER (mScrollwin), mDirView);
+    gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mScrollwin), mDirView);
     gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (mDirView), FALSE);
 
     mSelection = gtk_tree_view_get_selection (GTK_TREE_VIEW (mDirView));

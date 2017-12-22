@@ -59,7 +59,7 @@ namespace apvlv
     mRotatevalue = 0;
 
     mHtmlView = GTK_WIDGET (apvlv_html_new_webview ());
-    gtk_container_add (GTK_CONTAINER (mScrollwin), mHtmlView);
+    gtk_scrolled_window_add_with_viewport (mScrollwin, mHtmlView);
 
     mStatus = new ApvlvHTMLStatus (this);
 
@@ -443,7 +443,7 @@ namespace apvlv
   ApvlvHTML::apvlv_html_replace_webview (WebKitWebView *view, ApvlvHTML *htm)
   {
     gtk_container_remove (GTK_CONTAINER (htm->mScrollwin), htm->mHtmlView);
-    gtk_container_add (GTK_CONTAINER (htm->mScrollwin), GTK_WIDGET (view));
+    gtk_scrolled_window_add_with_viewport (htm->mScrollwin, GTK_WIDGET (view));
     htm->mHtmlView = GTK_WIDGET (view);
     gtk_widget_show_all (htm->mScrollwin);
     return TRUE;
