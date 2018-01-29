@@ -148,6 +148,7 @@ namespace apvlv
     int mCmdType;
 
     guint mProCmd;
+    int   mProCmdCnt;
 
     GtkWidget *mMainWindow;
 
