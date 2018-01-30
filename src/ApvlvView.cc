@@ -59,6 +59,7 @@ namespace apvlv
   ApvlvView::ApvlvView (const char *filename):mCurrTabPos (-1)
   {
     mProCmd = 0;
+    mProCmdCnt = 0;
 
     mCurrHistroy = -1;
 
@@ -833,6 +834,7 @@ namespace apvlv
   {
     guint procmd = mProCmd;
     mProCmd = 0;
+    mProCmdCnt = 0;
     switch (procmd)
       {
       case CTRL ('w'):
@@ -856,15 +858,21 @@ namespace apvlv
 	break;
 
       case 'g':
-	if (ct == 0)
-	  ct = 1;
-
-	if (key == 't')
-	  switchtab (mCurrTabPos + ct);
-	else if (key == 'T')
-	  switchtab (mCurrTabPos - ct);
-	else if (key == 'g')
-	  crtadoc ()->showpage (0);
+	if (key == 't'){
+	  if (ct == 0)
+	    switchtab (mCurrTabPos+1);
+	  else
+	    switchtab (ct-1);
+        }else if (key == 'T'){
+	  if (ct == 0)
+	    switchtab (mCurrTabPos-1);
+	  else
+	    switchtab (ct-1);
+        }else if (key == 'g'){
+	  if (ct == 0)
+	    ct = 1;
+	  crtadoc ()->showpage (ct-1);
+        }
 	break;
 
       default:
@@ -879,13 +887,14 @@ namespace apvlv
   {
     if (mProCmd != 0)
       {
-	return subprocess (ct, key);
+	return subprocess (mProCmdCnt, key);
       }
 
     switch (key)
       {
       case CTRL ('w'):
 	mProCmd = CTRL ('w');
+        mProCmdCnt = has ? ct : 0;
 	return NEED_MORE;
 	break;
       case 'q':
@@ -896,6 +905,7 @@ namespace apvlv
 	break;
       case 'g':
 	mProCmd = 'g';
+        mProCmdCnt = has ? ct : 0;
 	return NEED_MORE;
       default:
 	return crtadoc ()->process (has, ct, key);

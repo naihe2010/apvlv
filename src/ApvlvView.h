@@ -42,11 +42,11 @@
 namespace apvlv
 {
   typedef enum
-  {
-    SEARCH = '/',
-    BACKSEARCH = '?',
-    COMMANDMODE = ':'
-  } cmd_mode_type;
+    {
+      SEARCH = '/',
+      BACKSEARCH = '?',
+      COMMANDMODE = ':'
+    } cmd_mode_type;
 
   class ApvlvDoc;
   class ApvlvWindow;
@@ -148,6 +148,7 @@ namespace apvlv
     int mCmdType;
 
     guint mProCmd;
+    int   mProCmdCnt;
 
     GtkWidget *mMainWindow;
 
@@ -165,7 +166,7 @@ namespace apvlv
 
       int numwindows;
       TabEntry (ApvlvWindow * _r, ApvlvWindow * _c, int _n):root (_r),
-	curr (_c), numwindows (_n)
+                                                            curr (_c), numwindows (_n)
       {
       }
     };

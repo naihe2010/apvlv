@@ -629,9 +629,9 @@ namespace apvlv
       case 'G':
 	markposition ('\'');
 	if (!has) {
-		showpage (mFile->pagesum () - 1);
+          showpage (mFile->pagesum () - 1);
 	} else {
-		showpage (ct);
+          showpage (ct - 1);
 	}
 	break;
       case 'm':
