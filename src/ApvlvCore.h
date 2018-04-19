@@ -175,12 +175,12 @@ namespace apvlv
     string mSearchStr;
 
     enum
-    {
-      NORMAL,
-      FITWIDTH,
-      FITHEIGHT,
-      CUSTOM
-    } mZoommode;
+      {
+	NORMAL,
+	FITWIDTH,
+	FITHEIGHT,
+	CUSTOM
+      } mZoommode;
 
     double mZoomrate;
 

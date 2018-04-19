@@ -259,7 +259,7 @@ namespace apvlv
     static void apvlv_doc_monitor_callback (GFileMonitor *, GFile *, GFile *, GFileMonitorEvent, ApvlvDoc *);
 
     enum
-    { VISUAL_NONE, VISUAL_V, VISUAL_CTRL_V };
+      { VISUAL_NONE, VISUAL_V, VISUAL_CTRL_V };
     gint mInVisual;
     gint mBlankx1, mBlanky1;
     gint mBlankx2, mBlanky2;

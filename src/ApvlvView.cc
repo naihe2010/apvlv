@@ -72,9 +72,19 @@ namespace apvlv
 
     if (gParams->valueb ("fullscreen"))
       {
-	GdkScreen *scr = gdk_screen_get_default ();
-	mWidth = gdk_screen_get_width (scr);
-	mHeight = gdk_screen_get_height (scr);
+#if GTK_CHECK_VERSION(3, 0, 0)
+        GdkRectangle rect[1];
+        GdkDisplay *display = gdk_display_get_default ();
+        GdkMonitor *monitor = gdk_display_get_primary_monitor (display);
+        gdk_monitor_get_geometry (monitor, rect);
+        mWidth = rect->width;
+	mHeight = rect->height;
+#else
+        GdkScreen *scr = gdk_screen_get_default ();
+        mWidth = gdk_screen_get_width (scr);
+        mHeight = gdk_screen_get_height (scr);
+#endif
+        debug ("get screen size: %dx%d", mWidth, mHeight);
 	fullscreen ();
       }
     else

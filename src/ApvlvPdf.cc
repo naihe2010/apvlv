@@ -29,7 +29,7 @@
 #include "ApvlvPdf.h"
 
 #ifndef POPPLER_WITH_GDK
-#include <goo/gtypes.h>
+//#include <goo/gtypes.h>
 
 static void
 copy_cairo_surface_to_pixbuf (cairo_surface_t *surface,

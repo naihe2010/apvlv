@@ -177,7 +177,7 @@ namespace apvlv
     mStore =
       gtk_tree_store_new (3, G_TYPE_POINTER, G_TYPE_OBJECT, G_TYPE_STRING);
     mDirView = gtk_tree_view_new_with_model (GTK_TREE_MODEL (mStore));
-    gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mScrollwin), mDirView);
+    gtk_container_add (GTK_CONTAINER (mScrollwin), mDirView);
     gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (mDirView), FALSE);
 
     mSelection = gtk_tree_view_get_selection (GTK_TREE_VIEW (mDirView));
@@ -819,13 +819,13 @@ namespace apvlv
     for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
       {
 #if GTK_CHECK_VERSION(3, 0, 0)
-        gtk_widget_override_color (mStlab[i],
-                                   (act) ? GTK_STATE_FLAG_ACTIVE:
-                                   GTK_STATE_FLAG_INSENSITIVE, NULL);
+        gtk_widget_set_state_flags (mStlab[i],
+				    (act) ? GTK_STATE_FLAG_ACTIVE:
+				    GTK_STATE_FLAG_INSENSITIVE, TRUE);
 #else
-	gtk_widget_modify_fg (mStlab[i],
-			      (act) ? GTK_STATE_ACTIVE :
-			      GTK_STATE_INSENSITIVE, NULL);
+        gtk_widget_modify_fg (mStlab[i],
+                              (act) ? GTK_STATE_ACTIVE:
+                              GTK_STATE_INSENSITIVE, NULL);
 #endif
       }
   }

@@ -98,7 +98,11 @@ namespace apvlv
 		      G_CALLBACK (apvlv_doc_button_event), this);
     g_signal_connect (G_OBJECT (ebox), "motion-notify-event",
 		      G_CALLBACK (apvlv_doc_motion_event), this);
+#if GTK_CHECK_VERSION(3, 0, 0)
+    gtk_container_add (GTK_CONTAINER (mScrollwin), ebox);
+#else
     gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mScrollwin), ebox);
+#endif
 
     mImage1 = gtk_image_new ();
     gtk_box_pack_start (GTK_BOX (vbox), mImage1, TRUE, TRUE, 0);
@@ -1735,7 +1739,11 @@ namespace apvlv
 	g_signal_connect (item, "activate",
                           G_CALLBACK (apvlv_doc_copytoclipboard_cb), doc);
 
-	gtk_menu_popup (GTK_MENU (menu), NULL, NULL, NULL, NULL, 0, 0);
+#if GTK_CHECK_VERSION(3, 0, 0)
+	gtk_menu_popup_at_pointer (GTK_MENU (menu), NULL);
+#else
+        gtk_menu_popup (GTK_MENU (menu), NULL, NULL, NULL, NULL, 0, 0);
+#endif
       }
   }
 
@@ -2152,13 +2160,13 @@ namespace apvlv
     for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
       {
 #if GTK_CHECK_VERSION(3, 0, 0)
-        gtk_widget_override_color (mStlab[i],
-                                   (act)? GTK_STATE_FLAG_ACTIVE:
-                                   GTK_STATE_FLAG_INSENSITIVE, NULL);
+        gtk_widget_set_state_flags (mStlab[i],
+				    (act)? GTK_STATE_FLAG_ACTIVE:
+				    GTK_STATE_FLAG_INSENSITIVE, TRUE);
 #else
-	gtk_widget_modify_fg (mStlab[i],
-			      (act) ? GTK_STATE_ACTIVE :
-			      GTK_STATE_INSENSITIVE, NULL);
+        gtk_widget_modify_fg (mStlab[i],
+                              (act) ? GTK_STATE_ACTIVE:
+                              GTK_STATE_INSENSITIVE, NULL);
 #endif
       }
   }

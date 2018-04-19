@@ -81,174 +81,174 @@ namespace apvlv
 #if __cplusplus > 199711L
     if (filename == nullptr
 #else
-    if (filename == NULL
+	if (filename == NULL
 #endif
-	|| g_file_test (filename, G_FILE_TEST_IS_REGULAR) == FALSE)
-      {
-	return false;
-      }
-
-    //    debug ("load debug: %s", filename);
-    string str;
-    fstream os (filename, ios::in);
-
-    if (!os.is_open ())
-      {
-	errp ("Open configure file %s error", filename);
-	return false;
-      }
-
-    while ((getline (os, str)))
-      {
-	string argu, data, crap;
-	stringstream is (str);
-	// avoid commet line, continue next
-	is >> crap;
-	if (crap[0] == '\"' || crap == "")
+	    || g_file_test (filename, G_FILE_TEST_IS_REGULAR) == FALSE)
 	  {
-	    continue;
+	    return false;
 	  }
-	// parse the line like "set fullscreen=yes" or set "set zoom=1.5"
-	else if (crap == "set")
+
+	//    debug ("load debug: %s", filename);
+	string str;
+	fstream os (filename, ios::in);
+
+	if (!os.is_open ())
 	  {
-	    is >> argu;
-	    size_t off = argu.find ('=');
-	    if (off == string::npos)
+	    errp ("Open configure file %s error", filename);
+	    return false;
+	  }
+
+	while ((getline (os, str)))
+	  {
+	    string argu, data, crap;
+	    stringstream is (str);
+	    // avoid commet line, continue next
+	    is >> crap;
+	    if (crap[0] == '\"' || crap == "")
 	      {
-		is >> crap >> data;
-		if (crap == "=")
+		continue;
+	      }
+	    // parse the line like "set fullscreen=yes" or set "set zoom=1.5"
+	    else if (crap == "set")
+	      {
+		is >> argu;
+		size_t off = argu.find ('=');
+		if (off == string::npos)
 		  {
-		    push (argu.c_str (), data.c_str ());
+		    is >> crap >> data;
+		    if (crap == "=")
+		      {
+			push (argu.c_str (), data.c_str ());
+			continue;
+		      }
+		  }
+		else if (off < 32)
+		  {
+		    char k[32], v[32], *p;
+		    memcpy (k, argu.c_str (), off);
+		    k[off] = '\0';
+
+		    p = (char *) argu.c_str () + off + 1;
+		    while (isspace (*p))
+		      {
+			p++;
+		      }
+
+		    g_snprintf (v, sizeof v, "%s", *p ? p : "");
+
+		    p = (char *) v + strlen (v) - 1;
+		    while (isspace (*p) && p >= v)
+		      {
+			p--;
+		      }
+		    *(p + 1) = '\0';
+
+		    push (k, v);
 		    continue;
 		  }
-	      }
-	    else if (off < 32)
-	      {
-		char k[32], v[32], *p;
-		memcpy (k, argu.c_str (), off);
-		k[off] = '\0';
 
-		p = (char *) argu.c_str () + off + 1;
-		while (isspace (*p))
+		errp ("Syntax error: set: %s", str.c_str ());
+	      }
+	    // like "map n next-page"
+	    else if (crap == "map")
+	      {
+		is >> argu;
+
+		if (argu.length () == 0)
 		  {
-		    p++;
+		    errp ("map command not complete");
+		    continue;
 		  }
 
-		g_snprintf (v, sizeof v, "%s", *p ? p : "");
+		getline (is, data);
 
-		p = (char *) v + strlen (v) - 1;
-		while (isspace (*p) && p >= v)
+		while (data.length () > 0 && isspace (data[0]))
+		  data.erase (0, 1);
+
+		if (argu.length () > 0 && data.length () > 0)
 		  {
-		    p--;
+		    gCmds->buildmap (argu.c_str (), data.c_str ());
 		  }
-		*(p + 1) = '\0';
-
-		push (k, v);
-		continue;
-	      }
-
-	    errp ("Syntax error: set: %s", str.c_str ());
-	  }
-	// like "map n next-page"
-	else if (crap == "map")
-	  {
-	    is >> argu;
-
-	    if (argu.length () == 0)
-	      {
-		errp ("map command not complete");
-		continue;
-	      }
-
-	    getline (is, data);
-
-	    while (data.length () > 0 && isspace (data[0]))
-	      data.erase (0, 1);
-
-	    if (argu.length () > 0 && data.length () > 0)
-	      {
-		gCmds->buildmap (argu.c_str (), data.c_str ());
+		else
+		  {
+		    errp ("Syntax error: map: %s", str.c_str ());
+		  }
 	      }
 	    else
 	      {
-		errp ("Syntax error: map: %s", str.c_str ());
+		errp ("Unknown rc command: %s: %s", crap.c_str (), str.c_str ());
 	      }
 	  }
-	else
-	  {
-	    errp ("Unknown rc command: %s: %s", crap.c_str (), str.c_str ());
-	  }
-      }
 
-    return true;
-  }
-
-  bool ApvlvParams::push (const char *c, const char *s)
-  {
-    string cs (c), ss (s);
-    mSettings[cs] = ss;
-    return true;
-  }
-
-  bool ApvlvParams::push (string & ch, string & str)
-  {
-    mSettings[ch] = str;
-    return true;
-  }
-
-  const char *ApvlvParams::values (const char *s)
-  {
-    string ss (s);
-    map < string, string >::iterator it;
-    it = mSettings.find (ss);
-    if (it != mSettings.end ())
-      {
-	return it->second.c_str ();
-      }
-#if __cplusplus > 199711L
-    return nullptr;
-#else
-    return NULL;
-#endif
-  }
-
-  int ApvlvParams::valuei (const char *s)
-  {
-    string ss (s);
-    map < string, string >::iterator it;
-    it = mSettings.find (ss);
-    if (it != mSettings.end ())
-      {
-	return atoi (it->second.c_str ());
-      }
-    return -1;
-  }
-
-  double ApvlvParams::valuef (const char *s)
-  {
-    string ss (s);
-    map < string, string >::iterator it;
-    it = mSettings.find (ss);
-    if (it != mSettings.end ())
-      {
-	return atof (it->second.c_str ());
-      }
-    return -1.0;
-  }
-
-  bool ApvlvParams::valueb (const char *s)
-  {
-    string ss (s);
-    map < string, string >::iterator it;
-    it = mSettings.find (ss);
-    if (it != mSettings.end () && it->second.compare ("yes") == 0)
-      {
 	return true;
-      }
-    return false;
-  }
-}
+	}
 
-// Local Variables:
-// mode: c++
-// End:
+    bool ApvlvParams::push (const char *c, const char *s)
+    {
+      string cs (c), ss (s);
+      mSettings[cs] = ss;
+      return true;
+    }
+
+    bool ApvlvParams::push (string & ch, string & str)
+    {
+      mSettings[ch] = str;
+      return true;
+    }
+
+    const char *ApvlvParams::values (const char *s)
+    {
+      string ss (s);
+      map < string, string >::iterator it;
+      it = mSettings.find (ss);
+      if (it != mSettings.end ())
+	{
+	  return it->second.c_str ();
+	}
+#if __cplusplus > 199711L
+      return nullptr;
+#else
+      return NULL;
+#endif
+    }
+
+    int ApvlvParams::valuei (const char *s)
+    {
+      string ss (s);
+      map < string, string >::iterator it;
+      it = mSettings.find (ss);
+      if (it != mSettings.end ())
+	{
+	  return atoi (it->second.c_str ());
+	}
+      return -1;
+    }
+
+    double ApvlvParams::valuef (const char *s)
+    {
+      string ss (s);
+      map < string, string >::iterator it;
+      it = mSettings.find (ss);
+      if (it != mSettings.end ())
+	{
+	  return atof (it->second.c_str ());
+	}
+      return -1.0;
+    }
+
+    bool ApvlvParams::valueb (const char *s)
+    {
+      string ss (s);
+      map < string, string >::iterator it;
+      it = mSettings.find (ss);
+      if (it != mSettings.end () && it->second.compare ("yes") == 0)
+	{
+	  return true;
+	}
+      return false;
+    }
+  }
+
+  // Local Variables:
+  // mode: c++
+  // End:

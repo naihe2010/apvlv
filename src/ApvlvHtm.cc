@@ -59,7 +59,7 @@ namespace apvlv
     mRotatevalue = 0;
 
     mHtmlView = GTK_WIDGET (apvlv_html_new_webview ());
-    gtk_scrolled_window_add_with_viewport (mScrollwin, mHtmlView);
+    gtk_container_add (GTK_CONTAINER (mScrollwin), mHtmlView);
 
     mStatus = new ApvlvHTMLStatus (this);
 
@@ -337,13 +337,13 @@ namespace apvlv
     for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
       {
 #if GTK_CHECK_VERSION(3, 0, 0)
-        gtk_widget_override_color (mStlab[i],
-                                   (act)? GTK_STATE_FLAG_ACTIVE:
-                                   GTK_STATE_FLAG_INSENSITIVE, NULL);
+        gtk_widget_set_state_flags (mStlab[i],
+                                    (act)? GTK_STATE_FLAG_ACTIVE:
+                                    GTK_STATE_FLAG_INSENSITIVE, TRUE);
 #else
-	gtk_widget_modify_fg (mStlab[i],
-			      (act) ? GTK_STATE_ACTIVE :
-			      GTK_STATE_INSENSITIVE, NULL);
+        gtk_widget_modify_fg (mStlab[i],
+                              (act) ? GTK_STATE_ACTIVE:
+                              GTK_STATE_INSENSITIVE, NULL);
 #endif
       }
   }
@@ -443,7 +443,7 @@ namespace apvlv
   ApvlvHTML::apvlv_html_replace_webview (WebKitWebView *view, ApvlvHTML *htm)
   {
     gtk_container_remove (GTK_CONTAINER (htm->mScrollwin), htm->mHtmlView);
-    gtk_scrolled_window_add_with_viewport (htm->mScrollwin, GTK_WIDGET (view));
+    gtk_container_add (GTK_CONTAINER (htm->mScrollwin), GTK_WIDGET (view));
     htm->mHtmlView = GTK_WIDGET (view);
     gtk_widget_show_all (htm->mScrollwin);
     return TRUE;

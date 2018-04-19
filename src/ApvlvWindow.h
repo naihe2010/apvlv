@@ -53,7 +53,7 @@ namespace apvlv
      * So, ANY user interface function can only get the AW_DOC window
      * */
     enum windowType
-    { AW_SP, AW_VSP, AW_CORE, AW_NONE } type;
+      { AW_SP, AW_VSP, AW_CORE, AW_NONE } type;
 
     ApvlvWindow *birth (bool vsp, ApvlvCore * core = NULL);
 
