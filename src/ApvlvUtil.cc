@@ -29,6 +29,7 @@
 #include "ApvlvUtil.h"
 
 #include <gtk/gtk.h>
+#include <glib/gstdio.h>
 
 #ifndef WIN32
 #include <sys/wait.h>
@@ -118,6 +119,23 @@ namespace apvlv
     return g_strdup (abpath);
   }
 
+  gint strv_find (const gchar **strv, const gchar *key, gboolean cas)
+  {
+    for (gsize i=0; i<g_strv_length((gchar **) strv); ++ i)
+      {
+        if (cas && g_ascii_strcasecmp (strv[i], key) == 0)
+          {
+            return (gint) i;
+          }
+        else if (cas == FALSE && g_strcmp0 (strv[i], key) == 0)
+          {
+            return (gint) i;
+          }
+      }
+
+    return -1;
+  }
+
   gboolean walkdir (const char *name, gboolean (*cb) (const char *, void *),
 		    void *usrp)
   {
@@ -180,6 +198,42 @@ namespace apvlv
     return ok;
   }
 
+  bool rmrf (const char *path)
+  {
+    GDir *dir = g_dir_open (path, 0, NULL);
+    if (dir == NULL)
+      {
+	debug ("Open dir: %s failed", path);
+	return FALSE;
+      }
+
+    const gchar *token;
+    while ((token = g_dir_read_name (dir)) != NULL)
+      {
+	gchar *subname = g_strjoin (PATH_SEP_S, path, token, NULL);
+	if (subname == NULL)
+	  {
+	    continue;
+	  }
+
+	if (g_file_test (subname, G_FILE_TEST_IS_REGULAR) == TRUE)
+	  {
+	    g_unlink (subname);
+	  }
+	else if (g_file_test (subname, G_FILE_TEST_IS_DIR) == TRUE)
+	  {
+	    rmrf (subname);
+	  }
+
+        g_free (subname);
+      }
+
+    g_dir_close (dir);
+
+    g_rmdir (path);
+
+    return TRUE;
+  }
   // replace a widget with a new widget
   // return the parent widget
   GtkWidget *replace_widget (GtkWidget * owid, GtkWidget * nwid)

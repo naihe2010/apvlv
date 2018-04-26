@@ -475,8 +475,9 @@ namespace apvlv
 
 	if (ndoc == NULL)
 	  {
+            DISPLAY_TYPE type = get_display_type_by_filename (name);
 	    ndoc =
-	      new ApvlvDoc (mWidth, mHeight, gParams->values ("zoom"),
+	      new ApvlvDoc (type, mWidth, mHeight, gParams->values ("zoom"),
 			    gParams->valueb ("cache"));
 	    if (!ndoc->loadfile (name))
 	      {
@@ -487,8 +488,10 @@ namespace apvlv
       }
     else
       {
+        const char *name = filename ();
+        DISPLAY_TYPE type = get_display_type_by_filename (name);
 	ndoc =
-	  new ApvlvDoc (mWidth, mHeight, gParams->values ("zoom"),
+	  new ApvlvDoc (type, mWidth, mHeight, gParams->values ("zoom"),
 			gParams->valueb ("cache"));
 	if (!ndoc->loadfile (filename ()))
 	  {
@@ -901,6 +904,12 @@ namespace apvlv
 
     if (g_ascii_strncasecmp (basename + strlen (basename) - 4, ".pdf", 4)
 	!= 0
+	&& g_ascii_strncasecmp (basename + strlen (basename) - 4,
+				".htm", 4) != 0
+	&& g_ascii_strncasecmp (basename + strlen (basename) - 5,
+				".html", 5) != 0
+	&& g_ascii_strncasecmp (basename + strlen (basename) - 5,
+				".epub", 5) != 0
 #ifdef APVLV_WITH_DJVU
 	&& g_ascii_strncasecmp (basename + strlen (basename) - 5,
 				".djvu", 5) != 0
@@ -914,12 +923,6 @@ namespace apvlv
 #ifdef APVLV_WITH_UMD
 	&& g_ascii_strncasecmp (basename + strlen (basename) - 4,
 				".umd", 4) != 0
-#endif
-#ifdef APVLV_WITH_HTML
-	&& g_ascii_strncasecmp (basename + strlen (basename) - 4,
-				".htm", 4) != 0
-	&& g_ascii_strncasecmp (basename + strlen (basename) - 4,
-				".html", 5) != 0
 #endif
 	)
       {
@@ -1038,6 +1041,12 @@ namespace apvlv
 	      }
 	    else if (g_ascii_strncasecmp (name + strlen (name) - 4, ".pdf", 4)
 		     == 0
+		     || g_ascii_strncasecmp (name + strlen (name) - 4,
+					     ".htm", 4) == 0
+		     || g_ascii_strncasecmp (name + strlen (name) - 5,
+					     ".html", 5) == 0
+		     || g_ascii_strncasecmp (name + strlen (name) - 5,
+					     ".epub", 5) == 0
 #ifdef APVLV_WITH_DJVU
 		     || g_ascii_strncasecmp (name + strlen (name) - 5,
 					     ".djvu", 5) == 0
@@ -1051,12 +1060,6 @@ namespace apvlv
 #ifdef APVLV_WITH_UMD
 		     || g_ascii_strncasecmp (name + strlen (name) - 4,
 					     ".umd", 4) == 0
-#endif
-#ifdef APVLV_WITH_HTML
-		     || g_ascii_strncasecmp (name + strlen (name) - 4,
-					     ".htm", 4) == 0
-		     || g_ascii_strncasecmp (name + strlen (name) - 4,
-					     ".html", 5) == 0
 #endif
 		     )
 	      {

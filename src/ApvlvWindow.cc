@@ -45,7 +45,7 @@ namespace apvlv
     type = AW_CORE;
     if (doc == NULL)
       {
-	mCore = new ApvlvDoc (0, 0, gParams->values ("zoom"));
+	mCore = new ApvlvDoc (DISPLAY_TYPE_IMAGE, 0, 0, gParams->values ("zoom"));
       }
     else
       {
@@ -210,7 +210,7 @@ namespace apvlv
     ApvlvWindow *cw, *w, *nw, *fw;
     bool right = false;
 
-    asst (this && type == AW_CORE);
+    asst (type == AW_CORE);
     for (cw = fw = NULL, w = this; w != NULL; cw = w, w = w->m_parent)
       {
 	if (w->type == AW_SP)
@@ -269,7 +269,7 @@ namespace apvlv
     ApvlvWindow *cw, *w, *nw, *fw;
     bool down = false;
 
-    asst (this && type == AW_CORE);
+    asst (type == AW_CORE);
     for (cw = fw = NULL, w = this; w != NULL; cw = w, w = w->m_parent)
       {
 	if (w->type == AW_VSP)

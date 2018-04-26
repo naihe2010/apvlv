@@ -34,6 +34,7 @@
 
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
+#include <webkit/webkit.h>
 
 #include <cstdlib>
 #include <cmath>
@@ -47,7 +48,21 @@ namespace apvlv
   static GtkPrintSettings *settings = NULL;
   const int APVLV_DOC_CURSOR_WIDTH = 2;
 
-  ApvlvDoc::ApvlvDoc (int w, int h, const char *zm, bool cache)
+  DISPLAY_TYPE get_display_type_by_filename (const char *name)
+  {
+    DISPLAY_TYPE type = DISPLAY_TYPE_IMAGE;
+
+    if (g_ascii_strcasecmp (name + strlen (name) - 4, ".htm") == 0
+        || g_ascii_strcasecmp (name + strlen (name) - 5, ".html") == 0
+        || g_ascii_strcasecmp (name + strlen (name) - 5, ".epub") == 0)
+      {
+        type = DISPLAY_TYPE_HTML;
+      }
+
+    return type;
+  }
+
+  ApvlvDoc::ApvlvDoc (DISPLAY_TYPE type, int w, int h, const char *zm, bool cache)
   {
     mCurrentCache1 = mCurrentCache2 = NULL;
 
@@ -56,8 +71,12 @@ namespace apvlv
     mAdjInchg = false;
 
     mAutoScrollPage = gParams->valueb ("autoscrollpage");
-    mAutoScrollDoc = gParams->valueb ("autoscrolldoc");;
-    mContinuous = gParams->valueb ("continuous");;
+    mAutoScrollDoc = gParams->valueb ("autoscrolldoc");
+    mContinuous = gParams->valueb ("continuous");
+    if (type != 0)
+      {
+        mContinuous = false;
+      }
 
     mZoominit = false;
 
@@ -104,12 +123,21 @@ namespace apvlv
     gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mScrollwin), ebox);
 #endif
 
-    mImage1 = gtk_image_new ();
-    gtk_box_pack_start (GTK_BOX (vbox), mImage1, TRUE, TRUE, 0);
-    if (mAutoScrollPage && mContinuous)
+    mDisplayType = type;
+    if (type == 0)
       {
-	mImage2 = gtk_image_new ();
-	gtk_box_pack_start (GTK_BOX (vbox), mImage2, TRUE, TRUE, 0);
+        mImg1 = gtk_image_new ();
+        gtk_box_pack_start (GTK_BOX (vbox), mImg1, TRUE, TRUE, 0);
+        if (mAutoScrollPage && mContinuous)
+          {
+            mImg2 = gtk_image_new ();
+            gtk_box_pack_start (GTK_BOX (vbox), mImg2, TRUE, TRUE, 0);
+          }
+      }
+    else if (type == 1)
+      {
+        mWeb1 = webkit_web_view_new ();
+        gtk_box_pack_start (GTK_BOX (vbox), mWeb1, TRUE, TRUE, 0);
       }
 
     g_signal_connect (G_OBJECT (mVaj), "value-changed",
@@ -257,6 +285,11 @@ namespace apvlv
   {
     //    debug ("bx: %d, by: %d", bx, by);
 
+    if (mDisplayType != 0)
+      {
+        return;
+      }
+
     ApvlvDocCache *cache = mCurrentCache1;
     gint rate = cache->getheight () / mLines;
 
@@ -392,18 +425,18 @@ namespace apvlv
 	  {
 	    mCurrentCache2->getdata (true);
 	    GdkPixbuf *p = mCurrentCache2->getbuf (true);
-	    gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), p);
+	    gtk_image_set_from_pixbuf (GTK_IMAGE (mImg2), p);
 	  }
 
-	gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), pixbuf);
+	gtk_image_set_from_pixbuf (GTK_IMAGE (mImg1), pixbuf);
       }
     else
       {
 	mCurrentCache1->getdata (true);
 	GdkPixbuf *p = mCurrentCache1->getbuf (true);
-	gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), p);
+	gtk_image_set_from_pixbuf (GTK_IMAGE (mImg1), p);
 
-	gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), pixbuf);
+	gtk_image_set_from_pixbuf (GTK_IMAGE (mImg2), pixbuf);
       }
   }
 
@@ -698,7 +731,7 @@ namespace apvlv
   {
     char rate[16];
     g_snprintf (rate, sizeof rate, "%f", mZoomrate);
-    ApvlvDoc *ndoc = new ApvlvDoc (mWidth, mHeight, rate, usecache ());
+    ApvlvDoc *ndoc = new ApvlvDoc (mDisplayType, mWidth, mHeight, rate, usecache ());
     ndoc->loadfile (mFilestr, false);
     ndoc->showpage (mPagenum, scrollrate ());
     return ndoc;
@@ -770,26 +803,14 @@ namespace apvlv
 	return false;
       }
 
-    if (gParams->valueb ("noinfo"))
-      {
-	showpage (0);
-	return false;
-      }
-
     bool ret = false;
 
     infofile *fp = gInfo->file (filename);
-
 
     // correctly check
     mScrollvalue = fp->rate;
     showpage (fp->page);
     setskip (fp->skip);
-
-    // Warning
-    // I can't think a better way to scroll correctly when
-    // the page is not be displayed correctly
-    g_timeout_add (50, apvlv_doc_first_scroll_cb, this);
 
     return ret;
   }
@@ -1030,7 +1051,7 @@ namespace apvlv
       {
 	mZoominit = true;
 	setzoom (NULL);
-	//debug ("zoom rate: %f", mZoomrate);
+	debug ("zoom rate: %f", mZoomrate);
       }
 
     refresh ();
@@ -1053,18 +1074,24 @@ namespace apvlv
     if (mFile == NULL)
       return;
 
-    mCurrentCache1->set (mPagenum, mZoomrate, mRotatevalue, false);
-    GdkPixbuf *buf = mCurrentCache1->getbuf (true);
-    gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), buf);
-
-    if (mAutoScrollPage && mContinuous)
+    if (mDisplayType == 0)
       {
-	mCurrentCache2->set (convertindex (mPagenum + 1), mZoomrate,
-			     mRotatevalue, false);
-	buf = mCurrentCache2->getbuf (true);
-	gtk_image_set_from_pixbuf (GTK_IMAGE (mImage2), buf);
-      }
+        mCurrentCache1->set (mPagenum, mZoomrate, mRotatevalue, false);
+        GdkPixbuf *buf = mCurrentCache1->getbuf (true);
+        gtk_image_set_from_pixbuf (GTK_IMAGE (mImg1), buf);
 
+        if (mAutoScrollPage && mContinuous)
+          {
+            mCurrentCache2->set (convertindex (mPagenum + 1), mZoomrate,
+                                 mRotatevalue, false);
+            buf = mCurrentCache2->getbuf (true);
+            gtk_image_set_from_pixbuf (GTK_IMAGE (mImg2), buf);
+          }
+      }
+    else if (mDisplayType == 1)
+      {
+        mFile->renderweb (mPagenum, 0, 0, mZoomrate, mRotatevalue, mWeb1);
+      }
     mStatus->show (mContinuous);
   }
 
@@ -1202,7 +1229,7 @@ namespace apvlv
 			     mCurrentCache1->getheight (), mZoomrate,
 			     mRotatevalue, pixbuf, (char *) pagedata,
 			     mSearchSelect, mSearchResults);
-    gtk_image_set_from_pixbuf (GTK_IMAGE (mImage1), pixbuf);
+    gtk_image_set_from_pixbuf (GTK_IMAGE (mImg1), pixbuf);
     debug ("helight num: %d", mPagenum);
   }
 
@@ -1622,19 +1649,6 @@ namespace apvlv
       {
 	doc->scrollup (1);
       }
-  }
-
-  gboolean ApvlvDoc::apvlv_doc_first_scroll_cb (gpointer data)
-  {
-    ApvlvDoc *doc = (ApvlvDoc *) data;
-    gboolean retry = doc->scrollto (doc->mScrollvalue) == TRUE ? FALSE : TRUE;
-    if (!retry)
-      {
-	doc->blank (0,
-		    doc->mScrollvalue * (gtk_adjustment_get_upper(doc->mVaj) - gtk_adjustment_get_lower(doc->mVaj) -
-					 gtk_adjustment_get_page_size(doc->mVaj)));
-      }
-    return retry;
   }
 
   gboolean ApvlvDoc::apvlv_doc_first_copy_cb (gpointer data)

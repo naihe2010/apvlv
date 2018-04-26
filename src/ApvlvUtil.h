@@ -64,7 +64,11 @@ namespace apvlv
 
   char *absolutepath (const char *path);
 
+  gint strv_find (const gchar **strv, const gchar *key, gboolean cas);
+
   bool filecpy (const char *dst, const char *src);
+
+  bool rmrf (const char *path);
 
 #define CORE_NONE       0
 #define CORE_DOC        1

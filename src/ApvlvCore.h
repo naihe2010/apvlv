@@ -152,6 +152,10 @@ namespace apvlv
   protected:
     ApvlvFile * mFile;
 
+    bool mAutoScrollPage;
+    bool mAutoScrollDoc;
+    bool mContinuous;
+
     bool mReady;
 
     bool mInuse;

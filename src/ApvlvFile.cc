@@ -27,6 +27,8 @@
 
 #include "ApvlvFile.h"
 #include "ApvlvPdf.h"
+#include "ApvlvHtm.h"
+#include "ApvlvEpub.h"
 #include "ApvlvUtil.h"
 #include "ApvlvView.h"
 
@@ -38,9 +40,6 @@
 #endif
 #ifdef APVLV_WITH_UMD
 #include "ApvlvUmd.h"
-#endif
-#ifdef APVLV_WITH_HTML
-#include "ApvlvHtm.h"
 #endif
 
 #include <glib.h>
@@ -78,6 +77,9 @@ namespace apvlv
     static const char *type_phrase[] =
       {
 	".pdf",
+        ".html",
+        ".htm",
+        ".epub",
 	".djv",
 	".djvu",
 	".txt",
@@ -85,7 +87,7 @@ namespace apvlv
       };
 
     size_t i;
-    for (i = 0; i < 5; ++ i)
+    for (i = 0; i < 8; ++ i)
       {
 	if (strcasecmp (filename + strlen (filename) - strlen (type_phrase[i]),
 			type_phrase[i]) == 0)
@@ -94,12 +96,13 @@ namespace apvlv
 	  }
       }
 
-    if (i == 5)
+    if (i == 8)
       {
 	debug ("not a valid file: %s, treate as a PDF file", filename);
 	i = 0;
       }
 
+    file = NULL;
     try
       {
 	switch (i)
@@ -110,26 +113,29 @@ namespace apvlv
 
 	  case 1:
 	  case 2:
+            file = new ApvlvHTML (filename);
+            break;
+
+          case 3:
+            file = new ApvlvEPUB (filename);
+            break;
+
+          case 4:
+          case 5:
 #ifdef APVLV_WITH_DJVU
 	    file = new ApvlvDJVU (filename);
-#else
-	    file = NULL;
 #endif
 	    break;
 
-	  case 3:
+	  case 6:
 #ifdef APVLV_WITH_TXT
 	    file = new ApvlvTXT (filename);
-#else
-	    file = NULL;
 #endif
 	    break;
 
-	  case 4:
+	  case 7:
 #ifdef APVLV_WITH_UMD
 	    file = new ApvlvUMD (filename);
-#else
-	    file = NULL;
 #endif
 	    break;
 
@@ -147,6 +153,16 @@ namespace apvlv
     return file;
   }
 
+  bool ApvlvFile::render (int pn, int ix, int iy, double zm, int rot,
+			  GdkPixbuf * pix, char *buffer)
+  {
+    return false;
+  }
+
+  bool ApvlvFile::renderweb (int pn, int, int, double, int, GtkWidget *widget)
+  {
+    return false;
+  }
 }
 
 // Local Variables:

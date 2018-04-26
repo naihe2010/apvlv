@@ -19,31 +19,30 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/* @CPPFILE ApvlvHtm.h
+/* @CPPFILE ApvlvEpub.h
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2011/09/16 13:50:49 Alf*/
+/* @date Created: 2018/04/19 13:50:49 Alf*/
 
-#ifndef _APVLV_HTM_H_
-#define _APVLV_HTM_H_
+#ifndef _APVLV_EPUB_H_
+#define _APVLV_EPUB_H_
 
 #include "ApvlvFile.h"
 
+#include <epub.h>
 #include <gtk/gtk.h>
-#include <webkit/webkit.h>
+#include <libxml/parser.h>
+
+#include <map>
 
 namespace apvlv
 {
-  const double HTML_DEFAULT_WIDTH = 800;
-  const double HTML_DEFAULT_HEIGHT = 800;
-  
-  class ApvlvHTML:public ApvlvFile
+  class ApvlvEPUB:public ApvlvFile
   {
   public:
-    ApvlvHTML (const char *, bool check=true);
-
-    ~ApvlvHTML ();
+    ApvlvEPUB(const char *, bool check=true);
+    ~ApvlvEPUB();
 
     bool writefile (const char *filename);
 
@@ -55,7 +54,8 @@ namespace apvlv
 
     bool renderweb (int pn, int ix, int iy, double zm, int rot, GtkWidget *widget);
 
-    ApvlvPoses *pagesearch (int pn, const char *str, bool reverse = false);
+    ApvlvPoses *pagesearch (int pn, const char *str, bool reverse =
+			    false);
 
     bool pageselectsearch (int, int, int, double, int,
                            GdkPixbuf *, char *, int, ApvlvPoses *);
@@ -69,7 +69,23 @@ namespace apvlv
     bool pageprint (int pn, cairo_t * cr);
 
   private:
-    string mUri;
+    string container_get_contentfile (const char *container, int len);
+
+    std::map <string, string> content_get_media (struct epub *epub, string contentfile);
+
+    ApvlvFileIndex * ncx_get_index (struct epub* epub, string ncxfile);
+
+    ApvlvFileIndex ncx_node_get_index (xmlNodePtr node, string ncxfile);
+
+    bool generate_pages ();
+    
+    bool generate_page (string srcpath, std::vector <string> seps);
+    
+    gchar *mRoot;
+
+    ApvlvFileIndex *mIndex;
+
+    std::map <int, string> mPages;
   };
 
 }

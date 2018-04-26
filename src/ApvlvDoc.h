@@ -71,6 +71,14 @@ namespace apvlv
     vector < ApvlvWord > mWords;
   };
 
+  typedef enum {
+    DISPLAY_TYPE_IMAGE = 0,
+    DISPLAY_TYPE_HTML = 1,
+    DISPLAY_TYPE_COUNT,
+  } DISPLAY_TYPE;
+
+  DISPLAY_TYPE get_display_type_by_filename (const char *filename);
+
   class ApvlvDoc;
   class ApvlvDocCache
   {
@@ -82,8 +90,6 @@ namespace apvlv
     void set (guint p, double zm, guint rot, bool delay = true);
 
     static void load (ApvlvDocCache *);
-
-    PopplerPage *getpage ();
 
     guint getpagenum ();
 
@@ -145,7 +151,7 @@ namespace apvlv
   class ApvlvDoc:public ApvlvCore
   {
   public:
-    ApvlvDoc (int w, int h, const char *zm = "NORMAL", bool cache = false);
+    ApvlvDoc (DISPLAY_TYPE type, int w, int h, const char *zm = "NORMAL", bool cache = false);
 
     ~ApvlvDoc ();
 
@@ -236,8 +242,6 @@ namespace apvlv
 
     static void apvlv_doc_on_mouse (GtkAdjustment *, ApvlvDoc *);
 
-    static gboolean apvlv_doc_first_scroll_cb (gpointer);
-
     static gboolean apvlv_doc_first_copy_cb (gpointer);
 
     static void apvlv_doc_button_event (GtkEventBox * box,
@@ -273,12 +277,10 @@ namespace apvlv
     ApvlvDocCache *newcache (int pagenum);
     void deletecache (ApvlvDocCache * ac);
 
-    bool mAutoScrollPage;
-    bool mAutoScrollDoc;
-    bool mContinuous;
-
+    DISPLAY_TYPE mDisplayType;
     // image viewer
-    GtkWidget *mImage1, *mImage2;
+    GtkWidget *mImg1, *mImg2;
+    GtkWidget *mWeb1, *mWeb2;
   };
 
 }

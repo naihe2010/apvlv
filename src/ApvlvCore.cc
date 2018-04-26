@@ -238,9 +238,9 @@ namespace apvlv
       }
     else
       {
-	if (gParams->valueb ("autoscrollpage"))
+	if (mAutoScrollPage)
 	  {
-	    if (gParams->valueb ("continuous"))
+	    if (mContinuous)
 	      {
 		showpage (mPagenum - 1,
 			  ((gtk_adjustment_get_upper(mVaj) / 2) - mVrate * times) / (sub -
@@ -275,9 +275,9 @@ namespace apvlv
       }
     else
       {
-	if (gParams->valueb ("autoscrollpage"))
+	if (mAutoScrollPage)
 	  {
-	    if (gParams->valueb ("continuous"))
+	    if (mContinuous)
 	      {
 		showpage (mPagenum + 1, (sub - gtk_adjustment_get_page_size(mVaj)) / 2 / sub);
 	      }

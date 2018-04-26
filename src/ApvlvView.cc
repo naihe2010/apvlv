@@ -32,9 +32,8 @@
 #include "ApvlvCmds.h"
 #include "ApvlvView.h"
 
-#ifdef APVLV_WITH_HTML
-# include "ApvlvHtm.h"
-#endif
+#include "ApvlvHtm.h"
+#include "ApvlvEpub.h"
 
 #include <glib.h>
 #include <glib/gprintf.h>
@@ -225,6 +224,14 @@ namespace apvlv
     gtk_file_filter_add_mime_type (filter, "PDF File");
     gtk_file_filter_add_pattern (filter, "*.pdf");
     gtk_file_filter_add_pattern (filter, "*.PDF");
+    gtk_file_filter_add_mime_type (filter, "HTML File");
+    gtk_file_filter_add_pattern (filter, "*.HTM");
+    gtk_file_filter_add_pattern (filter, "*.htm");
+    gtk_file_filter_add_pattern (filter, "*.HTML");
+    gtk_file_filter_add_pattern (filter, "*.html");
+    gtk_file_filter_add_mime_type (filter, "ePub File");
+    gtk_file_filter_add_pattern (filter, "*.EPUB");
+    gtk_file_filter_add_pattern (filter, "*.epub");
 #ifdef APVLV_WITH_DJVU
     gtk_file_filter_add_mime_type (filter, "DJVU File");
     gtk_file_filter_add_pattern (filter, "*.DJV");
@@ -242,13 +249,6 @@ namespace apvlv
     gtk_file_filter_add_pattern (filter, "*.UMD");
     gtk_file_filter_add_pattern (filter, "*.umd");
 #endif
-#ifdef APVLV_WITH_HTML
-    gtk_file_filter_add_mime_type (filter, "HTML File");
-    gtk_file_filter_add_pattern (filter, "*.HTM");
-    gtk_file_filter_add_pattern (filter, "*.htm");
-    gtk_file_filter_add_pattern (filter, "*.HTML");
-    gtk_file_filter_add_pattern (filter, "*.html");
-#endif
     gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dia), filter);
 
     gint ret = gtk_dialog_run (GTK_DIALOG (dia));
@@ -256,20 +256,7 @@ namespace apvlv
       {
 	gchar *filename =
 	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dia));
-
-#ifdef APVLV_WITH_HTML
-	if (g_ascii_strcasecmp (filename + strlen (filename) - 4,
-				".htm") == 0
-	    || g_ascii_strcasecmp (filename + strlen (filename) - 5,
-				   ".html") == 0)
-	  {
-	    loadhtml (filename);
-	  }
-	else
-#endif
-	  {
-	    loadfile (filename);
-	  }
+        loadfile (filename);
 	g_free (filename);
       }
     gtk_widget_destroy (dia);
@@ -326,29 +313,6 @@ namespace apvlv
     return true;
   }
 
-#ifdef APVLV_WITH_HTML
-  bool ApvlvView::loadhtml (const char *path)
-  {
-    ApvlvCore *ndoc = hasloaded (path, CORE_DIR);
-    if (ndoc == NULL)
-      {
-	int w, h;
-	currentWindow ()->getsize (&w, &h);
-	ndoc = new ApvlvHTML (w, h);
-	if (!ndoc->loadfile (path))
-	  {
-	    delete ndoc;
-	    return false;
-	  }
-	regloaded (ndoc);
-      }
-
-    currentWindow ()->setCore (ndoc);
-    updatetabname ();
-    return true;
-  }
-#endif
-
   bool ApvlvView::loadfile (string file)
   {
     return loadfile (file.c_str ());
@@ -401,8 +365,9 @@ namespace apvlv
 
 	if (ndoc == NULL)
 	  {
+            DISPLAY_TYPE type = get_display_type_by_filename (filename);
 	    ndoc =
-	      new ApvlvDoc (mWidth, mHeight, gParams->values ("zoom"), false);
+	      new ApvlvDoc (type, mWidth, mHeight, gParams->values ("zoom"), false);
 	    if (!ndoc->loadfile (filename))
 	      {
 		delete ndoc;
@@ -560,7 +525,8 @@ namespace apvlv
 
 	if (ndoc == NULL)
 	  {
-	    ndoc = new ApvlvDoc (w, h, gParams->values ("zoom"), false);
+            DISPLAY_TYPE type = get_display_type_by_filename (filename);
+	    ndoc = new ApvlvDoc (type, w, h, gParams->values ("zoom"), false);
 	    if (!ndoc->loadfile (filename))
 	      {
 		delete ndoc;
@@ -613,8 +579,10 @@ namespace apvlv
 	std::vector < ApvlvCore * >::iterator itr = mDocs.begin ();
 	debug ("to pdf cache size: %d, remove first: %p\n",
 	       gParams->valuei ("pdfcache"), *itr);
+        delete *itr;
 	mDocs.erase (itr);
       }
+    
     mDocs.push_back (core);
   }
 
@@ -1021,16 +989,6 @@ namespace apvlv
 	      {
 		ret = loaddir (subcmd.c_str ());
 	      }
-#ifdef APVLV_WITH_HTML
-	    else if (g_ascii_strncasecmp (subcmd.c_str (), "http://", 7) == 0
-		     || g_ascii_strcasecmp (subcmd.c_str () + subcmd.length () - 4,
-					    ".htm") == 0
-		     || g_ascii_strcasecmp (subcmd.c_str () + subcmd.length () - 5,
-					    ".html") == 0)
-	      {
-		ret = loadhtml (subcmd.c_str ());
-	      }
-#endif
 	    else if (g_file_test (subcmd.c_str (), G_FILE_TEST_EXISTS))
 	      {
 		ret = loadfile (subcmd.c_str ());
@@ -1193,7 +1151,7 @@ namespace apvlv
     GtkAllocation allocation;
 
     gtk_widget_get_allocation(view->mViewBox, &allocation);
-    debug ("view resized: %d:%d", allocation.width, allocation.height);
+    //debug ("view resized: %d:%d", allocation.width, allocation.height);
     w = allocation.width - 12;
     h = allocation.height - 12;
     if (w != view->mWidth || h != view->mHeight)

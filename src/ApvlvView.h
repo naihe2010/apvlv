@@ -86,10 +86,6 @@ namespace apvlv
 
     bool loaddir (const char *path);
 
-#ifdef APVLV_WITH_HTML
-    bool loadhtml (const char *path);
-#endif
-
     ApvlvCore *hasloaded (const char *filename, int type);
 
     void regloaded (ApvlvCore *);
