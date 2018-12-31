@@ -71,7 +71,7 @@ namespace apvlv
 
     if (gParams->valueb ("fullscreen"))
       {
-#if GTK_CHECK_VERSION(3, 0, 0)
+#if GTK_CHECK_VERSION(3, 22, 0)
         GdkRectangle rect[1];
         GdkDisplay *display = gdk_display_get_default ();
         GdkMonitor *monitor = gdk_display_get_primary_monitor (display);
