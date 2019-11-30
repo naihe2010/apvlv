@@ -143,7 +143,7 @@ namespace apvlv
         throw std::bad_alloc ();
       }
 
-    mRoot = g_dir_make_tmp ("apvlv_epub_XXXXXX", NULL);
+    mRoot = g_dir_make_tmp ("apvlv_epub_XXXXXXXX", NULL);
 
     gchar *container;
     gint len = epub_get_ocf_file (epub, "META-INF/container.xml", &container);
@@ -176,8 +176,6 @@ namespace apvlv
     mIndex = ncx_get_index (epub, idfiles["ncx"]);
 
     epub_close (epub);
-
-    generate_pages ();
   }
 
   ApvlvEPUB::~ApvlvEPUB ()
@@ -188,7 +186,7 @@ namespace apvlv
         g_free (mRoot);
         mRoot = NULL;
       }
-
+    
     mPages.clear();
   }
 
@@ -217,9 +215,25 @@ namespace apvlv
   bool ApvlvEPUB::renderweb (int pn, int ix, int iy, double zm, int rot, GtkWidget *widget)
   {
     webkit_web_view_set_zoom_level (WEBKIT_WEB_VIEW (widget), zm);
-    gchar* fileUri = g_filename_to_uri(mPages[pn].c_str(), NULL, NULL);
-    webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), fileUri);
-    g_free(fileUri);
+    string uri = mPages[pn];
+    
+    off_t off = uri.find('#');
+    debug("view: %p", widget);
+    if (off >= 0)
+      {
+        mAnchor = uri.substr(off + 1, uri.length() - off);
+        uri = uri.substr(0, off);
+      }
+    else
+      {
+        mAnchor = "";
+      }
+
+    string path = string(mRoot) + "/" + uri;
+    gchar *pathuri = g_filename_to_uri (path.c_str(), NULL, NULL);
+    webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), pathuri);
+    g_free (pathuri);
+    
     return true;
   }
 
@@ -253,146 +267,6 @@ namespace apvlv
   bool ApvlvEPUB::pageprint (int pn, cairo_t * cr)
   {
     return false;
-  }
-
-  bool ApvlvEPUB::generate_pages ()
-  {
-    std::map<int, string>::iterator it=mPages.begin();
-    it ++; // skip cover page
-
-    string srcpath = it->second;
-    std::vector <string> seps;
-
-    std::size_t found = it->second.find("#");
-    if (found == std::string::npos)
-      {
-        seps.push_back("");
-      }
-    else
-      {
-        srcpath = it->second.substr (0, found);
-        seps.push_back (it->second.substr (found + 1));
-      }
-
-    for (it ++; it != mPages.end(); it ++)
-      {
-        found = it->second.find("#");
-        if (found != std::string::npos)
-          {
-            if (it->second.compare(0, found, srcpath) == 0)
-              {
-                seps.push_back (it->second.substr (found + 1));
-              }
-            else
-              {
-                generate_page (srcpath, seps);
-
-                srcpath = it->second.substr (0, found);
-                seps.clear();
-                seps.push_back (it->second.substr (found + 1));
-              }
-          }
-        else
-          {
-            generate_page (srcpath, seps);
-
-            srcpath = it->second;
-            seps.clear();
-            seps.push_back ("");
-          }
-      }
-
-    generate_page (srcpath, seps);
-
-    return TRUE;
-  }
-
-  bool ApvlvEPUB::generate_page (string srcpath, std::vector <string> seps)
-  {
-    xmlDocPtr doc = NULL;
-    xmlNodePtr node, par_node, cnode;
-    char xpath[0x100];
-
-    doc = xmlReadFile (srcpath.c_str(), NULL, XML_PARSE_NOBLANKS | XML_PARSE_NSCLEAN);
-    if (doc == NULL)
-      {
-        debug ("parse xml file error: %s.\n", srcpath.c_str());
-        return false;
-      }
-
-    if (seps.size() == 1 && seps[0].empty())
-      {
-        xmlFreeDoc (doc);
-        return true;
-      }
-
-    if (seps.size() == 1)
-      {
-        g_snprintf (xpath, sizeof xpath, "//*[@id='%s']/parent::node()", seps[0].c_str());
-      }
-    else
-      {
-        g_snprintf (xpath, sizeof xpath, "//*[@id='%s']/parent::node()", seps[1].c_str());
-      }
-
-    par_node = xmldoc_get_node (doc, xpath, NULL);
-    if (par_node == NULL)
-      {
-        xmlFreeDoc (doc);
-        return false;
-      }
-
-    std::vector <string>::iterator it=seps.begin();
-    string outfile = srcpath;
-    string anchor = *it;
-    node = par_node->children;
-    for (it ++, node = par_node->children;
-         node != NULL && it != seps.end();
-         node = node->next)
-      {
-        if (xmlnode_attr_equal (node, "id", (*it).c_str()))
-          {
-            if (node->prev)
-              {
-                node->prev->next = NULL;
-              }
-            if (!anchor.empty())
-              {
-                outfile = srcpath + "#" + anchor;
-              }
-            else
-              {
-                outfile = srcpath;
-              }
-            xmlSaveFile (outfile.c_str(), doc);
-
-            anchor = *it;
-
-            while ((cnode = par_node->children) != NULL)
-              {
-                par_node->children = cnode->next;
-                xmlFreeNode (cnode);
-              }
-
-            par_node->children = node;
-
-            it ++;
-          }
-      }
-
-    if (!anchor.empty())
-      {
-        outfile = srcpath + "#" + anchor;
-      }
-    else
-      {
-        outfile = srcpath;
-      }
-    xmlSaveFile (outfile.c_str(), doc);
-
-    xmlFreeDoc (doc);
-
-    return true;
   }
 
   string ApvlvEPUB::container_get_contentfile (const char *container, int len)
@@ -459,16 +333,16 @@ namespace apvlv
                 string dirname = contentfile.substr (0, contentfile.rfind("/"));
                 href = dirname + "/" + href;
               }
-            string path = string (mRoot) + "/" + href;
+            string path = href;
             char *data;
             int dlen = epub_get_ocf_file (epub, href.c_str(), &data);
             if (dlen > 0)
               {
-                gchar *dname = g_path_get_dirname (path.c_str());
+                string localpath = string(mRoot) + "/" + path;
+                gchar *dname = g_path_get_dirname (localpath.c_str());
                 g_mkdir_with_parents (dname, 0755);
                 g_free (dname);
-                g_file_set_contents (path.c_str(), data, dlen, NULL);
-                free (data);
+                g_file_set_contents (localpath.c_str(), data, dlen, NULL);
               }
 
             string id = xmlnode_attr_get (node, "id");
@@ -574,7 +448,7 @@ namespace apvlv
                     string dirname = ncxfile.substr (0, ncxfile.rfind("/"));
                     srcstr = dirname + "/" + srcstr;
                   }
-                mPages[index.page] = string (mRoot) + "/" + srcstr;
+                mPages[index.page] = srcstr;
               }
           }
 

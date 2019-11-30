@@ -213,7 +213,7 @@ namespace apvlv
 						  NULL);
     infofile *fp = gInfo->file (0);
     dirname =
-      fp ? g_dirname (fp->file.c_str ()) :
+      fp ? g_path_get_dirname (fp->file.c_str ()) :
       g_strdup (gParams->values ("defaultdir"));
     debug ("lastfile: [%s], dirname: [%s]", fp ? fp->file.c_str () : "",
 	   dirname);
@@ -270,7 +270,7 @@ namespace apvlv
 						  GTK_RESPONSE_ACCEPT,
 						  NULL);
     infofile *fp = gInfo->file (0);
-    dirname = fp ? g_dirname (fp->file.c_str ()) :
+    dirname = fp ? g_path_get_dirname (fp->file.c_str ()) :
       g_strdup (gParams->values ("defaultdir"));
     gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dia), dirname);
     g_free (dirname);

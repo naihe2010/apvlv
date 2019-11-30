@@ -104,10 +104,14 @@ namespace apvlv
 
     virtual bool pageprint (int pn, cairo_t * cr) = 0;
 
+    string get_anchor ();
+
   protected:
 
     ApvlvFileIndex * mIndex;
     unsigned short mIndexRef;
+
+    string mAnchor;
 
     gchar *mRawdata;
     guint mRawdataSize;

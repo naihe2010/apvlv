@@ -234,6 +234,7 @@ namespace apvlv
 
     return TRUE;
   }
+
   // replace a widget with a new widget
   // return the parent widget
   GtkWidget *replace_widget (GtkWidget * owid, GtkWidget * nwid)

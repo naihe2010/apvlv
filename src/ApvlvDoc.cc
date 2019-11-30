@@ -138,6 +138,12 @@ namespace apvlv
       {
         mWeb1 = webkit_web_view_new ();
         gtk_box_pack_start (GTK_BOX (vbox), mWeb1, TRUE, TRUE, 0);
+        g_signal_connect (mWeb1, "resource-load-started",
+                          G_CALLBACK (webview_resource_load_started_cb), this);
+        g_signal_connect (mWeb1, "load-changed",
+                          G_CALLBACK (webview_load_changed_cb), this);
+        g_signal_connect (mWeb1, "context-menu",
+                          G_CALLBACK (webview_context_menu_cb), this);
       }
 
     g_signal_connect (G_OBJECT (mVaj), "value-changed",
@@ -1780,33 +1786,72 @@ namespace apvlv
     doc->blank (rx, ry);
   }
 
-  void ApvlvDoc::eventpos (double x, double y, double *rx, double *ry)
+  void
+  ApvlvDoc::webview_resource_load_started_cb (WebKitWebView *web_view,
+                                              WebKitWebResource *resource,
+                                              WebKitURIRequest *request,
+                                              ApvlvDoc *doc)
+  {
+    debug("resource: %s, request: %s", webkit_web_resource_get_uri (resource), webkit_uri_request_get_uri (request));
+  }
+
+  void
+  ApvlvDoc::webview_load_changed_cb (WebKitWebView *web_view,
+                                     WebKitLoadEvent event,
+                                     ApvlvDoc *doc)
+  {
+    if (event == WEBKIT_LOAD_FINISHED)
+      {
+        string anchor = doc->mFile->get_anchor();
+        if (anchor != "")
+          {
+            gchar *javasrc = g_strdup_printf("document.getElementById('%s').scrollIntoView();",
+                                             anchor.c_str());
+            webkit_web_view_run_javascript (web_view,
+                                            javasrc,
+                                            NULL, NULL, doc);
+          }
+      }
+  }
+
+  gboolean
+  ApvlvDoc::webview_context_menu_cb (WebKitWebView       *web_view,
+                                     WebKitContextMenu   *context_menu,
+                                     GdkEvent            *event,
+                                     WebKitHitTestResult *hit_test_result,
+                                     ApvlvDoc *doc)
+  {
+    return TRUE;
+  }
+
+  void
+  ApvlvDoc::eventpos (double x, double y, double *rx, double *ry)
   {
     int dw, dh;
     if (rx != NULL)
       {
-	GtkAllocation allocation;
-	gtk_widget_get_allocation(mScrollwin, &allocation);
-	dw = mPagex * mZoomrate - allocation.width;
-	dw = dw >> 1;
-	if (dw >= 0)
-	  {
+        GtkAllocation allocation;
+        gtk_widget_get_allocation(mScrollwin, &allocation);
+        dw = mPagex * mZoomrate - allocation.width;
+        dw = dw >> 1;
+        if (dw >= 0)
+          {
             dw = 0;
           }
-	*rx = x + dw;
+        *rx = x + dw;
       }
 
     if (ry != NULL)
       {
-	GtkAllocation allocation;
-	gtk_widget_get_allocation(mScrollwin, &allocation);
-	dh = mPagey * mZoomrate - allocation.height;
-	dh = dh >> 1;
-	if (dh >= 0)
-	  {
+        GtkAllocation allocation;
+        gtk_widget_get_allocation(mScrollwin, &allocation);
+        dh = mPagey * mZoomrate - allocation.height;
+        dh = dh >> 1;
+        if (dh >= 0)
+          {
             dh = 0;
           }
-	*ry = y + dh;
+        *ry = y + dh;
       }
   }
 
@@ -1829,24 +1874,24 @@ namespace apvlv
 
     if (mLines != NULL)
       {
-	delete mLines;
-	mLines = NULL;
+        delete mLines;
+        mLines = NULL;
       }
 
     if (mData != NULL)
       {
-	delete[]mData;
-	mData = NULL;
+        delete[]mData;
+        mData = NULL;
       }
     if (mBuf != NULL)
       {
-	g_object_unref (mBuf);
-	mBuf = NULL;
+        g_object_unref (mBuf);
+        mBuf = NULL;
       }
     if (mLinks != NULL)
       {
-	delete mLinks;
-	mLinks = NULL;
+        delete mLinks;
+        mLinks = NULL;
       }
     mInverted = gParams->valueb ("inverted");
 
@@ -1859,8 +1904,8 @@ namespace apvlv
 
     if (ac->mPagenum < 0 || ac->mPagenum >= c)
       {
-	debug ("no this page: %d", ac->mPagenum);
-	return;
+        debug ("no this page: %d", ac->mPagenum);
+        return;
       }
 
     double tpagex, tpagey;
@@ -1885,14 +1930,14 @@ namespace apvlv
                        ac->mRotate, bu, (char *) dat);
     if (ac->mInverted)
       {
-	invert_pixbuf (bu);
+        invert_pixbuf (bu);
       }
     // backup the pixbuf data
     memcpy (dat + ac->mSize, dat, ac->mSize);
 
     if (ac->mLinks)
       {
-	delete ac->mLinks;
+        delete ac->mLinks;
       }
     ac->mLinks = ac->mFile->getlinks (ac->mPagenum);
     //debug ("has mLinkMappings: %p", ac->mLinks);
@@ -1907,22 +1952,22 @@ namespace apvlv
   {
     if (mLinks)
       {
-	delete mLinks;
+        delete mLinks;
       }
 
     if (mLines != NULL)
       {
-	delete mLines;
+        delete mLines;
       }
 
     if (mData != NULL)
       {
-	delete[]mData;
+        delete[]mData;
       }
 
     if (mBuf != NULL)
       {
-	g_object_unref (mBuf);
+        g_object_unref (mBuf);
       }
   }
 
@@ -1979,9 +2024,9 @@ namespace apvlv
     line = getline (x, y);
     if (line != NULL)
       {
-	vector < ApvlvWord >::iterator itr;
-	for (itr = line->mWords.begin (); itr != line->mWords.end (); itr++)
-	  {
+        vector < ApvlvWord >::iterator itr;
+        for (itr = line->mWords.begin (); itr != line->mWords.end (); itr++)
+          {
             debug ("itr: %f,%f", itr->pos.y1, itr->pos.y2);
             if (x >= itr->pos.x1 && x <= itr->pos.x2)
               {
@@ -1998,15 +2043,15 @@ namespace apvlv
 
     if (mLines == NULL)
       {
-	return NULL;
+        return NULL;
       }
 
     vector < ApvlvLine >::iterator itr;
     for (itr = mLines->begin (); itr != mLines->end (); itr++)
       {
-	debug ("itr: %f,%f", itr->pos.y1, itr->pos.y2);
-	if (y >= itr->pos.y2 && y <= itr->pos.y1)
-	  {
+        debug ("itr: %f,%f", itr->pos.y1, itr->pos.y2);
+        if (y >= itr->pos.y2 && y <= itr->pos.y1)
+          {
             return &(*itr);
           }
       }
@@ -2019,22 +2064,22 @@ namespace apvlv
     if (strcmp (gParams->values ("doubleclick"), "page") == 0
         || strcmp (gParams->values ("doubleclick"), "none") == 0)
       {
-	return;
+        return;
       }
 
     gchar *content = NULL;
     mFile->pagetext (mPagenum, x1, y1, x2, y2, &content);
     if (content != NULL)
       {
-	ApvlvPoses *results;
-	string word;
+        ApvlvPoses *results;
+        string word;
 
-	mLines = new vector < ApvlvLine >;
+        mLines = new vector < ApvlvLine >;
 
-	ApvlvPos lastpos = { 0, 0, 0, 0 };
+        ApvlvPos lastpos = { 0, 0, 0, 0 };
 
-	if (strcmp (gParams->values ("doubleclick"), "word") == 0)
-	  {
+        if (strcmp (gParams->values ("doubleclick"), "word") == 0)
+          {
             stringstream ss (content);
             while (!ss.eof ())
               {
@@ -2047,8 +2092,8 @@ namespace apvlv
                   }
               }
           }
-	else
-	  {
+        else
+          {
             gchar **v, *p;
             int i;
 
@@ -2078,9 +2123,9 @@ namespace apvlv
               }
           }
 
-	vector < ApvlvLine >::iterator it;
-	for (it = mLines->begin (); it != mLines->end (); it++)
-	  {
+        vector < ApvlvLine >::iterator it;
+        for (it = mLines->begin (); it != mLines->end (); it++)
+          {
             //              debug ("line: %f, %f, %f, %f", it->pos.x1, it->pos.y1,
             //                     it->pos.x2, it->pos.y2);
             vector < ApvlvWord >::iterator wit;
@@ -2090,7 +2135,7 @@ namespace apvlv
                 //                         wit->pos.x2, wit->pos.y2, wit->word.c_str ());
               }
           }
-	g_free (content);
+        g_free (content);
       }
   }
 
@@ -2100,14 +2145,14 @@ namespace apvlv
     ApvlvPoses::iterator itr;
     for (itr = results->begin (); itr != results->end (); itr++)
       {
-	itr->x1 *= mZoom;
-	itr->x2 *= mZoom;
-	itr->y1 = mHeight - itr->y1 * mZoom;
-	itr->y2 = mHeight - itr->y2 * mZoom;
+        itr->x1 *= mZoom;
+        itr->x2 *= mZoom;
+        itr->y1 = mHeight - itr->y1 * mZoom;
+        itr->y2 = mHeight - itr->y2 * mZoom;
 
-	if ((lastpos.y2 < itr->y2)
+        if ((lastpos.y2 < itr->y2)
             || (lastpos.y2 - itr->y2 < 0.0001 && lastpos.x2 < itr->x2))
-	  {
+          {
             debug ("[%s] x1:%f, x2:%f, y1:%f, y2:%f", word, itr->x1,
                    itr->x2, itr->y1, itr->y2);
             break;
@@ -2116,17 +2161,17 @@ namespace apvlv
 
     if (itr == results->end ())
       {
-	itr = results->begin ();
+        itr = results->begin ();
       }
 
     //      debug ("itr: %f, %f, %f, %f", itr->x1, itr->y1, itr->x2, itr->y2);
     vector < ApvlvLine >::iterator litr;
     for (litr = mLines->begin (); litr != mLines->end (); litr++)
       {
-	//          debug ("litr: %f, %f", litr->pos.y1, litr->pos.y2);
-	if (fabs (itr->y1 - litr->pos.y1) < 0.0001
+        //          debug ("litr: %f, %f", litr->pos.y1, litr->pos.y2);
+        if (fabs (itr->y1 - litr->pos.y1) < 0.0001
             && fabs (itr->y2 - litr->pos.y2) < 0.0001)
-	  {
+          {
             break;
           }
       }
@@ -2134,22 +2179,22 @@ namespace apvlv
     ApvlvWord aword = { *itr, word };
     if (litr != mLines->end ())
       {
-	litr->mWords.push_back (aword);
-	if (itr->x1 < litr->pos.x1)
-	  {
+        litr->mWords.push_back (aword);
+        if (itr->x1 < litr->pos.x1)
+          {
             litr->pos.x1 = itr->x1;
           }
-	if (itr->x2 > litr->pos.x2)
-	  {
+        if (itr->x2 > litr->pos.x2)
+          {
             litr->pos.x2 = itr->x2;
           }
       }
     else
       {
-	ApvlvLine line;
-	line.pos = *itr;
-	line.mWords.push_back (aword);
-	mLines->push_back (line);
+        ApvlvLine line;
+        line.pos = *itr;
+        line.mWords.push_back (aword);
+        mLines->push_back (line);
       }
 
     return *itr;
@@ -2160,8 +2205,8 @@ namespace apvlv
     mDoc = doc;
     for (int i = 0; i < AD_STATUS_SIZE; ++i)
       {
-	mStlab[i] = gtk_label_new ("");
-	gtk_box_pack_start (GTK_BOX (mHbox), mStlab[i], FALSE, FALSE, 0);
+        mStlab[i] = gtk_label_new ("");
+        gtk_box_pack_start (GTK_BOX (mHbox), mStlab[i], FALSE, FALSE, 0);
       }
   }
 
@@ -2175,8 +2220,8 @@ namespace apvlv
       {
 #if GTK_CHECK_VERSION(3, 0, 0)
         gtk_widget_set_state_flags (mStlab[i],
-				    (act)? GTK_STATE_FLAG_ACTIVE:
-				    GTK_STATE_FLAG_INSENSITIVE, TRUE);
+                                    (act)? GTK_STATE_FLAG_ACTIVE:
+                                    GTK_STATE_FLAG_INSENSITIVE, TRUE);
 #else
         gtk_widget_modify_fg (mStlab[i],
                               (act) ? GTK_STATE_ACTIVE:
@@ -2194,7 +2239,7 @@ namespace apvlv
     sw[3] = sw[1] >> 1;
     for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
       {
-	gtk_widget_set_size_request (mStlab[i], sw[i], h);
+        gtk_widget_set_size_request (mStlab[i], sw[i], h);
       }
   }
 
@@ -2202,26 +2247,26 @@ namespace apvlv
   {
     if (mDoc->filename ())
       {
-	gint pn = mDoc->pagenumber (),
+        gint pn = mDoc->pagenumber (),
           totpn = mDoc->file ()->pagesum ();
         gdouble sr = mDoc->scrollrate ();
         int tmprtimes = 0;
         mDoc->srtranslate(tmprtimes, sr, false);
 
-	char temp[AD_STATUS_SIZE][256];
-	gchar *bn;
-	bn = g_path_get_basename (mDoc->filename ());
-	g_snprintf (temp[0], sizeof temp[0], "%s", bn);
-	g_snprintf (temp[1], sizeof temp[1], "%d/%d", pn, totpn);
-	g_snprintf (temp[2], sizeof temp[2], "%d%%",
-		    (int) (mDoc->zoomvalue () * 100));
-	g_snprintf (temp[3], sizeof temp[3], "%d%%",
+        char temp[AD_STATUS_SIZE][256];
+        gchar *bn;
+        bn = g_path_get_basename (mDoc->filename ());
+        g_snprintf (temp[0], sizeof temp[0], "%s", bn);
+        g_snprintf (temp[1], sizeof temp[1], "%d/%d", pn, totpn);
+        g_snprintf (temp[2], sizeof temp[2], "%d%%",
+                    (int) (mDoc->zoomvalue () * 100));
+        g_snprintf (temp[3], sizeof temp[3], "%d%%",
                     (int) ((sr + pn - 1.0) / totpn * 100));
-	for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
-	  {
-	    gtk_label_set_text (GTK_LABEL (mStlab[i]), temp[i]);
-	  }
-	g_free (bn);
+        for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
+          {
+            gtk_label_set_text (GTK_LABEL (mStlab[i]), temp[i]);
+          }
+        g_free (bn);
       }
   }
 
@@ -2244,15 +2289,15 @@ namespace apvlv
     height = gdk_pixbuf_get_height (pixbuf);
     for (x = 0; x < width; x++)
       {
-	for (y = 0; y < height; y++)
-	  {
-	    /* Calculate pixel's offset into the data array. */
-	    p = data + x * n_channels + y * rowstride;
-	    /* Change the RGB values */
-	    p[0] = 255 - p[0];
-	    p[1] = 255 - p[1];
-	    p[2] = 255 - p[2];
-	  }
+        for (y = 0; y < height; y++)
+          {
+            /* Calculate pixel's offset into the data array. */
+            p = data + x * n_channels + y * rowstride;
+            /* Change the RGB values */
+            p[0] = 255 - p[0];
+            p[1] = 255 - p[1];
+            p[2] = 255 - p[2];
+          }
       }
   }
 }

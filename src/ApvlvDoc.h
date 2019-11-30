@@ -34,8 +34,8 @@
 #include "ApvlvUtil.h"
 
 #include <gtk/gtk.h>
+#include <webkit2/webkit2.h>
 
-//#include <cstdlib>
 #include <iostream>
 #include <vector>
 #include <map>
@@ -72,9 +72,9 @@ namespace apvlv
   };
 
   typedef enum {
-    DISPLAY_TYPE_IMAGE = 0,
-    DISPLAY_TYPE_HTML = 1,
-    DISPLAY_TYPE_COUNT,
+                DISPLAY_TYPE_IMAGE = 0,
+                DISPLAY_TYPE_HTML = 1,
+                DISPLAY_TYPE_COUNT,
   } DISPLAY_TYPE;
 
   DISPLAY_TYPE get_display_type_by_filename (const char *filename);
@@ -207,6 +207,19 @@ namespace apvlv
     void returnlink (int ct);
 
     void srtranslate(int &rtimes, double &sr, bool single2continuous);
+
+    static void webview_resource_load_started_cb (WebKitWebView *web_view,
+                                                  WebKitWebResource *resource,
+                                                  WebKitURIRequest *request,
+                                                  ApvlvDoc *doc);
+    static void webview_load_changed_cb (WebKitWebView *web_view,
+                                         WebKitLoadEvent event,
+                                         ApvlvDoc *doc);
+    static gboolean webview_context_menu_cb (WebKitWebView       *web_view,
+                                             WebKitContextMenu   *context_menu,
+                                             GdkEvent            *event,
+                                             WebKitHitTestResult *hit_test_result,
+                                             ApvlvDoc *doc);
 
   private:
     void blank (int x, int y);

@@ -79,13 +79,8 @@ namespace apvlv
 
     bool generate_pages ();
     
-    bool generate_page (string srcpath, std::vector <string> seps);
-    
-    gchar *mRoot;
-
-    ApvlvFileIndex *mIndex;
-
     std::map <int, string> mPages;
+    gchar *mRoot;
   };
 
 }

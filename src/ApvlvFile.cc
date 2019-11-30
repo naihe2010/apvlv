@@ -134,7 +134,7 @@ namespace apvlv
 	  }
       }
 
-    catch (bad_alloc e)
+    catch (const bad_alloc &e)
       {
 	delete file;
 	file = NULL;
@@ -152,6 +152,11 @@ namespace apvlv
   bool ApvlvFile::renderweb (int pn, int, int, double, int, GtkWidget *widget)
   {
     return false;
+  }
+
+  string ApvlvFile::get_anchor ()
+  {
+    return mAnchor;
   }
 }
 
