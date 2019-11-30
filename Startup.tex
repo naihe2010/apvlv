@@ -64,7 +64,7 @@ type & :help setting$<$Enter$>$   & for help on settings \\ %
 
 \apvlv is open source software, and was created by Alf. It is in active development. Now, it is still growing.
 
-As its name suggests, \apvlv allows you to read your PDF/\-DJVU/\-UMD/\-HTML/\-TXT files in Vim-style! A focus is set on simplicity and minimalistic GUI. This way you have more space for the actual document.
+As its name suggests, \apvlv allows you to read your PDF/\-DJVU/\-EPUB/\-HTML/\-TXT files in Vim-style! A focus is set on simplicity and minimalistic GUI. This way you have more space for the actual document.
 
 \apvlv's key bindings are inspired by the design and high efficiency of Vim commands making its use a joy for all accustomed Vim users. For example, one can use $<$Ctrl-f$>$ to forward page, $<$Ctrl-b$>$ to previous page, 'k','j','h','l' to scroll page up, down, left or right, and so on. 
 Furthermore, \apvlv can understand how many times you want to run the command. E.g. typing '20' and  $<$Ctrl-f$>$ will go 20 pages forward.
@@ -105,7 +105,7 @@ instead of
 # cmake ..
 \end{verbatim}.
 
-By default, \apvlv does not support UMD/\-DJUV/\-HTML/\-TXT format. If you want apvlv can do this, you must set that options on when execute \texttt{ccmake ..} command.
+By default, \apvlv does not support EPUB/\-DJUV/\-HTML/\-TXT format. If you want apvlv can do this, you must set that options on when execute \texttt{ccmake ..} command.
 
 \subsection{How to start the binary program}\label{sstart}
 
@@ -122,11 +122,11 @@ If not, run '\texttt{export PATH="/usr/local/bin:\$PATH"}' to append the path.
 
 \item o
 
-display a file chooser dialog to select a PDF/\-DJVU/\-UMD/\-HTML/\-TXT file to open.
+display a file chooser dialog to select a PDF/\-DJVU/\-EPUB/\-HTML/\-TXT file to open.
 
 \item O
 
-select a directory to display. After you selected the directory within the dialog, press enter and \apvlv will recursively search the path for PDFs/DJVUs/UMD/HTML/TXTs. You will be presented with a vim-style navigation of your folders which allows you to easily access another document.
+select a directory to display. After you selected the directory within the dialog, press enter and \apvlv will recursively search the path for PDFs/DJVUs/EPUB/HTML/TXTs. You will be presented with a vim-style navigation of your folders which allows you to easily access another document.
 
 \item t
 
@@ -298,7 +298,7 @@ make the current window bigger.
 
 \noindent All commands can be mapped to other keys. For example, if you put \\
 'map $<$C-n$>$ o'\\
-in your .apvlvrc. Then, typing $<$Ctrl-n$>$ will run the 'o' command, that is, show a file chooser dialog to select a PDF/DJVU/UMD/HTML/TXT file to open.\\
+in your .apvlvrc. Then, typing $<$Ctrl-n$>$ will run the 'o' command, that is, show a file chooser dialog to select a PDF/DJVU/EPUB/HTML/TXT file to open.\\
 \noindent Be careful, do NOT map a command to itself! 'map god god' will make the application to loop test the command 'god' for ever.
 
 \newpage

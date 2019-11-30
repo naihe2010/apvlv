@@ -920,10 +920,6 @@ namespace apvlv
 	&& g_ascii_strncasecmp (basename + strlen (basename) - 4,
 				".txt", 4) != 0
 #endif
-#ifdef APVLV_WITH_UMD
-	&& g_ascii_strncasecmp (basename + strlen (basename) - 4,
-				".umd", 4) != 0
-#endif
 	)
       {
 	g_free (name);
@@ -1056,10 +1052,6 @@ namespace apvlv
 #ifdef APVLV_WITH_TXT
 		     || g_ascii_strncasecmp (name + strlen (name) - 4,
 					     ".txt", 4) == 0
-#endif
-#ifdef APVLV_WITH_UMD
-		     || g_ascii_strncasecmp (name + strlen (name) - 4,
-					     ".umd", 4) == 0
 #endif
 		     )
 	      {

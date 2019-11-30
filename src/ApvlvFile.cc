@@ -38,9 +38,6 @@
 #ifdef APVLV_WITH_TXT
 #include "ApvlvTxt.h"
 #endif
-#ifdef APVLV_WITH_UMD
-#include "ApvlvUmd.h"
-#endif
 
 #include <glib.h>
 
@@ -83,7 +80,6 @@ namespace apvlv
 	".djv",
 	".djvu",
 	".txt",
-	".umd",
       };
 
     size_t i;
@@ -130,12 +126,6 @@ namespace apvlv
 	  case 6:
 #ifdef APVLV_WITH_TXT
 	    file = new ApvlvTXT (filename);
-#endif
-	    break;
-
-	  case 7:
-#ifdef APVLV_WITH_UMD
-	    file = new ApvlvUMD (filename);
 #endif
 	    break;
 

@@ -30,7 +30,7 @@
 #include "ApvlvHtm.h"
 
 #include <gdk/gdkkeysyms.h>
-#include <webkit/webkit.h>
+#include <webkit2/webkit2.h>
 
 namespace apvlv
 {

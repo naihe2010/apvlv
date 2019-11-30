@@ -34,7 +34,7 @@
 
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
-#include <webkit/webkit.h>
+#include <webkit2/webkit2.h>
 
 #include <cstdlib>
 #include <cmath>
@@ -1753,7 +1753,7 @@ namespace apvlv
 	g_signal_connect (item, "activate",
                           G_CALLBACK (apvlv_doc_copytoclipboard_cb), doc);
 
-#if GTK_CHECK_VERSION(3, 0, 0)
+#if GTK_CHECK_VERSION(3, 22, 0)
 	gtk_menu_popup_at_pointer (GTK_MENU (menu), NULL);
 #else
         gtk_menu_popup (GTK_MENU (menu), NULL, NULL, NULL, NULL, 0, 0);

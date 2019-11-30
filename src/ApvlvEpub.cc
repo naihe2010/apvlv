@@ -35,7 +35,7 @@
 #include "epub.h"
 
 #include <gdk/gdkkeysyms.h>
-#include <webkit/webkit.h>
+#include <webkit2/webkit2.h>
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
@@ -186,11 +186,7 @@ namespace apvlv
       {
         rmrf (mRoot);
         g_free (mRoot);
-      }
-
-    if (mIndex)
-      {
-        delete mIndex;
+        mRoot = NULL;
       }
 
     mPages.clear();
@@ -305,6 +301,8 @@ namespace apvlv
             seps.push_back ("");
           }
       }
+
+    generate_page (srcpath, seps);
 
     return TRUE;
   }
@@ -538,7 +536,7 @@ namespace apvlv
 
   ApvlvFileIndex ApvlvEPUB::ncx_node_get_index (xmlNodePtr node, string ncxfile)
   {
-    ApvlvFileIndex index, childindex;
+    ApvlvFileIndex index;
     xmlNodePtr child;
 
     string pagestr = xmlnode_attr_get (node, "playOrder");
@@ -582,7 +580,7 @@ namespace apvlv
 
         if (g_ascii_strcasecmp ((gchar *) child->name, "navPoint") == 0)
           {
-            childindex = ncx_node_get_index (child, ncxfile);
+            ApvlvFileIndex childindex = ncx_node_get_index (child, ncxfile);
             index.children.push_back (childindex);
           }
       }

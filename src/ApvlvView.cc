@@ -71,7 +71,7 @@ namespace apvlv
 
     if (gParams->valueb ("fullscreen"))
       {
-#if GTK_CHECK_VERSION(3, 0, 0)
+#if GTK_CHECK_VERSION(3, 22, 0)
         GdkRectangle rect[1];
         GdkDisplay *display = gdk_display_get_default ();
         GdkMonitor *monitor = gdk_display_get_primary_monitor (display);
@@ -243,11 +243,6 @@ namespace apvlv
     gtk_file_filter_add_mime_type (filter, "TXT File");
     gtk_file_filter_add_pattern (filter, "*.TXT");
     gtk_file_filter_add_pattern (filter, "*.txt");
-#endif
-#ifdef APVLV_WITH_UMD
-    gtk_file_filter_add_mime_type (filter, "UMD File");
-    gtk_file_filter_add_pattern (filter, "*.UMD");
-    gtk_file_filter_add_pattern (filter, "*.umd");
 #endif
     gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dia), filter);
 

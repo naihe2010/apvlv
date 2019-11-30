@@ -31,7 +31,7 @@
 #include "ApvlvFile.h"
 
 #include <gtk/gtk.h>
-#include <webkit/webkit.h>
+#include <webkit2/webkit2.h>
 
 namespace apvlv
 {
