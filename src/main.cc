@@ -27,7 +27,6 @@
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
 #include "ApvlvView.h"
-#include "ApvlvCmds.h"
 #include "ApvlvParams.h"
 #include "ApvlvInfo.h"
 #include "ApvlvUtil.h"
@@ -88,10 +87,10 @@ parse_options (int argc, char *argv[])
   int c, index;
   static struct option long_options[] =
     {
-      {"config", required_argument, NULL, 'c'},
-      {"help", no_argument, NULL, 'h'},
-      {"version", no_argument, NULL, 'v'},
-      {0, 0, 0, 0}
+     {"config", required_argument, NULL, 'c'},
+     {"help", no_argument, NULL, 'h'},
+     {"version", no_argument, NULL, 'v'},
+     {0, 0, 0, 0}
     };
 
   index = 0;
@@ -150,9 +149,6 @@ int
 main (int argc, char *argv[])
 {
   setlocale (LC_ALL, "");
-
-  ApvlvCmds sCmds;
-  gCmds = &sCmds;
 
   ApvlvParams sParams;
   gParams = &sParams;
@@ -218,14 +214,17 @@ main (int argc, char *argv[])
 
   gtk_init (&argc, &argv);
 
-  ApvlvView sView (path);
+  ApvlvView sView(NULL);
+  if (sView.newtab (path) == false)
+    {
+      exit (1);
+    }
+
   if (ishelppdf)
     {
       helppdf = path;
     }
   g_free (path);
-
-  gView = &sView;
 
   while (opt < argc)
     {
@@ -235,7 +234,7 @@ main (int argc, char *argv[])
           continue;
         }
 
-      if (gView->loadfile (path) == false)
+      if (sView.loadfile (path) == false)
         {
           errp ("Can't open document: %s", path);
         }

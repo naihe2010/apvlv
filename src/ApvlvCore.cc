@@ -37,12 +37,11 @@
 
 namespace apvlv
 {
-  class ApvlvView;
-  extern ApvlvView *gView;
-
-  ApvlvCore::ApvlvCore ()
+  ApvlvCore::ApvlvCore (ApvlvView *view)
   {
     mInuse = true;
+
+    mView = view;
 
     mReady = false;
 
@@ -90,7 +89,7 @@ namespace apvlv
   {
     mInuse = use;
 
-    if (mInuse == false && gView->hasloaded (filename (), type ()) == NULL)
+    if (mInuse == false && mView->hasloaded (filename (), type ()) == NULL)
       {
 	debug ("core :%p is not needed, delete it\n", this);
 	delete this;
@@ -414,10 +413,10 @@ namespace apvlv
   {
     mActive = act;
 
-    if (mActive && filename () && gView)
+    if (mActive && filename ())
       {
 	gchar *base = g_path_get_basename (filename ());
-	gView->settitle (base);
+	mView->settitle (base);
 	g_free (base);
       }
   }

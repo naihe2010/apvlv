@@ -62,7 +62,7 @@ namespace apvlv
     return type;
   }
 
-  ApvlvDoc::ApvlvDoc (DISPLAY_TYPE type, int w, int h, const char *zm, bool cache)
+  ApvlvDoc::ApvlvDoc (ApvlvView *view, DISPLAY_TYPE type, int w, int h, const char *zm, bool cache): ApvlvCore(view)
   {
     mCurrentCache1 = mCurrentCache2 = NULL;
 
@@ -600,7 +600,7 @@ namespace apvlv
       case ':':
       case '/':
       case '?':
-	gView->promptcommand (key);
+	mView->promptcommand (key);
 	return NEED_MORE;
       case 'H':
 	scrollto (0.0);
@@ -653,18 +653,18 @@ namespace apvlv
 	returnlink (ct);
 	break;
       case 't':
-	gView->newtab (helppdf.c_str ());
-	gView->open ();
+	mView->newtab (helppdf.c_str ());
+	mView->open ();
 	break;
       case 'T':
-	gView->newtab (helppdf.c_str ());
-	gView->opendir ();
+	mView->newtab (helppdf.c_str ());
+	mView->opendir ();
 	break;
       case 'o':
-	gView->open ();
+	mView->open ();
 	break;
       case 'O':
-	gView->opendir ();
+	mView->opendir ();
 	break;
       case 'r':
 	rotate (ct);
@@ -737,7 +737,7 @@ namespace apvlv
   {
     char rate[16];
     g_snprintf (rate, sizeof rate, "%f", mZoomrate);
-    ApvlvDoc *ndoc = new ApvlvDoc (mDisplayType, mWidth, mHeight, rate, usecache ());
+    ApvlvDoc *ndoc = new ApvlvDoc (mView, mDisplayType, mWidth, mHeight, rate, usecache ());
     ndoc->loadfile (mFilestr, false);
     ndoc->showpage (mPagenum, scrollrate ());
     return ndoc;
@@ -860,8 +860,8 @@ namespace apvlv
   {
     if (use)
       {
-	gView->errormessage ("No pthread, can't support cache!!!");
-	gView->infomessage
+	mView->errormessage ("No pthread, can't support cache!!!");
+	mView->infomessage
 	  ("If you really have pthread, please recomplie the apvlv and try again.");
       }
   }
@@ -1479,7 +1479,7 @@ namespace apvlv
 	  }
 	else
 	  {
-	    gView->errormessage ("can't find word: '%s'",
+	    mView->errormessage ("can't find word: '%s'",
 				 mSearchStr.c_str ());
 	    return false;
 	  }
@@ -1516,7 +1516,7 @@ namespace apvlv
 
     if (ct % 90 != 0)
       {
-	gView->errormessage ("Not a 90 times value: %d", ct);
+	mView->errormessage ("Not a 90 times value: %d", ct);
 	return false;
       }
 
@@ -1624,7 +1624,7 @@ namespace apvlv
       }
     int r =
       gtk_print_operation_run (print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
-			       GTK_WINDOW (gView->widget ()), NULL);
+			       GTK_WINDOW (mView->widget ()), NULL);
     if (r == GTK_PRINT_OPERATION_RESULT_APPLY)
       {
 	if (settings != NULL)
@@ -1703,7 +1703,7 @@ namespace apvlv
 
     if (ev == G_FILE_MONITOR_EVENT_CHANGED)
       {
-	gView->errormessage ("Contents is modified, apvlv reload it automatically");
+	doc->mView->errormessage ("Contents is modified, apvlv reload it automatically");
 	doc->reload ();
       }
   }

@@ -92,7 +92,7 @@ namespace apvlv
   class ApvlvDir:public ApvlvCore
   {
   public:
-    ApvlvDir (int w, int h);
+    ApvlvDir (ApvlvView *, int w, int h);
 
     ~ApvlvDir ();
 

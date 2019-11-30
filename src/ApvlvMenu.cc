@@ -70,12 +70,12 @@ namespace apvlv
 
   extern "C" void apvlv_menu_on_file_open ()
   {
-    gView->open ();
+    //mView->open ();
   }
 
   extern "C" void apvlv_menu_on_file_opentab ()
   {
-    gView->newtab (helppdf.c_str ());
+    //gView->newtab (helppdf.c_str ());
   }
 
   extern "C" void apvlv_menu_on_file_saveas ()
@@ -90,37 +90,37 @@ namespace apvlv
 
   extern "C" void apvlv_menu_on_file_quit ()
   {
-    gView->quit ();
+    //gView->quit ();
   }
 
   extern "C" void apvlv_menu_on_page_previous ()
   {
-    gView->crtadoc ()->prepage (1);
+    //gView->crtadoc ()->prepage (1);
   }
 
   extern "C" void apvlv_menu_on_page_next ()
   {
-    gView->crtadoc ()->nextpage (1);
+    //gView->crtadoc ()->nextpage (1);
   }
 
   extern "C" void apvlv_menu_on_page_scrollup ()
   {
-    gView->crtadoc ()->scrollup (1);
+    //gView->crtadoc ()->scrollup (1);
   }
 
   extern "C" void apvlv_menu_on_page_scrolldown ()
   {
-    gView->crtadoc ()->scrolldown (1);
+    //gView->crtadoc ()->scrolldown (1);
   }
 
   extern "C" void apvlv_menu_on_tools_jumpto ()
   {
-    gView->crtadoc ()->gotolink (1);
+    //gView->crtadoc ()->gotolink (1);
   }
 
   extern "C" void apvlv_menu_on_tools_jumpback ()
   {
-    gView->crtadoc ()->returnlink (1);
+    //gView->crtadoc ()->returnlink (1);
   }
 
   extern "C" void apvlv_menu_on_help_about ()

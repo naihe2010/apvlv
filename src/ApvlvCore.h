@@ -61,10 +61,11 @@ namespace apvlv
     GtkWidget * mHbox;
   };
 
+  class ApvlvView;
   class ApvlvCore
   {
   public:
-    ApvlvCore ();
+    ApvlvCore (ApvlvView *);
 
     virtual ~ ApvlvCore ();
 
@@ -148,6 +149,8 @@ namespace apvlv
     virtual void setsize (int wid, int hei);
 
     virtual returnType process (int has, int times, guint keyval);
+
+    ApvlvView * mView;
 
   protected:
     ApvlvFile * mFile;

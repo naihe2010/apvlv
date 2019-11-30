@@ -170,7 +170,7 @@ namespace apvlv
 
     if (idfiles.find("cover") != idfiles.end())
       {
-        mPages[0] = string(mRoot) + "/" + idfiles["cover"];
+        mPages[0] = idfiles["cover"];
       }
 
     mIndex = ncx_get_index (epub, idfiles["ncx"]);

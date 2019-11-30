@@ -55,6 +55,7 @@ namespace apvlv
   typedef vector < guint > ApvlvCmdKeyv;
   typedef map < ApvlvCmdKeyv, ApvlvCmd * >ApvlvCmdMap;
 
+  class ApvlvView;
   class ApvlvCmd
   {
   public:
@@ -62,7 +63,7 @@ namespace apvlv
 
     ~ApvlvCmd ();
 
-    void process ();
+    void process (ApvlvView *);
 
     void push (const char *s, cmdType type = CT_CMD);
 
@@ -143,13 +144,13 @@ namespace apvlv
   class ApvlvCmds
   {
   public:
-    ApvlvCmds ();
+    ApvlvCmds (ApvlvView *view);
 
     ~ApvlvCmds ();
 
     void append (GdkEventKey * gev);
 
-    bool buildmap (const char *os, const char *ms);
+    static bool buildmap (const char *os, const char *ms);
 
   private:
 
@@ -163,10 +164,11 @@ namespace apvlv
 
     static gboolean apvlv_cmds_timeout_cb (gpointer);
 
-    ApvlvCmdMap mMaps;
-
     ApvlvCmd *mCmdHead;
 
+    // command view
+    ApvlvView *mView;
+    
     enum cmdState
       {
         GETTING_COUNT,
@@ -178,8 +180,6 @@ namespace apvlv
 
     string mCountString;
   };
-
-  extern ApvlvCmds *gCmds;
 }
 
 #endif

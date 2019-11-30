@@ -167,7 +167,7 @@ namespace apvlv
 
 		if (argu.length () > 0 && data.length () > 0)
 		  {
-		    gCmds->buildmap (argu.c_str (), data.c_str ());
+                    ApvlvCmds::buildmap (argu.c_str (), data.c_str ());
 		  }
 		else
 		  {

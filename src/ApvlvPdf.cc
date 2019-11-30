@@ -179,8 +179,8 @@ namespace apvlv
 	|| (wfilename =
             g_locale_from_utf8 (filename, -1, NULL, NULL, NULL)) == NULL)
       {
-	gView->errormessage ("filename error: %s",
-			     filename ? filename : "No name");
+        errp ("filename error: %s",
+              filename ? filename : "No name");
 	throw std::bad_alloc ();
       }
 
@@ -189,7 +189,7 @@ namespace apvlv
     int rt = stat (wfilename, &sbuf);
     if (rt < 0)
       {
-	gView->errormessage ("Can't stat the PDF file: %s.", filename);
+	errp ("Can't stat the PDF file: %s.", filename);
 	throw std::bad_alloc ();
       }
     filelen = sbuf.st_size;

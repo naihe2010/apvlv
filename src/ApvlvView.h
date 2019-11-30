@@ -32,6 +32,7 @@
 #include "ApvlvMenu.h"
 #include "ApvlvDoc.h"
 #include "ApvlvWindow.h"
+#include "ApvlvCmds.h"
 #include "ApvlvCompletion.h"
 
 #include <gtk/gtk.h>
@@ -54,7 +55,7 @@ namespace apvlv
   class ApvlvView
   {
   public:
-    ApvlvView (const char *);
+    ApvlvView (ApvlvView *);
 
     ~ApvlvView ();
 
@@ -66,9 +67,11 @@ namespace apvlv
 
     void delcurrentWindow ();
 
-    bool newtab (const char *filename);
+    bool newtab (const char *filename, bool disable_content=false);
 
     bool newtab (ApvlvCore * core);
+
+    bool newview (const char *filename, gint pn, bool disable_content=false);
 
     void promptcommand (char ch);
 
@@ -114,6 +117,10 @@ namespace apvlv
 
     ApvlvCore *crtadoc ();
 
+    void append_child (ApvlvView *);
+
+    void erase_child (ApvlvView *);
+
   private:
     void refresh ();
 
@@ -126,8 +133,10 @@ namespace apvlv
     int new_tabcontext (ApvlvCore * core, bool insertAfterCurr);
 
     void delete_tabcontext (int tabPos);
-
+    
     void switch_tabcontext (int tabPos);
+
+    void back_tabcontext (int tabPos);
 
     // Caclulate number of pixels that the document should be.
     //  This figure accounts for decorations like (mCmdBar and mHaveTabs).
@@ -189,17 +198,21 @@ namespace apvlv
 
     ApvlvWindow *mRootWindow;
 
+    ApvlvCmds mCmds;
+    
     std::vector < ApvlvCore * >mDocs;
 
     std::vector < string > mCmdHistroy;
     int mCurrHistroy;
     bool mInHistroy;
 
+    ApvlvView *mParent;
+    std::vector <ApvlvView *> mChildren;
+
     static const int APVLV_MENU_HEIGHT, APVLV_CMD_BAR_HEIGHT,
       APVLV_TABS_HEIGHT;
   };
 
-  extern ApvlvView *gView;
 }
 
 #endif

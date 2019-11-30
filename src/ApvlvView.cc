@@ -49,14 +49,18 @@
 
 namespace apvlv
 {
-  ApvlvView *gView = NULL;
-
   const int ApvlvView::APVLV_MENU_HEIGHT = 30;
   const int ApvlvView::APVLV_CMD_BAR_HEIGHT = 20;
   const int ApvlvView::APVLV_TABS_HEIGHT = 36;
 
-  ApvlvView::ApvlvView (const char *filename):mCurrTabPos (-1)
+  ApvlvView::ApvlvView (ApvlvView *parent):mCurrTabPos (-1), mCmds(this)
   {
+    mParent = parent;
+    if (mParent)
+      {
+        mParent->append_child (this);
+      }
+
     mProCmd = 0;
     mProCmdCnt = 0;
 
@@ -65,6 +69,8 @@ namespace apvlv
     mHasFull = FALSE;
 
     mMainWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+
+    mRootWindow = NULL;
 
     int w = gParams->valuei ("width");
     int h = gParams->valuei ("height");
@@ -115,22 +121,6 @@ namespace apvlv
     gtk_notebook_set_scrollable (GTK_NOTEBOOK (mTabContainer), TRUE);
     gtk_box_pack_start (GTK_BOX (mViewBox), mTabContainer, TRUE, TRUE, 0);
 
-    if (newtab (filename) == false)
-      {
-	bool ret = false;
-	gchar *rpath = absolutepath (helppdf.c_str ());
-	if (rpath)
-	  {
-	    ret = newtab (rpath);
-	    g_free (rpath);
-	  }
-
-	if (ret == false)
-	  {
-	    exit (1);
-	  }
-      }
-
     mCommandBar = gtk_entry_new ();
     gtk_box_pack_end (GTK_BOX (mViewBox), mCommandBar, FALSE, FALSE, 0);
 
@@ -158,6 +148,18 @@ namespace apvlv
 
   ApvlvView::~ApvlvView ()
   {
+    if (mParent)
+      {
+        mParent->erase_child (this);
+      }
+
+    std::vector <ApvlvView *>::const_iterator itr;
+    while (!mChildren.empty())
+      {
+        itr = mChildren.begin();
+        delete *itr;
+      }
+
     size_t i;
 
     delete mMenu;
@@ -179,7 +181,7 @@ namespace apvlv
 
   void ApvlvView::show ()
   {
-    gtk_main ();
+    gtk_widget_show_all (widget ());
   }
 
   GtkWidget *ApvlvView::widget ()
@@ -294,7 +296,7 @@ namespace apvlv
       {
 	int w, h;
 	currentWindow ()->getsize (&w, &h);
-	ndoc = new ApvlvDir (w, h);
+	ndoc = new ApvlvDir (this, w, h);
 	if (!ndoc->loadfile (path))
 	  {
 	    delete ndoc;
@@ -340,17 +342,21 @@ namespace apvlv
     mRootWindow->setsize (mWidth, adjheight ());
   }
 
-  bool ApvlvView::newtab (const char *filename)
+  bool ApvlvView::newtab (const char *filename, bool disable_content)
   {
     ApvlvCore *ndoc;
-    ndoc = hasloaded (filename,
-		      gParams->valueb ("content") ? CORE_CONTENT : CORE_DOC);
+    int core_type = gParams->valueb ("content") ? CORE_CONTENT : CORE_DOC;
+    if (disable_content)
+      {
+        core_type = CORE_DOC;
+      }
+    ndoc = hasloaded (filename, core_type);
 
     if (ndoc == NULL)
       {
-	if (gParams->valueb ("content"))
+	if (core_type == CORE_CONTENT)
 	  {
-	    ndoc = new ApvlvDir (mWidth, adjheight ());
+	    ndoc = new ApvlvDir (this, mWidth, adjheight ());
 	    if (!ndoc->loadfile (filename))
 	      {
 		delete ndoc;
@@ -362,7 +368,7 @@ namespace apvlv
 	  {
             DISPLAY_TYPE type = get_display_type_by_filename (filename);
 	    ndoc =
-	      new ApvlvDoc (type, mWidth, mHeight, gParams->values ("zoom"), false);
+	      new ApvlvDoc (this, type, mWidth, mHeight, gParams->values ("zoom"), false);
 	    if (!ndoc->loadfile (filename))
 	      {
 		delete ndoc;
@@ -416,6 +422,14 @@ namespace apvlv
     return true;
   }
 
+  bool ApvlvView::newview (const gchar *filename, gint pn, bool disable_content)
+  {
+    ApvlvView *view = new ApvlvView (this);
+    view->newtab (filename, disable_content);
+    view->crtadoc()->showpage (pn);
+    return TRUE;
+  }
+
   int ApvlvView::new_tabcontext (ApvlvCore * core, bool insertAfterCurr)
   {
     ApvlvWindow *troot = new ApvlvWindow (core);
@@ -455,7 +469,7 @@ namespace apvlv
     mTabList.erase (remPos);
     if (c == (int) mTabList.size ())
       {
-	gView->errormessage ("erase failed to remove context");
+	errormessage ("erase failed to remove context");
       }
 
     if ((int) mTabList.size () <= 1)
@@ -481,6 +495,15 @@ namespace apvlv
 	settitle (base);
 	g_free (base);
       }
+  }
+
+  void ApvlvView::back_tabcontext (int tabPos)
+  {
+    asst (tabPos >= 0 && tabPos < (int) mTabList.size ());
+
+    mCurrTabPos = tabPos;
+    mRootWindow = mTabList[tabPos].root;
+    ApvlvWindow::setcurrentWindow (NULL, mTabList[tabPos].curr);
   }
 
   bool ApvlvView::loadfile (const char *filename)
@@ -509,7 +532,7 @@ namespace apvlv
 	win->getsize (&w, &h);
 	if (gParams->valueb ("content"))
 	  {
-	    ndoc = new ApvlvDir (w, h);
+	    ndoc = new ApvlvDir (this, w, h);
 	    if (!ndoc->loadfile (abpath))
 	      {
 		debug ("can't load");
@@ -521,7 +544,7 @@ namespace apvlv
 	if (ndoc == NULL)
 	  {
             DISPLAY_TYPE type = get_display_type_by_filename (filename);
-	    ndoc = new ApvlvDoc (type, w, h, gParams->values ("zoom"), false);
+	    ndoc = new ApvlvDoc (this, type, w, h, gParams->values ("zoom"), false);
 	    if (!ndoc->loadfile (filename))
 	      {
 		delete ndoc;
@@ -577,7 +600,7 @@ namespace apvlv
         delete *itr;
 	mDocs.erase (itr);
       }
-    
+
     mDocs.push_back (core);
   }
 
@@ -689,7 +712,10 @@ namespace apvlv
 
     mCmdType = cmdtype;
 
-    mRootWindow->setsize (mWidth, adjheight ());
+    if (mRootWindow)
+      {
+        mRootWindow->setsize (mWidth, adjheight ());
+      }
 
     gtk_widget_show (mCommandBar);
     gtk_widget_grab_focus (mCommandBar);
@@ -703,7 +729,8 @@ namespace apvlv
     mCmdType = CMD_NONE;
 
     gtk_widget_hide (mCommandBar);
-    mRootWindow->setsize (mWidth, adjheight ());
+    if (mRootWindow)
+      mRootWindow->setsize (mWidth, adjheight ());
 
     gtk_widget_grab_focus (mMainWindow);
   }
@@ -965,7 +992,7 @@ namespace apvlv
 	  }
 	else if (cmd == "map" && subcmd != "")
 	  {
-	    gCmds->buildmap (subcmd.c_str (), argu.c_str ());
+            mCmds.buildmap (subcmd.c_str (), argu.c_str ());
 	  }
 	else if ((cmd == "o"
 		  || cmd == "open" || cmd == "doc") && subcmd != "")
@@ -1153,7 +1180,10 @@ namespace apvlv
       {
 	view->mWidth = w;
 	view->mHeight = h;
-	view->mRootWindow->setsize (w, view->adjheight () - 10);
+        if (view->mRootWindow)
+          {
+            view->mRootWindow->setsize (w, view->adjheight () - 10);
+          }
       }
   }
 
@@ -1161,9 +1191,10 @@ namespace apvlv
   ApvlvView::apvlv_view_keypress_cb (GtkWidget * wid, GdkEvent * ev,
 				     ApvlvView * view)
   {
+    debug("view: %p, got key: %u", view, ((GdkEventKey* ) ev)->keyval);
     if (view->mCmdType == CMD_NONE)
       {
-	gCmds->append ((GdkEventKey *) ev);
+	view->mCmds.append ((GdkEventKey *) ev);
 	return TRUE;
       }
 
@@ -1296,8 +1327,21 @@ namespace apvlv
   ApvlvView::apvlv_view_delete_cb (GtkWidget * wid, GtkAllocation * al,
 				   ApvlvView * view)
   {
+    debug("delete cb: %p", view);
+    GtkWidget *widget = view->mMainWindow;
+    if (widget)
+      {
+        gtk_widget_destroy (widget);
+      }
     view->mMainWindow = NULL;
-    gtk_main_quit ();
+    if (view->mParent == NULL)
+      {
+        gtk_main_quit ();
+      }
+    else
+      {
+        view->mParent->back_tabcontext (0);
+      }
   }
 
   void
@@ -1376,6 +1420,26 @@ namespace apvlv
 				tabname);
     gtk_notebook_set_current_page (GTK_NOTEBOOK (mTabContainer), mCurrTabPos);
   }
+
+  void
+  ApvlvView::append_child (ApvlvView *view)
+  {
+    mChildren.push_back(view);
+  }
+
+  void
+  ApvlvView::erase_child (ApvlvView *view)
+  {
+    std::vector <ApvlvView *>::const_iterator itr = mChildren.begin();
+    while (*itr != view && itr != mChildren.end())
+      itr ++;
+
+    if (*itr == view)
+      {
+        mChildren.erase(itr);
+      }
+  }
+
 }
 
 // Local Variables:

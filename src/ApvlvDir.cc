@@ -160,7 +160,7 @@ namespace apvlv
     return itr;
   }
 
-  ApvlvDir::ApvlvDir (int w, int h)
+  ApvlvDir::ApvlvDir (ApvlvView *view, int w, int h): ApvlvCore(view)
   {
     mReady = false;
 
@@ -247,7 +247,7 @@ namespace apvlv
 	|| *path == '\0'
 	|| (rpath = g_locale_from_utf8 (path, -1, NULL, NULL, NULL)) == NULL)
       {
-	gView->errormessage ("path error: %s", path ? path : "No path");
+	mView->errormessage ("path error: %s", path ? path : "No path");
 	return false;
       }
 
@@ -256,7 +256,7 @@ namespace apvlv
     g_free (rpath);
     if (ret < 0)
       {
-	gView->errormessage ("stat error: %d:%s", errno, strerror (errno));
+	mView->errormessage ("stat error: %d:%s", errno, strerror (errno));
 	return false;
       }
 
@@ -381,7 +381,7 @@ namespace apvlv
       case ':':
       case '/':
       case '?':
-	gView->promptcommand (key);
+	mView->promptcommand (key);
 	return NEED_MORE;
 
       case 'n':
@@ -460,12 +460,23 @@ namespace apvlv
 	return false;
       }
 
+    if (key == GDK_KEY_Return)
+      {
+        bool disable_content = false;
+        if (name == NULL)
+          {
+            name = filename();
+            disable_content = true;
+          }
+        return mView->newview (name, pn, disable_content);
+      }
+
     ApvlvCore *ndoc = NULL;
     if (name != NULL)
       {
 	if (gParams->valueb ("content"))
 	  {
-	    ndoc = new ApvlvDir (mWidth, mHeight);
+	    ndoc = new ApvlvDir (mView, mWidth, mHeight);
 	    if (!ndoc->loadfile (name))
 	      {
 		delete ndoc;
@@ -477,7 +488,7 @@ namespace apvlv
 	  {
             DISPLAY_TYPE type = get_display_type_by_filename (name);
 	    ndoc =
-	      new ApvlvDoc (type, mWidth, mHeight, gParams->values ("zoom"),
+	      new ApvlvDoc (mView, type, mWidth, mHeight, gParams->values ("zoom"),
 			    gParams->valueb ("cache"));
 	    if (!ndoc->loadfile (name))
 	      {
@@ -491,7 +502,7 @@ namespace apvlv
         const char *name = filename ();
         DISPLAY_TYPE type = get_display_type_by_filename (name);
 	ndoc =
-	  new ApvlvDoc (type, mWidth, mHeight, gParams->values ("zoom"),
+	  new ApvlvDoc (mView, type, mWidth, mHeight, gParams->values ("zoom"),
 			gParams->valueb ("cache"));
 	if (!ndoc->loadfile (filename ()))
 	  {
@@ -510,20 +521,16 @@ namespace apvlv
 	return false;
       }
 
-    gView->regloaded (ndoc);
+    mView->regloaded (ndoc);
 
     switch (key)
       {
-      case GDK_KEY_Return:
-	ApvlvWindow::currentWindow ()->setCore (ndoc);
-	break;
-
       case 'o':
 	ApvlvWindow::currentWindow ()->birth (false, ndoc);
 	break;
 
       case 't':
-	gView->newtab (ndoc);
+	mView->newtab (ndoc);
 	break;
 
       default:
@@ -677,7 +684,7 @@ namespace apvlv
     gtk_tree_model_get (GTK_TREE_MODEL (mStore), &mCurrentIter, 0, &info, -1);
     if (info == NULL || mDirNodes == NULL)
       {
-	gView->errormessage ("can't find word: '%s'", mSearchStr.c_str ());
+	mView->errormessage ("can't find word: '%s'", mSearchStr.c_str ());
 	return false;
       }
 
@@ -692,7 +699,7 @@ namespace apvlv
 
     if (list == NULL)
       {
-	gView->errormessage ("can't find word: '%s'", mSearchStr.c_str ());
+	mView->errormessage ("can't find word: '%s'", mSearchStr.c_str ());
 	return false;
       }
 
@@ -748,7 +755,7 @@ namespace apvlv
 
     if (list == NULL)
       {
-	gView->errormessage ("can't find word: '%s'", mSearchStr.c_str ());
+	mView->errormessage ("can't find word: '%s'", mSearchStr.c_str ());
 	return false;
       }
 
@@ -969,7 +976,7 @@ namespace apvlv
     if (dir->mType == CORE_CONTENT
 	&& ev == G_FILE_MONITOR_EVENT_CHANGED)
       {
-	gView->errormessage ("Contents is modified, apvlv reload it automatically");
+	dir->mView->errormessage ("Contents is modified, apvlv reload it automatically");
 	dir->reload ();
       }
     else if (dir->mType == CORE_DIR

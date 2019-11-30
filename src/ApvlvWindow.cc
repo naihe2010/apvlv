@@ -45,7 +45,7 @@ namespace apvlv
     type = AW_CORE;
     if (doc == NULL)
       {
-	mCore = new ApvlvDoc (DISPLAY_TYPE_IMAGE, 0, 0, gParams->values ("zoom"));
+	mCore = new ApvlvDoc (mCore->mView, DISPLAY_TYPE_IMAGE, 0, 0, gParams->values ("zoom"));
       }
     else
       {
@@ -354,12 +354,12 @@ namespace apvlv
     if (doc == NULL)
       {
 	doc = mCore->copy ();
-	gView->regloaded (doc);
+	mCore->mView->regloaded (doc);
       }
 
     if (doc == NULL)
       {
-	gView->errormessage ("can't split");
+	mCore->mView->errormessage ("can't split");
 	return this;
       }
 

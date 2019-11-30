@@ -42,9 +42,9 @@
 
 namespace apvlv
 {
-  ApvlvCmds *gCmds = NULL;
-
   StringKeyMap SK;
+
+  static ApvlvCmdMap mMaps;
 
 #define gek2guint(g)    ((g)->state == GDK_CONTROL_MASK? CTRL ((g)->keyval): (g)->keyval)
 
@@ -129,7 +129,7 @@ namespace apvlv
 	  {
 	    mStrCommand.erase (off, mStrCommand.length () - off);
 	    mType = CT_STRING_RETURN;
-	    mNext = new ApvlvCmd;
+	    mNext = new ApvlvCmd();
 	    mNext->push (s + off + 4);
 	  }
 	debug ("set string type command: [%s]", mStrCommand.c_str ());
@@ -147,15 +147,15 @@ namespace apvlv
     delete mNext;
   }
 
-  void ApvlvCmd::process ()
+  void ApvlvCmd::process (ApvlvView *view)
   {
     if (type () == CT_STRING)
       {
-	gView->promptcommand (c_str ());
+	view->promptcommand (c_str ());
       }
     else if (type () == CT_STRING_RETURN)
       {
-	gView->run (c_str ());
+	view->run (c_str ());
       }
     else
       {
@@ -163,13 +163,13 @@ namespace apvlv
 	  {
 	    gint key = keyval (k);
 	    if (key > 0)
-	      gView->process (mHasPreCount, precount (), keyval (k));
+	      view->process (mHasPreCount, precount (), keyval (k));
 	  }
       }
 
     if (next () != NULL)
       {
-	next ()->process ();
+	next ()->process (view);
       }
   }
 
@@ -229,7 +229,7 @@ namespace apvlv
 	  {
 	    char ts[6];
 	    g_snprintf (ts, 6, "%s", s);
-	    gView->errormessage ("Can't recognize the symbol: %s", ts);
+	    errp ("Can't recognize the symbol: %s", ts);
 	  }
 	return s + 5;
       }
@@ -328,7 +328,7 @@ namespace apvlv
     ApvlvCmd fir;
     fir.push (os);
 
-    ApvlvCmd *secp = new ApvlvCmd;
+    ApvlvCmd *secp = new ApvlvCmd();
     secp->push (ms);
 
     ApvlvCmdMap::iterator it;
@@ -352,8 +352,10 @@ namespace apvlv
     return true;
   }
 
-  ApvlvCmds::ApvlvCmds ()
+  ApvlvCmds::ApvlvCmds (ApvlvView *view)
   {
+    mView = view;
+    
     mTimeoutTimer = -1;
     mState = CMD_OK;
 
@@ -508,7 +510,7 @@ namespace apvlv
 
     for (guint i = 0; i < times; ++i)
       {
-	cmd->process ();
+	cmd->process (mView);
       }
     return orig;
   }

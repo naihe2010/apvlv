@@ -151,7 +151,7 @@ namespace apvlv
   class ApvlvDoc:public ApvlvCore
   {
   public:
-    ApvlvDoc (DISPLAY_TYPE type, int w, int h, const char *zm = "NORMAL", bool cache = false);
+    ApvlvDoc (ApvlvView *, DISPLAY_TYPE type, int w, int h, const char *zm = "NORMAL", bool cache = false);
 
     ~ApvlvDoc ();
 
