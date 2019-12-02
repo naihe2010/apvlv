@@ -2,7 +2,7 @@
     Apvlv
     ========
 
-    Apvlv is a PDF viewer which behaves like Vim.
+    Apvlv is a PDF/EPUB viewer which behaves like Vim.
     For more general information about Apvlv please visit the project's
 website at http://naihe2010.github.com/apvlv
 
@@ -16,4 +16,6 @@ License (GPL).
     ============
 
     GTK+ version 3.0 or higher ( http://www.gtk.org/ )
+    WebKit2GTK 4.0 or higher (https://webkitgtk.org/)
     Poppler version 0.5.0 with glib bindings ( http://poppler.freedesktop.org/ )
+    libepub (https://sourceforge.net/projects/ebook-tools/)
