@@ -77,7 +77,7 @@ parse_options (int argc, char *argv[])
 
 #ifdef WIN32
   ini = absolutepath (inifile.c_str ());
-  if (ini != NULL)
+  if (ini != nullptr)
     {
       gParams->loadfile (ini);
       g_free (ini);
@@ -87,14 +87,14 @@ parse_options (int argc, char *argv[])
   int c, index;
   static struct option long_options[] =
     {
-     {"config", required_argument, NULL, 'c'},
-     {"help", no_argument, NULL, 'h'},
-     {"version", no_argument, NULL, 'v'},
+     {"config", required_argument, nullptr, 'c'},
+     {"help", no_argument, nullptr, 'h'},
+     {"version", no_argument, nullptr, 'v'},
      {0, 0, 0, 0}
     };
 
   index = 0;
-  ini = NULL;
+  ini = nullptr;
   while ((c = getopt_long (argc, argv, "c:hv", long_options, &index)) != -1)
     {
       switch (c)
@@ -117,7 +117,7 @@ parse_options (int argc, char *argv[])
         }
     }
 
-  if (ini == NULL)
+  if (ini == nullptr)
     {
       ini = absolutepath (inifile.c_str ());
     }
@@ -135,7 +135,7 @@ parse_options (int argc, char *argv[])
   /*
    * load the user conf file
    * */
-  if (ini != NULL)
+  if (ini != nullptr)
     {
       gParams->loadfile (ini);
       g_free (ini);
@@ -190,8 +190,8 @@ main (int argc, char *argv[])
       ishelppdf = true;
     }
 
-  gchar *rpath = g_locale_to_utf8 (path, -1, NULL, NULL, NULL);
-  if (rpath == NULL)
+  gchar *rpath = g_locale_to_utf8 (path, -1, nullptr, nullptr, nullptr);
+  if (rpath == nullptr)
     {
       errp ("Convert path: '%s' to utf8 failed.\n", path);
       return 1;
@@ -199,7 +199,7 @@ main (int argc, char *argv[])
 
   path = absolutepath (rpath);
   g_free (rpath);
-  if (path == NULL)
+  if (path == nullptr)
     {
       errp ("Convert '%s' to absolute path failed.\n", rpath);
       return 1;
@@ -214,7 +214,7 @@ main (int argc, char *argv[])
 
   gtk_init (&argc, &argv);
 
-  ApvlvView sView(NULL);
+  ApvlvView sView(nullptr);
   if (sView.newtab (path) == false)
     {
       exit (1);
@@ -229,7 +229,7 @@ main (int argc, char *argv[])
   while (opt < argc)
     {
       path = absolutepath (argv[opt++]);
-      if (path == NULL)
+      if (path == nullptr)
         {
           continue;
         }

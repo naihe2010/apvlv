@@ -81,16 +81,16 @@ namespace apvlv
 	const gchar *home;
 
 #ifdef WIN32
-	home = g_win32_get_package_installation_directory_of_module (NULL);
+	home = g_win32_get_package_installation_directory_of_module (nullptr);
 #else
 	home = getenv ("HOME");
-	if (home == NULL)
+	if (home == nullptr)
 	  {
 	    home = g_get_home_dir ();
 	  }
 #endif
 
-	if (home != NULL)
+	if (home != nullptr)
 	  {
 	    g_snprintf (abpath, sizeof abpath, "%s%s", home, ++path);
 	  }
@@ -105,7 +105,7 @@ namespace apvlv
 	const gchar *pwd;
 
 	pwd = g_get_current_dir ();
-	if (pwd != NULL)
+	if (pwd != nullptr)
 	  {
 	    g_snprintf (abpath, sizeof abpath, "%s/%s", pwd, path);
 	  }
@@ -139,18 +139,18 @@ namespace apvlv
   gboolean walkdir (const char *name, gboolean (*cb) (const char *, void *),
 		    void *usrp)
   {
-    GDir *dir = g_dir_open (name, 0, NULL);
-    if (dir == NULL)
+    GDir *dir = g_dir_open (name, 0, nullptr);
+    if (dir == nullptr)
       {
 	debug ("Open dir: %s failed", name);
 	return FALSE;
       }
 
     const gchar *token;
-    while ((token = g_dir_read_name (dir)) != NULL)
+    while ((token = g_dir_read_name (dir)) != nullptr)
       {
-	gchar *subname = g_strjoin (PATH_SEP_S, name, token, NULL);
-	if (subname == NULL)
+	gchar *subname = g_strjoin (PATH_SEP_S, name, token, nullptr);
+	if (subname == nullptr)
 	  {
 	    continue;
 	  }
@@ -184,10 +184,10 @@ namespace apvlv
     gchar *d = absolutepath (dst);
     bool ok = false;
 
-    gboolean ret = g_file_get_contents (s, &content, NULL, NULL);
+    gboolean ret = g_file_get_contents (s, &content, nullptr, nullptr);
     if (ret == TRUE)
       {
-	ret = g_file_set_contents (d, content, -1, NULL);
+	ret = g_file_set_contents (d, content, -1, nullptr);
 	g_free (content);
 	ok = ret;
       }
@@ -200,18 +200,18 @@ namespace apvlv
 
   bool rmrf (const char *path)
   {
-    GDir *dir = g_dir_open (path, 0, NULL);
-    if (dir == NULL)
+    GDir *dir = g_dir_open (path, 0, nullptr);
+    if (dir == nullptr)
       {
 	debug ("Open dir: %s failed", path);
 	return FALSE;
       }
 
     const gchar *token;
-    while ((token = g_dir_read_name (dir)) != NULL)
+    while ((token = g_dir_read_name (dir)) != nullptr)
       {
-	gchar *subname = g_strjoin (PATH_SEP_S, path, token, NULL);
-	if (subname == NULL)
+	gchar *subname = g_strjoin (PATH_SEP_S, path, token, nullptr);
+	if (subname == nullptr)
 	  {
 	    continue;
 	  }
@@ -286,7 +286,7 @@ namespace apvlv
 	  str++;
 
 	argv = g_strsplit_set (str, " \t", 0);
-	if (argv == NULL)
+	if (argv == nullptr)
 	  {
 	    exit (1);
 	  }
@@ -299,7 +299,7 @@ namespace apvlv
       }
     else
       {
-	ret = wait4 (pid, &status, 0, NULL);
+	ret = wait4 (pid, &status, 0, nullptr);
       }
 
     return ret;

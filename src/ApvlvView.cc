@@ -70,7 +70,7 @@ namespace apvlv
 
     mMainWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 
-    mRootWindow = NULL;
+    mRootWindow = nullptr;
 
     int w = gParams->valuei ("width");
     int h = gParams->valuei ("height");
@@ -109,7 +109,7 @@ namespace apvlv
 
     mMenu = new ApvlvMenu ();
 
-    if (strchr (gParams->values ("guioptions"), 'm') != NULL)
+    if (strchr (gParams->values ("guioptions"), 'm') != nullptr)
       {
 	mMenu->setsize (mWidth, APVLV_MENU_HEIGHT - 1);
 	gtk_box_pack_start (GTK_BOX (mViewBox), mMenu->widget (), FALSE, FALSE,
@@ -153,11 +153,11 @@ namespace apvlv
         mParent->erase_child (this);
       }
 
-    std::vector <ApvlvView *>::const_iterator itr;
-    while (!mChildren.empty())
+    auto itr = mChildren.begin();
+    while (itr != mChildren.end())
       {
-        itr = mChildren.begin();
         delete *itr;
+        itr = mChildren.begin();
       }
 
     size_t i;
@@ -212,7 +212,7 @@ namespace apvlv
 						  GTK_RESPONSE_CANCEL,
 						  ("_OK"),
 						  GTK_RESPONSE_ACCEPT,
-						  NULL);
+						  nullptr);
     infofile *fp = gInfo->file (0);
     dirname =
       fp ? g_path_get_dirname (fp->file.c_str ()) :
@@ -270,7 +270,7 @@ namespace apvlv
 						  GTK_RESPONSE_CANCEL,
 						  ("_OK"),
 						  GTK_RESPONSE_ACCEPT,
-						  NULL);
+						  nullptr);
     infofile *fp = gInfo->file (0);
     dirname = fp ? g_path_get_dirname (fp->file.c_str ()) :
       g_strdup (gParams->values ("defaultdir"));
@@ -292,7 +292,7 @@ namespace apvlv
   bool ApvlvView::loaddir (const char *path)
   {
     ApvlvCore *ndoc = hasloaded (path, CORE_DIR);
-    if (ndoc == NULL)
+    if (ndoc == nullptr)
       {
 	int w, h;
 	currentWindow ()->getsize (&w, &h);
@@ -320,7 +320,7 @@ namespace apvlv
     if ((int) mTabList.size () == 1)
       {
 	mTabList.clear ();
-	apvlv_view_delete_cb (NULL, NULL, this);
+	apvlv_view_delete_cb (nullptr, nullptr, this);
 	return;
       }
 
@@ -352,7 +352,7 @@ namespace apvlv
       }
     ndoc = hasloaded (filename, core_type);
 
-    if (ndoc == NULL)
+    if (ndoc == nullptr)
       {
 	if (core_type == CORE_CONTENT)
 	  {
@@ -360,11 +360,11 @@ namespace apvlv
 	    if (!ndoc->loadfile (filename))
 	      {
 		delete ndoc;
-		ndoc = NULL;
+		ndoc = nullptr;
 	      }
 	  }
 
-	if (ndoc == NULL)
+	if (ndoc == nullptr)
 	  {
             DISPLAY_TYPE type = get_display_type_by_filename (filename);
 	    ndoc =
@@ -372,7 +372,7 @@ namespace apvlv
 	    if (!ndoc->loadfile (filename))
 	      {
 		delete ndoc;
-		ndoc = NULL;
+		ndoc = nullptr;
 	      }
 	  }
 
@@ -440,8 +440,7 @@ namespace apvlv
 	return mTabList.size () - 1;
       }
 
-    std::vector < TabEntry >::iterator
-      insPos = mTabList.begin () + mCurrTabPos + 1;
+    auto insPos = mTabList.begin () + mCurrTabPos + 1;
     mTabList.insert (insPos, context);
 
     if (mTabList.size () > 1)
@@ -457,12 +456,12 @@ namespace apvlv
   {
     asst (tabPos >= 0 && tabPos < (int) mTabList.size ());
 
-    std::vector < TabEntry >::iterator remPos = mTabList.begin () + tabPos;
+    auto remPos = mTabList.begin () + tabPos;
 
-    if (remPos->root != NULL)
+    if (remPos->root != nullptr)
       {
 	delete remPos->root;
-	remPos->root = NULL;
+	remPos->root = nullptr;
       }
 
     int c = mTabList.size ();
@@ -487,7 +486,7 @@ namespace apvlv
 
     mCurrTabPos = tabPos;
     mRootWindow = mTabList[tabPos].root;
-    ApvlvWindow::setcurrentWindow (NULL, mTabList[tabPos].curr);
+    ApvlvWindow::setcurrentWindow (nullptr, mTabList[tabPos].curr);
 
     if (crtadoc () && crtadoc ()->filename ())
       {
@@ -503,18 +502,18 @@ namespace apvlv
 
     mCurrTabPos = tabPos;
     mRootWindow = mTabList[tabPos].root;
-    ApvlvWindow::setcurrentWindow (NULL, mTabList[tabPos].curr);
+    ApvlvWindow::setcurrentWindow (nullptr, mTabList[tabPos].curr);
   }
 
   bool ApvlvView::loadfile (const char *filename)
   {
-    if (filename == NULL || *filename == '\0')
+    if (filename == nullptr || *filename == '\0')
       {
 	return false;
       }
 
     char *abpath = absolutepath (filename);
-    if (abpath == NULL)
+    if (abpath == nullptr)
       {
 	return false;
       }
@@ -526,7 +525,7 @@ namespace apvlv
       hasloaded (abpath,
 		 gParams->valueb ("content") ? CORE_CONTENT : CORE_DOC);
 
-    if (ndoc == NULL)
+    if (ndoc == nullptr)
       {
 	int w, h;
 	win->getsize (&w, &h);
@@ -537,35 +536,35 @@ namespace apvlv
 	      {
 		debug ("can't load");
 		delete ndoc;
-		ndoc = NULL;
+		ndoc = nullptr;
 	      }
 	  }
 
-	if (ndoc == NULL)
+	if (ndoc == nullptr)
 	  {
             DISPLAY_TYPE type = get_display_type_by_filename (filename);
 	    ndoc = new ApvlvDoc (this, type, w, h, gParams->values ("zoom"), false);
 	    if (!ndoc->loadfile (filename))
 	      {
 		delete ndoc;
-		ndoc = NULL;
+		ndoc = nullptr;
 	      }
 	  }
 
-	if (ndoc != NULL)
+	if (ndoc != nullptr)
 	  {
 	    regloaded (ndoc);
 	  }
       }
 
-    if (ndoc != NULL)
+    if (ndoc != nullptr)
       {
 	win->setCore (ndoc);
 	updatetabname ();
       }
     g_free (abpath);
 
-    return ndoc != NULL ? true : false;
+    return ndoc != nullptr ? true : false;
   }
 
   ApvlvCore *ApvlvView::hasloaded (const char *abpath, int type)
@@ -582,7 +581,7 @@ namespace apvlv
 	    return core;
 	  }
       }
-    return NULL;
+    return nullptr;
   }
 
   void ApvlvView::regloaded (ApvlvCore * core)
@@ -594,7 +593,7 @@ namespace apvlv
 
     if (mDocs.size () >= (size_t) gParams->valuei ("pdfcache"))
       {
-	std::vector < ApvlvCore * >::iterator itr = mDocs.begin ();
+	auto itr = mDocs.begin ();
 	debug ("to pdf cache size: %d, remove first: %p\n",
 	       gParams->valuei ("pdfcache"), *itr);
         delete *itr;
@@ -612,14 +611,14 @@ namespace apvlv
     const gchar *name;
 
     dname = g_path_get_dirname (path);
-    GDir *dir = g_dir_open ((const char *) dname, 0, NULL);
-    if (dir != NULL)
+    GDir *dir = g_dir_open ((const char *) dname, 0, nullptr);
+    if (dir != nullptr)
       {
 	bname = g_path_get_basename (path);
 	size_t len = strlen (bname);
-	while ((name = g_dir_read_name (dir)) != NULL)
+	while ((name = g_dir_read_name (dir)) != nullptr)
 	  {
-	    gchar *fname = g_locale_from_utf8 (name, -1, NULL, NULL, NULL);
+	    gchar *fname = g_locale_from_utf8 (name, -1, nullptr, nullptr, nullptr);
 
 	    if (strcmp (bname, PATH_SEP_S) != 0)
 	      {
@@ -638,11 +637,11 @@ namespace apvlv
 	      {
 		if (dname[strlen (dname) - 1] == PATH_SEP_C)
 		  {
-		    list->data = g_strjoin ("", dname, fname, NULL);
+		    list->data = g_strjoin ("", dname, fname, nullptr);
 		  }
 		else
 		  {
-		    list->data = g_strjoin (PATH_SEP_S, dname, fname, NULL);
+		    list->data = g_strjoin (PATH_SEP_S, dname, fname, nullptr);
 		  }
 	      }
 
@@ -707,7 +706,7 @@ namespace apvlv
 
   void ApvlvView::cmd_show (int cmdtype)
   {
-    if (mMainWindow == NULL)
+    if (mMainWindow == nullptr)
       return;
 
     mCmdType = cmdtype;
@@ -724,7 +723,7 @@ namespace apvlv
 
   void ApvlvView::cmd_hide ()
   {
-    if (mMainWindow == NULL)
+    if (mMainWindow == nullptr)
       return;
     mCmdType = CMD_NONE;
 
@@ -737,7 +736,7 @@ namespace apvlv
 
   void ApvlvView::cmd_auto (const char *ps)
   {
-    ApvlvCompletion *comp = NULL;
+    ApvlvCompletion *comp = nullptr;
 
     stringstream ss (ps);
     string cmd, np, argu;
@@ -772,12 +771,12 @@ namespace apvlv
 	g_list_free (list);
       }
 
-    if (comp != NULL)
+    if (comp != nullptr)
       {
-	char *comtext = NULL;
+	char *comtext = nullptr;
 	debug ("find match: %s", np.c_str ());
 	comp->complete (np.c_str (), &comtext);
-	if (comtext != NULL)
+	if (comtext != nullptr)
 	  {
 	    char text[PATH_MAX];
 
@@ -785,7 +784,7 @@ namespace apvlv
 	    gchar **v;
 
 	    v = g_strsplit (comtext, " ", -1);
-	    if (v != NULL)
+	    if (v != nullptr)
 	      {
 		gchar *comstr = g_strjoinv ("\\ ", v);
 		g_snprintf (text, sizeof text, ":%s %s", cmd.c_str (),
@@ -997,7 +996,7 @@ namespace apvlv
 	else if ((cmd == "o"
 		  || cmd == "open" || cmd == "doc") && subcmd != "")
 	  {
-            char *home = NULL;
+            char *home = nullptr;
 
             if(subcmd[0] == '~') {
               home = getenv("HOME");
@@ -1128,7 +1127,7 @@ namespace apvlv
 	else if (cmd == "w" || cmd == "write")
 	  {
 	    crtadoc ()->writefile (subcmd.size () >
-				   0 ? subcmd.c_str () : NULL);
+				   0 ? subcmd.c_str () : nullptr);
 	  }
 	else if (cmd == "toc")
 	  {
@@ -1264,7 +1263,7 @@ namespace apvlv
 	  {
 	    gchar *str =
 	      (gchar *) gtk_entry_get_text (GTK_ENTRY (view->mCommandBar));
-	    if (str == NULL || strlen (str) == 1)
+	    if (str == nullptr || strlen (str) == 1)
 	      {
 		view->cmd_hide ();
 		view->mCurrHistroy = view->mCmdHistroy.size () - 1;
@@ -1333,8 +1332,8 @@ namespace apvlv
       {
         gtk_widget_destroy (widget);
       }
-    view->mMainWindow = NULL;
-    if (view->mParent == NULL)
+    view->mMainWindow = nullptr;
+    if (view->mParent == nullptr)
       {
         gtk_main_quit ();
       }
@@ -1351,7 +1350,7 @@ namespace apvlv
   {
     view->mCurrTabPos = pnum;
     view->mRootWindow = view->mTabList[pnum].root;
-    ApvlvWindow::setcurrentWindow (NULL, view->mTabList[pnum].curr);
+    ApvlvWindow::setcurrentWindow (nullptr, view->mTabList[pnum].curr);
   }
 
   int ApvlvView::adjheight ()
@@ -1365,7 +1364,7 @@ namespace apvlv
       {
 	adj += APVLV_CMD_BAR_HEIGHT;
       }
-    if (strchr (gParams->values ("guioptions"), 'm') != NULL)
+    if (strchr (gParams->values ("guioptions"), 'm') != nullptr)
       {
 	adj += APVLV_MENU_HEIGHT;
       }
@@ -1398,7 +1397,7 @@ namespace apvlv
     const char *filename = currentWindow ()->getCore ()->filename ();
     gchar *gfilename;
 
-    if (filename == NULL)
+    if (filename == nullptr)
       gfilename = g_strdup ("None");
     else
       gfilename = g_path_get_basename (filename);
@@ -1430,7 +1429,7 @@ namespace apvlv
   void
   ApvlvView::erase_child (ApvlvView *view)
   {
-    std::vector <ApvlvView *>::const_iterator itr = mChildren.begin();
+    auto itr = mChildren.begin();
     while (*itr != view && itr != mChildren.end())
       itr ++;
 

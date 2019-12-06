@@ -55,7 +55,7 @@ namespace apvlv
     enum windowType
       { AW_SP, AW_VSP, AW_CORE, AW_NONE } type;
 
-    ApvlvWindow *birth (bool vsp, ApvlvCore * core = NULL);
+    ApvlvWindow *birth (bool vsp, ApvlvCore * core = nullptr);
 
     ApvlvWindow *unbirth (ApvlvWindow *, ApvlvWindow *);
 

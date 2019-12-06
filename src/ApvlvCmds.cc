@@ -82,9 +82,9 @@ namespace apvlv
 
     mPreCount = 1;
 
-    mNext = NULL;
+    mNext = nullptr;
 
-    mOrigin = NULL;
+    mOrigin = nullptr;
   }
 
   void ApvlvCmd::type (cmdType type)
@@ -106,7 +106,7 @@ namespace apvlv
     mHasPreCount = false;
     mPreCount = 1;
 
-    mNext = NULL;
+    mNext = nullptr;
 
     if (isdigit (*s))
       {
@@ -167,7 +167,7 @@ namespace apvlv
 	  }
       }
 
-    if (next () != NULL)
+    if (next () != nullptr)
       {
 	next ()->process (view);
       }
@@ -203,8 +203,7 @@ namespace apvlv
 	&& (*e != '\0' && *(s + 2) != '-'))
       {
 	e++;
-	StringKeyMap::iterator it;
-	for (it = SK.begin (); it != SK.end (); it++)
+	for (auto it = SK.begin (); it != SK.end (); it++)
 	  {
 	    if (strncmp (it->first, s, e - s) == 0)
 	      {
@@ -331,24 +330,17 @@ namespace apvlv
     ApvlvCmd *secp = new ApvlvCmd();
     secp->push (ms);
 
-    ApvlvCmdMap::iterator it;
-    for (it = mMaps.begin (); it != mMaps.end (); ++it)
+    for (auto it = mMaps.begin (); it != mMaps.end (); ++it)
       {
 	if (it->first == fir.keyvalv ())
 	  {
-	    break;
+            delete it->second;
+            it->second = secp;
+            return true;
 	  }
       }
 
-    if (it != mMaps.end ())
-      {
-	delete it->second;
-	it->second = secp;
-      }
-    else
-      {
-	mMaps[fir.keyvalv ()] = secp;
-      }
+    mMaps[fir.keyvalv ()] = secp;
     return true;
   }
 
@@ -359,7 +351,7 @@ namespace apvlv
     mTimeoutTimer = -1;
     mState = CMD_OK;
 
-    mCmdHead = NULL;
+    mCmdHead = nullptr;
 
     if (SK.empty ())
       {
@@ -420,12 +412,12 @@ namespace apvlv
 	  {
 	    process (mCmdHead);
 	    delete mCmdHead;
-	    mCmdHead = NULL;
+	    mCmdHead = nullptr;
 	    mState = CMD_OK;
 	  }
       }
 
-    if (mCmdHead == NULL)
+    if (mCmdHead == nullptr)
       mCmdHead = new ApvlvCmd;
 
     if (mState == CMD_OK)
@@ -476,14 +468,14 @@ namespace apvlv
 	return;
       }
 
-    ApvlvCmd *pcmd = NULL;
+    ApvlvCmd *pcmd = nullptr;
     if (ret == MATCH)
       {
 	ApvlvCmd *pcmd = getmap (mCmdHead);
 	pcmd->origin (mCmdHead);
 	process (pcmd);
-	pcmd->origin (NULL);
-	pcmd = NULL;
+	pcmd->origin (nullptr);
+	pcmd = nullptr;
       }
     else if (ret == NO_MATCH)
       {
@@ -503,7 +495,7 @@ namespace apvlv
   {
     guint times = 1;
     ApvlvCmd *orig = cmd->origin ();
-    if (orig != NULL)
+    if (orig != nullptr)
       {
 	times = orig->precount ();
       }
@@ -517,9 +509,7 @@ namespace apvlv
 
   returnType ApvlvCmds::ismap (ApvlvCmdKeyv * cvp)
   {
-    ApvlvCmdMap::iterator it;
-
-    for (it = mMaps.begin (); it != mMaps.end (); ++it)
+    for (auto it = mMaps.begin (); it != mMaps.end (); ++it)
       {
 	if (*cvp == it->first)
 	  {
@@ -553,19 +543,18 @@ namespace apvlv
 
   ApvlvCmd *ApvlvCmds::getmap (ApvlvCmd * cmd)
   {
-    ApvlvCmdMap::iterator it;
-    it = mMaps.find (*cmd->keyvalv_p ());
-    return it != mMaps.end ()? it->second : NULL;
+    auto it = mMaps.find (*cmd->keyvalv_p ());
+    return it != mMaps.end ()? it->second : nullptr;
   }
 
   gboolean ApvlvCmds::apvlv_cmds_timeout_cb (gpointer data)
   {
     ApvlvCmds *cmds = (ApvlvCmds *) data;
-    if (cmds->mCmdHead != NULL)
+    if (cmds->mCmdHead != nullptr)
       {
 	cmds->process (cmds->mCmdHead);
 	delete cmds->mCmdHead;
-	cmds->mCmdHead = NULL;
+	cmds->mCmdHead = nullptr;
       }
     cmds->mState = CMD_OK;
     return FALSE;

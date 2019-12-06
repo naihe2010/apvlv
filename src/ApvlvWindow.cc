@@ -36,14 +36,14 @@
 
 namespace apvlv
 {
-  ApvlvWindow *ApvlvWindow::m_curWindow = NULL;
+  ApvlvWindow *ApvlvWindow::m_curWindow = nullptr;
 
   ApvlvWindow::ApvlvWindow (ApvlvCore * doc)
   {
     mIsClose = false;
 
     type = AW_CORE;
-    if (doc == NULL)
+    if (doc == nullptr)
       {
 	mCore = new ApvlvDoc (mCore->mView, DISPLAY_TYPE_IMAGE, 0, 0, gParams->values ("zoom"));
       }
@@ -51,7 +51,7 @@ namespace apvlv
       {
 	mCore = doc;
       }
-    m_son = m_daughter = m_parent = NULL;
+    m_son = m_daughter = m_parent = nullptr;
   }
 
   ApvlvWindow::~ApvlvWindow ()
@@ -65,15 +65,15 @@ namespace apvlv
 
     mIsClose = true;
 
-    if (m_parent != NULL)
+    if (m_parent != nullptr)
       {
 	if (m_parent->m_son == this)
 	  {
-	    m_parent->m_son = NULL;
+	    m_parent->m_son = nullptr;
 	  }
 	else if (m_parent->m_daughter == this)
 	  {
-	    m_parent->m_daughter = NULL;
+	    m_parent->m_daughter = nullptr;
 	  }
       }
 
@@ -84,16 +84,16 @@ namespace apvlv
 
     else if (type == AW_SP || type == AW_VSP)
       {
-	if (m_son != NULL)
+	if (m_son != nullptr)
 	  {
 	    ApvlvWindow *win = m_son;
-	    m_son = NULL;
+	    m_son = nullptr;
 	    delete win;
 	  }
-	if (m_daughter != NULL)
+	if (m_daughter != nullptr)
 	  {
 	    ApvlvWindow *win = m_daughter;
-	    m_daughter = NULL;
+	    m_daughter = nullptr;
 	    delete win;
 	  }
 
@@ -114,13 +114,13 @@ namespace apvlv
     else
       {
 	debug ("type error: %d", type);
-	return NULL;
+	return nullptr;
       }
   }
 
   void ApvlvWindow::setcurrentWindow (ApvlvWindow * pre, ApvlvWindow * win)
   {
-    if (pre != NULL && pre->type == AW_CORE)
+    if (pre != nullptr && pre->type == AW_CORE)
       {
 	pre->mCore->setactive (false);
       }
@@ -143,7 +143,7 @@ namespace apvlv
     ApvlvWindow *child =
       crwin == pwin->m_son ? pwin->m_daughter : pwin->m_son;
     ApvlvWindow *cwin = pwin->unbirth (crwin, child);
-    setcurrentWindow (NULL, cwin);
+    setcurrentWindow (nullptr, cwin);
   }
 
   ApvlvWindow *ApvlvWindow::currentWindow ()
@@ -164,7 +164,7 @@ namespace apvlv
       case 'h':
       case 'l':
 	nwin = getneighbor (ct, key);
-      if (nwin != NULL)
+      if (nwin != nullptr)
         {
           setcurrentWindow (this, nwin);
         }
@@ -202,7 +202,7 @@ namespace apvlv
 	break;
       }
 
-    return NULL;
+    return nullptr;
   }
 
   inline ApvlvWindow *ApvlvWindow::getkj (int num, bool down)
@@ -211,7 +211,7 @@ namespace apvlv
     bool right = false;
 
     asst (type == AW_CORE);
-    for (cw = fw = NULL, w = this; w != NULL; cw = w, w = w->m_parent)
+    for (cw = fw = nullptr, w = this; w != nullptr; cw = w, w = w->m_parent)
       {
 	if (w->type == AW_SP)
 	  {
@@ -228,7 +228,7 @@ namespace apvlv
 	  }
 	else if (w->type == AW_VSP)
 	  {
-	    if (cw != NULL && cw == w->m_daughter)
+	    if (cw != nullptr && cw == w->m_daughter)
 	      {
 		right = true;
 	      }
@@ -239,7 +239,7 @@ namespace apvlv
 	  }
       }
 
-    for (nw = w = fw; w != NULL;)
+    for (nw = w = fw; w != nullptr;)
       {
 	if (w->type == AW_CORE)
 	  {
@@ -257,7 +257,7 @@ namespace apvlv
 	else
 	  {
 	    debug ("error type: %d", w->type);
-	    return NULL;
+	    return nullptr;
 	  }
       }
 
@@ -270,7 +270,7 @@ namespace apvlv
     bool down = false;
 
     asst (type == AW_CORE);
-    for (cw = fw = NULL, w = this; w != NULL; cw = w, w = w->m_parent)
+    for (cw = fw = nullptr, w = this; w != nullptr; cw = w, w = w->m_parent)
       {
 	if (w->type == AW_VSP)
 	  {
@@ -287,7 +287,7 @@ namespace apvlv
 	  }
 	else if (w->type == AW_SP)
 	  {
-	    if (cw != NULL && cw == w->m_daughter)
+	    if (cw != nullptr && cw == w->m_daughter)
 	      {
 		down = true;
 	      }
@@ -298,7 +298,7 @@ namespace apvlv
 	  }
       }
 
-    for (nw = w = fw; w != NULL;)
+    for (nw = w = fw; w != nullptr;)
       {
 	if (w->type == AW_CORE)
 	  {
@@ -316,7 +316,7 @@ namespace apvlv
 	else
 	  {
 	    debug ("error type: %d", w->type);
-	    return NULL;
+	    return nullptr;
 	  }
       }
 
@@ -326,13 +326,13 @@ namespace apvlv
   ApvlvWindow *ApvlvWindow::getnext (int num)
   {
     ApvlvWindow *n = getkj (num, true);
-    if (n == NULL)
+    if (n == nullptr)
       {
 	n = gethl (num, true);
-	if (n == NULL)
+	if (n == nullptr)
 	  {
 	    n = gethl (num, false);
-	    if (n == NULL)
+	    if (n == nullptr)
 	      n = getkj (num, false);
 	  }
       }
@@ -348,16 +348,16 @@ namespace apvlv
     if (doc == mCore)
       {
 	debug ("can't birth with orign doc, copy it");
-	doc = NULL;
+	doc = nullptr;
       }
 
-    if (doc == NULL)
+    if (doc == nullptr)
       {
 	doc = mCore->copy ();
 	mCore->mView->regloaded (doc);
       }
 
-    if (doc == NULL)
+    if (doc == nullptr)
       {
 	mCore->mView->errormessage ("can't split");
 	return this;
@@ -472,9 +472,9 @@ namespace apvlv
 
     gtk_widget_show_all (widget ());
 
-    if (dead != NULL)
+    if (dead != nullptr)
       delete dead;
-    if (child != NULL)
+    if (child != nullptr)
       delete child;
 
     ApvlvWindow *win;
@@ -485,7 +485,7 @@ namespace apvlv
 
   bool ApvlvWindow::istop ()
   {
-    return m_parent == NULL ? true : false;
+    return m_parent == nullptr ? true : false;
   }
 
   void ApvlvWindow::getsize (int *width, int *height)
@@ -538,7 +538,7 @@ namespace apvlv
 
   void ApvlvWindow::smaller (int times)
   {
-    if (m_parent == NULL)
+    if (m_parent == nullptr)
       return;
 
     int val = gtk_paned_get_position (GTK_PANED (m_parent->mPaned));
@@ -551,7 +551,7 @@ namespace apvlv
 
   void ApvlvWindow::bigger (int times)
   {
-    if (m_parent == NULL)
+    if (m_parent == nullptr)
       return;
 
     int val = gtk_paned_get_position (GTK_PANED (m_parent->mPaned));
@@ -577,7 +577,7 @@ namespace apvlv
     int mi, ma;
     int mv = gtk_paned_get_position (GTK_PANED (mPaned));
 
-    gtk_widget_style_get(mPaned, "min-position", &mi, "max-position", &ma, NULL);
+    gtk_widget_style_get(mPaned, "min-position", &mi, "max-position", &ma, nullptr);
     int ms = ma - mi;
     if (ms != 0)
       {

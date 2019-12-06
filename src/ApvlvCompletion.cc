@@ -34,9 +34,9 @@ namespace apvlv
   {
 #ifdef APVLV_NO_G_COMP
     mArray = g_ptr_array_new ();
-    mCache = NULL;
+    mCache = nullptr;
 #else
-    mComp = g_completion_new (NULL);
+    mComp = g_completion_new (nullptr);
 #endif
   }
 
@@ -47,7 +47,7 @@ namespace apvlv
     if (mCache)
       {
 	g_list_free (mCache);
-	mCache = NULL;
+	mCache = nullptr;
       }
 #else
     g_completion_free (mComp);
@@ -63,7 +63,7 @@ namespace apvlv
     if (mCache)
       {
 	g_list_free (mCache);
-	mCache = NULL;
+	mCache = nullptr;
       }
 
     for (count = 0, i = 0; i < mArray->len; ++ i)

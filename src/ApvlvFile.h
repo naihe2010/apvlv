@@ -85,7 +85,7 @@ namespace apvlv
     virtual bool pagetext (int, int, int, int, int, char **) = 0;
 
     virtual bool render (int, int, int, double, int, GdkPixbuf *,
-			 char *buffer = NULL);
+			 char *buffer = nullptr);
 
     virtual bool renderweb (int pn, int, int, double, int, GtkWidget *widget);
 

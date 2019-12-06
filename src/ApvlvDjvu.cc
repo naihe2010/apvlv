@@ -62,7 +62,7 @@ namespace apvlv
 	mDoc = ddjvu_document_create_by_filename (mContext, filename, FALSE);
       }
 
-    if (mDoc != NULL)
+    if (mDoc != nullptr)
       {
 	if (ddjvu_document_get_type (mDoc) == DDJVU_DOCTYPE_SINGLEPAGE)
 	  {
@@ -72,16 +72,16 @@ namespace apvlv
 	  {
 	    /*
 	      ddjvu_document_release (mDoc);
-	      mDoc = NULL;
+	      mDoc = nullptr;
 	      ddjvu_context_release (mContext);
-	      mContext = NULL;
+	      mContext = nullptr;
 	      throw std::bad_alloc (); */
 	  }
       }
     else
       {
 	ddjvu_context_release (mContext);
-	mContext = NULL;
+	mContext = nullptr;
 	throw std::bad_alloc ();
       }
   }
@@ -102,9 +102,9 @@ namespace apvlv
   bool ApvlvDJVU::writefile (const char *filename)
   {
     FILE *fp = fopen (filename, "wb");
-    if (fp != NULL)
+    if (fp != nullptr)
       {
-	ddjvu_job_t *job = ddjvu_document_save (mDoc, fp, 0, NULL);
+	ddjvu_job_t *job = ddjvu_document_save (mDoc, fp, 0, nullptr);
 	while (!ddjvu_job_done (job))
 	  {
 	    handle_ddjvu_messages (mContext, TRUE);
@@ -143,7 +143,7 @@ namespace apvlv
   {
     ddjvu_page_t *tpage;
 
-    if ((tpage = ddjvu_page_create_by_pageno (mDoc, pn)) == NULL)
+    if ((tpage = ddjvu_page_create_by_pageno (mDoc, pn)) == nullptr)
       {
 	debug ("no this page: %d", pn);
 	return false;
@@ -164,7 +164,7 @@ namespace apvlv
       }
     };
     ddjvu_format_t *format =
-      ddjvu_format_create (DDJVU_FORMAT_RGB24, 0, NULL);
+      ddjvu_format_create (DDJVU_FORMAT_RGB24, 0, nullptr);
     ddjvu_format_set_row_order (format, TRUE);
 
     gint retry = 0;
@@ -189,12 +189,12 @@ namespace apvlv
 
   ApvlvPoses *ApvlvDJVU::pagesearch (int pn, const char *str, bool reverse)
   {
-    return NULL;
+    return nullptr;
   }
 
   ApvlvLinks *ApvlvDJVU::getlinks (int pn)
   {
-    return NULL;
+    return nullptr;
   }
 
   bool ApvlvDJVU::pagetext (int pn, int x1, int y1, int x2, int y2,
@@ -205,7 +205,7 @@ namespace apvlv
 
   ApvlvFileIndex *ApvlvDJVU::new_index ()
   {
-    return NULL;
+    return nullptr;
   }
 
   void ApvlvDJVU::free_index (ApvlvFileIndex * index)

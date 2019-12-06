@@ -49,8 +49,8 @@ namespace apvlv
   ApvlvMenu::ApvlvMenu ()
   {
     GtkBuilder *builder = gtk_builder_new();
-    gtk_builder_add_from_file (builder, mainmenubar_glade.c_str(), NULL);
-    gtk_builder_connect_signals (builder, NULL);
+    gtk_builder_add_from_file (builder, mainmenubar_glade.c_str(), nullptr);
+    gtk_builder_connect_signals (builder, nullptr);
     mMenu = GTK_WIDGET (gtk_builder_get_object (builder, "main_menubar"));
   }
 
@@ -128,7 +128,7 @@ namespace apvlv
     static const char *author[] =
       {
         "Alf",
-        NULL
+        nullptr
       };
 
     GtkWidget *dia = gtk_about_dialog_new ();

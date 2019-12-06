@@ -49,7 +49,7 @@ namespace apvlv
 
     mRotatevalue = 0;
 
-    mSearchResults = NULL;
+    mSearchResults = nullptr;
     mSearchStr = "";
 
 #if GTK_CHECK_VERSION (3, 0, 0)
@@ -59,7 +59,7 @@ namespace apvlv
 #endif
     g_object_ref (mVbox);
 
-    mScrollwin = gtk_scrolled_window_new (NULL, NULL);
+    mScrollwin = gtk_scrolled_window_new (nullptr, nullptr);
     gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin),
                                     GTK_POLICY_AUTOMATIC,
                                     GTK_POLICY_AUTOMATIC);
@@ -74,7 +74,7 @@ namespace apvlv
   {
     if (mGMonitor)
       {
-	mGMonitor = NULL;
+	mGMonitor = nullptr;
       }
 
     g_object_unref (mVbox);
@@ -89,7 +89,7 @@ namespace apvlv
   {
     mInuse = use;
 
-    if (mInuse == false && mView->hasloaded (filename (), type ()) == NULL)
+    if (mInuse == false && mView->hasloaded (filename (), type ()) == nullptr)
       {
 	debug ("core :%p is not needed, delete it\n", this);
 	delete this;
@@ -122,12 +122,12 @@ namespace apvlv
 
   ApvlvCore *ApvlvCore::copy ()
   {
-    return NULL;
+    return nullptr;
   }
 
   const char *ApvlvCore::filename ()
   {
-    return mFilestr.length () > 0 ? mFilestr.c_str () : NULL;
+    return mFilestr.length () > 0 ? mFilestr.c_str () : nullptr;
   }
 
   gint ApvlvCore::pagenumber ()
@@ -152,7 +152,7 @@ namespace apvlv
 
   bool ApvlvCore::writefile (const char *name)
   {
-    if (mFile != NULL)
+    if (mFile != nullptr)
       {
 	debug ("write %p to %s", mFile, name);
 	return mFile->writefile (name ? name : filename ());

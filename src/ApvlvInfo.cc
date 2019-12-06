@@ -34,13 +34,13 @@
 
 namespace apvlv
 {
-  ApvlvInfo *gInfo = NULL;
+  ApvlvInfo *gInfo = nullptr;
 
   ApvlvInfo::ApvlvInfo (const char *filename)
   {
     mFileName = filename;
 
-    mFileHead = NULL;
+    mFileHead = nullptr;
     mFileMax = 10;
 
     ifstream is (mFileName.c_str (), ios::in);
@@ -71,7 +71,7 @@ namespace apvlv
   ApvlvInfo::~ApvlvInfo ()
   {
     for (GSList *list = mFileHead;
-	 list != NULL;
+	 list != nullptr;
 	 list = g_slist_next (list))
       {
 	infofile *fp = (infofile *) (list->data);
@@ -92,7 +92,7 @@ namespace apvlv
     GSList *lfp;
     infofile *fp;
     for (i = 0, lfp = mFileHead;
-	 i < mFileMax && lfp != NULL; ++i, lfp = g_slist_next (lfp))
+	 i < mFileMax && lfp != nullptr; ++i, lfp = g_slist_next (lfp))
       {
 	fp = (infofile *) (lfp->data);
 	if (fp)
@@ -119,7 +119,7 @@ namespace apvlv
     GSList *lfp;
     infofile *fp;
 
-    for (lfp = mFileHead; lfp != NULL; lfp = g_slist_next (lfp))
+    for (lfp = mFileHead; lfp != nullptr; lfp = g_slist_next (lfp))
       {
 	fp = (infofile *) (lfp->data);
 	if (fp->file == filename)
@@ -128,7 +128,7 @@ namespace apvlv
 	  }
       }
 
-    if (lfp == NULL)
+    if (lfp == nullptr)
       {
 	fp = new infofile;
 	fp->page = 0;
@@ -151,7 +151,7 @@ namespace apvlv
     infofile *fp;
 
     fp = file (filename);
-    if (fp == NULL)
+    if (fp == nullptr)
       {
 	return false;
       }
@@ -169,7 +169,7 @@ namespace apvlv
     const char *p, *s;
 
     p = strchr (str + 2, '\t');	/* Skip the ' and the digit */
-    if (p == NULL)
+    if (p == nullptr)
       {
 	return false;
       }
@@ -200,7 +200,7 @@ namespace apvlv
       }
 
     p = strchr (p, '\t');
-    if (p == NULL)
+    if (p == nullptr)
       {
 	return false;
       }
@@ -212,7 +212,7 @@ namespace apvlv
     double rate = atof (p);
 
     p = strchr (p, '\t');
-    if (p == NULL)
+    if (p == nullptr)
       {
 	return false;
       }

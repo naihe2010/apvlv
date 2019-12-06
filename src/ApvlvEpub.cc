@@ -50,30 +50,30 @@ namespace apvlv
     xmlNodeSetPtr nodes;
 
     xpathctx = xmlXPathNewContext (doc);
-    if (xpathctx == NULL)
+    if (xpathctx == nullptr)
       {
         debug ("unable to create new XPath context\n");
-        return NULL;
+        return nullptr;
       }
 
-    if (ns != NULL)
+    if (ns != nullptr)
       {
         xmlXPathRegisterNs (xpathctx, BAD_CAST "c", BAD_CAST ns);
       }
 
     xpathobj = xmlXPathEvalExpression (BAD_CAST xpath, xpathctx);
     xmlXPathFreeContext (xpathctx);
-    if (xpathobj == NULL)
+    if (xpathobj == nullptr)
       {
         debug ("unable to evaluate xpath expression \"%s\"\n", xpath);
-        return NULL;
+        return nullptr;
       }
 
     if (xmlXPathNodeSetIsEmpty (xpathobj->nodesetval))
       {
         debug ("unable to get \"%s\"\n", xpath);
         xmlXPathFreeObject (xpathobj);
-        return NULL;
+        return nullptr;
       }
 
     nodes = xpathobj->nodesetval;
@@ -85,9 +85,9 @@ namespace apvlv
 
   xmlNodePtr xmldoc_get_node (xmlDocPtr doc, const char *xpath, const char *ns)
   {
-    xmlNodePtr node = NULL;
+    xmlNodePtr node = nullptr;
     xmlNodeSetPtr nodes = xmldoc_get_nodeset (doc, xpath, ns);
-    if (nodes != NULL)
+    if (nodes != nullptr)
       {
         node = nodes->nodeTab[0];
         xmlXPathFreeNodeSet (nodes);
@@ -100,7 +100,7 @@ namespace apvlv
   {
     xmlAttrPtr prop;
 
-    for (prop = node->properties; prop != NULL; prop = prop->next)
+    for (prop = node->properties; prop != nullptr; prop = prop->next)
       {
         if (prop->type == XML_ATTRIBUTE_NODE
             && strcmp ((char *) prop->name, attr) == 0
@@ -118,7 +118,7 @@ namespace apvlv
     xmlAttrPtr prop;
     string value = "";
 
-    for (prop = node->properties; prop != NULL; prop = prop->next)
+    for (prop = node->properties; prop != nullptr; prop = prop->next)
       {
         if (prop->type == XML_ATTRIBUTE_NODE
             && strcmp ((char *) prop->name, attr) == 0)
@@ -138,12 +138,12 @@ namespace apvlv
     struct epub *epub;
 
     epub = epub_open (filename, 0);
-    if (epub == NULL)
+    if (epub == nullptr)
       {
         throw std::bad_alloc ();
       }
 
-    mRoot = g_dir_make_tmp ("apvlv_epub_XXXXXXXX", NULL);
+    mRoot = g_dir_make_tmp ("apvlv_epub_XXXXXXXX", nullptr);
 
     gchar *container;
     gint len = epub_get_ocf_file (epub, "META-INF/container.xml", &container);
@@ -180,11 +180,11 @@ namespace apvlv
 
   ApvlvEPUB::~ApvlvEPUB ()
   {
-    if (mRoot != NULL)
+    if (mRoot != nullptr)
       {
         rmrf (mRoot);
         g_free (mRoot);
-        mRoot = NULL;
+        mRoot = nullptr;
       }
     
     mPages.clear();
@@ -230,7 +230,7 @@ namespace apvlv
       }
 
     string path = string(mRoot) + "/" + uri;
-    gchar *pathuri = g_filename_to_uri (path.c_str(), NULL, NULL);
+    gchar *pathuri = g_filename_to_uri (path.c_str(), nullptr, nullptr);
     webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), pathuri);
     g_free (pathuri);
     
@@ -239,7 +239,7 @@ namespace apvlv
 
   ApvlvPoses *ApvlvEPUB::pagesearch (int pn, const char *str, bool reverse)
   {
-    return NULL;
+    return nullptr;
   }
 
   bool ApvlvEPUB::pageselectsearch (int pn, int ix, int iy,
@@ -251,7 +251,7 @@ namespace apvlv
 
   ApvlvLinks *ApvlvEPUB::getlinks (int pn)
   {
-    return NULL;
+    return nullptr;
   }
 
   ApvlvFileIndex *ApvlvEPUB::new_index ()
@@ -275,14 +275,14 @@ namespace apvlv
     xmlNodePtr node;
     string path = "";
 
-    doc = xmlReadMemory (container, len, NULL, NULL, XML_PARSE_NOBLANKS | XML_PARSE_NSCLEAN);
-    if (doc == NULL)
+    doc = xmlReadMemory (container, len, nullptr, nullptr, XML_PARSE_NOBLANKS | XML_PARSE_NSCLEAN);
+    if (doc == nullptr)
       {
         return path;
       }
 
     node = xmldoc_get_node (doc, "//c:container/c:rootfiles/c:rootfile/@full-path", "urn:oasis:names:tc:opendocument:xmlns:container");
-    if (node == NULL)
+    if (node == nullptr)
       {
         xmlFreeDoc (doc);
         return path;
@@ -309,9 +309,9 @@ namespace apvlv
         return idfiles;
       }
 
-    doc = xmlReadMemory (contentopf, clen, NULL, NULL, XML_PARSE_NOBLANKS | XML_PARSE_NSCLEAN);
+    doc = xmlReadMemory (contentopf, clen, nullptr, nullptr, XML_PARSE_NOBLANKS | XML_PARSE_NSCLEAN);
     free (contentopf);
-    if (doc == NULL)
+    if (doc == nullptr)
       {
         return idfiles;
       }
@@ -342,7 +342,7 @@ namespace apvlv
                 gchar *dname = g_path_get_dirname (localpath.c_str());
                 g_mkdir_with_parents (dname, 0755);
                 g_free (dname);
-                g_file_set_contents (localpath.c_str(), data, dlen, NULL);
+                g_file_set_contents (localpath.c_str(), data, dlen, nullptr);
               }
 
             string id = xmlnode_attr_get (node, "id");
@@ -365,7 +365,7 @@ namespace apvlv
 
   ApvlvFileIndex * ApvlvEPUB::ncx_get_index (struct epub *epub, string ncxfile)
   {
-    ApvlvFileIndex *index = NULL;
+    ApvlvFileIndex *index = nullptr;
     xmlDocPtr doc;
     xmlNodePtr map, node;
 
@@ -376,15 +376,15 @@ namespace apvlv
         return FALSE;
       }
 
-    doc = xmlReadMemory (tocncx, len, NULL, NULL, XML_PARSE_NOBLANKS | XML_PARSE_NSCLEAN);
+    doc = xmlReadMemory (tocncx, len, nullptr, nullptr, XML_PARSE_NOBLANKS | XML_PARSE_NSCLEAN);
     free (tocncx);
-    if (doc == NULL)
+    if (doc == nullptr)
       {
         return index;
       }
 
     map = xmldoc_get_node (doc, "//c:ncx/c:navMap", "http://www.daisy.org/z3986/2005/ncx/");
-    if (map == NULL)
+    if (map == nullptr)
       {
         xmlFreeDoc (doc);
         return index;
@@ -393,7 +393,7 @@ namespace apvlv
     index = new ApvlvFileIndex;
     index->title = "__cover__";
     index->page = 0;
-    for (node = map->children; node != NULL; node = node->next)
+    for (node = map->children; node != nullptr; node = node->next)
       {
         if (node->type != XML_ELEMENT_NODE)
           {
@@ -424,11 +424,11 @@ namespace apvlv
         index.page = page;
       }
 
-    for (child = node->children; child != NULL; child = child->next)
+    for (child = node->children; child != nullptr; child = child->next)
       {
         if (g_ascii_strcasecmp ((gchar *) child->name, "navLabel") == 0)
           {
-            for (xmlNodePtr ln = child->children; ln != NULL; ++ ln)
+            for (xmlNodePtr ln = child->children; ln != nullptr; ++ ln)
               {
                 if (g_ascii_strcasecmp ((gchar *) ln->name, "text") == 0)
                   {

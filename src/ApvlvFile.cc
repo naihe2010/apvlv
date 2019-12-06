@@ -53,24 +53,24 @@ namespace apvlv
 
   ApvlvFile::ApvlvFile (const char *filename, bool check)
   {
-    mIndex = NULL;
+    mIndex = nullptr;
 
-    mRawdata = NULL;
+    mRawdata = nullptr;
     mRawdataSize = 0;
   }
 
   ApvlvFile::~ApvlvFile ()
   {
-    if (mRawdata != NULL)
+    if (mRawdata != nullptr)
       {
 	delete[]mRawdata;
-	mRawdata = NULL;
+	mRawdata = nullptr;
       }
   }
 
   ApvlvFile *ApvlvFile::newfile (const char *filename, bool check)
   {
-    ApvlvFile *file = NULL;
+    ApvlvFile *file = nullptr;
     static const char *type_phrase[] =
       {
 	".pdf",
@@ -98,7 +98,7 @@ namespace apvlv
 	i = 0;
       }
 
-    file = NULL;
+    file = nullptr;
     try
       {
 	switch (i)
@@ -137,7 +137,7 @@ namespace apvlv
     catch (const bad_alloc &e)
       {
 	delete file;
-	file = NULL;
+	file = nullptr;
       }
 
     return file;

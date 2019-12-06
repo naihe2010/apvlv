@@ -39,7 +39,7 @@ namespace apvlv
   {
     mUri = filename;
     if (g_path_is_absolute(filename)) {
-      gchar* fileUri = g_filename_to_uri(filename, NULL, NULL);
+      gchar* fileUri = g_filename_to_uri(filename, nullptr, nullptr);
       mUri = fileUri;
       g_free(fileUri);
     }
@@ -80,7 +80,7 @@ namespace apvlv
 
   ApvlvPoses *ApvlvHTML::pagesearch (int pn, const char *str, bool reverse)
   {
-    return NULL;
+    return nullptr;
   }
 
   bool ApvlvHTML::pageselectsearch (int pn, int ix, int iy,
@@ -92,12 +92,12 @@ namespace apvlv
 
   ApvlvLinks *ApvlvHTML::getlinks (int pn)
   {
-    return NULL;
+    return nullptr;
   }
 
   ApvlvFileIndex *ApvlvHTML::new_index ()
   {
-    return NULL;
+    return nullptr;
   }
 
   void ApvlvHTML::free_index (ApvlvFileIndex *index)

@@ -46,7 +46,7 @@ namespace apvlv
     mContent = g_string_new_len (str, size);
 
     mZoomrate = PAGE_RENDER_ZOOM;
-    mRenderBuf = NULL;
+    mRenderBuf = nullptr;
     mWidth = mHeight = 0;
   }
 
@@ -62,15 +62,6 @@ namespace apvlv
       }
   }
 
-  static void
-  txt_page_free (gpointer v)
-  {
-    ApvlvTxtPage *p;
-
-    p = (ApvlvTxtPage *) v;
-    delete p;
-  }
-
   ApvlvTXT::ApvlvTXT (const char *filename, bool check):ApvlvFile (filename,
 								   check)
   {
@@ -79,15 +70,15 @@ namespace apvlv
     const gchar *begin;
     gsize length;
 
-    gchar * lname = g_locale_from_utf8 (filename, -1, NULL, NULL, NULL);
+    gchar * lname = g_locale_from_utf8 (filename, -1, nullptr, nullptr, nullptr);
     if (lname)
       {
-	ok = g_file_get_contents (lname, &content, &length, NULL);
+	ok = g_file_get_contents (lname, &content, &length, nullptr);
 	g_free (lname);
       }
     else
       {
-	ok = g_file_get_contents (filename, &content, &length, NULL);
+	ok = g_file_get_contents (filename, &content, &length, nullptr);
       }
 
     if (ok == FALSE)
@@ -96,12 +87,12 @@ namespace apvlv
       }
 
     debug ("total chars: %d", length);
-    gchar *content2 = NULL;
+    gchar *content2 = nullptr;
     gsize len2;
     if (g_utf8_validate (content, length, &begin) == FALSE
 	&& begin == content)
       {
-	content2 = g_locale_to_utf8 (content, length, NULL, &len2, NULL);
+	content2 = g_locale_to_utf8 (content, length, nullptr, &len2, nullptr);
       }
 
     if (content2)
@@ -142,7 +133,9 @@ namespace apvlv
     gunichar unic;
     gsize i, len;
 
-    mPages = g_ptr_array_new_with_free_func (txt_page_free);
+    mPages = g_ptr_array_new_with_free_func ([] (void *p) {
+                                               ApvlvTxtPage *page = (ApvlvTxtPage *) p;
+                                               delete page; });
     g_return_val_if_fail (mPages, FALSE);
 
     for (i = 0, mPageCount = 0;
@@ -172,7 +165,7 @@ namespace apvlv
 
   bool ApvlvTXT::writefile (const char *filename)
   {
-    if (g_file_set_contents (filename, mContent->str, mContent->len, NULL) == TRUE)
+    if (g_file_set_contents (filename, mContent->str, mContent->len, nullptr) == TRUE)
       {
 	return true;
       }
@@ -184,7 +177,7 @@ namespace apvlv
     ApvlvTxtPage *page;
 
     page = (ApvlvTxtPage *) g_ptr_array_index (mPages, pn);
-    if (page != NULL)
+    if (page != nullptr)
       {
 	return page->pagesize (rot, px, py);
       }
@@ -201,7 +194,7 @@ namespace apvlv
 	if (mRenderBuf)
 	  {
 	    g_free (mRenderBuf);
-	    mRenderBuf = NULL;
+	    mRenderBuf = nullptr;
 	  }
 	mZoomrate = PAGE_RENDER_ZOOM;
       }
@@ -243,7 +236,7 @@ namespace apvlv
 	if (mRenderBuf)
 	  {
 	    g_free (mRenderBuf);
-	    mRenderBuf = NULL;
+	    mRenderBuf = nullptr;
 	  }
 	mZoomrate = zm;
       }
@@ -311,14 +304,14 @@ namespace apvlv
       cairo_image_surface_create_for_data (mRenderBuf, CAIRO_FORMAT_RGB24, 
 					   mLayoutWidth, 
 					   mLayoutHeight, mStride);
-    if (surface == NULL)
+    if (surface == nullptr)
       {
 	g_free (mRenderBuf);
 	return false;
       }
 
     cr = cairo_create (surface);
-    if (cr == NULL)
+    if (cr == nullptr)
       {
 	g_free (mRenderBuf);
 	cairo_surface_destroy (surface);
@@ -370,12 +363,12 @@ namespace apvlv
 
   ApvlvPoses *ApvlvTXT::pagesearch (int pn, const char *str, bool reverse)
   {
-    return NULL;
+    return nullptr;
   }
 
   ApvlvLinks *ApvlvTXT::getlinks (int pn)
   {
-    return NULL;
+    return nullptr;
   }
 
   bool ApvlvTXT::pagetext (int pn, int x1, int y1, int x2, int y2,
@@ -386,7 +379,7 @@ namespace apvlv
 
   ApvlvFileIndex *ApvlvTXT::new_index ()
   {
-    return NULL;
+    return nullptr;
   }
 
   void ApvlvTXT::free_index (ApvlvFileIndex * index)

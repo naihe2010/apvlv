@@ -153,7 +153,7 @@ poppler_page_render_to_pixbuf (PopplerPage *page,
 {
   g_return_if_fail (POPPLER_IS_PAGE (page));
   g_return_if_fail (scale > 0.0);
-  g_return_if_fail (pixbuf != NULL);
+  g_return_if_fail (pixbuf != nullptr);
 
   _poppler_page_render_to_pixbuf (page, src_x, src_y,
 				  src_width, src_height,
@@ -173,11 +173,11 @@ namespace apvlv
   {
     gchar *wfilename;
 
-    if (filename == NULL
+    if (filename == nullptr
 	|| *filename == '\0'
 	|| g_file_test (filename, G_FILE_TEST_IS_REGULAR) == FALSE
 	|| (wfilename =
-            g_locale_from_utf8 (filename, -1, NULL, NULL, NULL)) == NULL)
+            g_locale_from_utf8 (filename, -1, nullptr, nullptr, nullptr)) == nullptr)
       {
         errp ("filename error: %s",
               filename ? filename : "No name");
@@ -194,13 +194,13 @@ namespace apvlv
       }
     filelen = sbuf.st_size;
 
-    if (mRawdata != NULL && mRawdataSize < filelen)
+    if (mRawdata != nullptr && mRawdataSize < filelen)
       {
 	delete[]mRawdata;
-	mRawdata = NULL;
+	mRawdata = nullptr;
       }
 
-    if (mRawdata == NULL)
+    if (mRawdata == nullptr)
       {
 	mRawdata = new char[filelen];
 	mRawdataSize = filelen;
@@ -215,12 +215,12 @@ namespace apvlv
 
     g_free (wfilename);
 
-    GError *error = NULL;
-    mDoc = poppler_document_new_from_data (mRawdata, filelen, NULL, &error);
+    GError *error = nullptr;
+    mDoc = poppler_document_new_from_data (mRawdata, filelen, nullptr, &error);
 
-    if (mDoc == NULL && error && error->code == POPPLER_ERROR_ENCRYPTED)
+    if (mDoc == nullptr && error && error->code == POPPLER_ERROR_ENCRYPTED)
       {
-	GtkWidget *dia = gtk_message_dialog_new (NULL,
+	GtkWidget *dia = gtk_message_dialog_new (nullptr,
 						 GTK_DIALOG_DESTROY_WITH_PARENT,
 						 GTK_MESSAGE_QUESTION,
 						 GTK_BUTTONS_OK_CANCEL,
@@ -239,18 +239,18 @@ namespace apvlv
 	if (ret == GTK_RESPONSE_OK)
 	  {
 	    gchar *ans = (gchar *) gtk_entry_get_text (GTK_ENTRY (entry));
-	    if (ans != NULL)
+	    if (ans != nullptr)
 	      {
 		mDoc =
 		  poppler_document_new_from_data (mRawdata, filelen, ans,
-						  NULL);
+						  nullptr);
 	      }
 	  }
 
 	gtk_widget_destroy (dia);
       }
 
-    if (mDoc == NULL)
+    if (mDoc == nullptr)
       {
 	throw std::bad_alloc ();
       }
@@ -268,24 +268,24 @@ namespace apvlv
   {
     debug ("write %p to %s", this, filename);
     gchar *path = absolutepath (filename);
-    if (path == NULL)
+    if (path == nullptr)
       {
 	debug ("filename error: %s", filename);
 	return false;
       }
 
-    GError *error = NULL;
-    gchar *uri = g_filename_to_uri (path, NULL, &error);
+    GError *error = nullptr;
+    gchar *uri = g_filename_to_uri (path, nullptr, &error);
     g_free (path);
-    if (uri == NULL && error)
+    if (uri == nullptr && error)
       {
 	debug ("%d: %s", error->code, error->message);
 	return false;
       }
 
-    if (mDoc && uri != NULL)
+    if (mDoc && uri != nullptr)
       {
-	gboolean ret = poppler_document_save (mDoc, uri, NULL);
+	gboolean ret = poppler_document_save (mDoc, uri, nullptr);
 	debug ("write pdf: %p to %s, return %d", mDoc, uri, ret);
 	g_free (uri);
 	return ret == TRUE ? true : false;
@@ -296,7 +296,7 @@ namespace apvlv
   bool ApvlvPDF::pagesize (int pn, int rot, double *x, double *y)
   {
     PopplerPage *page = poppler_document_get_page (mDoc, pn);
-    if (page != NULL)
+    if (page != nullptr)
       {
 	if (rot == 90 || rot == 270)
 	  {
@@ -320,18 +320,18 @@ namespace apvlv
   ApvlvPoses *ApvlvPDF::pagesearch (int pn, const char *str, bool reverse)
   {
     PopplerPage *page = poppler_document_get_page (mDoc, pn);
-    if (page == NULL)
+    if (page == nullptr)
       {
-	return NULL;
+	return nullptr;
       }
 
     //    debug ("search %s", str);
 
     GList *list = poppler_page_find_text (page, str);
-    if (list == NULL)
+    if (list == nullptr)
       {
 	g_object_unref(page);
-	return NULL;
+	return nullptr;
       }
 
     if (reverse)
@@ -340,7 +340,7 @@ namespace apvlv
       }
 
     ApvlvPoses *poses = new ApvlvPoses;
-    for (GList * tmp = list; tmp != NULL; tmp = g_list_next (tmp))
+    for (GList * tmp = list; tmp != nullptr; tmp = g_list_next (tmp))
       {
 	PopplerRectangle *rect = (PopplerRectangle *) tmp->data;
 	//      debug ("results: %f-%f,%f-%f", rect->x1, rect->x2, rect->y1,
@@ -373,7 +373,7 @@ namespace apvlv
     *out = poppler_page_get_text (page, POPPLER_SELECTION_WORD, &rect);
 #endif
     g_object_unref(page);
-    if (*out != NULL)
+    if (*out != nullptr)
       {
 	return true;
       }
@@ -385,7 +385,7 @@ namespace apvlv
   {
     PopplerPage *tpage;
 
-    if ((tpage = poppler_document_get_page (mDoc, pn)) == NULL)
+    if ((tpage = poppler_document_get_page (mDoc, pn)) == nullptr)
       {
 	debug ("no this page: %d", pn);
 	return false;
@@ -423,7 +423,7 @@ namespace apvlv
       }
 
     // change the back color of the selection
-    for (ApvlvPoses::const_iterator itr = poses->begin ();
+    for (auto itr = poses->begin ();
 	 itr != poses->end (); itr++)
       {
 	// Caculate the correct position
@@ -451,15 +451,15 @@ namespace apvlv
   {
     PopplerPage *page = poppler_document_get_page (mDoc, pn);
     GList *list = poppler_page_get_link_mapping (page);
-    if (list == NULL)
+    if (list == nullptr)
       {
 	g_object_unref(page);
-	return NULL;
+	return nullptr;
       }
 
     ApvlvLinks *links = new ApvlvLinks;
 
-    for (GList * tmp = list; tmp != NULL; tmp = g_list_next (tmp))
+    for (GList * tmp = list; tmp != nullptr; tmp = g_list_next (tmp))
       {
 	PopplerLinkMapping *map = (PopplerLinkMapping *) tmp->data;
 	if (map)
@@ -472,7 +472,7 @@ namespace apvlv
 		  {
 		    PopplerDest *destnew = poppler_document_find_dest (mDoc,
 								       pd->named_dest);
-		    if (destnew != NULL)
+		    if (destnew != nullptr)
 		      {
 			ApvlvLink link = { "", destnew->page_num - 1 };
 			links->insert (links->begin (), link);
@@ -495,17 +495,17 @@ namespace apvlv
 
   ApvlvFileIndex *ApvlvPDF::new_index ()
   {
-    if (mIndex != NULL)
+    if (mIndex != nullptr)
       {
 	debug ("file %p has index: %p, return", this, mIndex);
 	return mIndex;
       }
 
     PopplerIndexIter *itr = poppler_index_iter_new (mDoc);
-    if (itr == NULL)
+    if (itr == nullptr)
       {
 	debug ("no index.");
-	return NULL;
+	return nullptr;
       }
 
     mIndex = new ApvlvFileIndex;
@@ -527,7 +527,7 @@ namespace apvlv
     do
       {
 	has = false;
-	ApvlvFileIndex *index = NULL;
+	ApvlvFileIndex *index = nullptr;
 
 	PopplerAction *act = poppler_index_iter_get_action (iter);
 	if (act)
@@ -542,7 +542,7 @@ namespace apvlv
 								       dest->
 								       named_dest);
 		    int pn = 1;
-		    if (destnew != NULL)
+		    if (destnew != nullptr)
 		      {
 			pn = destnew->page_num - 1;
 			poppler_dest_free (destnew);
@@ -556,7 +556,7 @@ namespace apvlv
 		    index->page = pagd->dest->page_num - 1;
 		  }
 
-		if (index != NULL)
+		if (index != nullptr)
 		  {
 		    has = true;
 		    index->title = pagd->title;
@@ -587,7 +587,7 @@ namespace apvlv
     return false;
 #else
     PopplerPage *page = poppler_document_get_page (mDoc, pn);
-    if (page != NULL)
+    if (page != nullptr)
       {
 	poppler_page_render_for_printing (page, cr);
 	g_object_unref(page);
