@@ -291,7 +291,7 @@ namespace apvlv
   {
     //    debug ("bx: %d, by: %d", bx, by);
 
-    if (mDisplayType != 0)
+    if (mDisplayType != DISPLAY_TYPE_IMAGE)
       {
         return;
       }
@@ -603,45 +603,78 @@ namespace apvlv
 	mView->promptcommand (key);
 	return NEED_MORE;
       case 'H':
-	scrollto (0.0);
-	blank (0, 0);
+        if (mDisplayType == DISPLAY_TYPE_IMAGE)
+          {
+            scrollto (0.0);
+            blank (0, 0);
+          }
+        else
+          scrollwebto (0.0, 0.0);
 	break;
       case 'M':
-	scrollto (0.5);
-	blank (0, gtk_adjustment_get_upper(mVaj) / 2);
+        if (mDisplayType == DISPLAY_TYPE_IMAGE) {
+          scrollto (0.5);
+          blank (0, gtk_adjustment_get_upper(mVaj) / 2);
+        }
+        else
+          scrollwebto (0.0, 0.5);
 	break;
       case 'L':
-	scrollto (1.0);
-	blank (0, gtk_adjustment_get_upper(mVaj));
+        if (mDisplayType == DISPLAY_TYPE_IMAGE) {
+          scrollto (1.0);
+          blank (0, gtk_adjustment_get_upper(mVaj));
+        }
+        else
+          scrollwebto (0.0, 1.0);
 	break;
       case '0':
-	scrollleft (mChars);
+        if (mDisplayType == DISPLAY_TYPE_IMAGE)
+          scrollleft (mChars);
+        else
+          scrollwebto (0.0, 0.0);
 	break;
       case '$':
-	scrollright (mChars);
+        if (mDisplayType == DISPLAY_TYPE_IMAGE)
+          scrollright (mChars);
+        else
+          scrollwebto (1.0, 0.0);
 	break;
       case CTRL ('p'):
       case GDK_KEY_Up:
       case 'k':
-	scrollup (ct);
+        if (mDisplayType == DISPLAY_TYPE_IMAGE)
+          scrollup (ct);
+        else
+          scrollupweb (ct);
       break;
       case CTRL ('n'):
       case CTRL ('j'):
       case GDK_KEY_Down:
       case 'j':
-	scrolldown (ct);
+        if (mDisplayType == DISPLAY_TYPE_IMAGE)
+          scrolldown (ct);
+        else
+          scrolldownweb (ct);
       break;
       case GDK_KEY_BackSpace:
       case GDK_KEY_Left:
       case CTRL ('h'):
       case 'h':
+        if (mDisplayType == DISPLAY_TYPE_IMAGE)
+          scrollleft (ct);
+        else
+          scrollleftweb (ct);
+
 	scrollleft (ct);
 	break;
       case GDK_KEY_space:
       case GDK_KEY_Right:
       case CTRL ('l'):
       case 'l':
-	scrollright (ct);
+        if (mDisplayType == DISPLAY_TYPE_IMAGE)
+          scrollright (ct);
+        else
+          scrollrightweb (ct);
 	break;
       case 'R':
 	reload ();
@@ -1079,7 +1112,7 @@ namespace apvlv
     if (mFile == nullptr)
       return;
 
-    if (mDisplayType == 0)
+    if (mDisplayType == DISPLAY_TYPE_IMAGE)
       {
         mCurrentCache1->set (mPagenum, mZoomrate, mRotatevalue, false);
         GdkPixbuf *buf = mCurrentCache1->getbuf (true);
@@ -1093,7 +1126,7 @@ namespace apvlv
             gtk_image_set_from_pixbuf (GTK_IMAGE (mImg2), buf);
           }
       }
-    else if (mDisplayType == 1)
+    else if (mDisplayType == DISPLAY_TYPE_HTML)
       {
         mFile->renderweb (mPagenum, 0, 0, mZoomrate, mRotatevalue, mWeb1);
       }
@@ -1363,6 +1396,50 @@ namespace apvlv
 	ApvlvCore::scrollright (times);
       }
     blank (nx1, mCury);
+  }
+
+  void ApvlvDoc::scrollweb (int times, int h, int v)
+  {
+    if (!mReady)
+      return;
+
+    gchar *javasrc = g_strdup_printf("window.scrollBy(%d, %d);", times * h, times * v);
+    webkit_web_view_run_javascript (WEBKIT_WEB_VIEW (mWeb1),
+                                    javasrc,
+                                    nullptr, nullptr, this);
+    g_free (javasrc);
+  }
+
+  void ApvlvDoc::scrollwebto (double xrate, double yrate)
+  {
+    if (!mReady)
+      return;
+
+    gchar *javasrc = g_strdup_printf("window.scroll(window.screenX * %f, window.screenY * %f);", xrate, yrate);
+    webkit_web_view_run_javascript (WEBKIT_WEB_VIEW (mWeb1),
+                                    javasrc,
+                                    nullptr, nullptr, this);
+    g_free (javasrc);
+  }
+
+  void ApvlvDoc::scrollupweb (int times)
+  {
+    scrollweb (times, 0, -50);
+  }
+
+  void ApvlvDoc::scrolldownweb (int times)
+  {
+    scrollweb (times, 0, 50);
+  }
+
+  void ApvlvDoc::scrollleftweb (int times)
+  {
+    scrollweb (times, -50, 0);
+  }
+
+  void ApvlvDoc::scrollrightweb (int times)
+  {
+    scrollweb (times, 50, 0);
   }
 
   bool ApvlvDoc::needsearch (const char *str, bool reverse)
@@ -1809,6 +1886,7 @@ namespace apvlv
             webkit_web_view_run_javascript (web_view,
                                             javasrc,
                                             nullptr, nullptr, doc);
+            g_free (javasrc);
           }
       }
   }

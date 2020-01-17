@@ -196,6 +196,11 @@ namespace apvlv
     void scrollleft (int times);
     void scrollright (int times);
 
+    void scrollupweb (int times);
+    void scrolldownweb (int times);
+    void scrollleftweb (int times);
+    void scrollrightweb (int times);
+
     bool search (const char *str, bool reverse = false);
 
     bool continuous ();
@@ -230,6 +235,9 @@ namespace apvlv
     void blankaction (double x, double y);
 
     void togglevisual (int type);
+
+    void scrollweb (int times, int w, int h);
+    void scrollwebto (double xrate, double yrate);
 
     int yank (int times);
 
