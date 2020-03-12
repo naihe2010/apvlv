@@ -222,17 +222,21 @@ namespace apvlv
   {
     if (!mReady)
       return;
-
     gdouble val = gtk_adjustment_get_value (mVaj);
     gdouble sub = gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_lower(mVaj);
-    mVrate = sub / mLines;
+    gdouble page_size = sub/3;
+    gdouble screen_size = gtk_adjustment_get_page_size(mVaj);
+    mVrate = page_size / mLines;
+    logs(" val=%lf,sub=%lf",val,sub);
+    logs(" pageSize=%lf, screen_size=%lf",page_size,screen_size);
 
     if (val - mVrate * times > gtk_adjustment_get_lower(mVaj))
       {
 	gtk_adjustment_set_value (mVaj, val - mVrate * times);
       }
-    else if (val > gtk_adjustment_get_lower(mVaj))
+    else if ( val > gtk_adjustment_get_lower(mVaj) )
       {
+        // set to min scroll value
 	gtk_adjustment_set_value (mVaj, gtk_adjustment_get_lower(mVaj));
       }
     else
@@ -241,13 +245,20 @@ namespace apvlv
 	  {
 	    if (mContinuous)
 	      {
-		showpage (mPagenum - 1,
-			  ((gtk_adjustment_get_upper(mVaj) / 2) - mVrate * times) / (sub -
-										     gtk_adjustment_get_page_size(mVaj)));
+        /* set to pos so that one page is hidden above
+         * this is the same pos as in the previous case
+         * So one scroll step does nothing visible.
+         * This is still useful because scrolling overshoots most times because of the
+         * reload lag.
+         * TODO: add more pages and start loading in background somehow prior the transition is reached.
+           full_scroll = sub - screen_size
+           hide one page -> page_size/full_scroll = page_size/(sub-screen_size)
+        */
+		showpage (mPagenum - 1, page_size/(sub - screen_size));
 	      }
 	    else
 	      {
-		showpage (mPagenum - 1, 1.0);
+		showpage (mPagenum + 1, 0.0);
 	      }
 	  }
       }
@@ -259,18 +270,23 @@ namespace apvlv
   {
     if (!mReady)
       return;
-
     gdouble val = gtk_adjustment_get_value (mVaj);
     gdouble sub = gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_lower(mVaj);
-    mVrate = sub / mLines;
+    gdouble page_size = sub/3;
+    gdouble screen_size = gtk_adjustment_get_page_size(mVaj);
+    mVrate = page_size / mLines;
+    logs(" val=%lf,sub=%lf",val,sub);
+    logs(" pageSize=%lf, screen_size=%lf",page_size,screen_size);
 
-    if (val + mVrate * times + gtk_adjustment_get_page_size(mVaj) < gtk_adjustment_get_upper(mVaj))
+    if (val + mVrate * times + screen_size < sub)
       {
 	gtk_adjustment_set_value (mVaj, val + mVrate * times);
       }
-    else if (val + gtk_adjustment_get_page_size(mVaj) < gtk_adjustment_get_upper(mVaj))
+    else if ( val + screen_size < sub )
       {
-	gtk_adjustment_set_value (mVaj, gtk_adjustment_get_upper(mVaj) - gtk_adjustment_get_page_size(mVaj));
+        // not enough for one step, set to full scroll val
+        // full_scroll = sub - screen_size
+	gtk_adjustment_set_value (mVaj, sub - screen_size);
       }
     else
       {
@@ -278,7 +294,19 @@ namespace apvlv
 	  {
 	    if (mContinuous)
 	      {
-		showpage (mPagenum + 1, (sub - gtk_adjustment_get_page_size(mVaj)) / 2 / sub);
+        /* set to pos so that one page is hidden below
+         * this is the same pos as in the previous case
+         * so one scroll step does nothing visible
+         * this is still useful because scrolling overshoots most times because of the
+         * reload lag.
+         * TODO: add more pages and start loading in background somehow prior the transition is reached.
+           full_scroll = sub - screen_size
+           abs_pos = full_scroll - page_size = sub - screen_size - page_size
+           rel_pos = abs_pos/full_scroll = (sub - screen_size - page_size) / (sub - screen_size)
+                                         =  1 - page_size/(sub - screen_size)
+           
+        */
+		showpage (mPagenum + 1, 1 - page_size/( sub - screen_size )) ;
 	      }
 	    else
 	      {

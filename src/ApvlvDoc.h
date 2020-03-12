@@ -286,14 +286,14 @@ namespace apvlv
     ApvlvDocPositionMap mPositions;
     vector < ApvlvDocPosition > mLinkPositions;
 
-    ApvlvDocCache *mCurrentCache1, *mCurrentCache2;
+    ApvlvDocCache *mCurrentCache1, *mCurrentCache2, *mCurrentCache3;
     ApvlvDocCache *newcache (int pagenum);
     void deletecache (ApvlvDocCache * ac);
 
     DISPLAY_TYPE mDisplayType;
     // image viewer
-    GtkWidget *mImg1, *mImg2;
-    GtkWidget *mWeb1, *mWeb2;
+    GtkWidget *mImg1, *mImg2, *mImg3;
+    GtkWidget *mWeb1, *mWeb2, *mWeb3;
   };
 
 }
