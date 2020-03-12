@@ -227,8 +227,8 @@ namespace apvlv
     gdouble page_size = sub/3;
     gdouble screen_size = gtk_adjustment_get_page_size(mVaj);
     mVrate = page_size / mLines;
-    logs(" val=%lf,sub=%lf",val,sub);
-    logs(" pageSize=%lf, screen_size=%lf",page_size,screen_size);
+    debug(" val=%lf,sub=%lf",val,sub);
+    debug(" pageSize=%lf, screen_size=%lf",page_size,screen_size);
 
     if (val - mVrate * times > gtk_adjustment_get_lower(mVaj))
       {
@@ -275,8 +275,8 @@ namespace apvlv
     gdouble page_size = sub/3;
     gdouble screen_size = gtk_adjustment_get_page_size(mVaj);
     mVrate = page_size / mLines;
-    logs(" val=%lf,sub=%lf",val,sub);
-    logs(" pageSize=%lf, screen_size=%lf",page_size,screen_size);
+    debug(" val=%lf,sub=%lf",val,sub);
+    debug(" pageSize=%lf, screen_size=%lf",page_size,screen_size);
 
     if (val + mVrate * times + screen_size < sub)
       {
