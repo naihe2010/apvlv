@@ -64,7 +64,7 @@ namespace apvlv
 
   ApvlvDoc::ApvlvDoc (ApvlvView *view, DISPLAY_TYPE type, int w, int h, const char *zm, bool cache): ApvlvCore(view)
   {
-    mCurrentCache1 = mCurrentCache2 = nullptr;
+    mCurrentCache1 = mCurrentCache2 = mCurrentCache3 = nullptr;
 
     mReady = false;
 
@@ -132,6 +132,8 @@ namespace apvlv
           {
             mImg2 = gtk_image_new ();
             gtk_box_pack_start (GTK_BOX (vbox), mImg2, TRUE, TRUE, 0);
+            mImg3 = gtk_image_new ();
+            gtk_box_pack_start (GTK_BOX (vbox), mImg3, TRUE, TRUE, 0);
           }
       }
     else if (type == 1)
@@ -165,6 +167,8 @@ namespace apvlv
       delete mCurrentCache1;
     if (mCurrentCache2)
       delete mCurrentCache2;
+    if (mCurrentCache3)
+      delete mCurrentCache3;
 
     savelastposition (filename ());
     mPositions.clear ();
@@ -245,8 +249,8 @@ namespace apvlv
 	word =
 	  cache->getword (x,
 			  cache ==
-			  mCurrentCache2 ? y - mCurrentCache1->getheight () -
-			  gParams->valuei ("continuouspad") : y);
+			  mCurrentCache2 ? y - mCurrentCache1->getheight () - mCurrentCache3->getheight () -
+			  2 * gParams->valuei ("continuouspad") : y);
 	if (word != nullptr)
 	  {
 	    pos = word->pos;
@@ -260,8 +264,8 @@ namespace apvlv
 	line =
 	  cache->getline (x,
 			  cache ==
-			  mCurrentCache2 ? y - mCurrentCache1->getheight () -
-			  gParams->valuei ("continuouspad") : y);
+			  mCurrentCache2 ? y - mCurrentCache1->getheight () - mCurrentCache3->getheight () -
+			  2 * gParams->valuei ("continuouspad") : y);
 	if (line != nullptr)
 	  {
 	    pos = line->pos;
@@ -945,10 +949,16 @@ namespace apvlv
 	    delete mCurrentCache2;
 	    mCurrentCache2 = nullptr;
 	  }
+	if (mCurrentCache3 != nullptr)
+	  {
+	    delete mCurrentCache3;
+	    mCurrentCache3 = nullptr;
+	  }
 
 	if (mContinuous == true)
 	  {
 	    mCurrentCache2 = new ApvlvDocCache (mFile);
+	    mCurrentCache3 = new ApvlvDocCache (mFile);
 	  }
 
 	loadlastposition (filename);
@@ -1064,7 +1074,7 @@ namespace apvlv
     if (rp < 0)
       return;
 
-    //debug ("show page: %d", rp);
+    //debug ("show page: %d | %lf", rp,s);
     mAdjInchg = true;
 
     if (mAutoScrollPage && mContinuous && !mAutoScrollDoc)
@@ -1124,6 +1134,11 @@ namespace apvlv
                                  mRotatevalue, false);
             buf = mCurrentCache2->getbuf (true);
             gtk_image_set_from_pixbuf (GTK_IMAGE (mImg2), buf);
+
+            mCurrentCache3->set (convertindex (mPagenum + 2), mZoomrate,
+                                 mRotatevalue, false);
+            buf = mCurrentCache3->getbuf (true);
+            gtk_image_set_from_pixbuf (GTK_IMAGE (mImg3), buf);
           }
       }
     else if (mDisplayType == DISPLAY_TYPE_HTML)
@@ -1278,8 +1293,7 @@ namespace apvlv
 
   void ApvlvDoc::scrollup (int times)
   {
-    if (!mReady)
-      return;
+    if (!mReady){return;}
 
     if (gParams->valueb ("visualmode") == false)
       {
@@ -1317,8 +1331,7 @@ namespace apvlv
 
   void ApvlvDoc::scrolldown (int times)
   {
-    if (!mReady)
-      return;
+    if (!mReady){ return;}
 
     if (gParams->valueb ("visualmode") == false)
       {
@@ -1970,8 +1983,8 @@ namespace apvlv
         delete mLinks;
         mLinks = nullptr;
       }
-    mInverted = gParams->valueb ("inverted");
 
+    mInverted = gParams->valueb ("inverted");
     load (this);
   }
 
