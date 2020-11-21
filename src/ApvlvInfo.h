@@ -26,7 +26,7 @@
 /* @date Created: 2010/02/23 14:56:21 Alf*/
 
 #ifndef _APVLV_INFO_H_
-#define _APVLV_INOF_H_
+#define _APVLV_INFO_H_
 
 #include <glib.h>
 #include <string>
