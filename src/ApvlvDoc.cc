@@ -92,6 +92,10 @@ namespace apvlv
     mSearchResults = nullptr;
     mSearchStr = "";
 
+    mCursorPosition = 0;
+    ApvlvDocPosition p = {0, 0.};
+    mOlderCursorPositions.push_back(p);
+
     GtkWidget *vbox, *ebox;
 
     if (mContinuous && gParams->valuei ("continuouspad") > 0)
@@ -680,6 +684,12 @@ namespace apvlv
         else
           scrollrightweb (ct);
 	break;
+      case CTRL ('o'):
+	goto_older_cursor_position(ct);
+	break;
+      case CTRL ('i'):
+	goto_newer_cursor_position(ct);
+	break;
       case 'R':
 	reload ();
 	break;
@@ -709,8 +719,10 @@ namespace apvlv
       case 'G':
 	markposition ('\'');
 	if (!has) {
+          push_cursor_position(mFile->pagesum () - 1, 0.);
           showpage (mFile->pagesum () - 1);
 	} else {
+          push_cursor_position(ct - 1, 0.);
           showpage (ct - 1);
 	}
 	break;
@@ -852,6 +864,7 @@ namespace apvlv
 
     // correctly check
     mScrollvalue = fp->rate;
+    set_cursor_position(fp->page, 0.);
     showpage (fp->page);
     setskip (fp->skip);
 
@@ -1064,6 +1077,7 @@ namespace apvlv
       {
 	ApvlvDocPosition adp = it->second;
 	markposition ('\'');
+        push_cursor_position(adp.pagenum, adp.scrollrate);
 	showpage (adp.pagenum, adp.scrollrate);
       }
   }
@@ -1547,6 +1561,7 @@ namespace apvlv
 	    mSearchReverse = reverse;
 	    if (mSearchResults != nullptr)
 	      {
+                push_cursor_position((i + sum) % sum, 0.5);
 		showpage ((i + sum) % sum, 0.5);
 		mSearchPagenum = mPagenum;
 		markselection ();
@@ -1641,17 +1656,23 @@ namespace apvlv
 
 	if (links1 == nullptr)
 	  {
-	    showpage ((*links2)[ct].mPage);
+            int pagenum = (*links2)[ct].mPage;
+            push_cursor_position(pagenum, 0.);
+	    showpage (pagenum);
 	  }
 	else
 	  {
 	    if (ct < (int) links1->size ())
 	      {
-		showpage ((*links1)[ct].mPage);
+                int pagenum = (*links2)[ct].mPage;
+                push_cursor_position(pagenum, 0.);
+		showpage (pagenum);
 	      }
 	    else
 	      {
-		showpage ((*links2)[ct - links1->size ()].mPage);
+                int pagenum = (*links2)[ct - links1->size ()].mPage;
+                push_cursor_position(pagenum, 0.);
+		showpage (pagenum, 0.);
 	      }
 	  }
       }
@@ -1669,8 +1690,45 @@ namespace apvlv
 	    p = mLinkPositions[mLinkPositions.size () - 1];
 	    mLinkPositions.pop_back ();
 	  }
+        push_cursor_position(p.pagenum, p.scrollrate);
 	showpage (p.pagenum, p.scrollrate);
       }
+  }
+
+  void ApvlvDoc::goto_newer_cursor_position(int ct)
+  {
+    int cp_size = mOlderCursorPositions.size();
+    if (mCursorPosition + ct >= cp_size) {
+        return;
+    }
+
+    mCursorPosition += ct;
+    ApvlvDocPosition p = mOlderCursorPositions[mCursorPosition];
+    showpage(p.pagenum, p.scrollrate);
+  }
+
+  void ApvlvDoc::goto_older_cursor_position(int ct)
+  {
+    if (mCursorPosition < ct) {
+        return;
+    }
+    mCursorPosition -= ct;
+    ApvlvDocPosition p = mOlderCursorPositions[mCursorPosition];
+    showpage(p.pagenum, p.scrollrate);
+  }
+
+  void ApvlvDoc::set_cursor_position(int pagenum, double scrollrate)
+  {
+    ApvlvDocPosition p = {pagenum, scrollrate};
+    mOlderCursorPositions[mCursorPosition] = p;
+  }
+
+  void ApvlvDoc::push_cursor_position(int pagenum, double scrollrate)
+  {
+    mOlderCursorPositions.resize(mCursorPosition + 1);
+    ApvlvDocPosition p = {pagenum, scrollrate};
+    mOlderCursorPositions.push_back(p);
+    mCursorPosition += 1;
   }
 
   bool ApvlvDoc::print (int ct)

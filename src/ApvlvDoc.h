@@ -211,6 +211,11 @@ namespace apvlv
 
     void returnlink (int ct);
 
+    void goto_newer_cursor_position(int ct);
+    void goto_older_cursor_position(int ct);
+    void set_cursor_position(int pagenum, double scrollrate);
+    void push_cursor_position(int pagenum, double scrollrate);
+
     void srtranslate(int &rtimes, double &sr, bool single2continuous);
 
     static void webview_resource_load_started_cb (WebKitWebView *web_view,
@@ -293,6 +298,9 @@ namespace apvlv
 
     ApvlvDocPositionMap mPositions;
     vector < ApvlvDocPosition > mLinkPositions;
+
+    int mCursorPosition;
+    vector < ApvlvDocPosition > mOlderCursorPositions;
 
     ApvlvDocCache *mCurrentCache1, *mCurrentCache2, *mCurrentCache3;
     ApvlvDocCache *newcache (int pagenum);
