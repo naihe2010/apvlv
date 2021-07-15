@@ -106,7 +106,7 @@ namespace apvlv
       ApvlvFile *mFile;
       ApvlvLinks *mLinks;
       double mZoom;
-      double mRotate;
+      guint mRotate;
       gint mPagenum;
       guchar *mData;
       gint mSize;
@@ -116,7 +116,7 @@ namespace apvlv
 
       vector<ApvlvLine> *mLines;
 
-      void preparelines (double x1, double y1, double x2, double y2);
+      void preparelines (gint x1, gint y1, gint x2, gint y2);
       ApvlvPos prepare_add (ApvlvPos &last, ApvlvPoses *results,
                             const char *word);
     };
@@ -131,12 +131,12 @@ namespace apvlv
 
       void setsize (int, int) override;
 
-      void show (bool mContinous) override;
+      void show (bool mContinuous) override;
 
      private:
       ApvlvDoc *mDoc;
 #define AD_STATUS_SIZE   4
-      GtkWidget *mStlab[AD_STATUS_SIZE]{};
+      GtkWidget *mStlab[AD_STATUS_SIZE];
     };
 
     class ApvlvDoc : public ApvlvCore {
@@ -215,7 +215,7 @@ namespace apvlv
                                                ApvlvDoc *doc);
 
      private:
-      void blank (gint x, gint y);
+      void blank (int x, int y);
 
       static void blankarea (int x1, int y1, int x2, int y2, guchar *, int width,
                              int height);
@@ -250,7 +250,7 @@ namespace apvlv
       static void apvlv_doc_on_mouse (GtkAdjustment *, ApvlvDoc *);
 
       static void apvlv_doc_button_event (GtkEventBox *box,
-                                          GdkEventButton *ev, ApvlvDoc *);
+                                          GdkEventButton *button, ApvlvDoc *doc);
 
       static void apvlv_doc_motion_event (GtkWidget *, GdkEventMotion *,
                                           ApvlvDoc *);
@@ -271,7 +271,6 @@ namespace apvlv
           VISUAL_NONE, VISUAL_V, VISUAL_CTRL_V
       };
       gint mInVisual;
-
       gint mBlankx1, mBlanky1;
       gint mBlankx2, mBlanky2;
       gint mLastpress;
