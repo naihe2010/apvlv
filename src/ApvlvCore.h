@@ -41,190 +41,181 @@ using namespace std;
 
 namespace apvlv
 {
-  class ApvlvCore;
-  class ApvlvCoreStatus
-  {
-  public:
-    ApvlvCoreStatus ();
+    class ApvlvCore;
+    class ApvlvCoreStatus {
+     public:
+      ApvlvCoreStatus ();
 
-    virtual ~ ApvlvCoreStatus ();
+      virtual ~ ApvlvCoreStatus ();
 
-    virtual GtkWidget *widget ();
+      virtual GtkWidget *widget ();
 
-    virtual void active (bool act);
+      virtual void active (bool act);
 
-    virtual void setsize (int w, int h);
+      virtual void setsize (int w, int h);
 
-    virtual void show (bool mContinuous = false);
+      virtual void show (bool mContinuous);
 
-  protected:
-    GtkWidget * mHbox;
-  };
+     protected:
+      GtkWidget *mHbox;
+    };
 
-  class ApvlvView;
-  class ApvlvCore
-  {
-  public:
-    ApvlvCore (ApvlvView *);
+    class ApvlvView;
+    class ApvlvCore {
+     public:
+      explicit ApvlvCore (ApvlvView *);
 
-    virtual ~ ApvlvCore ();
+      virtual ~ ApvlvCore ();
 
-    virtual bool reload ();
+      virtual bool reload ();
 
-    virtual void inuse (bool use);
+      virtual void inuse (bool use);
 
-    virtual bool inuse ();
+      virtual bool inuse ();
 
-    virtual int type ();
+      virtual int type ();
 
-    virtual GtkWidget *widget ();
+      virtual GtkWidget *widget ();
 
-    virtual ApvlvCore *copy ();
+      virtual ApvlvCore *copy ();
 
-    virtual ApvlvFile *file ();
+      virtual ApvlvFile *file ();
 
-    virtual bool loadfile (const char *file, bool check = true);
+      virtual bool loadfile (const char *file, bool check);
 
-    virtual const char *filename ();
+      virtual const char *filename ();
 
-    virtual bool writefile (const char *);
+      virtual bool writefile (const char *);
 
-    virtual gint getrotate ();
+      virtual gint pagenumber ();
 
-    virtual gint pagenumber ();
+      virtual void showpage (gint, gdouble s);
+      virtual void refresh ();
 
-    virtual void showpage (gint, gdouble s = 0.00);
-    virtual void refresh ();
+      virtual gdouble zoomvalue ();
 
-    virtual gdouble zoomvalue ();
+      virtual void setactive (bool act);
 
-    virtual void setactive (bool act);
+      virtual gdouble scrollrate ();
 
-    virtual gdouble scrollrate ();
+      virtual gboolean scrollto (double s);
 
-    virtual gboolean scrollto (double s);
+      virtual void scrollup (int times);
+      virtual void scrolldown (int times);
+      virtual void scrollleft (int times);
+      virtual void scrollright (int times);
 
-    virtual void scrollup (int times);
-    virtual void scrolldown (int times);
-    virtual void scrollleft (int times);
-    virtual void scrollright (int times);
+      virtual bool usecache ();
 
-    virtual bool hascontent ();
+      virtual void usecache (bool use);
 
-    virtual bool usecache ();
+      virtual bool print (int ct);
 
-    virtual void usecache (bool use);
+      virtual bool totext (const char *name);
 
-    virtual bool print (int ct);
+      virtual bool rotate (int ct);
 
-    virtual bool totext (const char *name);
+      virtual void markposition (char s);
 
-    virtual bool rotate (int ct = 90);
+      virtual void setzoom (const char *z);
 
-    virtual void markposition (const char s);
+      virtual void jump (char s);
 
-    virtual void setzoom (const char *z);
+      virtual void nextpage (int times);
 
-    virtual void jump (const char s);
+      virtual void prepage (int times);
 
-    virtual void nextpage (int times = 1);
+      virtual void halfnextpage (int times);
 
-    virtual void prepage (int times = 1);
+      virtual void halfprepage (int times);
 
-    virtual void halfnextpage (int times = 1);
+      virtual bool search (const char *str, bool reverse);
 
-    virtual void halfprepage (int times = 1);
+      virtual void gotolink (int ct);
 
-    virtual bool search (const char *str, bool reverse = false);
+      virtual void returnlink (int ct);
 
-    virtual bool continuous ();
+      virtual int getskip ();
+      virtual void setskip (int ct);
 
-    virtual void gotolink (int ct);
+      virtual void setsize (int wid, int hei);
 
-    virtual void returnlink (int ct);
+      virtual returnType process (int has, int times, guint keyval);
 
-    virtual int getskip ();
-    virtual void setskip (int ct);
+      ApvlvView *mView;
 
-    virtual void setsize (int wid, int hei);
+     protected:
+      ApvlvFile *mFile{};
 
-    virtual returnType process (int has, int times, guint keyval);
+      bool mAutoScrollPage{};
+      bool mAutoScrollDoc{};
+      bool mContinuous{};
 
-    ApvlvView * mView;
+      bool mReady;
 
-  protected:
-    ApvlvFile * mFile;
+      bool mInuse;
 
-    bool mAutoScrollPage;
-    bool mAutoScrollDoc;
-    bool mContinuous;
+      int mType{};
 
-    bool mReady;
+      GFile *mGFile{};
+      GFileMonitor *mGMonitor{};
 
-    bool mInuse;
+      string mFilestr;
 
-    int mType;
+      guint mProCmd;
 
-    GFile * mGFile;
-    GFileMonitor * mGMonitor;
+      double mScrollvalue{};
 
-    string mFilestr;
+      int mSearchPagenum{};
+      char mSearchCmd{};
+      bool mSearchReverse{};
+      guint mSearchSelect{};
+      ApvlvPoses *mSearchResults;
+      string mSearchStr;
 
-    guint mProCmd;
-
-    double mScrollvalue;
-
-    int mSearchPagenum;
-    char mSearchCmd;
-    bool mSearchReverse;
-    guint mSearchSelect;
-    ApvlvPoses *mSearchResults;
-    string mSearchStr;
-
-    enum
-      {
-	NORMAL,
-	FITWIDTH,
-	FITHEIGHT,
-	CUSTOM
+      enum {
+          NORMAL,
+          FITWIDTH,
+          FITHEIGHT,
+          CUSTOM
       } mZoommode;
 
-    double mZoomrate;
+      double mZoomrate{};
 
-    bool mZoominit;
+      bool mZoominit{};
 
-    int mRotatevalue;
+      int mRotatevalue;
 
-    bool mAdjInchg;
+      bool mAdjInchg{};
 
-    int mPagenum;
+      int mPagenum{};
 
-    int mSkip;
+      int mSkip{};
 
-    double mPagex, mPagey;
+      double mPagex{}, mPagey{};
 
-    double mVrate, mHrate;
+      double mVrate{}, mHrate{};
 
-    int mLines, mChars;
+      int mLines{}, mChars{};
 
-    int mWidth, mHeight;
+      int mWidth{}, mHeight{};
 
-    GtkAdjustment *mVaj, *mHaj;
+      GtkAdjustment *mVaj, *mHaj;
 
-    // the main widget
-    GtkWidget *mVbox;
+      // the main widget
+      GtkWidget *mVbox;
 
-    // the document scrolled window
-    GtkWidget *mScrollwin;
+      // the document scrolled window
+      GtkWidget *mScrollwin;
 
-    // if active
-    bool mActive;
+      // if active
+      bool mActive{};
 
-    // status bar
-    ApvlvCoreStatus *mStatus;
+      // status bar
+      ApvlvCoreStatus *mStatus{};
 
-  private:
-  };
+     private:
+    };
 }
 
 #endif

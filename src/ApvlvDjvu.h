@@ -34,40 +34,39 @@
 
 namespace apvlv
 {
-  class ApvlvDJVU:public ApvlvFile
-  {
-  public:
-    ApvlvDJVU (const char *filename, bool check = true);
+    class ApvlvDJVU : public ApvlvFile {
+     public:
+      ApvlvDJVU (const char *filename, bool check = true);
 
-    ~ApvlvDJVU ();
+      ~ApvlvDJVU ();
 
-    bool writefile (const char *filename);
+      bool writefile (const char *filename);
 
-    bool pagesize (int page, int rot, double *x, double *y);
+      bool pagesize (int page, int rot, double *x, double *y);
 
-    int pagesum ();
+      int pagesum ();
 
-    bool pagetext (int, int, int, int, int, char **);
+      bool pagetext (int, int, int, int, int, char **);
 
-    bool render (int, int, int, double, int, GdkPixbuf *, char *);
+      bool render (int, int, int, double, int, GdkPixbuf *, char *);
 
-    bool pageselectsearch (int, int, int, double, int, GdkPixbuf *,
-			   char *, int, ApvlvPoses *);
+      bool pageselectsearch (int, int, int, double, int, GdkPixbuf *,
+                             char *, int, ApvlvPoses *);
 
-    ApvlvPoses *pagesearch (int pn, const char *s, bool reverse = false);
+      ApvlvPoses *pagesearch (int pn, const char *s, bool reverse = false);
 
-    ApvlvLinks *getlinks (int pn);
+      ApvlvLinks *getlinks (int pn);
 
-    ApvlvFileIndex *new_index ();
+      ApvlvFileIndex *new_index ();
 
-    void free_index (ApvlvFileIndex *);
+      void free_index (ApvlvFileIndex *);
 
-    bool pageprint (int pn, cairo_t * cr);
+      bool pageprint (int pn, cairo_t *cr);
 
-  private:
-    ddjvu_context_t * mContext;
-    ddjvu_document_t *mDoc;
-  };
+     private:
+      ddjvu_context_t *mContext;
+      ddjvu_document_t *mDoc;
+    };
 }
 
 #endif

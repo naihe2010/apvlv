@@ -38,50 +38,46 @@
 
 namespace apvlv
 {
-  class ApvlvEPUB:public ApvlvFile
-  {
-  public:
-    ApvlvEPUB(const char *, bool check=true);
-    ~ApvlvEPUB();
+    class ApvlvEPUB : public ApvlvFile {
+     public:
+      explicit ApvlvEPUB (const char *, bool check = true);
+      ~ApvlvEPUB () override;
 
-    bool writefile (const char *filename);
+      bool writefile (const char *filename) override;
 
-    bool pagesize (int page, int rot, double *x, double *y);
+      bool pagesize (int page, int rot, double *x, double *y) override;
 
-    int pagesum ();
+      int pagesum () override;
 
-    bool pagetext (int, int, int, int, int, char **);
+      bool pagetext (int, int, int, int, int, char **) override;
 
-    bool renderweb (int pn, int ix, int iy, double zm, int rot, GtkWidget *widget);
+      bool renderweb (int pn, int ix, int iy, double zm, int rot, GtkWidget *widget) override;
 
-    ApvlvPoses *pagesearch (int pn, const char *str, bool reverse =
-			    false);
+      ApvlvPoses *pagesearch (int pn, const char *str, bool reverse) override;
 
-    bool pageselectsearch (int, int, int, double, int,
-                           GdkPixbuf *, char *, int, ApvlvPoses *);
+      bool pageselectsearch (int, int, int, double, int,
+                             GdkPixbuf *, char *, int, ApvlvPoses *) override;
 
-    ApvlvLinks *getlinks (int pn);
+      ApvlvLinks *getlinks (int pn) override;
 
-    ApvlvFileIndex *new_index ();
+      ApvlvFileIndex *new_index () override;
 
-    void free_index (ApvlvFileIndex *);
+      void free_index (ApvlvFileIndex *) override;
 
-    bool pageprint (int pn, cairo_t * cr);
+      bool pageprint (int pn, cairo_t *cr) override;
 
-  private:
-    string container_get_contentfile (const char *container, int len);
+     private:
+      static string container_get_contentfile (const char *container, int len);
 
-    std::map <string, string> content_get_media (struct epub *epub, string contentfile);
+      std::map<string, string> content_get_media (struct epub *epub, const string &contentfile);
 
-    ApvlvFileIndex * ncx_get_index (struct epub* epub, string ncxfile);
+      ApvlvFileIndex *ncx_get_index (struct epub *epub, string ncxfile);
 
-    ApvlvFileIndex ncx_node_get_index (xmlNodePtr node, string ncxfile);
+      ApvlvFileIndex ncx_node_get_index (xmlNodePtr node, string ncxfile);
 
-    bool generate_pages ();
-    
-    std::map <int, string> mPages;
-    gchar *mRoot;
-  };
+      std::map<int, string> mPages;
+      gchar *mRoot;
+    };
 
 }
 

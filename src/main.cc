@@ -31,7 +31,7 @@
 #include "ApvlvInfo.h"
 #include "ApvlvUtil.h"
 
-#include <locale.h>
+#include <clocale>
 #ifndef WIN32
 #include <getopt.h>
 #endif
@@ -50,8 +50,8 @@ static void
 usage_exit ()
 {
   fprintf (stdout, "%s Usage:\n"
-           "%s\n"
-           "Please send bug report to %s\n",
+                   "%s\n"
+                   "Please send bug report to %s\n",
            PACKAGE_NAME,
            "\t-h                display this and exit\n"
            "\t-v                display version info and exit\n"
@@ -64,8 +64,8 @@ static void
 version_exit ()
 {
   fprintf (stdout, "%s %s-%s\n"
-           "Please send bug report to %s\n"
-           "\n", PACKAGE_NAME, PACKAGE_VERSION, RELEASE, PACKAGE_BUGREPORT);
+                   "Please send bug report to %s\n"
+                   "\n", PACKAGE_NAME, PACKAGE_VERSION, RELEASE, PACKAGE_BUGREPORT);
   exit (0);
 }
 #endif
@@ -86,12 +86,12 @@ parse_options (int argc, char *argv[])
 #else
   int c, index;
   static struct option long_options[] =
-    {
-     {"config", required_argument, nullptr, 'c'},
-     {"help", no_argument, nullptr, 'h'},
-     {"version", no_argument, nullptr, 'v'},
-     {0, 0, 0, 0}
-    };
+      {
+          {"config",  required_argument, nullptr, 'c'},
+          {"help",    no_argument,       nullptr, 'h'},
+          {"version", no_argument,       nullptr, 'v'},
+          {nullptr, 0,                   nullptr, 0}
+      };
 
   index = 0;
   ini = nullptr;
@@ -99,20 +99,20 @@ parse_options (int argc, char *argv[])
     {
       switch (c)
         {
-        case 'c':
-          ini = absolutepath (optarg);
+          case 'c':
+            ini = absolutepath (optarg);
           break;
 
-        case 'h':
-          usage_exit ();
+          case 'h':
+            usage_exit ();
           return -1;
 
-        case 'v':
-          version_exit ();
+          case 'v':
+            version_exit ();
           return -1;
 
-        default:
-          errp ("no command line options");
+          default:
+            errp ("no command line options");
           return -1;
         }
     }
@@ -125,11 +125,11 @@ parse_options (int argc, char *argv[])
   /*
    * load the global sys conf file
    * */
-  gchar *sysini = g_strdup_printf ("%s/%s", SYSCONFDIR, "apvlvrc");
-  if (sysini)
+  gchar *sysIni = g_strdup_printf ("%s/%s", SYSCONFDIR, "apvlvrc");
+  if (sysIni)
     {
-      gParams->loadfile (sysini);
-      g_free (sysini);
+      gParams->loadfile (sysIni);
+      g_free (sysIni);
     }
 
   /*
@@ -178,7 +178,7 @@ main (int argc, char *argv[])
     }
 
   gchar *path;
-  bool ishelppdf = false;
+  bool isHelpPdf = false;
   if (opt > 0 && argc > opt)
     {
       path = argv[opt];
@@ -187,7 +187,7 @@ main (int argc, char *argv[])
   else
     {
       path = (gchar *) helppdf.c_str ();
-      ishelppdf = true;
+      isHelpPdf = true;
     }
 
   gchar *rpath = g_locale_to_utf8 (path, -1, nullptr, nullptr, nullptr);
@@ -207,20 +207,20 @@ main (int argc, char *argv[])
 
   if (g_file_test (path, G_FILE_TEST_IS_REGULAR) == FALSE)
     {
-      errp ("File '%s' is not readble.\n", path);
+      errp ("File '%s' is not readable.\n", path);
       g_free (path);
       return 1;
     }
 
   gtk_init (&argc, &argv);
 
-  ApvlvView sView(nullptr);
-  if (sView.newtab (path) == false)
+  ApvlvView sView (nullptr);
+  if (!sView.newtab (path))
     {
       exit (1);
     }
 
-  if (ishelppdf)
+  if (isHelpPdf)
     {
       helppdf = path;
     }
@@ -234,7 +234,7 @@ main (int argc, char *argv[])
           continue;
         }
 
-      if (sView.loadfile (path) == false)
+      if (!sView.loadfile (path))
         {
           errp ("Can't open document: %s", path);
         }

@@ -37,85 +37,78 @@ using namespace std;
 
 namespace apvlv
 {
-  //
-  // link to a url, or a page num
-  //
-  struct ApvlvLink
-  {
-    string mUrl;
-    int mPage;
-  };
+    //
+    // link to a url, or a page num
+    //
+    struct ApvlvLink {
+        int mPage;
+    };
 
-  typedef vector < ApvlvLink > ApvlvLinks;
+    typedef vector<ApvlvLink> ApvlvLinks;
 
-  //
-  // position of a search result, or just a area
-  //
-  struct ApvlvPos
-  {
-    double x1, x2, y1, y2;
-  };
+    //
+    // position of a search result, or just a area
+    //
+    struct ApvlvPos {
+        double x1, x2, y1, y2;
+    };
 
-  typedef vector < ApvlvPos > ApvlvPoses;
+    typedef vector<ApvlvPos> ApvlvPoses;
 
-  struct ApvlvFileIndex
-  {
-    string title;
-    int page;
-    vector < ApvlvFileIndex > children;
-  };
+    struct ApvlvFileIndex {
+        string title;
+        int page;
+        vector<ApvlvFileIndex> children;
+    };
 
-  typedef vector < ApvlvFileIndex >::iterator ApvlvFileIndexIter;
+    typedef vector<ApvlvFileIndex>::iterator ApvlvFileIndexIter;
 
-  class ApvlvFile
-  {
-  public:
-    ApvlvFile (const char *filename, bool check);
+    class ApvlvFile {
+     public:
+      ApvlvFile (__attribute__((unused)) const char *filename, __attribute__((unused)) bool check);
 
-    virtual ~ ApvlvFile ();
+      virtual ~ ApvlvFile ();
 
-    static ApvlvFile *newfile (const char *filename, bool check = false);
+      static ApvlvFile *newFile (const char *filename, __attribute__((unused)) bool check = false);
 
-    virtual bool writefile (const char *filename) = 0;
+      virtual bool writefile (const char *filename) = 0;
 
-    virtual bool pagesize (int page, int rot, double *x, double *y) = 0;
+      virtual bool pagesize (int page, int rot, double *x, double *y) = 0;
 
-    virtual int pagesum () = 0;
+      virtual int pagesum () = 0;
 
-    virtual bool pagetext (int, int, int, int, int, char **) = 0;
+      virtual bool pagetext (int, int, int, int, int, char **) = 0;
 
-    virtual bool render (int, int, int, double, int, GdkPixbuf *,
-			 char *buffer = nullptr);
+      virtual bool render (int, int, int, double, int, GdkPixbuf *,
+                           char *buffer);
 
-    virtual bool renderweb (int pn, int, int, double, int, GtkWidget *widget);
+      virtual bool renderweb (int pn, int, int, double, int, GtkWidget *widget);
 
-    virtual ApvlvPoses *pagesearch (int pn, const char *str, bool reverse =
-                                    false) = 0;
+      virtual ApvlvPoses *pagesearch (int pn, const char *str, bool reverse) = 0;
 
-    virtual bool pageselectsearch (int, int, int, double, int,
-				   GdkPixbuf *, char *, int, ApvlvPoses *) =
+      virtual bool pageselectsearch (int, int, int, double, int,
+                                     GdkPixbuf *, char *, int, ApvlvPoses *) =
       0;
 
-    virtual ApvlvLinks *getlinks (int pn) = 0;
+      virtual ApvlvLinks *getlinks (int pn) = 0;
 
-    virtual ApvlvFileIndex *new_index () = 0;
+      virtual ApvlvFileIndex *new_index () = 0;
 
-    virtual void free_index (ApvlvFileIndex *) = 0;
+      virtual void free_index (ApvlvFileIndex *) = 0;
 
-    virtual bool pageprint (int pn, cairo_t * cr) = 0;
+      virtual bool pageprint (int pn, cairo_t *cr) = 0;
 
-    string get_anchor ();
+      string get_anchor ();
 
-  protected:
+     protected:
 
-    ApvlvFileIndex * mIndex;
-    unsigned short mIndexRef;
+      ApvlvFileIndex *mIndex;
 
-    string mAnchor;
+      string mAnchor;
 
-    gchar *mRawdata;
-    guint mRawdataSize;
-  };
+      gchar *mRawdata;
+      guint mRawdataSize;
+    };
 
 };
 

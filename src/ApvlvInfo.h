@@ -35,36 +35,34 @@ using namespace std;
 
 namespace apvlv
 {
-  struct infofile
-  {
-    int page;
-    int skip;
-    double rate;
-    string file;
-  };
+    struct infofile {
+        int page;
+        int skip;
+        double rate;
+        string file;
+    };
 
-  class ApvlvInfo
-  {
-  public:
-    ApvlvInfo (const char *file);
-    ~ApvlvInfo ();
+    class ApvlvInfo {
+     public:
+      explicit ApvlvInfo (const char *file);
+      ~ApvlvInfo ();
 
-    bool update ();
+      bool update ();
 
-    infofile *file (int);
-    infofile *file (const char *);
-    bool file (int, double, const char *, int);
+      infofile *file (int);
+      infofile *file (const char *);
+      bool file (int, double, const char *, int);
 
-  private:
-    string mFileName;
+     private:
+      string mFileName;
 
-    GSList *mFileHead;
-    int mFileMax;
+      GSList *mFileHead;
+      int mFileMax;
 
-    bool ini_add_position (const char *);
-  };
+      bool ini_add_position (const char *);
+    };
 
-  extern ApvlvInfo *gInfo;
+    extern ApvlvInfo *gInfo;
 };
 
 #endif

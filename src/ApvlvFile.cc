@@ -30,7 +30,6 @@
 #include "ApvlvHtm.h"
 #include "ApvlvEpub.h"
 #include "ApvlvUtil.h"
-#include "ApvlvView.h"
 
 #ifdef APVLV_WITH_DJVU
 #include "ApvlvDjvu.h"
@@ -41,9 +40,7 @@
 
 #include <glib.h>
 
-#include <sys/stat.h>
 #include <iostream>
-#include <fstream>
 
 namespace apvlv
 {
@@ -51,113 +48,112 @@ namespace apvlv
 #define MAX(a,b)        ((a) > (b) ? (a) : (b))
 #endif
 
-  ApvlvFile::ApvlvFile (const char *filename, bool check)
-  {
-    mIndex = nullptr;
+    ApvlvFile::ApvlvFile (__attribute__((unused)) const char *filename, __attribute__((unused)) bool check)
+    {
+      mIndex = nullptr;
 
-    mRawdata = nullptr;
-    mRawdataSize = 0;
-  }
+      mRawdata = nullptr;
+      mRawdataSize = 0;
+    }
 
-  ApvlvFile::~ApvlvFile ()
-  {
-    if (mRawdata != nullptr)
-      {
-	delete[]mRawdata;
-	mRawdata = nullptr;
-      }
-  }
+    ApvlvFile::~ApvlvFile ()
+    {
+      if (mRawdata != nullptr)
+        {
+          delete[]mRawdata;
+          mRawdata = nullptr;
+        }
+    }
 
-  ApvlvFile *ApvlvFile::newfile (const char *filename, bool check)
-  {
-    ApvlvFile *file = nullptr;
-    static const char *type_phrase[] =
-      {
-	".pdf",
-        ".html",
-        ".htm",
-        ".epub",
-	".djv",
-	".djvu",
-	".txt",
-      };
+    ApvlvFile *ApvlvFile::newFile (const char *filename, __attribute__((unused)) bool check)
+    {
+      ApvlvFile *file;
+      static const char *type_phrase[] =
+          {
+              ".pdf",
+              ".html",
+              ".htm",
+              ".epub",
+              ".djv",
+              ".djvu",
+              ".txt",
+          };
 
-    size_t i;
-    for (i = 0; i < 8; ++ i)
-      {
-	if (strcasecmp (filename + strlen (filename) - strlen (type_phrase[i]),
-			type_phrase[i]) == 0)
-	  {
-	    break;
-	  }
-      }
+      size_t i;
+      for (i = 0; i < 8; ++i)
+        {
+          if (strcasecmp (filename + strlen (filename) - strlen (type_phrase[i]),
+                          type_phrase[i]) == 0)
+            {
+              break;
+            }
+        }
 
-    if (i == 8)
-      {
-	debug ("not a valid file: %s, treate as a PDF file", filename);
-	i = 0;
-      }
+      if (i == 8)
+        {
+          debug ("not a valid file: %s, treate as a PDF file", filename);
+          i = 0;
+        }
 
-    file = nullptr;
-    try
-      {
-	switch (i)
-	  {
-	  case 0:
-	    file = new ApvlvPDF (filename);
-	    break;
+      file = nullptr;
+      try
+        {
+          switch (i)
+            {
+              case 0:
+                file = new ApvlvPDF (filename);
+              break;
 
-	  case 1:
-	  case 2:
-            file = new ApvlvHTML (filename);
-            break;
+              case 1:
+              case 2:
+                file = new ApvlvHTML (filename);
+              break;
 
-          case 3:
-            file = new ApvlvEPUB (filename);
-            break;
+              case 3:
+                file = new ApvlvEPUB (filename);
+              break;
 
-          case 4:
-          case 5:
+              case 4:
+              case 5:
 #ifdef APVLV_WITH_DJVU
-	    file = new ApvlvDJVU (filename);
+                file = new ApvlvDJVU (filename);
 #endif
-	    break;
+                break;
 
-	  case 6:
+              case 6:
 #ifdef APVLV_WITH_TXT
-	    file = new ApvlvTXT (filename);
+                file = new ApvlvTXT (filename);
 #endif
-	    break;
+                break;
 
-	  default:
-	    ;
-	  }
-      }
+              default:;
+            }
+        }
 
-    catch (const bad_alloc &e)
-      {
-	delete file;
-	file = nullptr;
-      }
+      catch (const bad_alloc &e)
+        {
+          delete file;
+          file = nullptr;
+        }
 
-    return file;
-  }
+      return file;
+    }
 
-  bool ApvlvFile::render (int pn, int ix, int iy, double zm, int rot,
-			  GdkPixbuf * pix, char *buffer)
-  {
-    return false;
-  }
+    bool ApvlvFile::render (int pn, int ix, int iy, double zm, int rot,
+                            GdkPixbuf *pix, char *buffer)
+    {
+      return false;
+    }
 
-  bool ApvlvFile::renderweb (int pn, int, int, double, int, GtkWidget *widget)
-  {
-    return false;
-  }
+    bool ApvlvFile::renderweb (int pn, int, int, double, int, GtkWidget *widget)
+    {
+      return false;
+    }
 
-  string ApvlvFile::get_anchor ()
-  {
-    return mAnchor;
-  }
+    string ApvlvFile::get_anchor ()
+    {
+      return mAnchor;
+    }
 }
 
 // Local Variables:

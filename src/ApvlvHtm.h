@@ -35,42 +35,41 @@
 
 namespace apvlv
 {
-  const double HTML_DEFAULT_WIDTH = 800;
-  const double HTML_DEFAULT_HEIGHT = 800;
-  
-  class ApvlvHTML:public ApvlvFile
-  {
-  public:
-    ApvlvHTML (const char *, bool check=true);
+    const double HTML_DEFAULT_WIDTH = 800;
+    const double HTML_DEFAULT_HEIGHT = 800;
 
-    ~ApvlvHTML ();
+    class ApvlvHTML : public ApvlvFile {
+     public:
+      explicit ApvlvHTML (const char *, bool check = true);
 
-    bool writefile (const char *filename);
+      ~ApvlvHTML () override;
 
-    bool pagesize (int page, int rot, double *x, double *y);
+      bool writefile (const char *filename) override;
 
-    int pagesum ();
+      bool pagesize (int page, int rot, double *x, double *y) override;
 
-    bool pagetext (int, int, int, int, int, char **);
+      int pagesum () override;
 
-    bool renderweb (int pn, int ix, int iy, double zm, int rot, GtkWidget *widget);
+      bool pagetext (int, int, int, int, int, char **) override;
 
-    ApvlvPoses *pagesearch (int pn, const char *str, bool reverse = false);
+      bool renderweb (int pn, int ix, int iy, double zm, int rot, GtkWidget *widget) override;
 
-    bool pageselectsearch (int, int, int, double, int,
-                           GdkPixbuf *, char *, int, ApvlvPoses *);
+      ApvlvPoses *pagesearch (int pn, const char *str, bool reverse) override;
 
-    ApvlvLinks *getlinks (int pn);
+      bool pageselectsearch (int, int, int, double, int,
+                             GdkPixbuf *, char *, int, ApvlvPoses *) override;
 
-    ApvlvFileIndex *new_index ();
+      ApvlvLinks *getlinks (int pn) override;
 
-    void free_index (ApvlvFileIndex *);
+      ApvlvFileIndex *new_index () override;
 
-    bool pageprint (int pn, cairo_t * cr);
+      void free_index (ApvlvFileIndex *) override;
 
-  private:
-    string mUri;
-  };
+      bool pageprint (int pn, cairo_t *cr) override;
+
+     private:
+      string mUri;
+    };
 
 }
 

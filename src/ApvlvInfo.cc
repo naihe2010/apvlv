@@ -34,206 +34,202 @@
 
 namespace apvlv
 {
-  ApvlvInfo *gInfo = nullptr;
+    ApvlvInfo *gInfo = nullptr;
 
-  ApvlvInfo::ApvlvInfo (const char *filename)
-  {
-    mFileName = filename;
+    ApvlvInfo::ApvlvInfo (const char *filename)
+    {
+      mFileName = filename;
 
-    mFileHead = nullptr;
-    mFileMax = 10;
+      mFileHead = nullptr;
+      mFileMax = 10;
 
-    ifstream is (mFileName.c_str (), ios::in);
-    if (is.is_open ())
-      {
-	string line;
-	const char *p;
+      ifstream is (mFileName.c_str (), ios::in);
+      if (is.is_open ())
+        {
+          string line;
+          const char *p;
 
-	while (getline (is, line))
-	  {
-	    p = line.c_str ();
+          while (getline (is, line))
+            {
+              p = line.c_str ();
 
-	    if (*p != '\''	/* the ' */
-		|| !isdigit (*(p + 1)))	/* the digit */
-	      {
-		continue;
-	      }
+              if (*p != '\''    /* the ' */
+                  || !isdigit (*(p + 1)))    /* the digit */
+                {
+                  continue;
+                }
 
-	    ini_add_position (p);
-	  }
+              ini_add_position (p);
+            }
 
-	mFileHead = g_slist_reverse (mFileHead);
+          mFileHead = g_slist_reverse (mFileHead);
 
-	is.close ();
-      }
-  }
+          is.close ();
+        }
+    }
 
-  ApvlvInfo::~ApvlvInfo ()
-  {
-    for (GSList *list = mFileHead;
-	 list != nullptr;
-	 list = g_slist_next (list))
-      {
-	infofile *fp = (infofile *) (list->data);
-	delete fp;
-      }
-    g_slist_free (mFileHead);
-  }
+    ApvlvInfo::~ApvlvInfo ()
+    {
+      for (GSList *list = mFileHead;
+           list != nullptr;
+           list = g_slist_next (list))
+        {
+          auto *fp = (infofile *) (list->data);
+          delete fp;
+        }
+      g_slist_free (mFileHead);
+    }
 
-  bool ApvlvInfo::update ()
-  {
-    ofstream os (mFileName.c_str (), ios::out);
-    if (!os.is_open ())
-      {
-	return false;
-      }
+    bool ApvlvInfo::update ()
+    {
+      ofstream os (mFileName.c_str (), ios::out);
+      if (!os.is_open ())
+        {
+          return false;
+        }
 
-    int i;
-    GSList *lfp;
-    infofile *fp;
-    for (i = 0, lfp = mFileHead;
-	 i < mFileMax && lfp != nullptr; ++i, lfp = g_slist_next (lfp))
-      {
-	fp = (infofile *) (lfp->data);
-	if (fp)
-	  {
-	    os << "'" << i << "\t";
-	    os << fp->page << ':' << fp->skip << "\t";
-	    os << fp->rate << "\t";
-	    os << fp->file << endl;
-	  }
-      }
+      int i;
+      GSList *lfp;
+      infofile *fp;
+      for (i = 0, lfp = mFileHead;
+           i < mFileMax && lfp != nullptr; ++i, lfp = g_slist_next (lfp))
+        {
+          fp = (infofile *) (lfp->data);
+          if (fp)
+            {
+              os << "'" << i << "\t";
+              os << fp->page << ':' << fp->skip << "\t";
+              os << fp->rate << "\t";
+              os << fp->file << endl;
+            }
+        }
 
-    os.close ();
-    return true;
-  }
+      os.close ();
+      return true;
+    }
 
-  infofile *ApvlvInfo::file (int id)
-  {
-    infofile *fp = (infofile *) g_slist_nth_data (mFileHead, id);
-    return fp;
-  }
+    infofile *ApvlvInfo::file (int id)
+    {
+      auto *fp = (infofile *) g_slist_nth_data (mFileHead, id);
+      return fp;
+    }
 
-  infofile *ApvlvInfo::file (const char *filename)
-  {
-    GSList *lfp;
-    infofile *fp;
+    infofile *ApvlvInfo::file (const char *filename)
+    {
+      GSList *lfp;
+      infofile *fp;
 
-    for (lfp = mFileHead; lfp != nullptr; lfp = g_slist_next (lfp))
-      {
-	fp = (infofile *) (lfp->data);
-	if (fp->file == filename)
-	  {
-	    break;
-	  }
-      }
+      for (lfp = mFileHead; lfp != nullptr; lfp = g_slist_next (lfp))
+        {
+          fp = (infofile *) (lfp->data);
+          if (fp->file == filename)
+            {
+              break;
+            }
+        }
 
-    if (lfp == nullptr)
-      {
-	fp = new infofile;
-	fp->page = 0;
-	fp->skip = 0;
-	fp->rate = 0.0;
-	fp->file = filename;
-	mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
-      }
-    else
-      {
-	mFileHead = g_slist_remove (mFileHead, fp);
-	mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
-      }
+      if (lfp == nullptr)
+        {
+          fp = new infofile;
+          fp->page = 0;
+          fp->skip = 0;
+          fp->rate = 0.0;
+          fp->file = filename;
+          mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
+        }
+      else
+        {
+          mFileHead = g_slist_remove (mFileHead, fp);
+          mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
+        }
 
-    return fp;
-  }
+      return fp;
+    }
 
-  bool ApvlvInfo::file (int page, double rate, const char *filename, int skip)
-  {
-    infofile *fp;
+    bool ApvlvInfo::file (int page, double rate, const char *filename, int skip)
+    {
+      infofile *fp;
 
-    fp = file (filename);
-    if (fp == nullptr)
-      {
-	return false;
-      }
+      fp = file (filename);
 
-    fp->page = page;
-    fp->rate = rate;
-    fp->skip = skip;
-    update ();
+      fp->page = page;
+      fp->rate = rate;
+      fp->skip = skip;
+      update ();
 
-    return true;
-  }
+      return true;
+    }
 
-  bool ApvlvInfo::ini_add_position (const char *str)
-  {
-    const char *p, *s;
+    bool ApvlvInfo::ini_add_position (const char *str)
+    {
+      const char *p, *s;
 
-    p = strchr (str + 2, '\t');	/* Skip the ' and the digit */
-    if (p == nullptr)
-      {
-	return false;
-      }
+      p = strchr (str + 2, '\t');    /* Skip the ' and the digit */
+      if (p == nullptr)
+        {
+          return false;
+        }
 
-    while (*p != '\0' && !isdigit (*p))
-      {
-	p++;
-      }
-    int page = atoi (p);
-    int skip;
+      while (*p != '\0' && !isdigit (*p))
+        {
+          p++;
+        }
+      int page = int (strtol (p, nullptr, 10));
+      int skip;
 
-    s = strchr (p, ':');
-    for (; s && p < s; ++p)
-      {
-	if (!isdigit (*p))
-	  {
-	    break;
-	  }
-      }
-    if (p == s)
-      {
-	++ p;
-	skip = atoi (p);
-      }
-    else
-      {
-	skip = 0;
-      }
+      s = strchr (p, ':');
+      for (; s && p < s; ++p)
+        {
+          if (!isdigit (*p))
+            {
+              break;
+            }
+        }
+      if (p == s)
+        {
+          ++p;
+          skip = int (strtol (p, nullptr, 10));
+        }
+      else
+        {
+          skip = 0;
+        }
 
-    p = strchr (p, '\t');
-    if (p == nullptr)
-      {
-	return false;
-      }
+      p = strchr (p, '\t');
+      if (p == nullptr)
+        {
+          return false;
+        }
 
-    while (*p != '\0' && !isdigit (*p))
-      {
-	p++;
-      }
-    double rate = atof (p);
+      while (*p != '\0' && !isdigit (*p))
+        {
+          p++;
+        }
+      double rate = strtod (p, nullptr);
 
-    p = strchr (p, '\t');
-    if (p == nullptr)
-      {
-	return false;
-      }
+      p = strchr (p, '\t');
+      if (p == nullptr)
+        {
+          return false;
+        }
 
-    while (*p != '\0' && isspace (*p))
-      {
-	p++;
-      }
-    if (*p == '\0')
-      {
-	return false;
-      }
+      while (*p != '\0' && isspace (*p))
+        {
+          p++;
+        }
+      if (*p == '\0')
+        {
+          return false;
+        }
 
-    infofile *fp = new infofile;
-    fp->page = page;
-    fp->rate = rate;
-    fp->skip = skip;
-    fp->file = p;
-    mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
-    return true;
-  }
+      auto *fp = new infofile;
+      fp->page = page;
+      fp->rate = rate;
+      fp->skip = skip;
+      fp->file = p;
+      mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
+      return true;
+    }
 };
 
 // Local Variables:
