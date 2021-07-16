@@ -306,7 +306,7 @@ namespace apvlv
     {
       mView = view;
 
-      mTimeoutTimer = -1;
+      mTimeoutTimer = 0;
       mState = CMD_OK;
 
       mCmdHead = nullptr;
@@ -348,7 +348,7 @@ namespace apvlv
       if (mTimeoutTimer > 0)
         {
           g_source_remove (mTimeoutTimer);
-          mTimeoutTimer = -1;
+          mTimeoutTimer = 0;
         }
     }
 
@@ -357,7 +357,7 @@ namespace apvlv
       if (mTimeoutTimer > 0)
         {
           g_source_remove (mTimeoutTimer);
-          mTimeoutTimer = -1;
+          mTimeoutTimer = 0;
         }
 
       if (mState == GETTING_CMD)

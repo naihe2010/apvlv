@@ -61,11 +61,6 @@ namespace apvlv
       return mMenu;
     }
 
-    void ApvlvMenu::setsize (gint w, gint h)
-    {
-      gtk_widget_set_size_request (mMenu, w, h);
-    }
-
     extern "C" void apvlv_menu_on_file_open ()
     {
       //mView->open ();

@@ -40,8 +40,6 @@ namespace apvlv
 
       GtkWidget *widget ();
 
-      void setsize (gint, gint);
-
      private:
       GtkWidget *mMenu;
     };

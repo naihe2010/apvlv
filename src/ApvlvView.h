@@ -59,7 +59,7 @@ namespace apvlv
 
       GtkWidget *widget ();
 
-      static ApvlvWindow *currentWindow ();
+      ApvlvWindow *currentWindow ();
 
       void delcurrentWindow ();
 
@@ -109,7 +109,7 @@ namespace apvlv
 
       void settitle (const char *);
 
-      static ApvlvCore *crtadoc ();
+      ApvlvCore *crtadoc ();
 
       void append_child (ApvlvView *);
 
@@ -120,20 +120,13 @@ namespace apvlv
 
       bool runcmd (const char *cmd);
 
-      size_t new_tabcontext (ApvlvCore *core, bool insertAfterCurr);
+      long new_tabcontext (ApvlvCore *core);
 
-      void delete_tabcontext (size_t tabPos);
+      void delete_tabcontext (long tabPos);
 
-      void switch_tabcontext (size_t tabPos);
+      void switch_tabcontext (long tabPos);
 
-      void back_tabcontext (size_t tabPos);
-
-      // Caclulate number of pixels that the document should be.
-      //  This figure accounts for decorations like (mCmdBar and mHaveTabs).
-      // Returns a nonnegative number.
-      int adjheight ();
-
-      void switchtab (size_t tabPos);
+      void switchtab (long tabPos);
 
       // Update the tab's context and update tab label.
       void windowadded ();
@@ -155,26 +148,22 @@ namespace apvlv
       GtkWidget *mCommandBar;
 
       struct TabEntry {
-          ApvlvWindow *root;
-          ApvlvWindow *curr;
+          ApvlvWindow *mRootWindow;
 
-          int numwindows;
-          TabEntry (ApvlvWindow *_r, ApvlvWindow *_c, int _n) : root (_r),
-                                                                curr (_c), numwindows (_n)
+          int mWindowCount;
+
+          TabEntry (ApvlvWindow *_r, int _n) : mRootWindow (_r), mWindowCount (_n)
           {
           }
       };
-      // possibly use GArray instead
       std::vector<TabEntry> mTabList;
-      int mCurrTabPos;
+      long mCurrTabPos;
 
       gboolean mHasFull;
       int mWidth, mHeight;
 
       static void apvlv_view_delete_cb (GtkWidget *wid, GtkAllocation *al,
                                         ApvlvView *view);
-      static void apvlv_view_resized_cb (__attribute__((unused)) GtkWidget *wid, GtkAllocation *al,
-                                         ApvlvView *view);
       static gint apvlv_view_keypress_cb (GtkWidget *wid, GdkEvent *ev,
                                           ApvlvView *view);
 
@@ -185,8 +174,6 @@ namespace apvlv
                                             GtkNotebook *notebook, guint num,
                                             ApvlvView *view);
 
-      ApvlvWindow *mRootWindow;
-
       ApvlvCmds mCmds;
 
       std::vector<ApvlvCore *> mDocs;
@@ -196,9 +183,6 @@ namespace apvlv
 
       ApvlvView *mParent;
       std::vector<ApvlvView *> mChildren;
-
-      static const int APVLV_MENU_HEIGHT, APVLV_CMD_BAR_HEIGHT,
-          APVLV_TABS_HEIGHT;
     };
 
 }

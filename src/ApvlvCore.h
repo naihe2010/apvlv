@@ -52,8 +52,6 @@ namespace apvlv
 
       virtual void active (bool act);
 
-      virtual void setsize (int w, int h);
-
       virtual void show (bool mContinuous);
 
      protected:
@@ -138,8 +136,6 @@ namespace apvlv
       virtual int getskip ();
       virtual void setskip (int ct);
 
-      virtual void setsize (int wid, int hei);
-
       virtual returnType process (int has, int times, guint keyval);
 
       ApvlvView *mView;
@@ -197,8 +193,6 @@ namespace apvlv
       double mVrate{}, mHrate{};
 
       int mLines{}, mChars{};
-
-      int mWidth{}, mHeight{};
 
       GtkAdjustment *mVaj, *mHaj;
 

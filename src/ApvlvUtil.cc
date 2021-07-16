@@ -203,7 +203,14 @@ namespace apvlv
       GtkWidget *parent = gtk_widget_get_parent (owid);
       debug ("parent: %p, owid: %p, nwid: %p", parent, owid, nwid);
       gtk_container_remove (GTK_CONTAINER (parent), owid);
-      gtk_container_add (GTK_CONTAINER (parent), nwid);
+      if (GTK_IS_BOX (parent))
+        {
+          gtk_box_pack_start (GTK_BOX (parent), nwid, TRUE, TRUE, 0);
+        }
+      else
+        {
+          gtk_container_add (GTK_CONTAINER (parent), nwid);
+        }
       gtk_widget_show_all (parent);
       return parent;
     }

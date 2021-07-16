@@ -153,7 +153,7 @@ namespace apvlv
       return itr;
     }
 
-    ApvlvDir::ApvlvDir (ApvlvView *view, int w, int h) : ApvlvCore (view)
+    ApvlvDir::ApvlvDir (ApvlvView *view) : ApvlvCore (view)
     {
       mReady = false;
 
@@ -192,12 +192,10 @@ namespace apvlv
 
       mStatus = new ApvlvDirStatus (this);
 
-      gtk_box_pack_start (GTK_BOX (mVbox), mScrollwin, FALSE, FALSE, 0);
+      gtk_box_pack_start (GTK_BOX (mVbox), mScrollwin, TRUE, TRUE, 0);
       gtk_box_pack_end (GTK_BOX (mVbox), mStatus->widget (), FALSE, FALSE, 0);
 
       gtk_widget_show_all (mVbox);
-
-      setsize (w, h);
     }
 
     bool ApvlvDir::reload ()
@@ -453,7 +451,7 @@ namespace apvlv
         {
           if (gParams->valueb ("content"))
             {
-              ndoc = new ApvlvDir (mView, mWidth, mHeight);
+              ndoc = new ApvlvDir (mView);
               if (!ndoc->loadfile (name, true))
                 {
                   delete ndoc;
@@ -465,7 +463,7 @@ namespace apvlv
             {
               DISPLAY_TYPE type = get_display_type_by_filename (name);
               ndoc =
-                  new ApvlvDoc (mView, type, mWidth, mHeight, gParams->values ("zoom"),
+                  new ApvlvDoc (mView, type, gParams->values ("zoom"),
                                 gParams->valueb ("cache"));
               if (!ndoc->loadfile (name, true))
                 {
@@ -479,7 +477,7 @@ namespace apvlv
           name = filename ();
           DISPLAY_TYPE type = get_display_type_by_filename (name);
           ndoc =
-              new ApvlvDoc (mView, type, mWidth, mHeight, gParams->values ("zoom"),
+              new ApvlvDoc (mView, type, gParams->values ("zoom"),
                             gParams->valueb ("cache"));
           if (!ndoc->loadfile (filename (), true))
             {
@@ -503,7 +501,7 @@ namespace apvlv
       switch (key)
         {
           case 'o':
-            ApvlvWindow::currentWindow ()->birth (false, ndoc);
+            mView->currentWindow ()->birth (false, ndoc);
           break;
 
           case 't':
@@ -788,7 +786,7 @@ namespace apvlv
       for (auto &i : mStlab)
         {
           i = gtk_label_new ("");
-          gtk_box_pack_start (GTK_BOX (mHbox), i, FALSE, FALSE, 0);
+          gtk_box_pack_start (GTK_BOX (mHbox), i, TRUE, TRUE, 0);
         }
     }
 
@@ -808,19 +806,6 @@ namespace apvlv
                                 (act) ? GTK_STATE_ACTIVE:
                                 GTK_STATE_INSENSITIVE, nullptr);
 #endif
-        }
-    }
-
-    void ApvlvDirStatus::setsize (int w, int h)
-    {
-      int sw[AD_STATUS_SIZE];
-      sw[0] = w >> 1;
-      sw[1] = sw[0] >> 1;
-      sw[2] = sw[1] >> 1;
-      sw[3] = sw[1] >> 1;
-      for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
-        {
-          gtk_widget_set_size_request (mStlab[i], sw[i], h);
         }
     }
 

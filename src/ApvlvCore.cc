@@ -46,6 +46,8 @@ namespace apvlv
 
       mProCmd = 0;
 
+      mZoomrate = 1.0;
+
       mRotatevalue = 0;
 
       mSearchResults = nullptr;
@@ -108,15 +110,6 @@ namespace apvlv
     returnType ApvlvCore::process (int has, int ct, guint key)
     {
       return MATCH;
-    }
-
-    void ApvlvCore::setsize (int w, int h)
-    {
-      gtk_widget_set_size_request (widget (), w, h);
-      gtk_widget_set_size_request (mScrollwin, w, h - 16);
-      mStatus->setsize (w, 15);
-      mWidth = w;
-      mHeight = h;
     }
 
     ApvlvCore *ApvlvCore::copy ()
@@ -451,10 +444,6 @@ namespace apvlv
     }
 
     void ApvlvCoreStatus::active (bool act)
-    {
-    }
-
-    void ApvlvCoreStatus::setsize (int w, int h)
     {
     }
 

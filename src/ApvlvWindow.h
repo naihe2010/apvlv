@@ -43,7 +43,7 @@ namespace apvlv
 
     class ApvlvWindow {
      public:
-      explicit ApvlvWindow (ApvlvCore *core);
+      explicit ApvlvWindow (ApvlvCore *core, ApvlvView *view);
       ~ApvlvWindow ();
 
       /* WE operate the AW_DOC window
@@ -51,11 +51,11 @@ namespace apvlv
        * AW_NONE is a empty window, need free
        * So, ANY user interface function can only get the AW_DOC window
        * */
-      enum windowType {
+      enum WindowType {
           AW_SP, AW_VSP, AW_CORE, AW_NONE
-      } type;
+      } mType;
 
-      ApvlvWindow *birth (bool vsp, ApvlvCore *core = nullptr);
+      ApvlvWindow *birth (bool vsp, ApvlvCore *core);
 
       ApvlvWindow *unbirth (ApvlvWindow *, ApvlvWindow *);
 
@@ -65,14 +65,15 @@ namespace apvlv
 
       ApvlvCore *getCore ();
 
+      ApvlvWindow *activeWindow ();
+
       void setCore (ApvlvCore *core);
-
-      void getsize (int *w, int *h) const;
-
-      void setsize (int wid, int hei);
 
       void smaller (int times = 1);
       void bigger (int times = 1);
+
+      void setcurrentWindow (ApvlvWindow *pre, ApvlvWindow *win);
+      void delcurrentWindow ();
 
       ApvlvWindow *getneighbor (int count, guint key);
 
@@ -80,34 +81,21 @@ namespace apvlv
 
       returnType process (int times, guint keyval);
 
-      static void setcurrentWindow (ApvlvWindow *pre, ApvlvWindow *win);
-
-      static void delcurrentWindow ();
-
-      static ApvlvWindow *currentWindow ();
-
       ApvlvWindow *m_parent, *m_son, *m_daughter;
 
      private:
+
       inline ApvlvWindow *getkj (__attribute__((unused)) int num, bool next);
       inline ApvlvWindow *gethl (__attribute__((unused)) int num, bool next);
-
-      inline gboolean resize_children ();
-
-      static gboolean apvlv_window_resize_children_cb (gpointer data);
-
-      static gboolean apvlv_window_paned_resized_cb (__attribute__((unused)) GtkWidget *wid,
-                                                     __attribute__((unused)) GdkEventButton *event,
-                                                     ApvlvWindow *win);
-
-      static ApvlvWindow *m_curWindow;
 
       bool mIsClose;
 
       ApvlvCore *mCore;
       GtkWidget *mPaned;
 
-      int mWidth, mHeight;
+      ApvlvView *mView;
+
+      ApvlvWindow *mActiveWindow;
     };
 
 }

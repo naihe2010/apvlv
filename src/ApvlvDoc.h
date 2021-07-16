@@ -129,8 +129,6 @@ namespace apvlv
 
       void active (bool act) override;
 
-      void setsize (int, int) override;
-
       void show (bool mContinuous) override;
 
      private:
@@ -141,7 +139,7 @@ namespace apvlv
 
     class ApvlvDoc : public ApvlvCore {
      public:
-      ApvlvDoc (ApvlvView *, DISPLAY_TYPE type, int w, int h, const char *zm = "NORMAL", bool cache = false);
+      ApvlvDoc (ApvlvView *, DISPLAY_TYPE type, const char *zm = "NORMAL", bool cache = false);
 
       ~ApvlvDoc () override;
 

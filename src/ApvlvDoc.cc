@@ -62,7 +62,7 @@ namespace apvlv
       return type;
     }
 
-    ApvlvDoc::ApvlvDoc (ApvlvView *view, DISPLAY_TYPE type, int w, int h, const char *zm, bool cache) : ApvlvCore (view)
+    ApvlvDoc::ApvlvDoc (ApvlvView *view, DISPLAY_TYPE type, const char *zm, bool cache) : ApvlvCore (view)
     {
       mCurrentCache1 = mCurrentCache2 = mCurrentCache3 = nullptr;
 
@@ -84,6 +84,14 @@ namespace apvlv
       mChars = 80;
 
       mProCmd = 0;
+
+      mInVisual = false;
+
+      mBlankx1 = mBlanky1 = mBlankx2 = mBlanky2 = 0;
+
+      mCurx = mCury = 0;
+
+      mLastpress = 0;
 
       mRotatevalue = 0;
 
@@ -153,12 +161,8 @@ namespace apvlv
 
       mStatus = new ApvlvDocStatus (this);
 
-      gtk_box_pack_start (GTK_BOX (mVbox), mScrollwin, FALSE, FALSE, 0);
+      gtk_box_pack_start (GTK_BOX (mVbox), mScrollwin, TRUE, TRUE, 0);
       gtk_box_pack_end (GTK_BOX (mVbox), mStatus->widget (), FALSE, FALSE, 0);
-
-      setsize (w, h);
-
-      setzoom (zm);
     }
 
     ApvlvDoc::~ApvlvDoc ()
@@ -773,7 +777,7 @@ namespace apvlv
     {
       char rate[16];
       g_snprintf (rate, sizeof rate, "%f", mZoomrate);
-      auto *ndoc = new ApvlvDoc (mView, mDisplayType, mWidth, mHeight, rate, usecache ());
+      auto *ndoc = new ApvlvDoc (mView, mDisplayType, rate, usecache ());
       ndoc->loadfile (mFilestr, false);
       ndoc->showpage (mPagenum, scrollrate ());
       return ndoc;
@@ -788,11 +792,11 @@ namespace apvlv
               mZoommode = NORMAL;
               mZoomrate = 1.2;
             }
-          if (strcasecmp (z, "fitwidth") == 0)
+          else if (strcasecmp (z, "fitwidth") == 0)
             {
               mZoommode = FITWIDTH;
             }
-          if (strcasecmp (z, "fitheight") == 0)
+          else if (strcasecmp (z, "fitheight") == 0)
             {
               mZoommode = FITHEIGHT;
             }
@@ -814,11 +818,13 @@ namespace apvlv
 
           if (mZoommode == FITWIDTH)
             {
-              mZoomrate = ((double) (mWidth - 26)) / mPagex;
+              // TODO: need impl by content width
+              // mZoomrate = ((double) (mWidth - 26)) / mPagex;
             }
           else if (mZoommode == FITHEIGHT)
             {
-              mZoomrate = ((double) (mHeight - 26)) / mPagey;
+              // TODO: need impl by content height
+              // mZoomrate = ((double) (mHeight - 26)) / mPagey;
             }
 
           refresh ();
@@ -2273,7 +2279,7 @@ namespace apvlv
       for (auto &i : mStlab)
         {
           i = gtk_label_new ("");
-          gtk_box_pack_start (GTK_BOX (mHbox), i, FALSE, FALSE, 0);
+          gtk_box_pack_start (GTK_BOX (mHbox), i, TRUE, TRUE, 0);
         }
     }
 
@@ -2293,19 +2299,6 @@ namespace apvlv
                                 (act) ? GTK_STATE_ACTIVE:
                                 GTK_STATE_INSENSITIVE, nullptr);
 #endif
-        }
-    }
-
-    void ApvlvDocStatus::setsize (int w, int h)
-    {
-      int sw[AD_STATUS_SIZE];
-      sw[0] = w >> 1;
-      sw[1] = sw[0] >> 1;
-      sw[2] = sw[1] >> 1;
-      sw[3] = sw[1] >> 1;
-      for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
-        {
-          gtk_widget_set_size_request (mStlab[i], sw[i], h);
         }
     }
 

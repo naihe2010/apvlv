@@ -78,8 +78,6 @@ namespace apvlv
 
       void active (bool act) override;
 
-      void setsize (int, int) override;
-
      private:
 #define AD_STATUS_SIZE   4
       GtkWidget *mStlab[AD_STATUS_SIZE];
@@ -87,7 +85,7 @@ namespace apvlv
 
     class ApvlvDir : public ApvlvCore {
      public:
-      ApvlvDir (ApvlvView *, int w, int h);
+      explicit ApvlvDir (ApvlvView *);
 
       ~ApvlvDir () override;
 
