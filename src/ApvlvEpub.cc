@@ -125,7 +125,7 @@ namespace apvlv
 
       mRoot = g_dir_make_tmp ("apvlv_epub_XXXXXXXX", nullptr);
 
-      gchar *container;
+      char *container;
       gint len = epub_get_ocf_file (epub, "META-INF/container.xml", &container);
       if (len <= 0)
         {
@@ -296,7 +296,7 @@ namespace apvlv
           return idfiles;
         }
 
-      nodeset = xmldoc_get_nodeset (doc, "//c:package/c:manifest/c:item", "https://www.idpf.org/2007/opf");
+      nodeset = xmldoc_get_nodeset (doc, "//c:package/c:manifest/c:item", "http://www.idpf.org/2007/opf");
       if (nodeset)
         {
           for (int i = 0; i < nodeset->nodeNr; ++i)
@@ -363,7 +363,7 @@ namespace apvlv
           return index;
         }
 
-      map = xmldoc_get_node (doc, "//c:ncx/c:navMap", "https://www.daisy.org/z3986/2005/ncx/");
+      map = xmldoc_get_node (doc, "//c:ncx/c:navMap", "http://www.daisy.org/z3986/2005/ncx/");
       if (map == nullptr)
         {
           xmlFreeDoc (doc);
