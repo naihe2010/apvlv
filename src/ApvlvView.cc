@@ -72,20 +72,15 @@ namespace apvlv
           GdkDisplay *display = gdk_display_get_default ();
           GdkMonitor *monitor = gdk_display_get_primary_monitor (display);
           gdk_monitor_get_geometry (monitor, rect);
-          mWidth = rect->width;
-          mHeight = rect->height;
 #else
           GdkScreen *scr = gdk_screen_get_default ();
           mWidth = gdk_screen_get_width (scr);
           mHeight = gdk_screen_get_height (scr);
 #endif
-          debug ("get screen size: %dx%d", mWidth, mHeight);
           fullscreen ();
         }
       else
         {
-          mWidth = w;
-          mHeight = h;
           gtk_window_set_default_size (GTK_WINDOW (mMainWindow),
                                        w > 1 ? w : 800, h > 1 ? h : 600);
         }
@@ -1104,7 +1099,7 @@ namespace apvlv
     }
 
     gint
-    ApvlvView::apvlv_view_keypress_cb (GtkWidget *wid, GdkEvent *ev,
+    ApvlvView::apvlv_view_keypress_cb (__attribute__((unused)) GtkWidget *wid, GdkEvent *ev,
                                        ApvlvView *view)
     {
       debug("view: %p, got key: %u", view, ((GdkEventKey *) ev)->keyval);
@@ -1134,7 +1129,7 @@ namespace apvlv
     }
 
     gint
-    ApvlvView::apvlv_view_commandbar_cb (GtkWidget *wid, GdkEvent *ev,
+    ApvlvView::apvlv_view_commandbar_cb (__attribute__((unused)) GtkWidget *wid, GdkEvent *ev,
                                          ApvlvView *view)
     {
       if (view->mCmdType == CMD_CMD)
@@ -1236,7 +1231,7 @@ namespace apvlv
     }
 
     void
-    ApvlvView::apvlv_view_delete_cb (GtkWidget *wid, GtkAllocation *al,
+    ApvlvView::apvlv_view_delete_cb (__attribute__((unused)) GtkWidget *wid, __attribute__((unused)) GtkAllocation *al,
                                      ApvlvView *view)
     {
       debug("delete cb: %p", view);
@@ -1253,8 +1248,8 @@ namespace apvlv
     }
 
     void
-    ApvlvView::apvlv_notebook_switch_cb (GtkWidget *wid,
-                                         GtkNotebook *notebook, guint pnum,
+    ApvlvView::apvlv_notebook_switch_cb (__attribute__((unused)) GtkWidget *wid,
+                                         __attribute__((unused)) GtkNotebook *notebook, guint pnum,
                                          ApvlvView *view)
     {
       view->mCurrTabPos = pnum;

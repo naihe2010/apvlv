@@ -134,7 +134,7 @@ namespace apvlv
      private:
       ApvlvDoc *mDoc;
 #define AD_STATUS_SIZE   4
-      GtkWidget *mStlab[AD_STATUS_SIZE];
+      GtkWidget *mStlab[AD_STATUS_SIZE]{};
     };
 
     class ApvlvDoc : public ApvlvCore {

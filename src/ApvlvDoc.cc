@@ -1957,6 +1957,11 @@ namespace apvlv
       mSize = 0;
       mBuf = nullptr;
       mLinks = nullptr;
+      mInverted = false;
+      mZoom = 1.0;
+      mRotate = 0;
+      mWidth = 0;
+      mHeight = 0;
     }
 
     void ApvlvDocCache::set (guint p, double zm, guint rot, bool delay)

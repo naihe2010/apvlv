@@ -160,18 +160,18 @@ namespace apvlv
       long mCurrTabPos;
 
       gboolean mHasFull;
-      int mWidth, mHeight;
 
-      static void apvlv_view_delete_cb (GtkWidget *wid, GtkAllocation *al,
-                                        ApvlvView *view);
-      static gint apvlv_view_keypress_cb (GtkWidget *wid, GdkEvent *ev,
+      static void
+      apvlv_view_delete_cb (__attribute__((unused)) GtkWidget *wid, __attribute__((unused)) GtkAllocation *al,
+                            ApvlvView *view);
+      static gint apvlv_view_keypress_cb (__attribute__((unused)) GtkWidget *wid, GdkEvent *ev,
                                           ApvlvView *view);
 
-      static gint apvlv_view_commandbar_cb (GtkWidget *wid, GdkEvent *ev,
+      static gint apvlv_view_commandbar_cb (__attribute__((unused)) GtkWidget *wid, GdkEvent *ev,
                                             ApvlvView *view);
 
-      static void apvlv_notebook_switch_cb (GtkWidget *wid,
-                                            GtkNotebook *notebook, guint num,
+      static void apvlv_notebook_switch_cb (__attribute__((unused)) GtkWidget *wid,
+                                            __attribute__((unused)) GtkNotebook *notebook, guint num,
                                             ApvlvView *view);
 
       ApvlvCmds mCmds;
