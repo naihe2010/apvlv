@@ -56,7 +56,6 @@ ENDIF (WIN32)
 SET(HEADERS
         ApvlvCmds.h
         ApvlvCore.h
-        ApvlvDir.h
         ApvlvDoc.h
         ApvlvFile.h
         ApvlvPdf.h
@@ -69,12 +68,12 @@ SET(HEADERS
         ApvlvCompletion.h
         ApvlvHtm.h
         ApvlvEpub.h
+        ApvlvContent.h
         )
 
 SET(SOURCES
         ApvlvCmds.cc
         ApvlvCore.cc
-        ApvlvDir.cc
         ApvlvDoc.cc
         ApvlvFile.cc
         ApvlvPdf.cc
@@ -87,6 +86,7 @@ SET(SOURCES
         ApvlvCompletion.cc
         ApvlvHtm.cc
         ApvlvEpub.cc
+        ApvlvContent.cc
         main.cc
         )
 

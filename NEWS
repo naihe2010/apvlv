@@ -1,3 +1,8 @@
+apvlv 0.3.0
+===========
+inner content toc display
+using shortcut 'c' or command ':content' to toggle content
+
 apvlv 0.2.0
 ===========
 Add EPUB format support

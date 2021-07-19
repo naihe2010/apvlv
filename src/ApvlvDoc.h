@@ -151,9 +151,9 @@ namespace apvlv
 
       void usecache (bool use) override;
 
-      bool loadfile (string &filename, bool check);
+      bool loadfile (string &filename, bool check, bool show_content);
 
-      bool loadfile (const char *src, bool check) override;
+      bool loadfile (const char *src, bool check, bool show_content) override;
 
       int pagenumber () override;
 
@@ -170,6 +170,8 @@ namespace apvlv
       void jump (char s) override;
 
       void showpage (int p, double s) override;
+
+      void showpage (ApvlvFileIndex *index);
 
       void nextpage (int times) override;
 
@@ -284,7 +286,6 @@ namespace apvlv
       GtkWidget *mImg1, *mImg2, *mImg3;
       GtkWidget *mWeb1;
     };
-
 }
 
 #endif

@@ -90,8 +90,9 @@ namespace apvlv
 
       bool mIsClose;
 
-      ApvlvCore *mCore;
       GtkWidget *mPaned;
+
+      ApvlvCore *mCore;
 
       ApvlvView *mView;
 

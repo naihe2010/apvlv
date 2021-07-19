@@ -73,7 +73,7 @@ namespace apvlv
 
       ApvlvFileIndex *ncx_get_index (struct epub *epub, string ncxfile);
 
-      ApvlvFileIndex ncx_node_get_index (xmlNodePtr node, string ncxfile);
+      ApvlvFileIndex *ncx_node_get_index (xmlNodePtr node, string ncxfile);
 
       std::map<int, string> mPages;
       gchar *mRoot;

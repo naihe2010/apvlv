@@ -62,7 +62,7 @@ namespace apvlv
       bool pageprint (int pn, cairo_t *cr) override;
 
      private:
-      bool walk_poppler_index_iter (ApvlvFileIndex *titr,
+      bool walk_poppler_index_iter (ApvlvFileIndex *root_index,
                                     PopplerIndexIter *iter);
 
       PopplerDocument *mDoc;

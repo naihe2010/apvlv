@@ -55,13 +55,18 @@ namespace apvlv
 
     typedef vector<ApvlvPos> ApvlvPoses;
 
-    struct ApvlvFileIndex {
-        string title;
-        int page;
-        vector<ApvlvFileIndex> children;
-    };
+    class ApvlvFileIndex {
+     public:
+      ApvlvFileIndex (string title, int page, string path);
+      ~ApvlvFileIndex ();
 
-    typedef vector<ApvlvFileIndex>::iterator ApvlvFileIndexIter;
+      static ApvlvFileIndex *newDirIndex (const gchar *path, ApvlvFileIndex *parent_index = nullptr);
+
+      string title;
+      int page;
+      string path;
+      vector<ApvlvFileIndex *> children;
+    };
 
     class ApvlvFile {
      public:

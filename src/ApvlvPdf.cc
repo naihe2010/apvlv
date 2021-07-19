@@ -502,7 +502,7 @@ namespace apvlv
           return nullptr;
         }
 
-      mIndex = new ApvlvFileIndex;
+      mIndex = new ApvlvFileIndex ("", 0, "");
       walk_poppler_index_iter (mIndex, itr);
       poppler_index_iter_free (itr);
 
@@ -514,7 +514,7 @@ namespace apvlv
       delete index;
     }
 
-    bool ApvlvPDF::walk_poppler_index_iter (ApvlvFileIndex *titr,
+    bool ApvlvPDF::walk_poppler_index_iter (ApvlvFileIndex *root_index,
                                             PopplerIndexIter *iter)
     {
       bool has;
@@ -541,21 +541,15 @@ namespace apvlv
                           pn = destnew->page_num - 1;
                           poppler_dest_free (destnew);
                         }
-                      index = new ApvlvFileIndex;
-                      index->page = pn;
+                      index = new ApvlvFileIndex (pagd->title, pn, "");
                     }
                   else
                     {
-                      index = new ApvlvFileIndex;
-                      index->page = pagd->dest->page_num - 1;
+                      index = new ApvlvFileIndex (pagd->title, pagd->dest->page_num - 1, "");
                     }
 
                   has = true;
-                  index->title = pagd->title;
-                  titr->children.push_back (*index);
-                  delete index;
-                  index = &(titr->children[titr->children.size ()
-                                           - 1]);debug ("titr: %p, index: %p", titr, index)debug ("titr: %p, index: %p", titr, index);
+                  root_index->children.push_back (index);
                 }
               poppler_action_free (act);
             }
@@ -563,7 +557,7 @@ namespace apvlv
           PopplerIndexIter *child = poppler_index_iter_get_child (iter);
           if (child)
             {
-              bool chas = walk_poppler_index_iter (has ? index : titr, child);
+              bool chas = walk_poppler_index_iter (has ? index : root_index, child);
               has = has ? has : chas;
               poppler_index_iter_free (child);
             }

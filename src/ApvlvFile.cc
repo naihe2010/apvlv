@@ -39,8 +39,9 @@
 #endif
 
 #include <glib.h>
-
+#include <sys/stat.h>
 #include <iostream>
+#include <utility>
 
 namespace apvlv
 {
@@ -153,6 +154,97 @@ namespace apvlv
     string ApvlvFile::get_anchor ()
     {
       return mAnchor;
+    }
+
+    ApvlvFileIndex *ApvlvFileIndex::newDirIndex (const gchar *path, ApvlvFileIndex *parent_index)
+    {
+      ApvlvFileIndex *root_index = parent_index;
+      if (root_index == nullptr)
+        {
+          root_index = new ApvlvFileIndex ("", 0, "");
+        }
+
+      GDir *dir = g_dir_open (path, 0, nullptr);
+      if (dir != nullptr)
+        {
+          const gchar *name;
+          while ((name = g_dir_read_name (dir)) != nullptr)
+            {
+              if (strcmp (name, ".") == 0)
+                {
+                  debug ("avoid hidden file: %s", name);
+                  continue;
+                }
+
+              gchar *realname = g_strjoin (PATH_SEP_S, path, name, nullptr);
+              struct stat buf[1];
+              char *wrealname =
+                  g_locale_from_utf8 (realname, -1, nullptr, nullptr, nullptr);
+              if (wrealname == nullptr)
+                {
+                  g_free (realname);
+                  continue;
+                }
+
+              int ret = stat (wrealname, buf);
+              g_free (wrealname);
+
+              if (ret < 0)
+                {
+                  g_free (realname);
+                  continue;
+                }
+
+              if (S_ISDIR (buf->st_mode))
+                {
+                  auto index = new ApvlvFileIndex (name, 0, realname);
+                  root_index->children.push_back (index);
+                  newDirIndex (realname, index);
+                }
+              else if (g_ascii_strncasecmp (name + strlen (name) - 4, ".pdf", 4)
+                       == 0
+                       || g_ascii_strncasecmp (name + strlen (name) - 4,
+                                               ".htm", 4) == 0
+                       || g_ascii_strncasecmp (name + strlen (name) - 5,
+                                               ".html", 5) == 0
+                       || g_ascii_strncasecmp (name + strlen (name) - 5,
+                                               ".epub", 5) == 0
+#ifdef APVLV_WITH_DJVU
+                || g_ascii_strncasecmp (name + strlen (name) - 5,
+                          ".djvu", 5) == 0
+              || g_ascii_strncasecmp (name + strlen (name) - 4, ".djv",
+                          4) == 0
+#endif
+#ifdef APVLV_WITH_TXT
+                || g_ascii_strncasecmp (name + strlen (name) - 4,
+                          ".txt", 4) == 0
+#endif
+                  )
+                {
+                  auto index = new ApvlvFileIndex (name, 0, realname);
+                  root_index->children.push_back (index);
+                }
+
+              g_free (realname);
+            }
+        }
+      g_dir_close (dir);
+
+      return root_index;
+    }
+    ApvlvFileIndex::ApvlvFileIndex (string title, int page, string path)
+    {
+      this->title = std::move (title);
+      this->page = page;
+      this->path = std::move (path);
+    }
+
+    ApvlvFileIndex::~ApvlvFileIndex ()
+    {
+      for (auto *child: children)
+        {
+          delete child;
+        }
     }
 }
 

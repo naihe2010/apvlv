@@ -48,10 +48,15 @@ namespace apvlv
 
       mZoomrate = 1.0;
 
+      mZoommode = NORMAL;
+
       mRotatevalue = 0;
 
       mSearchResults = nullptr;
       mSearchStr = "";
+
+      mShowContent = gParams->valueb ("content");
+      mControlContent = false;
 
 #if GTK_CHECK_VERSION (3, 0, 0)
       mVbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
@@ -60,15 +65,35 @@ namespace apvlv
 #endif
       g_object_ref (mVbox);
 
-      mScrollwin = gtk_scrolled_window_new (nullptr, nullptr);
-      gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mScrollwin),
+      mPaned = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
+      gtk_box_pack_start (GTK_BOX (mVbox), mPaned, TRUE, TRUE, 0);
+
+      mContentWidget = gtk_scrolled_window_new (nullptr, nullptr);
+      gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mContentWidget),
                                       GTK_POLICY_AUTOMATIC,
                                       GTK_POLICY_AUTOMATIC);
 
-      mVaj =
-          gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
-      mHaj =
-          gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (mScrollwin));
+      mContent = new ApvlvContent ();
+      gtk_container_add (GTK_CONTAINER(mContentWidget), mContent->widget ());
+
+      mContentVaj =
+          gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (mContentWidget));
+      gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (mContentWidget));
+
+      mMainWidget = gtk_scrolled_window_new (nullptr, nullptr);
+      gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mMainWidget),
+                                      GTK_POLICY_AUTOMATIC,
+                                      GTK_POLICY_AUTOMATIC);
+
+      mMainVaj =
+          gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (mMainWidget));
+      mMainHaj =
+          gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (mMainWidget));
+
+      gtk_paned_add1 (GTK_PANED (mPaned), mContentWidget);
+      gtk_paned_add2 (GTK_PANED (mPaned), mMainWidget);
+
+      gtk_paned_set_position (GTK_PANED (mPaned), 0);
     }
 
     ApvlvCore::~ApvlvCore ()
@@ -147,7 +172,7 @@ namespace apvlv
       return false;
     }
 
-    bool ApvlvCore::loadfile (const char *file, bool check)
+    bool ApvlvCore::loadfile (const char *file, bool check, bool show_content)
     {
       return false;
     }
@@ -167,9 +192,9 @@ namespace apvlv
 
     double ApvlvCore::scrollrate ()
     {
-      gdouble maxv = gtk_adjustment_get_upper (mVaj) - gtk_adjustment_get_lower (mVaj)
-                     - gtk_adjustment_get_page_size (mVaj);
-      gdouble val = gtk_adjustment_get_value (mVaj) / maxv;
+      gdouble maxv = gtk_adjustment_get_upper (mMainVaj) - gtk_adjustment_get_lower (mMainVaj)
+                     - gtk_adjustment_get_page_size (mMainVaj);
+      gdouble val = gtk_adjustment_get_value (mMainVaj) / maxv;
       if (val > 1.0)
         {
           return 1.00;
@@ -189,18 +214,26 @@ namespace apvlv
       if (!mReady)
         return FALSE;
 
-      if (gtk_adjustment_get_upper (mVaj) != gtk_adjustment_get_lower (mVaj))
+      GtkAdjustment *vaj = mMainVaj;
+      if (mControlContent)
         {
-          gdouble maxv = gtk_adjustment_get_upper (mVaj) - gtk_adjustment_get_lower (mVaj)
-                         - gtk_adjustment_get_page_size (mVaj);
+          vaj = mContentVaj;
+        }
+
+      if (gtk_adjustment_get_upper (vaj) != gtk_adjustment_get_lower (vaj))
+        {
+          gdouble maxv = gtk_adjustment_get_upper (vaj) - gtk_adjustment_get_lower (vaj)
+                         - gtk_adjustment_get_page_size (vaj);
           gdouble val = maxv * s;
-          gtk_adjustment_set_value (mVaj, val);
-          mStatus->show (false);
+          gtk_adjustment_set_value (vaj, val);
+          if (!mControlContent)
+            {
+              mStatus->show (false);
+            }
           return TRUE;
         }
       else
         {
-          //debug ("fatal a timer error, try again!");
           return FALSE;
         }
     }
@@ -209,22 +242,22 @@ namespace apvlv
     {
       if (!mReady)
         return;
-      gdouble val = gtk_adjustment_get_value (mVaj);
-      gdouble sub = gtk_adjustment_get_upper (mVaj) - gtk_adjustment_get_lower (mVaj);
+      gdouble val = gtk_adjustment_get_value (mMainVaj);
+      gdouble sub = gtk_adjustment_get_upper (mMainVaj) - gtk_adjustment_get_lower (mMainVaj);
       gdouble page_size = sub / 3;
-      gdouble screen_size = gtk_adjustment_get_page_size (mVaj);
+      gdouble screen_size = gtk_adjustment_get_page_size (mMainVaj);
       mVrate = page_size / mLines;
       debug(" val=%lf,sub=%lf", val, sub);
       debug(" pageSize=%lf, screen_size=%lf", page_size, screen_size);
 
-      if (val - mVrate * times > gtk_adjustment_get_lower (mVaj))
+      if (val - mVrate * times > gtk_adjustment_get_lower (mMainVaj))
         {
-          gtk_adjustment_set_value (mVaj, val - mVrate * times);
+          gtk_adjustment_set_value (mMainVaj, val - mVrate * times);
         }
-      else if (val > gtk_adjustment_get_lower (mVaj))
+      else if (val > gtk_adjustment_get_lower (mMainVaj))
         {
           // set to min scroll value
-          gtk_adjustment_set_value (mVaj, gtk_adjustment_get_lower (mVaj));
+          gtk_adjustment_set_value (mMainVaj, gtk_adjustment_get_lower (mMainVaj));
         }
       else
         {
@@ -257,23 +290,23 @@ namespace apvlv
     {
       if (!mReady)
         return;
-      gdouble val = gtk_adjustment_get_value (mVaj);
-      gdouble sub = gtk_adjustment_get_upper (mVaj) - gtk_adjustment_get_lower (mVaj);
+      gdouble val = gtk_adjustment_get_value (mMainVaj);
+      gdouble sub = gtk_adjustment_get_upper (mMainVaj) - gtk_adjustment_get_lower (mMainVaj);
       gdouble page_size = sub / 3;
-      gdouble screen_size = gtk_adjustment_get_page_size (mVaj);
+      gdouble screen_size = gtk_adjustment_get_page_size (mMainVaj);
       mVrate = page_size / mLines;
       debug(" val=%lf,sub=%lf", val, sub);
       debug(" pageSize=%lf, screen_size=%lf", page_size, screen_size);
 
       if (val + mVrate * times + screen_size < sub)
         {
-          gtk_adjustment_set_value (mVaj, val + mVrate * times);
+          gtk_adjustment_set_value (mMainVaj, val + mVrate * times);
         }
       else if (val + screen_size < sub)
         {
           // not enough for one step, set to full scroll val
           // full_scroll = sub - screen_size
-          gtk_adjustment_set_value (mVaj, sub - screen_size);
+          gtk_adjustment_set_value (mMainVaj, sub - screen_size);
         }
       else
         {
@@ -310,15 +343,15 @@ namespace apvlv
       if (!mReady)
         return;
 
-      mHrate = (gtk_adjustment_get_upper (mHaj) - gtk_adjustment_get_lower (mHaj)) / mChars;
-      gdouble val = gtk_adjustment_get_value (mHaj) - mHrate * times;
-      if (val > gtk_adjustment_get_lower (mVaj))
+      mHrate = (gtk_adjustment_get_upper (mMainHaj) - gtk_adjustment_get_lower (mMainHaj)) / mChars;
+      gdouble val = gtk_adjustment_get_value (mMainHaj) - mHrate * times;
+      if (val > gtk_adjustment_get_lower (mMainVaj))
         {
-          gtk_adjustment_set_value (mHaj, val);
+          gtk_adjustment_set_value (mMainHaj, val);
         }
       else
         {
-          gtk_adjustment_set_value (mHaj, gtk_adjustment_get_lower (mHaj));
+          gtk_adjustment_set_value (mMainHaj, gtk_adjustment_get_lower (mMainHaj));
         }
     }
 
@@ -327,15 +360,16 @@ namespace apvlv
       if (!mReady)
         return;
 
-      mHrate = (gtk_adjustment_get_upper (mHaj) - gtk_adjustment_get_lower (mHaj)) / mChars;
-      gdouble val = gtk_adjustment_get_value (mHaj) + mHrate * times;
-      if (val + gtk_adjustment_get_page_size (mHaj) < gtk_adjustment_get_upper (mHaj))
+      mHrate = (gtk_adjustment_get_upper (mMainHaj) - gtk_adjustment_get_lower (mMainHaj)) / mChars;
+      gdouble val = gtk_adjustment_get_value (mMainHaj) + mHrate * times;
+      if (val + gtk_adjustment_get_page_size (mMainHaj) < gtk_adjustment_get_upper (mMainHaj))
         {
-          gtk_adjustment_set_value (mHaj, val);
+          gtk_adjustment_set_value (mMainHaj, val);
         }
       else
         {
-          gtk_adjustment_set_value (mHaj, gtk_adjustment_get_upper (mHaj) - gtk_adjustment_get_page_size (mHaj));
+          gtk_adjustment_set_value (mMainHaj,
+                                    gtk_adjustment_get_upper (mMainHaj) - gtk_adjustment_get_page_size (mMainHaj));
         }
     }
 
@@ -410,6 +444,38 @@ namespace apvlv
       mSkip = ct;
     }
 
+    void ApvlvCore::toggleContent ()
+    {
+      mShowContent = !mShowContent;
+      toggleContent (mShowContent);
+    }
+
+    void ApvlvCore::toggleContent (bool enabled)
+    {
+      mShowContent = enabled;
+
+      if (mShowContent)
+        {
+          if (mDirIndex)
+            {
+              ApvlvFileIndex *index = mFile->new_index ();
+              if (index)
+                {
+                  mContent->setIndex (index);
+                  delete mDirIndex;
+                  mDirIndex = nullptr;
+                }
+            }
+          gtk_paned_set_position (GTK_PANED (mPaned), APVLV_DEFAULT_CONTENT_WIDTH);
+          mControlContent = true;
+        }
+      else
+        {
+          gtk_paned_set_position (GTK_PANED (mPaned), 0);
+          mControlContent = false;
+        }
+    }
+
     void ApvlvCore::returnlink (int ct)
     {
     }
@@ -424,6 +490,37 @@ namespace apvlv
           mView->settitle (base);
           g_free (base);
         }
+    }
+    void ApvlvCore::setDirIndex (const gchar *path)
+    {
+      ApvlvFileIndex *index = ApvlvFileIndex::newDirIndex (path);
+      if (index)
+        {
+          mContent->setIndex (index);
+          delete mDirIndex;
+          mDirIndex = index;
+        }
+    }
+
+    bool ApvlvCore::toggledControlContent (bool is_right)
+    {
+      if (!mShowContent)
+        {
+          return false;
+        }
+
+      if (!mControlContent && !is_right)
+        {
+          mControlContent = true;
+          return true;
+        }
+      else if (mControlContent && is_right)
+        {
+          mControlContent = false;
+          return true;
+        }
+
+      return false;
     }
 
     ApvlvCoreStatus::ApvlvCoreStatus ()

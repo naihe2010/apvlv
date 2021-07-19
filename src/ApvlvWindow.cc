@@ -89,15 +89,13 @@ namespace apvlv
         {
           if (m_son != nullptr)
             {
-              ApvlvWindow *win = m_son;
+              delete m_son;
               m_son = nullptr;
-              delete win;
             }
           if (m_daughter != nullptr)
             {
-              ApvlvWindow *win = m_daughter;
+              delete m_daughter;
               m_daughter = nullptr;
-              delete win;
             }
 
           g_object_unref (mPaned);
@@ -270,6 +268,11 @@ namespace apvlv
       ApvlvWindow *cw, *w, *nw, *fw;
       bool down = false;
 
+      if (mCore->toggledControlContent (right))
+        {
+          return this;
+        }
+
       asst (mType == AW_CORE);
       for (cw = fw = nullptr, w = this; w != nullptr; cw = w, w = w->m_parent)
         {
@@ -378,21 +381,22 @@ namespace apvlv
       mPaned = vsp == false ? gtk_vpaned_new () : gtk_hpaned_new ();
 #endif
       g_object_ref (mPaned);
+
       if (m_parent)
         {
-          void (*panedcb) (GtkPaned *, GtkWidget *);
+          void (*panedcb) (GtkPaned *, GtkWidget *, gboolean, gboolean);
           GtkWidget *parent = m_parent->mPaned;
           if (gtk_paned_get_child1 (GTK_PANED (parent)) == widget ())
             {
-              panedcb = gtk_paned_add1;
+              panedcb = gtk_paned_pack1;
             }
           else
             {
-              panedcb = gtk_paned_add2;
+              panedcb = gtk_paned_pack2;
             }
 
           gtk_container_remove (GTK_CONTAINER (parent), widget ());
-          panedcb (GTK_PANED (parent), mPaned);
+          panedcb (GTK_PANED (parent), mPaned, TRUE, TRUE);
         }
       else
         {

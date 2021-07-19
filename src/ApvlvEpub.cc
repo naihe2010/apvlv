@@ -370,9 +370,7 @@ namespace apvlv
           return index;
         }
 
-      index = new ApvlvFileIndex;
-      index->title = "__cover__";
-      index->page = 0;
+      index = new ApvlvFileIndex ("__cover__", 0, "");
       for (node = map->children; node != nullptr; node = node->next)
         {
           if (node->type != XML_ELEMENT_NODE)
@@ -380,7 +378,7 @@ namespace apvlv
               continue;
             }
 
-          ApvlvFileIndex childindex = ncx_node_get_index (node, ncxfile);
+          ApvlvFileIndex *childindex = ncx_node_get_index (node, ncxfile);
           index->children.push_back (childindex);
         }
 
@@ -388,9 +386,9 @@ namespace apvlv
       return index;
     }
 
-    ApvlvFileIndex ApvlvEPUB::ncx_node_get_index (xmlNodePtr node, string ncxfile)
+    ApvlvFileIndex *ApvlvEPUB::ncx_node_get_index (xmlNodePtr node, string ncxfile)
     {
-      ApvlvFileIndex index;
+      ApvlvFileIndex *index = new ApvlvFileIndex ("", 0, "");
       xmlNodePtr child;
 
       string pagestr = xmlnode_attr_get (node, "playOrder");
@@ -401,7 +399,7 @@ namespace apvlv
             {
               page++;
             }
-          index.page = int (page);
+          index->page = int (page);
         }
 
       for (child = node->children; child != nullptr; child = child->next)
@@ -412,7 +410,7 @@ namespace apvlv
                 {
                   if (g_ascii_strcasecmp ((gchar *) ln->name, "text") == 0)
                     {
-                      index.title = string ((char *) ln->children->content);
+                      index->title = string ((char *) ln->children->content);
                       break;
                     }
                 }
@@ -428,14 +426,14 @@ namespace apvlv
                       string dirname = ncxfile.substr (0, ncxfile.rfind ('/'));
                       srcstr = dirname + "/" + srcstr;
                     }
-                  mPages[index.page] = srcstr;
+                  mPages[index->page] = srcstr;
                 }
             }
 
           if (g_ascii_strcasecmp ((gchar *) child->name, "navPoint") == 0)
             {
-              ApvlvFileIndex childindex = ncx_node_get_index (child, ncxfile);
-              index.children.push_back (childindex);
+              ApvlvFileIndex *childindex = ncx_node_get_index (child, ncxfile);
+              index->children.push_back (childindex);
             }
         }
 

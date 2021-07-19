@@ -30,6 +30,7 @@
 #define _APVLV_CORE_H_
 
 #include "ApvlvFile.h"
+#include "ApvlvContent.h"
 #include "ApvlvUtil.h"
 
 #include <gtk/gtk.h>
@@ -41,6 +42,8 @@ using namespace std;
 
 namespace apvlv
 {
+    const int APVLV_DEFAULT_CONTENT_WIDTH = 200;
+
     class ApvlvCore;
     class ApvlvCoreStatus {
      public:
@@ -79,7 +82,9 @@ namespace apvlv
 
       virtual ApvlvFile *file ();
 
-      virtual bool loadfile (const char *file, bool check);
+      virtual void setDirIndex (const gchar *path);
+
+      virtual bool loadfile (const char *file, bool check, bool show_content);
 
       virtual const char *filename ();
 
@@ -136,12 +141,20 @@ namespace apvlv
       virtual int getskip ();
       virtual void setskip (int ct);
 
+      virtual void toggleContent ();
+
+      virtual void toggleContent (bool enabled);
+
+      virtual bool toggledControlContent (bool is_right);
+
       virtual returnType process (int has, int times, guint keyval);
 
       ApvlvView *mView;
 
      protected:
       ApvlvFile *mFile{};
+
+      ApvlvFileIndex *mDirIndex{};
 
       bool mAutoScrollPage{};
       bool mAutoScrollDoc{};
@@ -150,6 +163,10 @@ namespace apvlv
       bool mReady;
 
       bool mInuse;
+
+      bool mShowContent;
+
+      bool mControlContent;
 
       int mType{};
 
@@ -194,16 +211,25 @@ namespace apvlv
 
       int mLines{}, mChars{};
 
-      GtkAdjustment *mVaj, *mHaj;
-
       // the main widget
       GtkWidget *mVbox;
 
+      // the main panel
+      GtkWidget *mPaned;
+
+      // the content paned
+      GtkWidget *mContentWidget;
+      GtkAdjustment *mContentVaj;
+
       // the document scrolled window
-      GtkWidget *mScrollwin;
+      GtkWidget *mMainWidget;
+      GtkAdjustment *mMainVaj, *mMainHaj;
 
       // if active
       bool mActive{};
+
+      // content panel
+      ApvlvContent *mContent;
 
       // status bar
       ApvlvCoreStatus *mStatus{};

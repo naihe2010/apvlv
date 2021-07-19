@@ -28,7 +28,6 @@
 
 #include "ApvlvParams.h"
 #include "ApvlvInfo.h"
-#include "ApvlvDir.h"
 #include "ApvlvView.h"
 
 #include <glib.h>
@@ -267,20 +266,7 @@ namespace apvlv
 
     bool ApvlvView::loaddir (const char *path)
     {
-      ApvlvCore *ndoc = hasloaded (path, CORE_DIR);
-      if (ndoc == nullptr)
-        {
-          ndoc = new ApvlvDir (this);
-          if (!ndoc->loadfile (path, true))
-            {
-              delete ndoc;
-              return false;
-            }
-          regloaded (ndoc);
-        }
-
-      currentWindow ()->setCore (ndoc);
-      updatetabname ();
+      crtadoc ()->setDirIndex (path);
       return true;
     }
 
@@ -324,26 +310,13 @@ namespace apvlv
 
       if (ndoc == nullptr)
         {
-          if (core_type == CORE_CONTENT)
+          DISPLAY_TYPE type = get_display_type_by_filename (filename);
+          ndoc =
+              new ApvlvDoc (this, type, gParams->values ("zoom"), false);
+          if (!ndoc->loadfile (filename, true, gParams->valueb ("content")))
             {
-              ndoc = new ApvlvDir (this);
-              if (!ndoc->loadfile (filename, true))
-                {
-                  delete ndoc;
-                  ndoc = nullptr;
-                }
-            }
-
-          if (ndoc == nullptr)
-            {
-              DISPLAY_TYPE type = get_display_type_by_filename (filename);
-              ndoc =
-                  new ApvlvDoc (this, type, gParams->values ("zoom"), false);
-              if (!ndoc->loadfile (filename, true))
-                {
-                  delete ndoc;
-                  ndoc = nullptr;
-                }
+              delete ndoc;
+              ndoc = nullptr;
             }
 
           if (ndoc)
@@ -467,22 +440,11 @@ namespace apvlv
 
       if (ndoc == nullptr)
         {
-          if (gParams->valueb ("content"))
-            {
-              ndoc = new ApvlvDir (this);
-              if (!ndoc->loadfile (abpath, true))
-                {
-                  debug ("can't load");
-                  delete ndoc;
-                  ndoc = nullptr;
-                }
-            }
-
           if (ndoc == nullptr)
             {
               DISPLAY_TYPE type = get_display_type_by_filename (filename);
               ndoc = new ApvlvDoc (this, type, gParams->values ("zoom"), false);
-              if (!ndoc->loadfile (filename, true))
+              if (!ndoc->loadfile (filename, true, gParams->valueb ("content")))
                 {
                   delete ndoc;
                   ndoc = nullptr;
@@ -991,6 +953,10 @@ namespace apvlv
               else
                 crtadoc ()->prepage (int (strtol (subcmd.c_str (), nullptr, 10)));
             }
+          else if (cmd == "content")
+            {
+              crtadoc ()->toggleContent ();
+            }
           else if (cmd == "goto" || cmd == "g")
             {
               crtadoc ()->markposition ('\'');
@@ -1010,12 +976,12 @@ namespace apvlv
             }
           else if ((cmd == "help" || cmd == "h") && subcmd == "setting")
             {
-              crtadoc ()->loadfile (helppdf.c_str (), true);
+              crtadoc ()->loadfile (helppdf.c_str (), true, gParams->valueb ("content"));
               crtadoc ()->showpage (8, 0.0);
             }
           else if ((cmd == "help" || cmd == "h") && subcmd == "prompt")
             {
-              crtadoc ()->loadfile (helppdf.c_str (), true);
+              crtadoc ()->loadfile (helppdf.c_str (), true, gParams->valueb ("content"));
               crtadoc ()->showpage (8, 0.0);
             }
           else if (cmd == "help" || cmd == "h")
