@@ -124,6 +124,8 @@ Select a area
 Select a rectangle area
 .It y
 copy the select area text to clipboard
+.It c
+toggle content display
 .El
 .Sh SETTINGS
 These can be set in ~/.apvlvrc with
@@ -135,6 +137,10 @@ Enable/Disable fullscreen
 Default window width
 .It height = Ar int
 Default window height
+.It fix_width = Ar int
+fixed width
+.It fix_height = Ar int
+fixed height
 .It defaultdir = Ar path
 Default directory for the open dialogue
 .It zoom = Ar mode
@@ -242,6 +248,8 @@ Set zoom to
 .It : Ns Ar int
 Go to page
 .Ar int
+.It :content
+toggle content display
 .El
 .Sh AUTHORS
 apvlv was written by Alf <naihe2010@126.com>.

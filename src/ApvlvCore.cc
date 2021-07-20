@@ -66,7 +66,21 @@ namespace apvlv
       g_object_ref (mVbox);
 
       mPaned = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
-      gtk_box_pack_start (GTK_BOX (mVbox), mPaned, TRUE, TRUE, 0);
+
+      auto f_width = gParams->valuei ("fix_width");
+      auto f_height = gParams->valuei ("fix_height");
+
+      if (f_width > 0 && f_height > 0)
+        {
+          gtk_widget_set_size_request (mPaned, f_width, f_height);
+          auto hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+          gtk_box_pack_start (GTK_BOX (hbox), mPaned, TRUE, FALSE, 0);
+          gtk_box_pack_start (GTK_BOX (mVbox), hbox, TRUE, FALSE, 0);
+        }
+      else
+        {
+          gtk_box_pack_start (GTK_BOX (mVbox), mPaned, TRUE, TRUE, 0);
+        }
 
       mContentWidget = gtk_scrolled_window_new (nullptr, nullptr);
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mContentWidget),

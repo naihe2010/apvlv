@@ -388,7 +388,7 @@ namespace apvlv
 
     ApvlvFileIndex *ApvlvEPUB::ncx_node_get_index (xmlNodePtr node, string ncxfile)
     {
-      ApvlvFileIndex *index = new ApvlvFileIndex ("", 0, "");
+      auto *index = new ApvlvFileIndex ("", 0, "");
       xmlNodePtr child;
 
       string pagestr = xmlnode_attr_get (node, "playOrder");
