@@ -53,6 +53,7 @@ namespace apvlv
       push ("fix_width", "0");
       push ("fix_height", "0");
       push ("content_follow_mode", "file");
+      push ("background", "");
       push ("content", "yes");
       push ("cache", "no");
       push ("pdfcache", "4");

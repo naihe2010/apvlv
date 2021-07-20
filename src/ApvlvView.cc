@@ -70,7 +70,7 @@ namespace apvlv
 
       if (gParams->valueb ("fullscreen"))
         {
-#if GTK_CHECK_VERSION(3, 22, 0)
+#if GTK_CHECK_VERSION (3, 22, 0)
           GdkRectangle rect[1];
           GdkDisplay *display = gdk_display_get_default ();
           GdkMonitor *monitor = gdk_display_get_primary_monitor (display);
@@ -88,7 +88,7 @@ namespace apvlv
                                        w > 1 ? w : 800, h > 1 ? h : 600);
         }
 
-#if GTK_CHECK_VERSION(3, 0, 0)
+#if GTK_CHECK_VERSION (3, 0, 0)
       mViewBox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
 #else
       mViewBox = gtk_vbox_new (FALSE, 0);
@@ -124,6 +124,19 @@ namespace apvlv
 
       g_signal_connect (G_OBJECT (mCommandBar), "key-press-event",
                         G_CALLBACK (apvlv_view_commandbar_cb), this);
+
+      auto inverted = gParams->valueb ("inverted");
+      auto background = gParams->values ("background");
+      if (inverted && *background == '\0')
+        {
+          background = "black";
+        }
+      if (*background != '\0')
+        {
+          GdkRGBA rgba;
+          gdk_rgba_parse (&rgba, background);
+          gtk_widget_override_background_color (mMainWindow, GTK_STATE_FLAG_NORMAL, &rgba);
+        }
 
       gtk_widget_show_all (mMainWindow);
 
