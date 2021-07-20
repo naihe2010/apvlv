@@ -59,6 +59,10 @@ namespace apvlv
 
       mHasFull = FALSE;
 
+      keyLastEnd = true;
+
+      processInLast = false;
+
       mMainWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 
       int w = gParams->valuei ("width");
@@ -440,15 +444,12 @@ namespace apvlv
 
       if (ndoc == nullptr)
         {
-          if (ndoc == nullptr)
+          DISPLAY_TYPE type = get_display_type_by_filename (filename);
+          ndoc = new ApvlvDoc (this, type, gParams->values ("zoom"), false);
+          if (!ndoc->loadfile (filename, true, gParams->valueb ("content")))
             {
-              DISPLAY_TYPE type = get_display_type_by_filename (filename);
-              ndoc = new ApvlvDoc (this, type, gParams->values ("zoom"), false);
-              if (!ndoc->loadfile (filename, true, gParams->valueb ("content")))
-                {
-                  delete ndoc;
-                  ndoc = nullptr;
-                }
+              delete ndoc;
+              ndoc = nullptr;
             }
 
           if (ndoc != nullptr)
@@ -783,7 +784,12 @@ namespace apvlv
     {
       if (mProCmd != 0)
         {
-          return subprocess (mProCmdCnt, key);
+          returnType ret = subprocess (mProCmdCnt, key);
+          if (ret == MATCH)
+            {
+              saveKey (has, ct, key, true);
+            }
+          return ret;
         }
 
       switch (key)
@@ -791,6 +797,7 @@ namespace apvlv
           case CTRL ('w'):
             mProCmd = CTRL ('w');
           mProCmdCnt = has ? ct : 1;
+          saveKey (has, ct, key, false);
           return NEED_MORE;
           case 'q':
             quit ();
@@ -798,12 +805,24 @@ namespace apvlv
           case 'f':
             fullscreen ();
           break;
+          case '.':
+            processLastKey ();
+          break;
           case 'g':
             mProCmd = 'g';
           mProCmdCnt = has ? ct : 0;
+          saveKey (has, ct, key, false);
           return NEED_MORE;
           default:
-            return crtadoc ()->process (has, ct, key);
+            returnType ret = crtadoc ()->process (has, ct, key);
+          if (ret == NEED_MORE)
+            {
+              saveKey (has, ct, key, false);
+            }
+          else if (ret == MATCH)
+            {
+              saveKey (has, ct, key, true);
+            }
         }
 
       return MATCH;
@@ -1294,6 +1313,30 @@ namespace apvlv
         }
     }
 
+    void ApvlvView::saveKey (int has, int ct, guint key, bool end)
+    {
+      if (processInLast)
+        return;
+
+      if (keyLastEnd)
+        {
+          keySquence.clear ();
+        }
+
+      struct keyNode key_node = {has, ct, key, end};
+      keySquence.push_back (key_node);
+      keyLastEnd = end;
+    }
+
+    void ApvlvView::processLastKey ()
+    {
+      processInLast = true;
+      for (auto node: keySquence)
+        {
+          process (node.Has, node.Ct, node.Key);
+        }
+      processInLast = false;
+    }
 }
 
 // Local Variables:

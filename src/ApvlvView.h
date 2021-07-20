@@ -161,6 +161,20 @@ namespace apvlv
 
       gboolean mHasFull;
 
+      struct keyNode { ;
+          int Has;
+          int Ct;
+          guint Key;
+          bool End;
+      };
+      bool keyLastEnd;
+      bool processInLast;
+      vector<keyNode> keySquence;
+
+      void saveKey (int has, int ct, guint key, bool end);
+
+      void processLastKey ();
+
       static void
       apvlv_view_delete_cb (__attribute__((unused)) GtkWidget *wid, __attribute__((unused)) GtkAllocation *al,
                             ApvlvView *view);
