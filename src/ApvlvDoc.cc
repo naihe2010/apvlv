@@ -62,7 +62,7 @@ namespace apvlv
       return type;
     }
 
-    ApvlvDoc::ApvlvDoc (ApvlvView *view, DISPLAY_TYPE type, const char *zm, bool cache) : ApvlvCore (view)
+    ApvlvDoc::ApvlvDoc (ApvlvView *view, const char *zm, bool cache) : ApvlvCore (view)
     {
       mCurrentCache1 = mCurrentCache2 = mCurrentCache3 = nullptr;
 
@@ -73,10 +73,6 @@ namespace apvlv
       mAutoScrollPage = gParams->valueb ("autoscrollpage");
       mAutoScrollDoc = gParams->valueb ("autoscrolldoc");
       mContinuous = gParams->valueb ("continuous");
-      if (type != 0)
-        {
-          mContinuous = false;
-        }
 
       mZoominit = false;
 
@@ -100,27 +96,19 @@ namespace apvlv
       mSearchResults = nullptr;
       mSearchStr = "";
 
-      GtkWidget *vbox, *ebox;
+      GtkWidget *ebox;
 
       if (mContinuous && gParams->valuei ("continuouspad") > 0)
         {
-#if GTK_CHECK_VERSION (3, 0, 0)
-          vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, gParams->valuei ("continuouspad"));
-#else
-          vbox = gtk_vbox_new (FALSE, gParams->valuei ("continuouspad"));
-#endif
+          mVbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, gParams->valuei ("continuouspad"));
         }
       else
         {
-#if GTK_CHECK_VERSION (3, 0, 0)
-          vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-#else
-          vbox = gtk_vbox_new (FALSE, 0);
-#endif
+          mVbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
         }
 
       ebox = gtk_event_box_new ();
-      gtk_container_add (GTK_CONTAINER (ebox), vbox);
+      gtk_container_add (GTK_CONTAINER (ebox), mVbox);
       g_signal_connect (G_OBJECT (ebox), "button-press-event",
                         G_CALLBACK (apvlv_doc_button_event), this);
       g_signal_connect (G_OBJECT (ebox), "motion-notify-event",
@@ -131,30 +119,24 @@ namespace apvlv
       gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mMainWidget), ebox);
 #endif
 
-      mDisplayType = type;
-      if (type == 0)
+      mImg1 = gtk_image_new ();
+      g_object_ref (mImg1);
+      if (mAutoScrollPage && mContinuous)
         {
-          mImg1 = gtk_image_new ();
-          gtk_box_pack_start (GTK_BOX (vbox), mImg1, TRUE, TRUE, 0);
-          if (mAutoScrollPage && mContinuous)
-            {
-              mImg2 = gtk_image_new ();
-              gtk_box_pack_start (GTK_BOX (vbox), mImg2, TRUE, TRUE, 0);
-              mImg3 = gtk_image_new ();
-              gtk_box_pack_start (GTK_BOX (vbox), mImg3, TRUE, TRUE, 0);
-            }
+          mImg2 = gtk_image_new ();
+          g_object_ref (mImg2);
+          mImg3 = gtk_image_new ();
+          g_object_ref (mImg3);
         }
-      else if (type == 1)
-        {
-          mWeb1 = webkit_web_view_new ();
-          gtk_box_pack_start (GTK_BOX (vbox), mWeb1, TRUE, TRUE, 0);
-          g_signal_connect (mWeb1, "resource-load-started",
-                            G_CALLBACK (webview_resource_load_started_cb), this);
-          g_signal_connect (mWeb1, "load-changed",
-                            G_CALLBACK (webview_load_changed_cb), this);
-          g_signal_connect (mWeb1, "context-menu",
-                            G_CALLBACK (webview_context_menu_cb), this);
-        }
+
+      mWeb1 = webkit_web_view_new ();
+      g_object_ref (mWeb1);
+      g_signal_connect (mWeb1, "resource-load-started",
+                        G_CALLBACK (webview_resource_load_started_cb), this);
+      g_signal_connect (mWeb1, "load-changed",
+                        G_CALLBACK (webview_load_changed_cb), this);
+      g_signal_connect (mWeb1, "context-menu",
+                        G_CALLBACK (webview_context_menu_cb), this);
 
       g_signal_connect (G_OBJECT (mMainVaj), "value-changed",
                         G_CALLBACK (apvlv_doc_on_mouse), this);
@@ -168,6 +150,13 @@ namespace apvlv
       delete mCurrentCache1;
       delete mCurrentCache2;
       delete mCurrentCache3;
+
+      g_object_unref (mImg1);
+      if (mImg2)
+        g_object_unref (mImg2);
+      if (mImg3)
+        g_object_unref (mImg3);
+      g_object_unref (mWeb1);
 
       savelastposition (filename ());
       mPositions.clear ();
@@ -811,8 +800,8 @@ namespace apvlv
     {
       char rate[16];
       g_snprintf (rate, sizeof rate, "%f", mZoomrate);
-      auto *ndoc = new ApvlvDoc (mView, mDisplayType, rate, usecache ());
-      ndoc->loadfile (mFilestr, false, false);
+      auto *ndoc = new ApvlvDoc (mView, rate, usecache ());
+      ndoc->loadfile (mFilestr.c_str (), false, false);
       ndoc->showpage (mPagenum, scrollrate ());
       return ndoc;
     }
@@ -900,12 +889,7 @@ namespace apvlv
     bool ApvlvDoc::reload ()
     {
       savelastposition (filename ());
-      return loadfile (mFilestr, false, mShowContent);
-    }
-
-    bool ApvlvDoc::loadfile (string &filename, bool check, bool show_content)
-    {
-      return loadfile (filename.c_str (), check, show_content);
+      return loadfile (mFilestr.c_str (), false, mShowContent);
     }
 
     gint ApvlvDoc::pagenumber ()
@@ -1005,6 +989,8 @@ namespace apvlv
           mStatus->show (mContinuous);
 
           setactive (true);
+
+          setDisplayType (get_display_type_by_filename (filename));
 
           mReady = true;
 
@@ -2028,10 +2014,70 @@ namespace apvlv
             {
               if (index->path != filename ())
                 {
-                  loadfile (index->path, true, false);
+                  loadfile (index->path.c_str (), true, false);
                 }
             }
         }
+    }
+
+    void ApvlvDoc::setDisplayType (DISPLAY_TYPE type)
+    {
+      if (type == DISPLAY_TYPE_IMAGE)
+        {
+          if (gtk_widget_get_parent (mWeb1) != nullptr)
+            {
+              gtk_container_remove (GTK_CONTAINER(mVbox), mWeb1);
+            }
+
+          if (gtk_widget_get_parent (mImg1) == nullptr)
+            {
+              gtk_box_pack_start (GTK_BOX (mVbox), mImg1, TRUE, TRUE, 0);
+            }
+          if (mImg2)
+            {
+              if (gtk_widget_get_parent (mImg2) == nullptr)
+                {
+                  gtk_box_pack_start (GTK_BOX (mVbox), mImg2, TRUE, TRUE, 0);
+                }
+            }
+          if (mImg3)
+            {
+              if (gtk_widget_get_parent (mImg3) == nullptr)
+                {
+                  gtk_box_pack_start (GTK_BOX (mVbox), mImg3, TRUE, TRUE, 0);
+                }
+            }
+        }
+      else
+        {
+          if (gtk_widget_get_parent (mImg1) != nullptr)
+            {
+              gtk_container_remove (GTK_CONTAINER (mVbox), mImg1);
+            }
+          if (mImg2)
+            {
+              if (gtk_widget_get_parent (mImg2) != nullptr)
+                {
+                  gtk_container_remove (GTK_CONTAINER (mVbox), mImg2);
+                }
+            }
+          if (mImg3)
+            {
+              if (gtk_widget_get_parent (mImg3) != nullptr)
+                {
+                  gtk_container_remove (GTK_CONTAINER (mVbox), mImg3);
+                }
+            }
+
+          if (gtk_widget_get_parent (mWeb1) == nullptr)
+            {
+              gtk_box_pack_start (GTK_BOX (mVbox), mWeb1, TRUE, TRUE, 0);
+            }
+        }
+
+      gtk_widget_show_all (mVbox);
+
+      mDisplayType = type;
     }
 
     ApvlvDocCache::ApvlvDocCache (ApvlvFile *file)

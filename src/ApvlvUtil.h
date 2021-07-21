@@ -72,6 +72,8 @@ namespace apvlv
 
     GtkWidget *replace_widget (GtkWidget *owid, GtkWidget *nwid);
 
+    void apvlv_widget_set_background (GtkWidget *wid);
+
     // command type
     enum {
         CMD_NONE,

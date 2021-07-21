@@ -45,6 +45,8 @@ namespace apvlv
       mTreeView = gtk_tree_view_new_with_model (GTK_TREE_MODEL (mStore));
       gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (mTreeView), FALSE);
 
+      apvlv_widget_set_background (mTreeView);
+
       mSelection = gtk_tree_view_get_selection (GTK_TREE_VIEW (mTreeView));
       g_signal_connect (G_OBJECT (mSelection), "changed",
                         G_CALLBACK (apvlv_content_on_changed), this);

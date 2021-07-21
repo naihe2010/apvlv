@@ -125,18 +125,7 @@ namespace apvlv
       g_signal_connect (G_OBJECT (mCommandBar), "key-press-event",
                         G_CALLBACK (apvlv_view_commandbar_cb), this);
 
-      auto inverted = gParams->valueb ("inverted");
-      auto background = gParams->values ("background");
-      if (inverted && *background == '\0')
-        {
-          background = "black";
-        }
-      if (*background != '\0')
-        {
-          GdkRGBA rgba;
-          gdk_rgba_parse (&rgba, background);
-          gtk_widget_override_background_color (mMainWindow, GTK_STATE_FLAG_NORMAL, &rgba);
-        }
+      apvlv_widget_set_background (mMainWindow);
 
       gtk_widget_show_all (mMainWindow);
 
@@ -327,9 +316,8 @@ namespace apvlv
 
       if (ndoc == nullptr)
         {
-          DISPLAY_TYPE type = get_display_type_by_filename (filename);
           ndoc =
-              new ApvlvDoc (this, type, gParams->values ("zoom"), false);
+              new ApvlvDoc (this, gParams->values ("zoom"), false);
           if (!ndoc->loadfile (filename, true, gParams->valueb ("content")))
             {
               delete ndoc;
@@ -457,8 +445,7 @@ namespace apvlv
 
       if (ndoc == nullptr)
         {
-          DISPLAY_TYPE type = get_display_type_by_filename (filename);
-          ndoc = new ApvlvDoc (this, type, gParams->values ("zoom"), false);
+          ndoc = new ApvlvDoc (this, gParams->values ("zoom"), false);
           if (!ndoc->loadfile (filename, true, gParams->valueb ("content")))
             {
               delete ndoc;

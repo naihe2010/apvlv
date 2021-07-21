@@ -139,7 +139,7 @@ namespace apvlv
 
     class ApvlvDoc : public ApvlvCore {
      public:
-      ApvlvDoc (ApvlvView *, DISPLAY_TYPE type, const char *zm = "NORMAL", bool cache = false);
+      explicit ApvlvDoc (ApvlvView *, const char *zm = "NORMAL", bool cache = false);
 
       ~ApvlvDoc () override;
 
@@ -150,8 +150,6 @@ namespace apvlv
       bool usecache () override;
 
       void usecache (bool use) override;
-
-      bool loadfile (string &filename, bool check, bool show_content);
 
       bool loadfile (const char *src, bool check, bool show_content) override;
 
@@ -247,6 +245,8 @@ namespace apvlv
 
       bool loadlastposition (const char *filename);
 
+      void setDisplayType (DISPLAY_TYPE type);
+
       static void apvlv_doc_on_mouse (GtkAdjustment *, ApvlvDoc *);
 
       static void apvlv_doc_button_event (GtkEventBox *box,
@@ -282,6 +282,9 @@ namespace apvlv
       ApvlvDocCache *mCurrentCache1, *mCurrentCache2, *mCurrentCache3;
 
       DISPLAY_TYPE mDisplayType;
+
+      GtkWidget *mVbox;
+
       // image viewer
       GtkWidget *mImg1, *mImg2, *mImg3;
       GtkWidget *mWeb1;

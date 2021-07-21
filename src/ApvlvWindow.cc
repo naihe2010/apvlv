@@ -46,7 +46,7 @@ namespace apvlv
       mType = AW_CORE;
       if (doc == nullptr)
         {
-          mCore = new ApvlvDoc (view, DISPLAY_TYPE_IMAGE, gParams->values ("zoom"));
+          mCore = new ApvlvDoc (view, gParams->values ("zoom"));
         }
       else
         {

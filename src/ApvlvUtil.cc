@@ -27,6 +27,7 @@
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
 #include "ApvlvUtil.h"
+#include "ApvlvParams.h"
 
 #include <gtk/gtk.h>
 #include <glib/gstdio.h>
@@ -213,6 +214,22 @@ namespace apvlv
         }
       gtk_widget_show_all (parent);
       return parent;
+    }
+
+    void apvlv_widget_set_background (GtkWidget *wid)
+    {
+      auto inverted = gParams->valueb ("inverted");
+      auto background = gParams->values ("background");
+      if (inverted && *background == '\0')
+        {
+          background = "black";
+        }
+      if (*background != '\0')
+        {
+          GdkRGBA rgba;
+          gdk_rgba_parse (&rgba, background);
+          gtk_widget_override_background_color (wid, GTK_STATE_FLAG_NORMAL, &rgba);
+        }
     }
 
     void
