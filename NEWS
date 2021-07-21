@@ -3,6 +3,9 @@ apvlv 0.3.0
 inner content toc display
 shortcut 'c' or command ':content' to toggle content
 shortcut '.' to repeat last action
+add background option
+auto set background=black when set inverted=yes
+add 'content_follow_mode' option for control follow mode of content view
 
 apvlv 0.2.0
 ===========

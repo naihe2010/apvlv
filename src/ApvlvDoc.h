@@ -171,7 +171,7 @@ namespace apvlv
 
       void showpage (int p, double s) override;
 
-      void showpage (ApvlvFileIndex *index);
+      void contentShowPage (ApvlvFileIndex *index, bool force);
 
       void nextpage (int times) override;
 

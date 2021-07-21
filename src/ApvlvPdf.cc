@@ -502,7 +502,7 @@ namespace apvlv
           return nullptr;
         }
 
-      mIndex = new ApvlvFileIndex ("", 0, "");
+      mIndex = new ApvlvFileIndex ("", 0, "", PAGE);
       walk_poppler_index_iter (mIndex, itr);
       poppler_index_iter_free (itr);
 
@@ -541,11 +541,11 @@ namespace apvlv
                           pn = destnew->page_num - 1;
                           poppler_dest_free (destnew);
                         }
-                      index = new ApvlvFileIndex (pagd->title, pn, "");
+                      index = new ApvlvFileIndex (pagd->title, pn, "", PAGE);
                     }
                   else
                     {
-                      index = new ApvlvFileIndex (pagd->title, pagd->dest->page_num - 1, "");
+                      index = new ApvlvFileIndex (pagd->title, pagd->dest->page_num - 1, "", PAGE);
                     }
 
                   has = true;

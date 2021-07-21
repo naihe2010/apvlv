@@ -647,7 +647,7 @@ namespace apvlv
             if (mControlContent)
               {
                 mContent->scrollup (ct);
-                showpage (mContent->currentIndex ());
+                contentShowPage (mContent->currentIndex (), false);
               }
             else
               {
@@ -664,7 +664,7 @@ namespace apvlv
             if (mControlContent)
               {
                 mContent->scrolldown (ct);
-                showpage (mContent->currentIndex ());
+                contentShowPage (mContent->currentIndex (), false);
               }
             else
               {
@@ -681,7 +681,7 @@ namespace apvlv
             if (mControlContent)
               {
                 mContent->scrollleft (ct);
-                showpage (mContent->currentIndex ());
+                contentShowPage (mContent->currentIndex (), false);
               }
             else
               {
@@ -698,7 +698,7 @@ namespace apvlv
             if (mControlContent)
               {
                 mContent->scrollright (ct);
-                showpage (mContent->currentIndex ());
+                contentShowPage (mContent->currentIndex (), false);
               }
             else
               {
@@ -707,6 +707,9 @@ namespace apvlv
                 else
                   scrollrightweb (ct);
               }
+          break;
+          case GDK_KEY_Return:
+            contentShowPage (mContent->currentIndex (), true);
           break;
           case 'R':
             reload ();
@@ -1058,13 +1061,10 @@ namespace apvlv
             }
         }
 
-      if (mFile)
+      if (show_content && mFile != nullptr)
         {
-          ApvlvFileIndex *index = mFile->new_index ();
-          mContent->setIndex (index);
+          toggleContent (true);
         }
-
-      toggleContent (show_content);
 
       return mFile != nullptr;
     }
@@ -1988,11 +1988,49 @@ namespace apvlv
         }
     }
 
-    void ApvlvDoc::showpage (ApvlvFileIndex *index)
+    void ApvlvDoc::contentShowPage (ApvlvFileIndex *index, bool force)
     {
-      if (index && index->page != mPagenum)
+      if (index == nullptr)
+        return;
+
+      if (index->type == ApvlvFileIndexType::DIR)
+        return;
+
+      auto follow_mode = "always";
+      if (!force)
         {
-          showpage (index->page, 0.0);
+          follow_mode = gParams->values ("content_follow_mode");
+        }
+
+      if (g_ascii_strcasecmp (follow_mode, "none") == 0)
+        {
+          return;
+        }
+
+      else if (g_ascii_strcasecmp (follow_mode, "page") == 0)
+        {
+          if (index->type == ApvlvFileIndexType::PAGE)
+            {
+              if (index->page != mPagenum)
+                showpage (index->page, 0.0);
+            }
+          return;
+        }
+
+      else if (g_ascii_strcasecmp (follow_mode, "always") == 0)
+        {
+          if (index->type == ApvlvFileIndexType::PAGE)
+            {
+              if (index->page != mPagenum)
+                showpage (index->page, 0.0);
+            }
+          else
+            {
+              if (index->path != filename ())
+                {
+                  loadfile (index->path, true, false);
+                }
+            }
         }
     }
 

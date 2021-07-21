@@ -112,7 +112,7 @@ Mark the current position to
 so that it can be recalled by pressing
 .Ar char
 .It ' Ar char
-Return to the mark position 
+Return to the mark position
 .Ar char
 .It ''
 Return to the last position
@@ -157,6 +157,16 @@ Fit pages to window height
 .El
 .It content = yes/no
 Show content view first
+.It content_follow_mode = Ar mode
+Set default content follow mode
+.Bl -tag -width "indent"
+.It none
+Not follow any content, just by user press Enter.
+.It page
+Just follow page of book.
+.It always
+Always follow any resources.
+.El
 .It continuous = yes/no
 Show PDF/DJVU/EPUB/HTML/TXT pages continuously or not.
 .It continuouspad = Ar int
@@ -167,7 +177,7 @@ Enable/Disable scrolling the pages when hitting a page tail/head
 Disable/Enable the usage of ~/.apvlvinfo
 .It pdfcache = Ar int
 Set pdf cache size
-.It [no]cache
+.It [no]cache = yes/no
 Disable/Enable cache
 .It scrollbar = yes/no
 Set show scrollbar or not
@@ -195,20 +205,14 @@ If auto reload document after some seconds
 .Bl -tag -width "indent"
 .It inverted = yes/no
 If use inverted mode for pdf page
+.It background = Ar color
+Set background color
 .El
 .Sh PROMPT
 Like the COMMANDS, but prefixed with a colon:
 .Bl -tag -width "indent"
 .It :h[elp]
 Display the help document
-.It :h[elp] info
-Display the help document (section "introduction")
-.It :h[elp] command
-Display the help document (section "command")
-.It :h[elp] setting
-Display the help document (section "setting")
-.It :h[elp] prompt
-Display the help document (section "prompt")
 .It :q[uit]
 Close the current window
 .It :o[pen] Ar file

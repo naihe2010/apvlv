@@ -55,9 +55,15 @@ namespace apvlv
 
     typedef vector<ApvlvPos> ApvlvPoses;
 
+    enum ApvlvFileIndexType {
+        PAGE,
+        FILE,
+        DIR
+    };
+
     class ApvlvFileIndex {
      public:
-      ApvlvFileIndex (string title, int page, string path);
+      ApvlvFileIndex (string title, int page, string path, ApvlvFileIndexType type);
       ~ApvlvFileIndex ();
 
       static ApvlvFileIndex *newDirIndex (const gchar *path, ApvlvFileIndex *parent_index = nullptr);
@@ -65,6 +71,7 @@ namespace apvlv
       string title;
       int page;
       string path;
+      ApvlvFileIndexType type;
       vector<ApvlvFileIndex *> children;
     };
 

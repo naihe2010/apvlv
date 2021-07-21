@@ -81,9 +81,13 @@ IF (WIN32)
   INSTALL (DIRECTORY icons DESTINATION ".")
   INSTALL (DIRECTORY ${CMAKE_HOME_DIRECTORY}/win32/poppler-data DESTINATION ".")
 ELSE (WIN32)
+  ADD_CUSTOM_TARGET(Startup.pdf
+          ALL
+          COMMAND "man" "-t" "apvlv.1" "|" "ps2pdf" "-" "${CMAKE_SOURCE_DIR}/Startup.pdf"
+          DEPENDS apvlv.1)
   INSTALL (FILES apvlvrc.example DESTINATION ${SYSCONFDIR}
     RENAME apvlvrc)
-  INSTALL (FILES apvlvrc.example Startup.pdf Startup.tex main_menubar.glade DESTINATION ${DOCDIR})
+  INSTALL (FILES apvlvrc.example Startup.pdf main_menubar.glade DESTINATION ${DOCDIR})
   INSTALL (DIRECTORY icons DESTINATION ${DOCDIR})
   INSTALL (FILES apvlv.1 DESTINATION ${MANDIR}/man1)
   INSTALL (FILES apvlv.desktop DESTINATION ${APPLICATIONSDIR})

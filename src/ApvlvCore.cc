@@ -470,15 +470,12 @@ namespace apvlv
 
       if (mShowContent)
         {
-          if (mDirIndex)
+          ApvlvFileIndex *index = mFile->new_index ();
+          if (index)
             {
-              ApvlvFileIndex *index = mFile->new_index ();
-              if (index)
-                {
-                  mContent->setIndex (index);
-                  delete mDirIndex;
-                  mDirIndex = nullptr;
-                }
+              mContent->setIndex (index);
+              delete mDirIndex;
+              mDirIndex = nullptr;
             }
           gtk_paned_set_position (GTK_PANED (mPaned), APVLV_DEFAULT_CONTENT_WIDTH);
           mControlContent = true;

@@ -370,7 +370,7 @@ namespace apvlv
           return index;
         }
 
-      index = new ApvlvFileIndex ("__cover__", 0, "");
+      index = new ApvlvFileIndex ("__cover__", 0, "", PAGE);
       for (node = map->children; node != nullptr; node = node->next)
         {
           if (node->type != XML_ELEMENT_NODE)
@@ -388,7 +388,7 @@ namespace apvlv
 
     ApvlvFileIndex *ApvlvEPUB::ncx_node_get_index (xmlNodePtr node, string ncxfile)
     {
-      auto *index = new ApvlvFileIndex ("", 0, "");
+      auto *index = new ApvlvFileIndex ("", 0, "", PAGE);
       xmlNodePtr child;
 
       string pagestr = xmlnode_attr_get (node, "playOrder");

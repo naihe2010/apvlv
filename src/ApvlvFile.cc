@@ -161,7 +161,7 @@ namespace apvlv
       ApvlvFileIndex *root_index = parent_index;
       if (root_index == nullptr)
         {
-          root_index = new ApvlvFileIndex ("", 0, "");
+          root_index = new ApvlvFileIndex ("", 0, "", DIR);
         }
 
       GDir *dir = g_dir_open (path, 0, nullptr);
@@ -197,7 +197,7 @@ namespace apvlv
 
               if (S_ISDIR (buf->st_mode))
                 {
-                  auto index = new ApvlvFileIndex (name, 0, realname);
+                  auto index = new ApvlvFileIndex (name, 0, realname, DIR);
                   root_index->children.push_back (index);
                   newDirIndex (realname, index);
                 }
@@ -221,7 +221,7 @@ namespace apvlv
 #endif
                   )
                 {
-                  auto index = new ApvlvFileIndex (name, 0, realname);
+                  auto index = new ApvlvFileIndex (name, 0, realname, FILE);
                   root_index->children.push_back (index);
                 }
 
@@ -232,11 +232,12 @@ namespace apvlv
 
       return root_index;
     }
-    ApvlvFileIndex::ApvlvFileIndex (string title, int page, string path)
+    ApvlvFileIndex::ApvlvFileIndex (string title, int page, string path, ApvlvFileIndexType type)
     {
       this->title = std::move (title);
       this->page = page;
       this->path = std::move (path);
+      this->type = type;
     }
 
     ApvlvFileIndex::~ApvlvFileIndex ()
