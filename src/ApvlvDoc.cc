@@ -239,8 +239,6 @@ namespace apvlv
           if (word != nullptr)
             {
               pos = word->pos;
-              debug ("get word: [%s] x1:%f, x2:%f, y1:%f, y2:%f",
-                     word->word.c_str (), pos.x1, pos.x2, pos.y1, pos.y2);
             }
         }
       else if (strcasecmp (gParams->values ("doubleclick"), "line") == 0)
@@ -2240,7 +2238,6 @@ namespace apvlv
         {
           for (auto &mWord : line->mWords)
             {
-              debug ("itr: %f,%f", itr->pos.y1, itr->pos.y2);
               if (x >= mWord.pos.x1 && x <= mWord.pos.x2)
                 {
                   return &mWord;
@@ -2261,7 +2258,6 @@ namespace apvlv
 
       for (auto &mLine : *mLines)
         {
-          debug ("itr: %f,%f", itr->pos.y1, itr->pos.y2);
           if (y >= mLine.pos.y2 && y <= mLine.pos.y1)
             {
               return &mLine;

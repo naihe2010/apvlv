@@ -95,8 +95,6 @@ namespace apvlv
 
     void ApvlvCmd::push (const char *s, cmdType type)
     {
-      asst (s)
-
       mType = type;
 
       mHasPreCount = false;
@@ -191,8 +189,6 @@ namespace apvlv
       char *e = strchr ((char *) s, '>');
 
       len = strlen (s);
-
-      asst (len);
 
       if (len >= 4
           && *s == '<'
@@ -362,7 +358,6 @@ namespace apvlv
 
       if (mState == GETTING_CMD)
         {
-          asst (mCmdHead);
           ApvlvCmdKeyv v = mCmdHead->keyvalv ();
           v.push_back (gek2guint (gev));
           returnType r = ismap (&v);

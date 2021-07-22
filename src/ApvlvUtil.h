@@ -67,7 +67,6 @@ namespace apvlv
     bool rmrf (const char *path);
 
 #define CORE_DOC        1
-#define CORE_CONTENT    2
 #define CORE_DIR        3
 
     GtkWidget *replace_widget (GtkWidget *owid, GtkWidget *nwid);
@@ -108,16 +107,8 @@ namespace apvlv
     // log system
 #if defined DEBUG || defined _DEBUG
 #define debug(...)      logv ("DEBUG", __FILE__, __LINE__, __func__, __VA_ARGS__)
-#define asst(s)         do {                    \
-    if (!(s))                                   \
-      {                                         \
-        debug ("(%s) is FALSE, exit", #s);      \
-        exit (1);                               \
-      }                                         \
-  } while (0)
 #else
 #define debug(...)
-#define asst(s)
 #endif
 #define errp(...)       logv ("ERROR", __FILE__, __LINE__, __func__, __VA_ARGS__)
     void logv (const char *, const char *, int, const char *, const char *,

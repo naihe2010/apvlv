@@ -172,12 +172,12 @@ namespace apvlv
 
     ApvlvWindow *ApvlvView::currentWindow ()
     {
-      return mTabList[mCurrTabPos].mRootWindow->activeWindow ();
+      return mTabList[mCurrTabPos].mRootWindow->activeCoreWindow ();
     }
 
     void ApvlvView::delcurrentWindow ()
     {
-      mTabList[mCurrTabPos].mRootWindow->delcurrentWindow ();
+      mTabList[mCurrTabPos].mRootWindow = currentWindow ()->unbirth ();
       mTabList[mCurrTabPos].mWindowCount--;
       updatetabname ();
     }
@@ -306,13 +306,7 @@ namespace apvlv
 
     bool ApvlvView::newtab (const char *filename, bool disable_content)
     {
-      ApvlvCore *ndoc;
-      int core_type = gParams->valueb ("content") ? CORE_CONTENT : CORE_DOC;
-      if (disable_content)
-        {
-          core_type = CORE_DOC;
-        }
-      ndoc = hasloaded (filename, core_type);
+      ApvlvCore *ndoc = hasloaded (filename);
 
       if (ndoc == nullptr)
         {
@@ -400,8 +394,6 @@ namespace apvlv
 
     void ApvlvView::delete_tabcontext (long tabPos)
     {
-      asst (tabPos >= 0 && tabPos < int (mTabList.size ()))
-
       auto remPos = mTabList.begin () + tabPos;
 
       if (remPos->mRootWindow != nullptr)
@@ -440,8 +432,7 @@ namespace apvlv
       ApvlvCore *ndoc;
 
       ndoc =
-          hasloaded (abpath,
-                     gParams->valueb ("content") ? CORE_CONTENT : CORE_DOC);
+          hasloaded (abpath);
 
       if (ndoc == nullptr)
         {
@@ -468,7 +459,7 @@ namespace apvlv
       return ndoc != nullptr;
     }
 
-    ApvlvCore *ApvlvView::hasloaded (const char *abpath, int type)
+    ApvlvCore *ApvlvView::hasloaded (const char *abpath)
     {
       ApvlvCore *core;
       size_t i;
@@ -476,7 +467,6 @@ namespace apvlv
         {
           core = (ApvlvCore *) mDocs[i];
           if (!core->inuse ()
-              && core->type () == type
               && strcmp (core->filename (), abpath) == 0)
             {
               return core;
@@ -497,7 +487,10 @@ namespace apvlv
           auto itr = mDocs.begin ();
           debug ("to pdf cache size: %d, remove first: %p\n",
                  gParams->valuei ("pdfcache"), *itr);
-          delete *itr;
+          if ((*itr)->inuse () == false)
+            {
+              delete *itr;
+            }
           mDocs.erase (itr);
         }
 
@@ -733,7 +726,7 @@ namespace apvlv
           case CTRL ('w'):
             if (key == 'q' || key == CTRL ('Q'))
               {
-                if (currentWindow ()->istop ())
+                if (currentWindow ()->isAncestor ())
                   {
                     quit ();
                   }
@@ -946,12 +939,12 @@ namespace apvlv
             }
           else if (cmd == "sp")
             {
-              currentWindow ()->birth (false, nullptr);
+              currentWindow ()->birth (ApvlvWindow::AW_SP, nullptr);
               windowadded ();
             }
           else if (cmd == "vsp")
             {
-              currentWindow ()->birth (true, nullptr);
+              currentWindow ()->birth (ApvlvWindow::AW_VSP, nullptr);
               windowadded ();
             }
           else if ((cmd == "zoom" || cmd == "z") && !subcmd.empty ())
@@ -983,33 +976,13 @@ namespace apvlv
               p += crtadoc ()->getskip ();
               crtadoc ()->showpage (int (p - 1), 0.0);
             }
-          else if ((cmd == "help" || cmd == "h") && subcmd == "info")
-            {
-              loadfile (helppdf);
-              crtadoc ()->showpage (1, 0.0);
-            }
-          else if ((cmd == "help" || cmd == "h") && subcmd == "command")
-            {
-              loadfile (helppdf);
-              crtadoc ()->showpage (3, 0.0);
-            }
-          else if ((cmd == "help" || cmd == "h") && subcmd == "setting")
-            {
-              crtadoc ()->loadfile (helppdf.c_str (), true, gParams->valueb ("content"));
-              crtadoc ()->showpage (8, 0.0);
-            }
-          else if ((cmd == "help" || cmd == "h") && subcmd == "prompt")
-            {
-              crtadoc ()->loadfile (helppdf.c_str (), true, gParams->valueb ("content"));
-              crtadoc ()->showpage (8, 0.0);
-            }
           else if (cmd == "help" || cmd == "h")
             {
               loadfile (helppdf);
             }
           else if (cmd == "q" || cmd == "quit")
             {
-              if (currentWindow ()->istop ())
+              if (currentWindow ()->isAncestor ())
                 {
                   quit ();
                 }
@@ -1020,17 +993,7 @@ namespace apvlv
             }
           else if (cmd == "qall")
             {
-              while (!mTabList.empty ())
-                {
-                  if (currentWindow ()->istop ())
-                    {
-                      quit ();
-                    }
-                  else
-                    {
-                      delcurrentWindow ();
-                    }
-                }
+              quit ();
             }
           else if (cmd == "tabnew")
             {

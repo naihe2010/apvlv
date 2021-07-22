@@ -74,8 +74,6 @@ namespace apvlv
 
       virtual bool inuse ();
 
-      virtual int type ();
-
       virtual GtkWidget *widget ();
 
       virtual ApvlvCore *copy ();
@@ -167,8 +165,6 @@ namespace apvlv
       bool mShowContent;
 
       bool mControlContent;
-
-      int mType{};
 
       GFile *mGFile{};
       GFileMonitor *mGMonitor{};

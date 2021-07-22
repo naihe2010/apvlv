@@ -129,7 +129,7 @@ namespace apvlv
     {
       mInuse = use;
 
-      if (!mInuse && mView->hasloaded (filename (), type ()) == nullptr)
+      if (!mInuse && mView->hasloaded (filename ()) == nullptr)
         {
           debug ("core :%p is not needed, delete it\n", this);
           delete this;
@@ -139,11 +139,6 @@ namespace apvlv
     bool ApvlvCore::inuse ()
     {
       return mInuse;
-    }
-
-    int ApvlvCore::type ()
-    {
-      return mType;
     }
 
     returnType ApvlvCore::process (int has, int ct, guint key)

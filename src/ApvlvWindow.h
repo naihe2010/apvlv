@@ -52,28 +52,29 @@ namespace apvlv
        * So, ANY user interface function can only get the AW_DOC window
        * */
       enum WindowType {
-          AW_SP, AW_VSP, AW_CORE, AW_NONE
+          AW_SP, AW_VSP, AW_CORE
       } mType;
 
-      ApvlvWindow *birth (bool vsp, ApvlvCore *core);
+      ApvlvWindow *birth (WindowType type, ApvlvCore *core);
 
-      ApvlvWindow *unbirth (ApvlvWindow *, ApvlvWindow *);
-
-      bool istop () const;
+      ApvlvWindow *unbirth ();
 
       GtkWidget *widget ();
 
       ApvlvCore *getCore ();
 
-      ApvlvWindow *activeWindow ();
+      ApvlvWindow *activeCoreWindow ();
+
+      ApvlvWindow *getAncestor ();
+
+      bool isAncestor () const;
 
       void setCore (ApvlvCore *core);
 
       void smaller (int times = 1);
       void bigger (int times = 1);
 
-      void setcurrentWindow (ApvlvWindow *pre, ApvlvWindow *win);
-      void delcurrentWindow ();
+      void setcurrentWindow (ApvlvWindow *win);
 
       ApvlvWindow *getneighbor (int count, guint key);
 
@@ -81,14 +82,12 @@ namespace apvlv
 
       returnType process (int times, guint keyval);
 
-      ApvlvWindow *m_parent, *m_son, *m_daughter;
+      ApvlvWindow *m_parent, *m_child_1, *m_child_2;
 
      private:
 
       inline ApvlvWindow *getkj (__attribute__((unused)) int num, bool next);
       inline ApvlvWindow *gethl (__attribute__((unused)) int num, bool next);
-
-      bool mIsClose;
 
       GtkWidget *mPaned;
 
