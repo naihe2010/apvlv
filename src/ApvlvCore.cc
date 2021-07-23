@@ -55,14 +55,7 @@ namespace apvlv
       mSearchResults = nullptr;
       mSearchStr = "";
 
-      mShowContent = gParams->valueb ("content");
-      mControlContent = false;
-
-#if GTK_CHECK_VERSION (3, 0, 0)
       mVbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-#else
-      mVbox = gtk_vbox_new (FALSE, 0);
-#endif
       g_object_ref (mVbox);
 
       mPaned = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
@@ -73,6 +66,7 @@ namespace apvlv
       if (f_width > 0 && f_height > 0)
         {
           gtk_widget_set_size_request (mPaned, f_width, f_height);
+
           auto hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
           gtk_box_pack_start (GTK_BOX (hbox), mPaned, TRUE, FALSE, 0);
           gtk_box_pack_start (GTK_BOX (mVbox), hbox, TRUE, FALSE, 0);
@@ -108,6 +102,9 @@ namespace apvlv
       gtk_paned_add2 (GTK_PANED (mPaned), mMainWidget);
 
       gtk_paned_set_position (GTK_PANED (mPaned), 0);
+
+      mStatus = new ApvlvStatus ();
+      gtk_box_pack_end (GTK_BOX (mVbox), mStatus->widget (), FALSE, FALSE, 0);
     }
 
     ApvlvCore::~ApvlvCore ()
@@ -224,7 +221,7 @@ namespace apvlv
         return FALSE;
 
       GtkAdjustment *vaj = mMainVaj;
-      if (mControlContent)
+      if (isControledContent ())
         {
           vaj = mContentVaj;
         }
@@ -235,9 +232,9 @@ namespace apvlv
                          - gtk_adjustment_get_page_size (vaj);
           gdouble val = maxv * s;
           gtk_adjustment_set_value (vaj, val);
-          if (!mControlContent)
+          if (!isControledContent ())
             {
-              mStatus->show (false);
+              show ();
             }
           return TRUE;
         }
@@ -292,7 +289,7 @@ namespace apvlv
             }
         }
 
-      mStatus->show (false);
+      show ();
     }
 
     void ApvlvCore::scrolldown (int times)
@@ -344,7 +341,7 @@ namespace apvlv
             }
         }
 
-      mStatus->show (false);
+      show ();
     }
 
     void ApvlvCore::scrollleft (int times)
@@ -455,15 +452,13 @@ namespace apvlv
 
     void ApvlvCore::toggleContent ()
     {
-      mShowContent = !mShowContent;
-      toggleContent (mShowContent);
+      auto show = !isShowContent ();
+      toggleContent (show);
     }
 
-    void ApvlvCore::toggleContent (bool enabled)
+    void ApvlvCore::toggleContent (bool show)
     {
-      mShowContent = enabled;
-
-      if (mShowContent)
+      if (show)
         {
           ApvlvFileIndex *index = mFile->new_index ();
           if (index)
@@ -473,12 +468,10 @@ namespace apvlv
               mDirIndex = nullptr;
             }
           gtk_paned_set_position (GTK_PANED (mPaned), APVLV_DEFAULT_CONTENT_WIDTH);
-          mControlContent = true;
         }
       else
         {
           gtk_paned_set_position (GTK_PANED (mPaned), 0);
-          mControlContent = false;
         }
     }
 
@@ -510,48 +503,94 @@ namespace apvlv
 
     bool ApvlvCore::toggledControlContent (bool is_right)
     {
-      if (!mShowContent)
+      if (!isShowContent ())
         {
           return false;
         }
 
-      if (!mControlContent && !is_right)
+      auto controled = isControledContent ();
+
+      if (!controled && !is_right)
         {
-          mControlContent = true;
+          gtk_widget_set_state_flags (mContentWidget, GTK_STATE_FLAG_FOCUSED, TRUE);
+          gtk_widget_set_state_flags (mMainWidget, GTK_STATE_FLAG_INSENSITIVE, TRUE);
           return true;
         }
-      else if (mControlContent && is_right)
+      else if (controled && is_right)
         {
-          mControlContent = false;
+          gtk_widget_set_state_flags (mContentWidget, GTK_STATE_FLAG_INSENSITIVE, TRUE);
+          gtk_widget_set_state_flags (mMainWidget, GTK_STATE_FLAG_FOCUSED, TRUE);
           return true;
         }
 
       return false;
     }
 
-    ApvlvCoreStatus::ApvlvCoreStatus ()
+    void ApvlvCore::show ()
     {
-#if GTK_CHECK_VERSION (3, 0, 0)
-      mHbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-#else
-      mHbox = gtk_hbox_new (FALSE, 0);
-#endif
     }
 
-    ApvlvCoreStatus::~ApvlvCoreStatus ()
-    = default;
+    bool ApvlvCore::isShowContent ()
+    {
+      auto position = gtk_paned_get_position (GTK_PANED (mPaned));
+      return position >= 1;
+    }
 
-    GtkWidget *ApvlvCoreStatus::widget ()
+    bool ApvlvCore::isControledContent ()
+    {
+      auto focused = gtk_widget_get_state_flags (mContentWidget);
+      return focused & GTK_STATE_FLAG_FOCUSED;
+    }
+
+    ApvlvStatus::ApvlvStatus ()
+    {
+      mHbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+      g_object_ref (mHbox);
+    }
+
+    ApvlvStatus::~ApvlvStatus ()
+    {
+      g_object_unref (mHbox);
+    }
+
+    GtkWidget *ApvlvStatus::widget ()
     {
       return mHbox;
     }
 
-    void ApvlvCoreStatus::active (bool act)
+    void ApvlvStatus::active (bool act)
     {
+      auto children = gtk_container_get_children (GTK_CONTAINER(mHbox));
+      for (auto child = children; child != nullptr; child = child->next)
+        {
+          gtk_widget_set_state_flags (GTK_WIDGET (child->data),
+                                      (act) ? GTK_STATE_FLAG_ACTIVE :
+                                      GTK_STATE_FLAG_INSENSITIVE, TRUE);
+        }
     }
 
-    void ApvlvCoreStatus::show (bool mContinuous)
+    void ApvlvStatus::show (const vector<string> &msgs)
     {
+      vector<GtkWidget *> newlabels;
+      auto children = gtk_container_get_children (GTK_CONTAINER(mHbox));
+      for (const auto &msg: msgs)
+        {
+          if (children != nullptr)
+            {
+              gtk_label_set_text (GTK_LABEL (children->data), msg.c_str ());
+              children = children->next;
+            }
+          else
+            {
+              auto label = gtk_label_new (msg.c_str ());
+              newlabels.push_back (label);
+            }
+        }
+
+      for (auto label: newlabels)
+        {
+          gtk_box_pack_start (GTK_BOX (mHbox), label, TRUE, TRUE, 0);
+        }
     }
 }
 

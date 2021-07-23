@@ -88,11 +88,7 @@ namespace apvlv
                                        w > 1 ? w : 800, h > 1 ? h : 600);
         }
 
-#if GTK_CHECK_VERSION (3, 0, 0)
       mViewBox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-#else
-      mViewBox = gtk_vbox_new (FALSE, 0);
-#endif
       gtk_container_add (GTK_CONTAINER (mMainWindow), mViewBox);
 
       mMenu = new ApvlvMenu ();
@@ -347,11 +343,7 @@ namespace apvlv
       GtkWidget *tabname = gtk_label_new (base);
       g_free (base);
 
-#if GTK_CHECK_VERSION (3, 0, 0)
       auto *parentbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-#else
-      auto *parentbox = gtk_vbox_new (FALSE, 0);
-#endif
       gtk_box_pack_start (GTK_BOX (parentbox), mTabList[mCurrTabPos].mRootWindow->widget (), TRUE, TRUE, 0);
 
       gtk_notebook_insert_page (GTK_NOTEBOOK (mTabContainer), parentbox,
@@ -1050,7 +1042,7 @@ namespace apvlv
     ApvlvView::apvlv_view_keypress_cb (__attribute__((unused)) GtkWidget *wid, GdkEvent *ev,
                                        ApvlvView *view)
     {
-      debug("view: %p, got key: %u", view, ((GdkEventKey *) ev)->keyval);
+      debug ("view: %p, got key: %u", view, ((GdkEventKey *) ev)->keyval);
       if (view->mCmdType == CMD_NONE)
         {
           view->mCmds.append ((GdkEventKey *) ev);
@@ -1182,7 +1174,7 @@ namespace apvlv
     ApvlvView::apvlv_view_delete_cb (__attribute__((unused)) GtkWidget *wid, __attribute__((unused)) GtkAllocation *al,
                                      ApvlvView *view)
     {
-      debug("delete cb: %p", view);
+      debug ("delete cb: %p", view);
       GtkWidget *widget = view->mMainWindow;
       if (widget)
         {

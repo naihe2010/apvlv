@@ -45,17 +45,17 @@ namespace apvlv
     const int APVLV_DEFAULT_CONTENT_WIDTH = 200;
 
     class ApvlvCore;
-    class ApvlvCoreStatus {
+    class ApvlvStatus {
      public:
-      ApvlvCoreStatus ();
+      ApvlvStatus ();
 
-      virtual ~ ApvlvCoreStatus ();
+      ~ ApvlvStatus ();
 
-      virtual GtkWidget *widget ();
+      GtkWidget *widget ();
 
-      virtual void active (bool act);
+      void active (bool act);
 
-      virtual void show (bool mContinuous);
+      void show (const vector<string> &msgs);
 
      protected:
       GtkWidget *mHbox;
@@ -110,6 +110,8 @@ namespace apvlv
 
       virtual void usecache (bool use);
 
+      virtual void show ();
+
       virtual bool print (int ct);
 
       virtual bool totext (const char *name);
@@ -145,6 +147,10 @@ namespace apvlv
 
       virtual bool toggledControlContent (bool is_right);
 
+      virtual bool isShowContent ();
+
+      virtual bool isControledContent ();
+
       virtual returnType process (int has, int times, guint keyval);
 
       ApvlvView *mView;
@@ -161,10 +167,6 @@ namespace apvlv
       bool mReady;
 
       bool mInuse;
-
-      bool mShowContent;
-
-      bool mControlContent;
 
       GFile *mGFile{};
       GFileMonitor *mGMonitor{};
@@ -228,7 +230,7 @@ namespace apvlv
       ApvlvContent *mContent;
 
       // status bar
-      ApvlvCoreStatus *mStatus{};
+      ApvlvStatus *mStatus;
 
      private:
     };

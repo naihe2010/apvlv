@@ -66,9 +66,6 @@ namespace apvlv
 
     bool rmrf (const char *path);
 
-#define CORE_DOC        1
-#define CORE_DIR        3
-
     GtkWidget *replace_widget (GtkWidget *owid, GtkWidget *nwid);
 
     void apvlv_widget_set_background (GtkWidget *wid);

@@ -121,22 +121,6 @@ namespace apvlv
                             const char *word);
     };
 
-    class ApvlvDocStatus : public ApvlvCoreStatus {
-     public:
-      explicit ApvlvDocStatus (ApvlvDoc *);
-
-      ~ApvlvDocStatus () override;
-
-      void active (bool act) override;
-
-      void show (bool mContinuous) override;
-
-     private:
-      ApvlvDoc *mDoc;
-#define AD_STATUS_SIZE   4
-      GtkWidget *mStlab[AD_STATUS_SIZE]{};
-    };
-
     class ApvlvDoc : public ApvlvCore {
      public:
       explicit ApvlvDoc (ApvlvView *, const char *zm = "NORMAL", bool cache = false);
@@ -238,6 +222,8 @@ namespace apvlv
       bool needsearch (const char *str, bool reverse = false);
 
       void refresh () override;
+
+      void show () override;
 
       bool reload () override;
 

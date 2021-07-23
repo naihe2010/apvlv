@@ -113,20 +113,21 @@ namespace apvlv
                         G_CALLBACK (apvlv_doc_button_event), this);
       g_signal_connect (G_OBJECT (ebox), "motion-notify-event",
                         G_CALLBACK (apvlv_doc_motion_event), this);
-#if GTK_CHECK_VERSION(3, 0, 0)
       gtk_container_add (GTK_CONTAINER (mMainWidget), ebox);
-#else
-      gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (mMainWidget), ebox);
-#endif
+
+      mDisplayType = DISPLAY_TYPE_IMAGE;
 
       mImg1 = gtk_image_new ();
       g_object_ref (mImg1);
+      gtk_box_pack_start (GTK_BOX (mVbox), mImg1, TRUE, TRUE, 0);
       if (mAutoScrollPage && mContinuous)
         {
           mImg2 = gtk_image_new ();
           g_object_ref (mImg2);
+          gtk_box_pack_start (GTK_BOX (mVbox), mImg2, TRUE, TRUE, 0);
           mImg3 = gtk_image_new ();
           g_object_ref (mImg3);
+          gtk_box_pack_start (GTK_BOX (mVbox), mImg3, TRUE, TRUE, 0);
         }
 
       mWeb1 = webkit_web_view_new ();
@@ -140,9 +141,6 @@ namespace apvlv
 
       g_signal_connect (G_OBJECT (mMainVaj), "value-changed",
                         G_CALLBACK (apvlv_doc_on_mouse), this);
-
-      mStatus = new ApvlvDocStatus (this);
-      gtk_box_pack_end (GTK_BOX (mVbox), mStatus->widget (), FALSE, FALSE, 0);
     }
 
     ApvlvDoc::~ApvlvDoc ()
@@ -631,7 +629,7 @@ namespace apvlv
           case CTRL ('p'):
           case GDK_KEY_Up:
           case 'k':
-            if (mControlContent)
+            if (isControledContent ())
               {
                 mContent->scrollup (ct);
                 contentShowPage (mContent->currentIndex (), false);
@@ -648,7 +646,7 @@ namespace apvlv
           case CTRL ('j'):
           case GDK_KEY_Down:
           case 'j':
-            if (mControlContent)
+            if (isControledContent ())
               {
                 mContent->scrolldown (ct);
                 contentShowPage (mContent->currentIndex (), false);
@@ -665,7 +663,7 @@ namespace apvlv
           case GDK_KEY_Left:
           case CTRL ('h'):
           case 'h':
-            if (mControlContent)
+            if (isControledContent ())
               {
                 mContent->scrollleft (ct);
                 contentShowPage (mContent->currentIndex (), false);
@@ -682,7 +680,7 @@ namespace apvlv
           case GDK_KEY_Right:
           case CTRL ('l'):
           case 'l':
-            if (mControlContent)
+            if (isControledContent ())
               {
                 mContent->scrollright (ct);
                 contentShowPage (mContent->currentIndex (), false);
@@ -887,7 +885,7 @@ namespace apvlv
     bool ApvlvDoc::reload ()
     {
       savelastposition (filename ());
-      return loadfile (mFilestr.c_str (), false, mShowContent);
+      return loadfile (mFilestr.c_str (), false, isShowContent ());
     }
 
     gint ApvlvDoc::pagenumber ()
@@ -984,7 +982,7 @@ namespace apvlv
 
           loadlastposition (filename);
 
-          mStatus->show (mContinuous);
+          show ();
 
           setactive (true);
 
@@ -1173,7 +1171,7 @@ namespace apvlv
         {
           mFile->renderweb (mPagenum, 0, 0, mZoomrate, mRotatevalue, mWeb1);
         }
-      mStatus->show (mContinuous);
+      show ();
     }
 
     void ApvlvDoc::srtranslate (int &rtimes, double &sr, bool single2continuous)
@@ -2406,59 +2404,34 @@ namespace apvlv
       return *itr;
     }
 
-    ApvlvDocStatus::ApvlvDocStatus (ApvlvDoc *doc)
+    void ApvlvDoc::show ()
     {
-      mDoc = doc;
-      for (auto &i : mStlab)
+      if (filename ())
         {
-          i = gtk_label_new ("");
-          gtk_box_pack_start (GTK_BOX (mHbox), i, TRUE, TRUE, 0);
-        }
-    }
+          vector<string> labels;
 
-    ApvlvDocStatus::~ApvlvDocStatus ()
-    = default;
-
-    void ApvlvDocStatus::active (bool act)
-    {
-      for (auto &i : mStlab)
-        {
-#if GTK_CHECK_VERSION(3, 0, 0)
-          gtk_widget_set_state_flags (i,
-                                      (act) ? GTK_STATE_FLAG_ACTIVE :
-                                      GTK_STATE_FLAG_INSENSITIVE, TRUE);
-#else
-          gtk_widget_modify_fg (mStlab[i],
-                                (act) ? GTK_STATE_ACTIVE:
-                                GTK_STATE_INSENSITIVE, nullptr);
-#endif
-        }
-    }
-
-    void ApvlvDocStatus::show (bool mContinuous)
-    {
-      if (mDoc->filename ())
-        {
-          gint pn = mDoc->pagenumber (),
-              totpn = mDoc->file ()->pagesum ();
-          gdouble sr = mDoc->scrollrate ();
+          gint pn = pagenumber ();
+          gint totpn = file ()->pagesum ();
+          gdouble sr = scrollrate ();
           int tmprtimes = 0;
-          mDoc->srtranslate (tmprtimes, sr, false);
+          srtranslate (tmprtimes, sr, false);
 
-          char temp[AD_STATUS_SIZE][256];
+          char temp[256];
           gchar *bn;
-          bn = g_path_get_basename (mDoc->filename ());
-          g_snprintf (temp[0], sizeof temp[0], "%s", bn);
-          g_snprintf (temp[1], sizeof temp[1], "%d/%d", pn, totpn);
-          g_snprintf (temp[2], sizeof temp[2], "%d%%",
-                      (int) (mDoc->zoomvalue () * 100));
-          g_snprintf (temp[3], sizeof temp[3], "%d%%",
-                      (int) ((sr + pn - 1.0) / totpn * 100));
-          for (unsigned int i = 0; i < AD_STATUS_SIZE; ++i)
-            {
-              gtk_label_set_text (GTK_LABEL (mStlab[i]), temp[i]);
-            }
+          bn = g_path_get_basename (filename ());
+          g_snprintf (temp, sizeof temp, "%s", bn);
           g_free (bn);
+          labels.emplace_back (temp);
+          g_snprintf (temp, sizeof temp, "%d/%d", pn, totpn);
+          labels.emplace_back (temp);
+          g_snprintf (temp, sizeof temp, "%d%%",
+                      (int) (zoomvalue () * 100));
+          labels.emplace_back (temp);
+          g_snprintf (temp, sizeof temp, "%d%%",
+                      (int) ((sr + pn - 1.0) / totpn * 100));
+          labels.emplace_back (temp);
+
+          mStatus->show (labels);
         }
     }
 
