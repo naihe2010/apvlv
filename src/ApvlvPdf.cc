@@ -320,8 +320,6 @@ namespace apvlv
           return nullptr;
         }
 
-      //    debug ("search %s", str);
-
       GList *list = poppler_page_find_text (page, str);
       if (list == nullptr)
         {
@@ -338,9 +336,7 @@ namespace apvlv
       for (GList *tmp = list; tmp != nullptr; tmp = g_list_next (tmp))
         {
           auto *rect = (PopplerRectangle *) tmp->data;
-          //      debug ("results: %f-%f,%f-%f", rect->x1, rect->x2, rect->y1,
-          //             rect->y2);
-          ApvlvPos pos = {rect->x1, rect->x2, rect->y1, rect->y2};
+          ApvlvPos pos = {rect->x1, rect->x2, rect->y2, rect->y1};
           poses->push_back (pos);
 
           poppler_rectangle_free (rect);
@@ -352,16 +348,11 @@ namespace apvlv
       return poses;
     }
 
-    bool ApvlvPDF::pagetext (int pn, int x1, int y1, int x2, int y2, char **out)
+    bool ApvlvPDF::pagetext (int pn, gdouble x1, gdouble y1, gdouble x2, gdouble y2, char **out)
     {
       PopplerPage *page = poppler_document_get_page (mDoc, pn);
 #if POPPLER_CHECK_VERSION(0, 15, 1)
-      PopplerRectangle rect = {
-          static_cast <gdouble> (x1),
-          static_cast <gdouble> (y2),
-          static_cast <gdouble> (x2),
-          static_cast <gdouble> (y1)
-      };
+      PopplerRectangle rect = {x1, y1, x2, y2};
       *out = poppler_page_get_selected_text (page, POPPLER_SELECTION_WORD, &rect);
 #else
       PopplerRectangle rect = { x1, y1, x2, y2 };
@@ -401,8 +392,8 @@ namespace apvlv
       //debug ("pagex: %f, pagey: %f, x1: %f, y1: %f, x2: %f, y2: %f", pagex, pagey, rect->x1, rect->y1, rect->x2, rect->y2);
       gint x1 = MAX (rect.x1 * zm + 0.5, 0);
       gint x2 = MAX (rect.x2 * zm - 0.5, 1);
-      gint y1 = MAX ((iy - rect.y2 * zm) + 0.5, 0);
-      gint y2 = MAX ((iy - rect.y1 * zm) - 0.5, 1);
+      gint y1 = MAX ((iy - rect.y1 * zm) + 0.5, 0);
+      gint y2 = MAX ((iy - rect.y2 * zm) - 0.5, 1);
       //debug ("x1: %d, y1: %d, x2: %d, y2: %d", x1, y1, x2, y2);
 
       // heightlight the selection
@@ -423,8 +414,8 @@ namespace apvlv
           // Caculate the correct position
           x1 = (gint) (pose.x1 * zm);
           x2 = (gint) (pose.x2 * zm);
-          y1 = (gint) (iy - pose.y2 * zm);
-          y2 = (gint) (iy - pose.y1 * zm);
+          y1 = (gint) (iy - pose.y1 * zm);
+          y2 = (gint) (iy - pose.y2 * zm);
 
           for (gint y = y1; y < y2; y++)
             {

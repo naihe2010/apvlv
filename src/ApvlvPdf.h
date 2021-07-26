@@ -44,7 +44,7 @@ namespace apvlv
 
       int pagesum () override;
 
-      bool pagetext (int, int, int, int, int, char **) override;
+      bool pagetext (int pn, gdouble x1, gdouble y1, gdouble x2, gdouble y2, char **out) override;
 
       bool render (int, int, int, double, int, GdkPixbuf *, char *) override;
 

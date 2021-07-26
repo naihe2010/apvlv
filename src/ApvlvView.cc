@@ -833,6 +833,10 @@ namespace apvlv
             ret = runcmd (str + 1);
           break;
 
+          case FIND:
+            ret = crtadoc ()->find (str + 1);
+          break;
+
           default:
             ret = false;
           break;
@@ -1042,7 +1046,6 @@ namespace apvlv
     ApvlvView::apvlv_view_keypress_cb (__attribute__((unused)) GtkWidget *wid, GdkEvent *ev,
                                        ApvlvView *view)
     {
-      debug ("view: %p, got key: %u", view, ((GdkEventKey *) ev)->keyval);
       if (view->mCmdType == CMD_NONE)
         {
           view->mCmds.append ((GdkEventKey *) ev);

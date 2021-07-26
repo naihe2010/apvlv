@@ -45,7 +45,8 @@ namespace apvlv
     typedef enum {
         SEARCH = '/',
         BACKSEARCH = '?',
-        COMMANDMODE = ':'
+        COMMANDMODE = ':',
+        FIND = 'F'
     } cmd_mode_type;
 
     class ApvlvDoc;

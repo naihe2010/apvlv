@@ -64,7 +64,7 @@ namespace apvlv
       return 1;
     }
 
-    bool ApvlvHTML::pagetext (int, int, int, int, int, char **)
+    bool ApvlvHTML::pagetext (int, gdouble, gdouble, gdouble, gdouble, char **)
     {
       return false;
     }

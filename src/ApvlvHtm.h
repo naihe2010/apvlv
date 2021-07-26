@@ -50,7 +50,7 @@ namespace apvlv
 
       int pagesum () override;
 
-      bool pagetext (int, int, int, int, int, char **) override;
+      bool pagetext (int, gdouble, gdouble, gdouble, gdouble, char **) override;
 
       bool renderweb (int pn, int ix, int iy, double zm, int rot, GtkWidget *widget) override;
 

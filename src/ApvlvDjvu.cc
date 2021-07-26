@@ -101,7 +101,7 @@ namespace apvlv
 
     bool ApvlvDJVU::writefile (const char *filename)
     {
-      FILE *fp = fopen (filename, "wb");
+      FILE * fp = fopen (filename, "wb");
       if (fp != nullptr)
         {
           ddjvu_job_t *job = ddjvu_document_save (mDoc, fp, 0, nullptr);

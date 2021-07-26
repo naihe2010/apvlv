@@ -372,7 +372,7 @@ namespace apvlv
       return nullptr;
     }
 
-    bool ApvlvTXT::pagetext (int pn, int x1, int y1, int x2, int y2,
+    bool ApvlvTXT::pagetext (int pn, gdouble x1, gdouble y1, gdouble x2, gdouble y2,
                              char **out)
     {
       return false;

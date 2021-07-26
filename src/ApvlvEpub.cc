@@ -187,7 +187,7 @@ namespace apvlv
       return int (mPages.size ());
     }
 
-    bool ApvlvEPUB::pagetext (int, int, int, int, int, char **)
+    bool ApvlvEPUB::pagetext (int, gdouble, gdouble, gdouble, gdouble, char **)
     {
       return false;
     }

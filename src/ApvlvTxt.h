@@ -69,7 +69,7 @@ namespace apvlv
 
       int pagesum ();
 
-      bool pagetext (int, int, int, int, int, char **);
+      bool pagetext (int, gdouble, gdouble, gdouble, gdouble, char **);
 
       bool render (int, int, int, double, int, GdkPixbuf *, char *);
 

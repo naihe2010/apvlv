@@ -29,17 +29,17 @@
 #ifndef _APVLV_DOC_H_
 #define _APVLV_DOC_H_
 
-#include "ApvlvFile.h"
 #include "ApvlvCore.h"
+#include "ApvlvFile.h"
 #include "ApvlvUtil.h"
 
 #include <gtk/gtk.h>
 #include <webkit2/webkit2.h>
 
 #include <iostream>
-#include <vector>
-#include <map>
 #include <list>
+#include <map>
+#include <vector>
 
 using namespace std;
 
@@ -59,6 +59,7 @@ namespace apvlv
 
     struct ApvlvWord {
         ApvlvPos pos;
+        string word;
     };
 
     struct ApvlvLine {
@@ -94,13 +95,17 @@ namespace apvlv
 
       gint getheight () const;
 
+      gdouble getHeightOfLine (gdouble y);
+
+      gdouble getWidthOfWord (gdouble x, gdouble y);
+
       ApvlvLinks *getlinks ();
 
       bool mInverted;
 
-      ApvlvWord *getword (int x, int y);
+      ApvlvWord *getword (gdouble x, gdouble y);
 
-      ApvlvLine *getline (double x, double y);
+      ApvlvLine *getline (gdouble x, gdouble y);
 
      private:
       ApvlvFile *mFile;
@@ -117,13 +122,38 @@ namespace apvlv
       vector<ApvlvLine> *mLines;
 
       void preparelines (gint x1, gint y1, gint x2, gint y2);
-      ApvlvPos prepare_add (ApvlvPos &last, ApvlvPoses *results,
-                            const char *word);
+      ApvlvPos prepare_add (ApvlvPos &last, ApvlvPoses *results, const char *word);
+    };
+
+    class ApvlvImage {
+     public:
+      ApvlvImage (ApvlvDoc *doc, int id);
+      ~ApvlvImage ();
+
+      int mId;
+
+      GtkWidget *widget ();
+
+      void toCacheSize (gdouble x, gdouble y, ApvlvDocCache *cache, gdouble *rx,
+                        gdouble *ry);
+
+      void setFromPixbuf (GdkPixbuf *buf);
+
+      static void apvlv_image_copytoclipboard_cb (GtkMenuItem *item,
+                                                  ApvlvImage *image);
+
+     private:
+      GtkWidget *mImage;
+
+      GtkWidget *mEventBox;
+
+      ApvlvDoc *mDoc;
     };
 
     class ApvlvDoc : public ApvlvCore {
      public:
-      explicit ApvlvDoc (ApvlvView *, const char *zm = "NORMAL", bool cache = false);
+      explicit ApvlvDoc (ApvlvView *, const char *zm = "NORMAL",
+                         bool cache = false);
 
       ~ApvlvDoc () override;
 
@@ -175,6 +205,8 @@ namespace apvlv
 
       bool search (const char *str, bool reverse) override;
 
+      bool find (const char *str) override;
+
       returnType process (int hastimes, int times, guint keyval) override;
 
       void gotolink (int ct) override;
@@ -188,30 +220,27 @@ namespace apvlv
                                                     WebKitURIRequest *request,
                                                     ApvlvDoc *doc);
       static void webview_load_changed_cb (WebKitWebView *web_view,
-                                           WebKitLoadEvent event,
-                                           ApvlvDoc *doc);
-      static gboolean webview_context_menu_cb (WebKitWebView *web_view,
-                                               WebKitContextMenu *context_menu,
-                                               GdkEvent *event,
-                                               WebKitHitTestResult *hit_test_result,
-                                               ApvlvDoc *doc);
+                                           WebKitLoadEvent event, ApvlvDoc *doc);
+      static gboolean webview_context_menu_cb (
+          WebKitWebView *web_view, WebKitContextMenu *context_menu,
+          GdkEvent *event, WebKitHitTestResult *hit_test_result, ApvlvDoc *doc);
+
+      ApvlvImage *getApvlvImageByEventBox (GtkEventBox *box);
 
      private:
-      void blank (int x, int y);
+      void blank (ApvlvImage *img);
 
-      static void blankarea (int x1, int y1, int x2, int y2, guchar *, int width,
+      static void blankarea (ApvlvImage *image, ApvlvPos pos, guchar *buffer, int width,
                              int height);
 
-      void blankaction (double x, double y);
+      void doubleClickBlank (ApvlvImage *img, double x, double y);
 
       void togglevisual (int type);
 
       void scrollweb (int times, int w, int h);
       void scrollwebto (double xrate, double yrate);
 
-      int yank (int times);
-
-      void eventpos (double x, double y, double *rx, double *ry);
+      int yank (ApvlvImage *image, int times);
 
       returnType subprocess (int ct, guint key);
 
@@ -233,47 +262,61 @@ namespace apvlv
 
       void setDisplayType (DISPLAY_TYPE type);
 
+      void updateLastPoint (gdouble x, gdouble y);
+
+      void updateCurPoint (gdouble x, gdouble y, gboolean updateLast);
+
+      static void apvlv_doc_enter_notify_cb (GtkEventBox *box, GdkEvent *event,
+                                             ApvlvDoc *doc);
+
+      static void apvlv_doc_button_press_cb (GtkEventBox *box,
+                                             GdkEventButton *button,
+                                             ApvlvDoc *doc);
+
+      static gboolean apvlv_doc_motion_notify_cb (GtkEventBox *box,
+                                                  GdkEventMotion *motion,
+                                                  ApvlvDoc *doc);
+
       static void apvlv_doc_on_mouse (GtkAdjustment *, ApvlvDoc *);
-
-      static void apvlv_doc_button_event (GtkEventBox *box,
-                                          GdkEventButton *button, ApvlvDoc *doc);
-
-      static void apvlv_doc_motion_event (GtkWidget *, GdkEventMotion *,
-                                          ApvlvDoc *);
-
-      static void apvlv_doc_copytoclipboard_cb (GtkMenuItem *item, ApvlvDoc *);
 
       static void begin_print (GtkPrintOperation *operation,
                                GtkPrintContext *context, PrintData *data);
       static void draw_page (GtkPrintOperation *operation,
-                             GtkPrintContext *context,
-                             gint page_nr, PrintData *data);
+                             GtkPrintContext *context, gint page_nr,
+                             PrintData *data);
       static void end_print (GtkPrintOperation *operation,
                              GtkPrintContext *context, PrintData *data);
 
-      static void apvlv_doc_monitor_callback (GFileMonitor *, GFile *, GFile *, GFileMonitorEvent, ApvlvDoc *);
+      static void apvlv_doc_monitor_callback (GFileMonitor *, GFile *, GFile *,
+                                              GFileMonitorEvent, ApvlvDoc *);
 
       enum {
-          VISUAL_NONE, VISUAL_V, VISUAL_CTRL_V
+          VISUAL_NONE,
+          VISUAL_V,
+          VISUAL_CTRL_V
       };
       gint mInVisual;
-      gint mBlankx1, mBlanky1;
-      gint mBlankx2, mBlanky2;
-      gint mLastpress;
-      gint mCurx, mCury;
+
+      guint mLastpress;
+
+      ApvlvPoint mLastPoint, mCurPoint;
 
       ApvlvDocPositionMap mPositions;
       vector<ApvlvDocPosition> mLinkPositions;
 
-      ApvlvDocCache *mCurrentCache1, *mCurrentCache2, *mCurrentCache3;
+      ApvlvDocCache *mCurrentCache[3];
 
       DISPLAY_TYPE mDisplayType;
 
       GtkWidget *mVbox;
 
       // image viewer
-      GtkWidget *mImg1, *mImg2, *mImg3;
-      GtkWidget *mWeb1;
+      ApvlvImage *mImg[3];
+      GtkWidget *mWeb[1];
+
+      ApvlvImage *mCurrentImage;
+
+      friend class ApvlvImage;
     };
 }
 

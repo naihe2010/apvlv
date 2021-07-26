@@ -46,6 +46,10 @@ namespace apvlv
 
     typedef vector<ApvlvLink> ApvlvLinks;
 
+    struct ApvlvPoint {
+        double x, y;
+    };
+
     //
     // position of a search result, or just a area
     //
@@ -89,7 +93,7 @@ namespace apvlv
 
       virtual int pagesum () = 0;
 
-      virtual bool pagetext (int, int, int, int, int, char **) = 0;
+      virtual bool pagetext (int, gdouble, gdouble, gdouble, gdouble, char **) = 0;
 
       virtual bool render (int, int, int, double, int, GdkPixbuf *,
                            char *buffer);

@@ -43,6 +43,8 @@ using namespace std;
 namespace apvlv
 {
     const int APVLV_DEFAULT_CONTENT_WIDTH = 200;
+    const int APVLV_WORD_WIDTH_DEFAULT = 40;
+    const int APVLV_LINE_HEIGHT_DEFAULT = 15;
 
     class ApvlvCore;
     class ApvlvStatus {
@@ -134,6 +136,8 @@ namespace apvlv
 
       virtual bool search (const char *str, bool reverse);
 
+      virtual bool find (const char *str);
+
       virtual void gotolink (int ct);
 
       virtual void returnlink (int ct);
@@ -204,10 +208,6 @@ namespace apvlv
       int mSkip{};
 
       double mPagex{}, mPagey{};
-
-      double mVrate{}, mHrate{};
-
-      int mLines{}, mChars{};
 
       // the main widget
       GtkWidget *mVbox;
