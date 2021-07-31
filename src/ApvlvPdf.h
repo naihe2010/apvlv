@@ -50,10 +50,17 @@ public:
 
   bool render (int, int, int, double, int, GdkPixbuf *, char *) override;
 
+  bool annot_underline (int, gdouble, gdouble, gdouble, gdouble) override;
+
+  bool annot_text (int, gdouble, gdouble, gdouble, gdouble,
+                   const char *text) override;
+
   bool pageselectsearch (int, int, int, double, int, GdkPixbuf *, char *, int,
                          ApvlvPoses *) override;
 
   ApvlvPoses *pagesearch (int pn, const char *s, bool reverse) override;
+
+  ApvlvAnnotTexts *getAnnotTexts (int pn) override;
 
   ApvlvLinks *getlinks (int pn) override;
 

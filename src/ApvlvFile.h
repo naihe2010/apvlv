@@ -62,6 +62,14 @@ struct ApvlvPos
 
 typedef vector<ApvlvPos> ApvlvPoses;
 
+struct ApvlvAnnotText
+{
+  ApvlvPos pos;
+  string text;
+};
+
+typedef vector<ApvlvAnnotText> ApvlvAnnotTexts;
+
 enum ApvlvFileIndexType
 {
   FILE_INDEX_PAGE,
@@ -107,6 +115,11 @@ public:
 
   virtual bool render (int, int, int, double, int, GdkPixbuf *, char *buffer);
 
+  virtual bool annot_underline (int, gdouble, gdouble, gdouble, gdouble);
+
+  virtual bool annot_text (int, gdouble, gdouble, gdouble, gdouble,
+                           const char *text);
+
   virtual bool renderweb (int pn, int, int, double, int, GtkWidget *widget);
 
   virtual ApvlvPoses *pagesearch (int pn, const char *str, bool reverse) = 0;
@@ -114,6 +127,8 @@ public:
   virtual bool pageselectsearch (int, int, int, double, int, GdkPixbuf *,
                                  char *, int, ApvlvPoses *)
       = 0;
+
+  virtual ApvlvAnnotTexts *getAnnotTexts (int pn);
 
   virtual ApvlvLinks *getlinks (int pn) = 0;
 

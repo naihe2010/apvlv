@@ -157,7 +157,7 @@ public:
 
   virtual bool isControledContent ();
 
-  virtual returnType process (int has, int times, guint keyval);
+  virtual returnType process (int has, int times, guint keyval) = 0;
 
   ApvlvView *mView;
 

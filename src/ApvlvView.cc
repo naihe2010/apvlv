@@ -353,7 +353,7 @@ ApvlvView::newtab (ApvlvCore *core)
   return true;
 }
 
-bool
+__attribute__ ((unused)) bool
 ApvlvView::newview (const gchar *filename, gint pn, bool disable_content)
 {
   auto *view = new ApvlvView (this);
@@ -598,6 +598,34 @@ ApvlvView::infomessage (const char *str, ...)
   pos = gtk_editable_get_position (GTK_EDITABLE (mCommandBar));
   gtk_editable_insert_text (GTK_EDITABLE (mCommandBar), estr, -1, &pos);
   cmd_show (CMD_MESSAGE);
+}
+
+gchar *
+ApvlvView::input (const char *str, int width, int height)
+{
+  auto flags = GTK_DIALOG_DESTROY_WITH_PARENT;
+  auto dialog = gtk_dialog_new_with_buttons (str, nullptr, flags, "OK",
+                                             GTK_RESPONSE_ACCEPT, "Cancel",
+                                             GTK_RESPONSE_CANCEL, NULL);
+  auto content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
+  auto entry = gtk_text_view_new ();
+  gtk_widget_set_size_request (entry, width, height);
+  gtk_text_view_set_wrap_mode (GTK_TEXT_VIEW (entry), GTK_WRAP_WORD_CHAR);
+  gtk_container_add (GTK_CONTAINER (content_area), entry);
+  gtk_widget_show_all (content_area);
+
+  gchar *response = nullptr;
+  auto result = gtk_dialog_run (GTK_DIALOG (dialog));
+  if (result == GTK_RESPONSE_ACCEPT)
+    {
+      auto buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (entry));
+      GtkTextIter start, end;
+      gtk_text_buffer_get_start_iter (buffer, &start);
+      gtk_text_buffer_get_end_iter (buffer, &end);
+      response = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
+    }
+  gtk_widget_destroy (dialog);
+  return response;
 }
 
 void

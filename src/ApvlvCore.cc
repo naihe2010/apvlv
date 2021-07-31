@@ -139,12 +139,6 @@ ApvlvCore::inuse ()
   return mInuse;
 }
 
-returnType
-ApvlvCore::process (int has, int ct, guint key)
-{
-  return MATCH;
-}
-
 ApvlvCore *
 ApvlvCore::copy ()
 {

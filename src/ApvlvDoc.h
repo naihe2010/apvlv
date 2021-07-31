@@ -113,6 +113,12 @@ public:
 
   ApvlvLine *getline (gdouble y);
 
+  vector<ApvlvLine *> getlines (gdouble y1, gdouble y2);
+
+  ApvlvAnnotText *getAnnotText (gdouble x, gdouble y);
+
+  vector<ApvlvPos> getSelected (ApvlvPoint last, ApvlvPoint cur, int visual);
+
 private:
   ApvlvFile *mFile;
   ApvlvLinks *mLinks;
@@ -127,7 +133,10 @@ private:
 
   vector<ApvlvLine> *mLines;
 
-  void preparelines (gint x1, gint y1, gint x2, gint y2);
+  ApvlvAnnotTexts *mAnnotTexts;
+
+  void preGetLines (gint x1, gint y1, gint x2, gint y2);
+  void sortLines ();
   void prepare_add (const char *word, ApvlvPoses *results);
 };
 
@@ -252,6 +261,10 @@ private:
 
   void yank (ApvlvImage *image, int times);
 
+  void annotUnderline (ApvlvImage *image);
+
+  void annotText (ApvlvImage *image);
+
   returnType subprocess (int ct, guint key);
 
   int convertindex (int p);
@@ -276,6 +289,8 @@ private:
 
   void updateCurPoint (gdouble x, gdouble y, gboolean updateLast);
 
+  void annotShow (ApvlvImage *image, gdouble x, gdouble y);
+
   static void apvlv_doc_enter_notify_cb (GtkEventBox *box, GdkEvent *event,
                                          ApvlvDoc *doc);
 
@@ -286,6 +301,10 @@ private:
   static gboolean apvlv_doc_motion_notify_cb (GtkEventBox *box,
                                               GdkEventMotion *motion,
                                               ApvlvDoc *doc);
+
+  static gboolean apvlv_doc_tooltip_cb (GtkEventBox *box, int x, int y,
+                                        gboolean keyboard_mode,
+                                        GtkTooltip *tooltip, ApvlvDoc *doc);
 
   static void apvlv_doc_on_mouse (GtkAdjustment *, ApvlvDoc *);
 
@@ -327,6 +346,7 @@ private:
 
   ApvlvImage *mCurrentImage;
 
+  friend class ApvlvDocCache;
   friend class ApvlvImage;
 };
 }

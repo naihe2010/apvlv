@@ -580,6 +580,62 @@ ApvlvPDF::pageprint (int pn, cairo_t *cr)
     }
 #endif
 }
+
+bool
+ApvlvPDF::annot_underline (int pn, gdouble x1, gdouble y1, gdouble x2,
+                           gdouble y2)
+{
+  auto page = poppler_document_get_page (mDoc, pn);
+  gdouble width, height;
+  poppler_page_get_size (page, &width, &height);
+  PopplerRectangle rect = { x1, height - y1, x2, height - y2 };
+  PopplerPoint p1 = { x1, height - y1 }, p2 = { x2, height - y2 };
+  auto annot = poppler_annot_line_new (mDoc, &rect, &p1, &p2);
+
+  poppler_page_add_annot (page, annot);
+  return true;
+}
+
+bool
+ApvlvPDF::annot_text (int pn, gdouble x1, gdouble y1, gdouble x2, gdouble y2,
+                      const char *text)
+{
+  auto page = poppler_document_get_page (mDoc, pn);
+  gdouble width, height;
+  poppler_page_get_size (page, &width, &height);
+  PopplerRectangle rect = { x1, height - y1, x2, height - y2 };
+  auto annot = poppler_annot_text_new (mDoc, &rect);
+  poppler_annot_set_flags (annot, POPPLER_ANNOT_FLAG_PRINT);
+  poppler_annot_set_contents (annot, text);
+
+  poppler_page_add_annot (page, annot);
+  return true;
+}
+
+ApvlvAnnotTexts *
+ApvlvPDF::getAnnotTexts (int pn)
+{
+  auto *texts = new ApvlvAnnotTexts;
+  auto page = poppler_document_get_page (mDoc, pn);
+  auto lists = poppler_page_get_annot_mapping (page);
+  for (auto node = lists; node != nullptr; node = node->next)
+    {
+      auto mapping = (PopplerAnnotMapping *)node->data;
+      auto area = mapping->area;
+      auto annot = mapping->annot;
+      if (poppler_annot_get_annot_type (annot) != POPPLER_ANNOT_TEXT)
+        continue;
+
+      ApvlvAnnotText text;
+      text.pos = { area.x1, area.x2, area.y1, area.y2 };
+      auto contents = poppler_annot_get_contents (annot);
+      text.text = contents;
+      texts->push_back (text);
+      g_free (contents);
+    }
+
+  return texts;
+}
 }
 
 // Local Variables:

@@ -70,7 +70,8 @@ public:
 
   bool newtab (ApvlvCore *core);
 
-  bool newview (const char *filename, gint pn, bool disable_content = false);
+  __attribute__ ((unused)) bool newview (const char *filename, gint pn,
+                                         bool disable_content = false);
 
   void promptcommand (char ch);
 
@@ -79,6 +80,8 @@ public:
   void errormessage (const char *str, ...);
 
   void infomessage (const char *str, ...);
+
+  static gchar *input (const char *str, int w = 400, int h = 150);
 
   bool run (const char *str);
 

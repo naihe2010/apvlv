@@ -154,6 +154,24 @@ ApvlvFile::get_anchor ()
 {
   return mAnchor;
 }
+bool
+ApvlvFile::annot_underline (int, gdouble, gdouble, gdouble, gdouble)
+{
+  return false;
+}
+
+bool
+ApvlvFile::annot_text (int, gdouble, gdouble, gdouble, gdouble,
+                       const char *text)
+{
+  return false;
+}
+
+ApvlvAnnotTexts *
+ApvlvFile::getAnnotTexts (int pn)
+{
+  return nullptr;
+}
 
 ApvlvFileIndex *
 ApvlvFileIndex::newDirIndex (const gchar *path, ApvlvFileIndex *parent_index)
