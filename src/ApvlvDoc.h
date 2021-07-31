@@ -91,7 +91,7 @@ public:
 
   static void load (ApvlvDocCache *);
 
-  guint getpagenum () const;
+  gint getpagenum () const;
 
   guchar *getdata (bool wait);
 
@@ -111,7 +111,7 @@ public:
 
   ApvlvWord *getword (gdouble x, gdouble y);
 
-  ApvlvLine *getline (gdouble x, gdouble y);
+  ApvlvLine *getline (gdouble y);
 
 private:
   ApvlvFile *mFile;
@@ -128,7 +128,7 @@ private:
   vector<ApvlvLine> *mLines;
 
   void preparelines (gint x1, gint y1, gint x2, gint y2);
-  ApvlvPos prepare_add (ApvlvPos &last, ApvlvPoses *results, const char *word);
+  void prepare_add (const char *word, ApvlvPoses *results);
 };
 
 class ApvlvImage
@@ -248,7 +248,7 @@ private:
   void scrollweb (int times, int w, int h);
   void scrollwebto (double xrate, double yrate);
 
-  int yank (ApvlvImage *image, int times);
+  void yank (ApvlvImage *image, int times);
 
   returnType subprocess (int ct, guint key);
 

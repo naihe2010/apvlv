@@ -40,6 +40,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <sstream>
 
 namespace apvlv
@@ -164,7 +165,6 @@ void
 ApvlvDoc::blankarea (ApvlvImage *image, ApvlvPos pos, guchar *buffer,
                      int width, int height)
 {
-  debug ("%.0f:%.0f -> %.0f:%.0f\n", pos.x1, pos.y1, pos.x2, pos.y2);
   int x1 = int (pos.x1), x2 = int (pos.x2);
   int y1 = int (pos.y1), y2 = int (pos.y2);
   if (x2 > width)
@@ -209,7 +209,7 @@ ApvlvDoc::doubleClickBlank (ApvlvImage *image, double x, double y)
   else if (strcasecmp (gParams->values ("doubleclick"), "line") == 0)
     {
       ApvlvLine *line;
-      line = cache->getline (x, y);
+      line = cache->getline (y);
       if (line != nullptr)
         {
           pos = line->pos;
@@ -243,41 +243,48 @@ ApvlvDoc::blank (ApvlvImage *image)
   auto y1 = mLastPoint.y, y2 = mCurPoint.y;
   auto x1 = mLastPoint.x, x2 = mCurPoint.x;
 
-  auto buffer = cache->getdata (true);
+  g_return_if_fail (y1 <= y2);
 
-  auto rate1 = cache->getHeightOfLine (y1 + 1);
-  auto rate2 = cache->getHeightOfLine (y2 - 1);
+  auto line1 = cache->getline (y1);
+  while (line1 == nullptr && int (y1) != int (y2))
+    {
+      y1++;
+      line1 = cache->getline (y1);
+    }
+  auto line2 = cache->getline (y2);
+  while (line2 == nullptr && int (y1) != int (y2))
+    {
+      y2--;
+      line2 = cache->getline (y2);
+    }
+
+  auto buffer = cache->getdata (true);
 
   if (mInVisual == VISUAL_V)
     {
-      ApvlvPos pos = { x1, x2 + APVLV_CURSOR_WIDTH_DEFAULT, y1,
-                       y1 == y2 ? y1 + rate1 : y2 };
-      if (y1 + rate1 >= y2)
+      if (line1 == nullptr || line2 == nullptr)
         {
+          ApvlvPos pos = { x1, x2, y1, y2 };
           blankarea (image, pos, buffer, cache->getwidth (),
                      cache->getheight ());
         }
-      else if (y1 + rate1 + rate2 >= y2)
+      else if (line1 == line2)
         {
-          ApvlvPos pos1 = { x1, double (cache->getwidth ()), y1, y1 + rate1 };
-          blankarea (image, pos1, buffer, cache->getwidth (),
-                     cache->getheight ());
-          ApvlvPos pos2
-              = { 0, x2 + APVLV_CURSOR_WIDTH_DEFAULT, y1 + rate1, y2 };
-          blankarea (image, pos2, buffer, cache->getwidth (),
+          ApvlvPos pos = { x1, x2, line1->pos.y1, line1->pos.y2 };
+          blankarea (image, pos, buffer, cache->getwidth (),
                      cache->getheight ());
         }
       else
         {
-          ApvlvPos pos1 = { x1, double (cache->getwidth ()), y1, y1 + rate1 };
+          ApvlvPos pos1 = { x1, double (cache->getwidth ()), line1->pos.y1,
+                            line1->pos.y2 };
           blankarea (image, pos1, buffer, cache->getwidth (),
                      cache->getheight ());
-          ApvlvPos pos2
-              = { 0, double (cache->getwidth ()), y1 + rate1, y2 - rate2 };
+          ApvlvPos pos2 = { 0, double (cache->getwidth ()), line1->pos.y2,
+                            line2->pos.y1 };
           blankarea (image, pos2, buffer, cache->getwidth (),
                      cache->getheight ());
-          ApvlvPos pos3
-              = { 0, x2 + APVLV_CURSOR_WIDTH_DEFAULT, y2 - rate2, y2 };
+          ApvlvPos pos3 = { 0, x2, line2->pos.y1, line2->pos.y2 };
           blankarea (image, pos3, buffer, cache->getwidth (),
                      cache->getheight ());
         }
@@ -285,17 +292,18 @@ ApvlvDoc::blank (ApvlvImage *image)
   else if (mInVisual == VISUAL_CTRL_V)
     {
       ApvlvPos pos = { x1, x2, y1, y2 };
-      if (x1 + APVLV_CURSOR_WIDTH_DEFAULT > x2)
-        pos.x2 = x1 + APVLV_CURSOR_WIDTH_DEFAULT;
-      if (y1 + rate1 > y2)
-        pos.y2 = y1 + rate1;
       blankarea (image, pos, buffer, cache->getwidth (), cache->getheight ());
     }
   else
     {
       ApvlvPos pos
-          = { mCurPoint.x, mCurPoint.x + double (APVLV_CURSOR_WIDTH_DEFAULT),
-              mCurPoint.y, mCurPoint.y + rate1 };
+          = { mCurPoint.x, mCurPoint.x + int (APVLV_CURSOR_WIDTH_DEFAULT),
+              mCurPoint.y, mCurPoint.y + APVLV_LINE_HEIGHT_DEFAULT };
+      if (line2 != nullptr)
+        {
+          pos.y1 = line2->pos.y1;
+          pos.y2 = line2->pos.y2;
+        }
       blankarea (image, pos, buffer, cache->getwidth (), cache->getheight ());
     }
 
@@ -329,42 +337,48 @@ ApvlvDoc::togglevisual (int key)
   blank (mCurrentImage);
 }
 
-int
+void
 ApvlvDoc::yank (ApvlvImage *image, int times)
 {
+  g_return_if_fail (image);
   auto cache = mCurrentCache[image->mId];
   char *txt1 = nullptr, *txt2 = nullptr, *txt3 = nullptr;
 
   auto y1 = mLastPoint.y, y2 = mCurPoint.y;
-  if (y1 > y2)
-    {
-      y1 = mCurPoint.y;
-      y2 = mLastPoint.y;
-    }
   auto x1 = mLastPoint.x, x2 = mCurPoint.x;
-  if (x1 > x2)
+
+  g_return_if_fail (y1 <= y2);
+
+  auto line1 = cache->getline (y1);
+  while (line1 == nullptr && int (y1) != int (y2))
     {
-      x1 = mCurPoint.x;
-      x2 = mLastPoint.x;
+      y1++;
+      line1 = cache->getline (y1);
+    }
+  auto line2 = cache->getline (y2);
+  while (line2 == nullptr && int (y1) != int (y2))
+    {
+      y2--;
+      line2 = cache->getline (y2);
     }
 
-  auto rate1 = cache->getHeightOfLine (y1 + 1);
-  auto rate2 = cache->getHeightOfLine (y2 - 1);
-
-  if (mInVisual == VISUAL_CTRL_V)
+  if (mInVisual == VISUAL_CTRL_V || line1 == nullptr || line2 == nullptr)
     {
-      mFile->pagetext (cache->getpagenum (), x1, y1,
-                       x2 + APVLV_CURSOR_WIDTH_DEFAULT, rate1, &txt1);
+      mFile->pagetext (cache->getpagenum (), x1, y1, x2, y2, &txt1);
+    }
+  else if (line1 == line2)
+    {
+      mFile->pagetext (cache->getpagenum (), x1, line1->pos.y1, x2,
+                       line1->pos.y2, &txt1);
     }
   else
     {
       mFile->pagetext (cache->getpagenum (), x1, y1, cache->getwidth (),
-                       gint (y1 + rate1), &txt1);
-      mFile->pagetext (cache->getpagenum (), 0, gint (y1 + rate1),
-                       mCurrentCache[0]->getwidth (), y2, &txt2);
-      mFile->pagetext (cache->getpagenum (), 0, y2,
-                       x2 + APVLV_CURSOR_WIDTH_DEFAULT, gint (y2 + rate2),
-                       &txt3);
+                       line1->pos.y1, &txt1);
+      mFile->pagetext (cache->getpagenum (), 0, gint (line1->pos.y2),
+                       mCurrentCache[0]->getwidth (), line2->pos.y1, &txt2);
+      mFile->pagetext (cache->getpagenum (), 0, line2->pos.y1, x2,
+                       gint (line2->pos.y2), &txt3);
     }
 
   GtkClipboard *cb = gtk_clipboard_get (nullptr);
@@ -386,8 +400,6 @@ ApvlvDoc::yank (ApvlvImage *image, int times)
     }
   debug ("selected \n[%s]\n", text.c_str ());
   gtk_clipboard_set_text (cb, text.c_str (), gint (text.length ()));
-
-  return 0;
 }
 
 returnType
@@ -1803,8 +1815,9 @@ ApvlvDoc::apvlv_doc_button_press_cb (GtkEventBox *box, GdkEventButton *button,
             }
           else
             {
-              doc->updateCurPoint (x, y, TRUE);
               doc->mInVisual = ApvlvDoc::VISUAL_NONE;
+              doc->updateLastPoint (x, y);
+              doc->updateCurPoint (x, y, FALSE);
               doc->blank (image);
             }
 
@@ -2008,14 +2021,12 @@ ApvlvDoc::setDisplayType (DISPLAY_TYPE type)
 void
 ApvlvDoc::updateLastPoint (gdouble x, gdouble y)
 {
-  debug ("update last point: %.0f-%.0f\n", x, y);
   mLastPoint = { x, y };
 }
 
 void
 ApvlvDoc::updateCurPoint (gdouble x, gdouble y, gboolean updateLast)
 {
-  debug ("update current point: %.0f-%.0f\n", x, y);
   if (updateLast)
     {
       updateLastPoint (mCurPoint.x, mCurPoint.y);
@@ -2132,7 +2143,7 @@ ApvlvDocCache::~ApvlvDocCache ()
     }
 }
 
-guint
+gint
 ApvlvDocCache::getpagenum () const
 {
   return mPagenum;
@@ -2182,7 +2193,7 @@ ApvlvDocCache::getlinks ()
 ApvlvWord *
 ApvlvDocCache::getword (gdouble x, gdouble y)
 {
-  auto line = getline (x, y);
+  auto line = getline (y);
   if (line == nullptr)
     return nullptr;
 
@@ -2198,7 +2209,7 @@ ApvlvDocCache::getword (gdouble x, gdouble y)
 }
 
 ApvlvLine *
-ApvlvDocCache::getline (gdouble x, gdouble y)
+ApvlvDocCache::getline (gdouble y)
 {
   g_return_val_if_fail (mLines != nullptr, nullptr);
 
@@ -2231,7 +2242,7 @@ ApvlvDocCache::preparelines (gint x1, gint y1, gint x2, gint y2)
 
       mLines = new vector<ApvlvLine>;
 
-      ApvlvPos lastpos = { 0, 0, 0, 0 };
+      std::set<string> processed;
 
       if (strcmp (gParams->values ("doubleclick"), "word") == 0)
         {
@@ -2239,10 +2250,16 @@ ApvlvDocCache::preparelines (gint x1, gint y1, gint x2, gint y2)
           while (!ss.eof ())
             {
               ss >> word;
+
+              if (processed.count (word) > 0)
+                continue;
+
+              processed.insert (word);
+
               results = mFile->pagesearch (mPagenum, word.c_str (), false);
               if (results != nullptr)
                 {
-                  lastpos = prepare_add (lastpos, results, word.c_str ());
+                  prepare_add (word.c_str (), results);
                   delete results;
                 }
             }
@@ -2266,11 +2283,17 @@ ApvlvDocCache::preparelines (gint x1, gint y1, gint x2, gint y2)
                     {
                       continue;
                     }
+
+                  if (processed.count (word) > 0)
+                    continue;
+
+                  processed.insert (word);
+
                   debug ("search [%s]", p);
                   results = mFile->pagesearch (mPagenum, p, false);
                   if (results != nullptr)
                     {
-                      lastpos = prepare_add (lastpos, results, p);
+                      prepare_add (p, results);
                       delete results;
                     }
                 }
@@ -2282,62 +2305,48 @@ ApvlvDocCache::preparelines (gint x1, gint y1, gint x2, gint y2)
     }
 }
 
-ApvlvPos
-ApvlvDocCache::prepare_add (ApvlvPos &lastpos, ApvlvPoses *results,
-                            const char *word)
+void
+ApvlvDocCache::prepare_add (const char *word, ApvlvPoses *results)
 {
-  ApvlvPoses::iterator itr;
-  for (itr = results->begin (); itr != results->end (); ++itr)
+  for (auto itr : *results)
     {
-      itr->x1 = itr->x1 * mZoom;
-      itr->x2 = itr->x2 * mZoom;
-      itr->y1 = mHeight - itr->y1 * mZoom;
-      itr->y2 = mHeight - itr->y2 * mZoom;
+      itr.x1 = itr.x1 * mZoom;
+      itr.x2 = itr.x2 * mZoom;
+      itr.y1 = mHeight - itr.y1 * mZoom;
+      itr.y2 = mHeight - itr.y2 * mZoom;
 
-      if ((lastpos.y1 < itr->y2)
-          || (lastpos.y1 - itr->y2 < 0.1 && lastpos.x2 < itr->x1))
+      vector<ApvlvLine>::iterator litr;
+      for (litr = mLines->begin (); litr != mLines->end (); ++litr)
         {
-          break;
+          if (fabs (itr.y1 - litr->pos.y1) < 0.0001
+              && fabs (itr.y2 - litr->pos.y2) < 0.0001)
+            {
+              break;
+            }
+        }
+
+      ApvlvWord aword = { itr, word };
+
+      if (litr != mLines->end ())
+        {
+          litr->mWords.push_back (aword);
+          if (itr.x1 < litr->pos.x1)
+            {
+              litr->pos.x1 = itr.x1;
+            }
+          if (itr.x2 > litr->pos.x2)
+            {
+              litr->pos.x2 = itr.x2;
+            }
+        }
+      else
+        {
+          ApvlvLine line;
+          line.pos = itr;
+          line.mWords.push_back (aword);
+          mLines->push_back (line);
         }
     }
-
-  if (itr == results->end ())
-    {
-      return lastpos;
-    }
-
-  vector<ApvlvLine>::iterator litr;
-  for (litr = mLines->begin (); litr != mLines->end (); ++litr)
-    {
-      if (fabs (itr->y1 - litr->pos.y1) < 0.0001
-          && fabs (itr->y2 - litr->pos.y2) < 0.0001)
-        {
-          break;
-        }
-    }
-
-  ApvlvWord aword = { *itr, word };
-  if (litr != mLines->end ())
-    {
-      litr->mWords.push_back (aword);
-      if (itr->x1 < litr->pos.x1)
-        {
-          litr->pos.x1 = itr->x1;
-        }
-      if (itr->x2 > litr->pos.x2)
-        {
-          litr->pos.x2 = itr->x2;
-        }
-    }
-  else
-    {
-      ApvlvLine line;
-      line.pos = *itr;
-      line.mWords.push_back (aword);
-      mLines->push_back (line);
-    }
-
-  return *itr;
 }
 
 gdouble
