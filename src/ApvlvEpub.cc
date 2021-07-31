@@ -394,7 +394,7 @@ ApvlvEPUB::ncx_get_index (struct epub *epub, string ncxfile)
       return index;
     }
 
-  index = new ApvlvFileIndex ("__cover__", 0, "", PAGE);
+  index = new ApvlvFileIndex ("__cover__", 0, "", FILE_INDEX_PAGE);
   for (node = map->children; node != nullptr; node = node->next)
     {
       if (node->type != XML_ELEMENT_NODE)
@@ -413,7 +413,7 @@ ApvlvEPUB::ncx_get_index (struct epub *epub, string ncxfile)
 ApvlvFileIndex *
 ApvlvEPUB::ncx_node_get_index (xmlNodePtr node, string ncxfile)
 {
-  auto *index = new ApvlvFileIndex ("", 0, "", PAGE);
+  auto *index = new ApvlvFileIndex ("", 0, "", FILE_INDEX_PAGE);
   xmlNodePtr child;
 
   string pagestr = xmlnode_attr_get (node, "playOrder");

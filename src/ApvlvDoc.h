@@ -148,6 +148,8 @@ public:
 
   static void apvlv_image_copytoclipboard_cb (GtkMenuItem *item,
                                               ApvlvImage *image);
+  static void apvlv_image_underline_cb (GtkMenuItem *item, ApvlvImage *image);
+  static void apvlv_image_annotate_cb (GtkMenuItem *item, ApvlvImage *image);
 
 private:
   GtkWidget *mImage;

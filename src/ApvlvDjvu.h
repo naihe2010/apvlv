@@ -37,32 +37,32 @@ namespace apvlv
 class ApvlvDJVU : public ApvlvFile
 {
 public:
-  ApvlvDJVU (const char *filename, bool check = true);
+  explicit ApvlvDJVU (const char *filename, bool check = true);
 
-  ~ApvlvDJVU ();
+  ~ApvlvDJVU () override;
 
-  bool writefile (const char *filename);
+  bool writefile (const char *filename) override;
 
-  bool pagesize (int page, int rot, double *x, double *y);
+  bool pagesize (int page, int rot, double *x, double *y) override;
 
-  int pagesum ();
+  int pagesum () override;
 
-  bool pagetext (int, int, int, int, int, char **);
+  bool pagetext (int, double, double, double, double, char **) override;
 
-  bool render (int, int, int, double, int, GdkPixbuf *, char *);
+  bool render (int, int, int, double, int, GdkPixbuf *, char *) override;
 
   bool pageselectsearch (int, int, int, double, int, GdkPixbuf *, char *, int,
-                         ApvlvPoses *);
+                         ApvlvPoses *) override;
 
-  ApvlvPoses *pagesearch (int pn, const char *s, bool reverse = false);
+  ApvlvPoses *pagesearch (int pn, const char *s, bool reverse) override;
 
-  ApvlvLinks *getlinks (int pn);
+  ApvlvLinks *getlinks (int pn) override;
 
-  ApvlvFileIndex *new_index ();
+  ApvlvFileIndex *new_index () override;
 
-  void free_index (ApvlvFileIndex *);
+  void free_index (ApvlvFileIndex *) override;
 
-  bool pageprint (int pn, cairo_t *cr);
+  bool pageprint (int pn, cairo_t *cr) override;
 
 private:
   ddjvu_context_t *mContext;

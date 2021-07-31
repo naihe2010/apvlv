@@ -493,7 +493,7 @@ ApvlvPDF::new_index ()
       return nullptr;
     }
 
-  mIndex = new ApvlvFileIndex ("", 0, "", PAGE);
+  mIndex = new ApvlvFileIndex ("", 0, "", FILE_INDEX_PAGE);
   walk_poppler_index_iter (mIndex, itr);
   poppler_index_iter_free (itr);
 
@@ -532,12 +532,14 @@ ApvlvPDF::walk_poppler_index_iter (ApvlvFileIndex *root_index,
                       pn = destnew->page_num - 1;
                       poppler_dest_free (destnew);
                     }
-                  index = new ApvlvFileIndex (pagd->title, pn, "", PAGE);
+                  index = new ApvlvFileIndex (pagd->title, pn, "",
+                                              FILE_INDEX_PAGE);
                 }
               else
                 {
-                  index = new ApvlvFileIndex (
-                      pagd->title, pagd->dest->page_num - 1, "", PAGE);
+                  index = new ApvlvFileIndex (pagd->title,
+                                              pagd->dest->page_num - 1, "",
+                                              FILE_INDEX_PAGE);
                 }
 
               has = true;

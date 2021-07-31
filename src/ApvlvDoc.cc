@@ -1845,6 +1845,20 @@ ApvlvDoc::apvlv_doc_button_press_cb (GtkEventBox *box, GdkEventButton *button,
           item, "activate",
           G_CALLBACK (ApvlvImage::apvlv_image_copytoclipboard_cb), image);
 
+      item = gtk_menu_item_new_with_label ("Under line");
+      gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
+      gtk_widget_show (item);
+      g_signal_connect (item, "activate",
+                        G_CALLBACK (ApvlvImage::apvlv_image_underline_cb),
+                        image);
+
+      item = gtk_menu_item_new_with_label ("Annotate");
+      gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
+      gtk_widget_show (item);
+      g_signal_connect (item, "activate",
+                        G_CALLBACK (ApvlvImage::apvlv_image_annotate_cb),
+                        image);
+
 #if GTK_CHECK_VERSION(3, 22, 0)
       gtk_menu_popup_at_pointer (GTK_MENU (menu), nullptr);
 #else
@@ -1913,7 +1927,7 @@ ApvlvDoc::contentShowPage (ApvlvFileIndex *index, bool force)
   if (index == nullptr)
     return;
 
-  if (index->type == ApvlvFileIndexType::DIR)
+  if (index->type == ApvlvFileIndexType::FILE_INDEX_DIR)
     return;
 
   auto follow_mode = "always";
@@ -1929,7 +1943,7 @@ ApvlvDoc::contentShowPage (ApvlvFileIndex *index, bool force)
 
   else if (g_ascii_strcasecmp (follow_mode, "page") == 0)
     {
-      if (index->type == ApvlvFileIndexType::PAGE)
+      if (index->type == ApvlvFileIndexType::FILE_INDEX_PAGE)
         {
           if (index->page != mPagenum)
             showpage (index->page, 0.0);
@@ -1939,7 +1953,7 @@ ApvlvDoc::contentShowPage (ApvlvFileIndex *index, bool force)
 
   else if (g_ascii_strcasecmp (follow_mode, "always") == 0)
     {
-      if (index->type == ApvlvFileIndexType::PAGE)
+      if (index->type == ApvlvFileIndexType::FILE_INDEX_PAGE)
         {
           if (index->page != mPagenum)
             showpage (index->page, 0.0);
@@ -2559,6 +2573,22 @@ ApvlvImage::toCacheSize (gdouble x, gdouble y, ApvlvDocCache *cache,
 void
 ApvlvImage::apvlv_image_copytoclipboard_cb (GtkMenuItem *item,
                                             ApvlvImage *image)
+{
+  image->mDoc->yank (image, 1);
+  image->mDoc->mInVisual = ApvlvDoc::VISUAL_NONE;
+  image->mDoc->blank (image);
+}
+
+void
+ApvlvImage::apvlv_image_underline_cb (GtkMenuItem *item, ApvlvImage *image)
+{
+  image->mDoc->yank (image, 1);
+  image->mDoc->mInVisual = ApvlvDoc::VISUAL_NONE;
+  image->mDoc->blank (image);
+}
+
+void
+ApvlvImage::apvlv_image_annotate_cb (GtkMenuItem *item, ApvlvImage *image)
 {
   image->mDoc->yank (image, 1);
   image->mDoc->mInVisual = ApvlvDoc::VISUAL_NONE;

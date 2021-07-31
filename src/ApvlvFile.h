@@ -64,9 +64,9 @@ typedef vector<ApvlvPos> ApvlvPoses;
 
 enum ApvlvFileIndexType
 {
-  PAGE,
-  FILE,
-  DIR
+  FILE_INDEX_PAGE,
+  FILE_INDEX_FILE,
+  FILE_INDEX_DIR
 };
 
 class ApvlvFileIndex

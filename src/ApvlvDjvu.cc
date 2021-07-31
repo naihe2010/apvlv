@@ -27,6 +27,7 @@
 
 #include "ApvlvDjvu.h"
 #include "ApvlvUtil.h"
+#include <cstdio>
 
 namespace apvlv
 {
@@ -199,7 +200,8 @@ ApvlvDJVU::getlinks (int pn)
 }
 
 bool
-ApvlvDJVU::pagetext (int pn, int x1, int y1, int x2, int y2, char **out)
+ApvlvDJVU::pagetext (int pn, double x1, double y1, double x2, double y2,
+                     char **out)
 {
   return false;
 }

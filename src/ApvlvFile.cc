@@ -161,7 +161,7 @@ ApvlvFileIndex::newDirIndex (const gchar *path, ApvlvFileIndex *parent_index)
   ApvlvFileIndex *root_index = parent_index;
   if (root_index == nullptr)
     {
-      root_index = new ApvlvFileIndex ("", 0, "", DIR);
+      root_index = new ApvlvFileIndex ("", 0, "", FILE_INDEX_DIR);
     }
 
   GDir *dir = g_dir_open (path, 0, nullptr);
@@ -197,7 +197,8 @@ ApvlvFileIndex::newDirIndex (const gchar *path, ApvlvFileIndex *parent_index)
 
           if (S_ISDIR (buf->st_mode))
             {
-              auto index = new ApvlvFileIndex (name, 0, realname, DIR);
+              auto index
+                  = new ApvlvFileIndex (name, 0, realname, FILE_INDEX_DIR);
               root_index->children.push_back (index);
               newDirIndex (realname, index);
             }
@@ -224,7 +225,8 @@ ApvlvFileIndex::newDirIndex (const gchar *path, ApvlvFileIndex *parent_index)
 #endif
           )
             {
-              auto index = new ApvlvFileIndex (name, 0, realname, FILE);
+              auto index
+                  = new ApvlvFileIndex (name, 0, realname, FILE_INDEX_FILE);
               root_index->children.push_back (index);
             }
 
