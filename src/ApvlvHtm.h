@@ -35,41 +35,43 @@
 
 namespace apvlv
 {
-    const double HTML_DEFAULT_WIDTH = 800;
-    const double HTML_DEFAULT_HEIGHT = 800;
+const double HTML_DEFAULT_WIDTH = 800;
+const double HTML_DEFAULT_HEIGHT = 800;
 
-    class ApvlvHTML : public ApvlvFile {
-     public:
-      explicit ApvlvHTML (const char *, bool check = true);
+class ApvlvHTML : public ApvlvFile
+{
+public:
+  explicit ApvlvHTML (const char *, bool check = true);
 
-      ~ApvlvHTML () override;
+  ~ApvlvHTML () override;
 
-      bool writefile (const char *filename) override;
+  bool writefile (const char *filename) override;
 
-      bool pagesize (int page, int rot, double *x, double *y) override;
+  bool pagesize (int page, int rot, double *x, double *y) override;
 
-      int pagesum () override;
+  int pagesum () override;
 
-      bool pagetext (int, gdouble, gdouble, gdouble, gdouble, char **) override;
+  bool pagetext (int, gdouble, gdouble, gdouble, gdouble, char **) override;
 
-      bool renderweb (int pn, int ix, int iy, double zm, int rot, GtkWidget *widget) override;
+  bool renderweb (int pn, int ix, int iy, double zm, int rot,
+                  GtkWidget *widget) override;
 
-      ApvlvPoses *pagesearch (int pn, const char *str, bool reverse) override;
+  ApvlvPoses *pagesearch (int pn, const char *str, bool reverse) override;
 
-      bool pageselectsearch (int, int, int, double, int,
-                             GdkPixbuf *, char *, int, ApvlvPoses *) override;
+  bool pageselectsearch (int, int, int, double, int, GdkPixbuf *, char *, int,
+                         ApvlvPoses *) override;
 
-      ApvlvLinks *getlinks (int pn) override;
+  ApvlvLinks *getlinks (int pn) override;
 
-      ApvlvFileIndex *new_index () override;
+  ApvlvFileIndex *new_index () override;
 
-      void free_index (ApvlvFileIndex *) override;
+  void free_index (ApvlvFileIndex *) override;
 
-      bool pageprint (int pn, cairo_t *cr) override;
+  bool pageprint (int pn, cairo_t *cr) override;
 
-     private:
-      string mUri;
-    };
+private:
+  string mUri;
+};
 
 }
 

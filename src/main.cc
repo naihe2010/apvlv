@@ -26,10 +26,10 @@
  */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
-#include "ApvlvView.h"
-#include "ApvlvParams.h"
 #include "ApvlvInfo.h"
+#include "ApvlvParams.h"
 #include "ApvlvUtil.h"
+#include "ApvlvView.h"
 
 #include <clocale>
 #ifndef WIN32
@@ -41,17 +41,18 @@
 using namespace apvlv;
 
 #if defined WIN32 && defined NDEBUG
-#pragma comment (linker, "/subsystem:windows")
-#pragma comment (linker, "/ENTRY:mainCRTStartup")
+#pragma comment(linker, "/subsystem:windows")
+#pragma comment(linker, "/ENTRY:mainCRTStartup")
 #endif
 
 #ifndef WIN32
 static void
 usage_exit ()
 {
-  fprintf (stdout, "%s Usage:\n"
-                   "%s\n"
-                   "Please send bug report to %s\n",
+  fprintf (stdout,
+           "%s Usage:\n"
+           "%s\n"
+           "Please send bug report to %s\n",
            PACKAGE_NAME,
            "\t-h                display this and exit\n"
            "\t-v                display version info and exit\n"
@@ -63,9 +64,11 @@ usage_exit ()
 static void
 version_exit ()
 {
-  fprintf (stdout, "%s %s-%s\n"
-                   "Please send bug report to %s\n"
-                   "\n", PACKAGE_NAME, PACKAGE_VERSION, RELEASE, PACKAGE_BUGREPORT);
+  fprintf (stdout,
+           "%s %s-%s\n"
+           "Please send bug report to %s\n"
+           "\n",
+           PACKAGE_NAME, PACKAGE_VERSION, RELEASE, PACKAGE_BUGREPORT);
   exit (0);
 }
 #endif
@@ -85,13 +88,11 @@ parse_options (int argc, char *argv[])
   return 1;
 #else
   int c, index;
-  static struct option long_options[] =
-      {
-          {"config",  required_argument, nullptr, 'c'},
-          {"help",    no_argument,       nullptr, 'h'},
-          {"version", no_argument,       nullptr, 'v'},
-          {nullptr, 0,                   nullptr, 0}
-      };
+  static struct option long_options[]
+      = { { "config", required_argument, nullptr, 'c' },
+          { "help", no_argument, nullptr, 'h' },
+          { "version", no_argument, nullptr, 'v' },
+          { nullptr, 0, nullptr, 0 } };
 
   index = 0;
   ini = nullptr;
@@ -99,20 +100,20 @@ parse_options (int argc, char *argv[])
     {
       switch (c)
         {
-          case 'c':
-            ini = absolutepath (optarg);
+        case 'c':
+          ini = absolutepath (optarg);
           break;
 
-          case 'h':
-            usage_exit ();
+        case 'h':
+          usage_exit ();
           return -1;
 
-          case 'v':
-            version_exit ();
+        case 'v':
+          version_exit ();
           return -1;
 
-          default:
-            errp ("no command line options");
+        default:
+          errp ("no command line options");
           return -1;
         }
     }
@@ -186,7 +187,7 @@ main (int argc, char *argv[])
     }
   else
     {
-      path = (gchar *) helppdf.c_str ();
+      path = (gchar *)helppdf.c_str ();
       isHelpPdf = true;
     }
 

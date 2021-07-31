@@ -32,69 +32,71 @@
 
 namespace apvlv
 {
-    class ApvlvTxt;
-    class ApvlvTxtPage {
-     public:
-      ApvlvTxtPage (int pn, const gchar *, gsize);
-      ~ApvlvTxtPage ();
+class ApvlvTxt;
+class ApvlvTxtPage
+{
+public:
+  ApvlvTxtPage (int pn, const gchar *, gsize);
+  ~ApvlvTxtPage ();
 
-      bool pagesize (int rot, double *x, double *y);
+  bool pagesize (int rot, double *x, double *y);
 
-      bool render (int, int, double, int, GdkPixbuf *, char *);
+  bool render (int, int, double, int, GdkPixbuf *, char *);
 
-     private:
-      GString *mContent;
+private:
+  GString *mContent;
 
-      guchar *mRenderBuf;
+  guchar *mRenderBuf;
 
-      gdouble mZoomrate;
+  gdouble mZoomrate;
 
-      gint mWidth, mHeight;
+  gint mWidth, mHeight;
 
-      guint mLayoutWidth, mLayoutHeight;
-      guint mStride;
+  guint mLayoutWidth, mLayoutHeight;
+  guint mStride;
 
-      gboolean self_render (int);
-    };
+  gboolean self_render (int);
+};
 
-    class ApvlvTXT : public ApvlvFile {
-     public:
-      ApvlvTXT (const char *filename, bool check = true);
+class ApvlvTXT : public ApvlvFile
+{
+public:
+  ApvlvTXT (const char *filename, bool check = true);
 
-      ~ApvlvTXT ();
+  ~ApvlvTXT ();
 
-      bool writefile (const char *filename);
+  bool writefile (const char *filename);
 
-      bool pagesize (int page, int rot, double *x, double *y);
+  bool pagesize (int page, int rot, double *x, double *y);
 
-      int pagesum ();
+  int pagesum ();
 
-      bool pagetext (int, gdouble, gdouble, gdouble, gdouble, char **);
+  bool pagetext (int, gdouble, gdouble, gdouble, gdouble, char **);
 
-      bool render (int, int, int, double, int, GdkPixbuf *, char *);
+  bool render (int, int, int, double, int, GdkPixbuf *, char *);
 
-      bool pageselectsearch (int, int, int, double, int, GdkPixbuf *,
-                             char *, int, ApvlvPoses *);
+  bool pageselectsearch (int, int, int, double, int, GdkPixbuf *, char *, int,
+                         ApvlvPoses *);
 
-      ApvlvPoses *pagesearch (int pn, const char *s, bool reverse = false);
+  ApvlvPoses *pagesearch (int pn, const char *s, bool reverse = false);
 
-      ApvlvLinks *getlinks (int pn);
+  ApvlvLinks *getlinks (int pn);
 
-      ApvlvFileIndex *new_index ();
+  ApvlvFileIndex *new_index ();
 
-      void free_index (ApvlvFileIndex *);
+  void free_index (ApvlvFileIndex *);
 
-      bool pageprint (int pn, cairo_t *cr);
+  bool pageprint (int pn, cairo_t *cr);
 
-     private:
-      GString *mContent;
-      gsize mLength;
+private:
+  GString *mContent;
+  gsize mLength;
 
-      gint mPageCount;
-      GPtrArray *mPages;
+  gint mPageCount;
+  GPtrArray *mPages;
 
-      gboolean load_pages ();
-    };
+  gboolean load_pages ();
+};
 
 }
 #endif

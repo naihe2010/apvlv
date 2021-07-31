@@ -26,204 +26,207 @@
  */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
-#include "ApvlvUtil.h"
-#include "ApvlvCmds.h"
 #include "ApvlvParams.h"
+#include "ApvlvCmds.h"
+#include "ApvlvUtil.h"
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
 namespace apvlv
 {
-    ApvlvParams *gParams = nullptr;
+ApvlvParams *gParams = nullptr;
 
-    ApvlvParams::ApvlvParams ()
-    {
-      push ("inverted", "no");
-      push ("fullscreen", "no");
-      push ("zoom", "fitwidth");
-      push ("continuous", "yes");
-      push ("autoscrollpage", "yes");
-      push ("autoscrolldoc", "yes");
-      push ("continuouspad", "2");
-      push ("noinfo", "no");
-      push ("width", "800");
-      push ("height", "600");
-      push ("fix_width", "0");
-      push ("fix_height", "0");
-      push ("content_follow_mode", "file");
-      push ("background", "");
-      push ("content", "yes");
-      push ("cache", "no");
-      push ("pdfcache", "4");
-      push ("scrollbar", "no");
-      push ("visualmode", "no");
-      push ("warpscan", "yes");
-      push ("commandtimeout", "1000");
-      push ("doubleclick", "page");
+ApvlvParams::ApvlvParams ()
+{
+  push ("inverted", "no");
+  push ("fullscreen", "no");
+  push ("zoom", "fitwidth");
+  push ("continuous", "yes");
+  push ("autoscrollpage", "yes");
+  push ("autoscrolldoc", "yes");
+  push ("continuouspad", "2");
+  push ("noinfo", "no");
+  push ("width", "800");
+  push ("height", "600");
+  push ("fix_width", "0");
+  push ("fix_height", "0");
+  push ("content_follow_mode", "file");
+  push ("background", "");
+  push ("content", "yes");
+  push ("cache", "no");
+  push ("pdfcache", "4");
+  push ("scrollbar", "no");
+  push ("visualmode", "no");
+  push ("warpscan", "yes");
+  push ("commandtimeout", "1000");
+  push ("doubleclick", "page");
 #ifdef WIN32
-      push ("defaultdir", "C:\\");
+  push ("defaultdir", "C:\\");
 #else
-      push ("defaultdir", "/tmp");
+  push ("defaultdir", "/tmp");
 #endif
-      push ("guioptions", "");
-      push ("autoreload", "3");
+  push ("guioptions", "");
+  push ("autoreload", "3");
+}
+
+ApvlvParams::~ApvlvParams () { mSettings.clear (); }
+
+bool
+ApvlvParams::loadfile (const char *filename)
+{
+  if (filename == nullptr
+      || g_file_test (filename, G_FILE_TEST_IS_REGULAR) == FALSE)
+    {
+      return false;
     }
 
-    ApvlvParams::~ApvlvParams ()
+  //    debug ("load debug: %s", filename);
+  string str;
+  fstream os (filename, ios::in);
+
+  if (!os.is_open ())
     {
-      mSettings.clear ();
+      errp ("Open configure file %s error", filename);
+      return false;
     }
 
-    bool ApvlvParams::loadfile (const char *filename)
+  while ((getline (os, str)))
     {
-      if (filename == nullptr
-          || g_file_test (filename, G_FILE_TEST_IS_REGULAR) == FALSE)
+      string argu, data, crap;
+      stringstream is (str);
+      // avoid commet line, continue next
+      is >> crap;
+      if (crap[0] == '\"' || crap.empty ())
         {
-          return false;
+          continue;
         }
-
-      //    debug ("load debug: %s", filename);
-      string str;
-      fstream os (filename, ios::in);
-
-      if (!os.is_open ())
+      // parse the line like "set fullscreen=yes" or set "set zoom=1.5"
+      else if (crap == "set")
         {
-          errp ("Open configure file %s error", filename);
-          return false;
-        }
-
-      while ((getline (os, str)))
-        {
-          string argu, data, crap;
-          stringstream is (str);
-          // avoid commet line, continue next
-          is >> crap;
-          if (crap[0] == '\"' || crap.empty ())
+          is >> argu;
+          size_t off = argu.find ('=');
+          if (off == string::npos)
             {
+              is >> crap >> data;
+              if (crap == "=")
+                {
+                  push (argu.c_str (), data.c_str ());
+                  continue;
+                }
+            }
+          else if (off < 32)
+            {
+              char k[32], v[32], *p;
+              memcpy (k, argu.c_str (), off);
+              k[off] = '\0';
+
+              p = (char *)argu.c_str () + off + 1;
+              while (isspace (*p))
+                {
+                  p++;
+                }
+
+              g_snprintf (v, sizeof v, "%s", *p ? p : "");
+
+              p = (char *)v + strlen (v) - 1;
+              while (isspace (*p) && p >= v)
+                {
+                  p--;
+                }
+              *(p + 1) = '\0';
+
+              push (k, v);
               continue;
             }
-            // parse the line like "set fullscreen=yes" or set "set zoom=1.5"
-          else if (crap == "set")
+
+          errp ("Syntax error: set: %s", str.c_str ());
+        }
+      // like "map n next-page"
+      else if (crap == "map")
+        {
+          is >> argu;
+
+          if (argu.length () == 0)
             {
-              is >> argu;
-              size_t off = argu.find ('=');
-              if (off == string::npos)
-                {
-                  is >> crap >> data;
-                  if (crap == "=")
-                    {
-                      push (argu.c_str (), data.c_str ());
-                      continue;
-                    }
-                }
-              else if (off < 32)
-                {
-                  char k[32], v[32], *p;
-                  memcpy (k, argu.c_str (), off);
-                  k[off] = '\0';
-
-                  p = (char *) argu.c_str () + off + 1;
-                  while (isspace (*p))
-                    {
-                      p++;
-                    }
-
-                  g_snprintf (v, sizeof v, "%s", *p ? p : "");
-
-                  p = (char *) v + strlen (v) - 1;
-                  while (isspace (*p) && p >= v)
-                    {
-                      p--;
-                    }
-                  *(p + 1) = '\0';
-
-                  push (k, v);
-                  continue;
-                }
-
-              errp ("Syntax error: set: %s", str.c_str ());
+              errp ("map command not complete");
+              continue;
             }
-            // like "map n next-page"
-          else if (crap == "map")
+
+          getline (is, data);
+
+          while (data.length () > 0 && isspace (data[0]))
+            data.erase (0, 1);
+
+          if (argu.length () > 0 && data.length () > 0)
             {
-              is >> argu;
-
-              if (argu.length () == 0)
-                {
-                  errp ("map command not complete");
-                  continue;
-                }
-
-              getline (is, data);
-
-              while (data.length () > 0 && isspace (data[0]))
-                data.erase (0, 1);
-
-              if (argu.length () > 0 && data.length () > 0)
-                {
-                  ApvlvCmds::buildmap (argu.c_str (), data.c_str ());
-                }
-              else
-                {
-                  errp ("Syntax error: map: %s", str.c_str ());
-                }
+              ApvlvCmds::buildmap (argu.c_str (), data.c_str ());
             }
           else
             {
-              errp ("Unknown rc command: %s: %s", crap.c_str (), str.c_str ());
+              errp ("Syntax error: map: %s", str.c_str ());
             }
         }
+      else
+        {
+          errp ("Unknown rc command: %s: %s", crap.c_str (), str.c_str ());
+        }
+    }
 
+  return true;
+}
+
+bool
+ApvlvParams::push (const char *c, const char *s)
+{
+  string cs (c), ss (s);
+  mSettings[cs] = ss;
+  return true;
+}
+
+bool
+ApvlvParams::push (string &ch, string &str)
+{
+  mSettings[ch] = str;
+  return true;
+}
+
+const char *
+ApvlvParams::values (const char *s)
+{
+  string ss (s);
+  auto it = mSettings.find (ss);
+  if (it != mSettings.end ())
+    {
+      return it->second.c_str ();
+    }
+  return nullptr;
+}
+
+int
+ApvlvParams::valuei (const char *s)
+{
+  string ss (s);
+  auto it = mSettings.find (ss);
+  if (it != mSettings.end ())
+    {
+      return int (strtol (it->second.c_str (), nullptr, 10));
+    }
+  return -1;
+}
+
+bool
+ApvlvParams::valueb (const char *s)
+{
+  string ss (s);
+  auto it = mSettings.find (ss);
+  if (it != mSettings.end () && it->second == "yes")
+    {
       return true;
     }
-
-    bool ApvlvParams::push (const char *c, const char *s)
-    {
-      string cs (c), ss (s);
-      mSettings[cs] = ss;
-      return true;
-    }
-
-    bool ApvlvParams::push (string &ch, string &str)
-    {
-      mSettings[ch] = str;
-      return true;
-    }
-
-    const char *ApvlvParams::values (const char *s)
-    {
-      string ss (s);
-      auto it = mSettings.find (ss);
-      if (it != mSettings.end ())
-        {
-          return it->second.c_str ();
-        }
-      return nullptr;
-    }
-
-    int ApvlvParams::valuei (const char *s)
-    {
-      string ss (s);
-      auto it = mSettings.find (ss);
-      if (it != mSettings.end ())
-        {
-          return int (strtol (it->second.c_str (), nullptr, 10));
-        }
-      return -1;
-    }
-
-    bool ApvlvParams::valueb (const char *s)
-    {
-      string ss (s);
-      auto it = mSettings.find (ss);
-      if (it != mSettings.end () && it->second == "yes")
-        {
-          return true;
-        }
-      return false;
-    }
+  return false;
+}
 }
 
 // Local Variables:

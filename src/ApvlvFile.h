@@ -28,8 +28,8 @@
 #ifndef _APVLV_FILE_H_
 #define _APVLV_FILE_H_
 
-#include <gtk/gtk.h>
 #include <glib/poppler.h>
+#include <gtk/gtk.h>
 
 #include <iostream>
 #include <vector>
@@ -37,94 +37,102 @@ using namespace std;
 
 namespace apvlv
 {
-    //
-    // link to a url, or a page num
-    //
-    struct ApvlvLink {
-        int mPage;
-    };
+//
+// link to a url, or a page num
+//
+struct ApvlvLink
+{
+  int mPage;
+};
 
-    typedef vector<ApvlvLink> ApvlvLinks;
+typedef vector<ApvlvLink> ApvlvLinks;
 
-    struct ApvlvPoint {
-        double x, y;
-    };
+struct ApvlvPoint
+{
+  double x, y;
+};
 
-    //
-    // position of a search result, or just a area
-    //
-    struct ApvlvPos {
-        double x1, x2, y1, y2;
-    };
+//
+// position of a search result, or just a area
+//
+struct ApvlvPos
+{
+  double x1, x2, y1, y2;
+};
 
-    typedef vector<ApvlvPos> ApvlvPoses;
+typedef vector<ApvlvPos> ApvlvPoses;
 
-    enum ApvlvFileIndexType {
-        PAGE,
-        FILE,
-        DIR
-    };
+enum ApvlvFileIndexType
+{
+  PAGE,
+  FILE,
+  DIR
+};
 
-    class ApvlvFileIndex {
-     public:
-      ApvlvFileIndex (string title, int page, string path, ApvlvFileIndexType type);
-      ~ApvlvFileIndex ();
+class ApvlvFileIndex
+{
+public:
+  ApvlvFileIndex (string title, int page, string path,
+                  ApvlvFileIndexType type);
+  ~ApvlvFileIndex ();
 
-      static ApvlvFileIndex *newDirIndex (const gchar *path, ApvlvFileIndex *parent_index = nullptr);
+  static ApvlvFileIndex *newDirIndex (const gchar *path,
+                                      ApvlvFileIndex *parent_index = nullptr);
 
-      string title;
-      int page;
-      string path;
-      ApvlvFileIndexType type;
-      vector<ApvlvFileIndex *> children;
-    };
+  string title;
+  int page;
+  string path;
+  ApvlvFileIndexType type;
+  vector<ApvlvFileIndex *> children;
+};
 
-    class ApvlvFile {
-     public:
-      ApvlvFile (__attribute__((unused)) const char *filename, __attribute__((unused)) bool check);
+class ApvlvFile
+{
+public:
+  ApvlvFile (__attribute__ ((unused)) const char *filename,
+             __attribute__ ((unused)) bool check);
 
-      virtual ~ ApvlvFile ();
+  virtual ~ApvlvFile ();
 
-      static ApvlvFile *newFile (const char *filename, __attribute__((unused)) bool check = false);
+  static ApvlvFile *newFile (const char *filename,
+                             __attribute__ ((unused)) bool check = false);
 
-      virtual bool writefile (const char *filename) = 0;
+  virtual bool writefile (const char *filename) = 0;
 
-      virtual bool pagesize (int page, int rot, double *x, double *y) = 0;
+  virtual bool pagesize (int page, int rot, double *x, double *y) = 0;
 
-      virtual int pagesum () = 0;
+  virtual int pagesum () = 0;
 
-      virtual bool pagetext (int, gdouble, gdouble, gdouble, gdouble, char **) = 0;
+  virtual bool pagetext (int, gdouble, gdouble, gdouble, gdouble, char **) = 0;
 
-      virtual bool render (int, int, int, double, int, GdkPixbuf *,
-                           char *buffer);
+  virtual bool render (int, int, int, double, int, GdkPixbuf *, char *buffer);
 
-      virtual bool renderweb (int pn, int, int, double, int, GtkWidget *widget);
+  virtual bool renderweb (int pn, int, int, double, int, GtkWidget *widget);
 
-      virtual ApvlvPoses *pagesearch (int pn, const char *str, bool reverse) = 0;
+  virtual ApvlvPoses *pagesearch (int pn, const char *str, bool reverse) = 0;
 
-      virtual bool pageselectsearch (int, int, int, double, int,
-                                     GdkPixbuf *, char *, int, ApvlvPoses *) =
-      0;
+  virtual bool pageselectsearch (int, int, int, double, int, GdkPixbuf *,
+                                 char *, int, ApvlvPoses *)
+      = 0;
 
-      virtual ApvlvLinks *getlinks (int pn) = 0;
+  virtual ApvlvLinks *getlinks (int pn) = 0;
 
-      virtual ApvlvFileIndex *new_index () = 0;
+  virtual ApvlvFileIndex *new_index () = 0;
 
-      virtual void free_index (ApvlvFileIndex *) = 0;
+  virtual void free_index (ApvlvFileIndex *) = 0;
 
-      virtual bool pageprint (int pn, cairo_t *cr) = 0;
+  virtual bool pageprint (int pn, cairo_t *cr) = 0;
 
-      string get_anchor ();
+  string get_anchor ();
 
-     protected:
+protected:
+  ApvlvFileIndex *mIndex;
 
-      ApvlvFileIndex *mIndex;
+  string mAnchor;
 
-      string mAnchor;
-
-      gchar *mRawdata;
-      guint mRawdataSize;
-    };
+  gchar *mRawdata;
+  guint mRawdataSize;
+};
 
 };
 

@@ -41,42 +41,43 @@ using namespace std;
 
 namespace apvlv
 {
-    class ApvlvContent {
-     public:
-      explicit ApvlvContent ();
+class ApvlvContent
+{
+public:
+  explicit ApvlvContent ();
 
-      virtual ~ ApvlvContent ();
+  virtual ~ApvlvContent ();
 
-      GtkWidget *widget ();
+  GtkWidget *widget ();
 
-      ApvlvFileIndex *currentIndex ();
+  ApvlvFileIndex *currentIndex ();
 
-      void setIndex (ApvlvFileIndex *index);
+  void setIndex (ApvlvFileIndex *index);
 
-      void setIndex (ApvlvFileIndex *index, GtkTreeIter *root_itr);
+  void setIndex (ApvlvFileIndex *index, GtkTreeIter *root_itr);
 
-      void scrollup (int times);
+  void scrollup (int times);
 
-      void scrolldown (int times);
+  void scrolldown (int times);
 
-      void scrollleft (int times);
+  void scrollleft (int times);
 
-      void scrollright (int times);
+  void scrollright (int times);
 
-     private:
-      GtkWidget *mTreeView;
-      GtkTreeStore *mStore;
-      GtkTreeSelection *mSelection;
-      GtkTreeIter mCurrentIter;
+private:
+  GtkWidget *mTreeView;
+  GtkTreeStore *mStore;
+  GtkTreeSelection *mSelection;
+  GtkTreeIter mCurrentIter;
 
-      ApvlvFileIndex *mIndex;
+  ApvlvFileIndex *mIndex;
 
-      static void apvlv_content_on_changed (GtkTreeSelection *, ApvlvContent *);
+  static void apvlv_content_on_changed (GtkTreeSelection *, ApvlvContent *);
 
-      static gboolean apvlv_content_first_select_cb (ApvlvContent *);
+  static gboolean apvlv_content_first_select_cb (ApvlvContent *);
 
-     private:
-    };
+private:
+};
 }
 
 #endif

@@ -32,17 +32,18 @@
 
 namespace apvlv
 {
-    class ApvlvView;
-    class ApvlvMenu {
-     public:
-      ApvlvMenu ();
-      ~ApvlvMenu ();
+class ApvlvView;
+class ApvlvMenu
+{
+public:
+  ApvlvMenu ();
+  ~ApvlvMenu ();
 
-      GtkWidget *widget ();
+  GtkWidget *widget ();
 
-     private:
-      GtkWidget *mMenu;
-    };
+private:
+  GtkWidget *mMenu;
+};
 };
 
 #endif

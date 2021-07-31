@@ -39,64 +39,67 @@ using namespace std;
 
 namespace apvlv
 {
-    class ApvlvCore;
+class ApvlvCore;
 
-    class ApvlvWindow {
-     public:
-      explicit ApvlvWindow (ApvlvCore *core, ApvlvView *view);
-      ~ApvlvWindow ();
+class ApvlvWindow
+{
+public:
+  explicit ApvlvWindow (ApvlvCore *core, ApvlvView *view);
+  ~ApvlvWindow ();
 
-      /* WE operate the AW_DOC window
-       * Any AW_SP, AW_VSP are a virtual window, just for contain the AW_DOC window
-       * AW_NONE is a empty window, need free
-       * So, ANY user interface function can only get the AW_DOC window
-       * */
-      enum WindowType {
-          AW_SP, AW_VSP, AW_CORE
-      } mType;
+  /* WE operate the AW_DOC window
+   * Any AW_SP, AW_VSP are a virtual window, just for contain the AW_DOC window
+   * AW_NONE is a empty window, need free
+   * So, ANY user interface function can only get the AW_DOC window
+   * */
+  enum WindowType
+  {
+    AW_SP,
+    AW_VSP,
+    AW_CORE
+  } mType;
 
-      ApvlvWindow *birth (WindowType type, ApvlvCore *core);
+  ApvlvWindow *birth (WindowType type, ApvlvCore *core);
 
-      ApvlvWindow *unbirth ();
+  ApvlvWindow *unbirth ();
 
-      GtkWidget *widget ();
+  GtkWidget *widget ();
 
-      ApvlvCore *getCore ();
+  ApvlvCore *getCore ();
 
-      ApvlvWindow *activeCoreWindow ();
+  ApvlvWindow *activeCoreWindow ();
 
-      ApvlvWindow *getAncestor ();
+  ApvlvWindow *getAncestor ();
 
-      bool isAncestor () const;
+  bool isAncestor () const;
 
-      void setCore (ApvlvCore *core);
+  void setCore (ApvlvCore *core);
 
-      void smaller (int times = 1);
-      void bigger (int times = 1);
+  void smaller (int times = 1);
+  void bigger (int times = 1);
 
-      void setcurrentWindow (ApvlvWindow *win);
+  void setcurrentWindow (ApvlvWindow *win);
 
-      ApvlvWindow *getneighbor (int count, guint key);
+  ApvlvWindow *getneighbor (int count, guint key);
 
-      ApvlvWindow *getnext (int num);
+  ApvlvWindow *getnext (int num);
 
-      returnType process (int times, guint keyval);
+  returnType process (int times, guint keyval);
 
-      ApvlvWindow *m_parent, *m_child_1, *m_child_2;
+  ApvlvWindow *m_parent, *m_child_1, *m_child_2;
 
-     private:
+private:
+  inline ApvlvWindow *getkj (__attribute__ ((unused)) int num, bool next);
+  inline ApvlvWindow *gethl (__attribute__ ((unused)) int num, bool next);
 
-      inline ApvlvWindow *getkj (__attribute__((unused)) int num, bool next);
-      inline ApvlvWindow *gethl (__attribute__((unused)) int num, bool next);
+  GtkWidget *mPaned;
 
-      GtkWidget *mPaned;
+  ApvlvCore *mCore;
 
-      ApvlvCore *mCore;
+  ApvlvView *mView;
 
-      ApvlvView *mView;
-
-      ApvlvWindow *mActiveWindow;
-    };
+  ApvlvWindow *mActiveWindow;
+};
 
 }
 

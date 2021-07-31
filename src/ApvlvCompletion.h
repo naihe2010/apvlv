@@ -29,28 +29,29 @@
 #include <glib.h>
 
 #if GLIB_CHECK_VERSION(2, 26, 0)
-# define APVLV_NO_G_COMP
+#define APVLV_NO_G_COMP
 #endif
 
 namespace apvlv
 {
-    class ApvlvCompletion {
-     public:
-      ApvlvCompletion ();
-      ~ApvlvCompletion ();
+class ApvlvCompletion
+{
+public:
+  ApvlvCompletion ();
+  ~ApvlvCompletion ();
 
-      gboolean add_items (GList *);
+  gboolean add_items (GList *);
 
-      GList *complete (const gchar *, gchar **);
+  GList *complete (const gchar *, gchar **);
 
-     private:
+private:
 #ifdef APVLV_NO_G_COMP
-      GPtrArray *mArray;
-      GList *mCache;
+  GPtrArray *mArray;
+  GList *mCache;
 #else
-      GCompletion *mComp;
+  GCompletion *mComp;
 #endif
-    };
+};
 
 };
 

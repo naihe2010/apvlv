@@ -27,114 +27,122 @@
 
 #include <gtk/gtk.h>
 
-#include "ApvlvUtil.h"
 #include "ApvlvMenu.h"
+#include "ApvlvUtil.h"
 
 namespace apvlv
 {
-    extern "C" void apvlv_menu_on_file_open ();
-    extern "C" void apvlv_menu_on_file_opentab ();
-    extern "C" void apvlv_menu_on_file_saveas ();
-    extern "C" void apvlv_menu_on_file_print ();
-    extern "C" void apvlv_menu_on_file_quit ();
-    extern "C" void apvlv_menu_on_page_previous ();
-    extern "C" void apvlv_menu_on_page_next ();
-    extern "C" void apvlv_menu_on_page_scrollup ();
-    extern "C" void apvlv_menu_on_page_scrolldown ();
-    extern "C" void apvlv_menu_on_tools_jumpto ();
-    extern "C" void apvlv_menu_on_tools_jumpback ();
-    extern "C" void apvlv_menu_on_help_about ();
+extern "C" void apvlv_menu_on_file_open ();
+extern "C" void apvlv_menu_on_file_opentab ();
+extern "C" void apvlv_menu_on_file_saveas ();
+extern "C" void apvlv_menu_on_file_print ();
+extern "C" void apvlv_menu_on_file_quit ();
+extern "C" void apvlv_menu_on_page_previous ();
+extern "C" void apvlv_menu_on_page_next ();
+extern "C" void apvlv_menu_on_page_scrollup ();
+extern "C" void apvlv_menu_on_page_scrolldown ();
+extern "C" void apvlv_menu_on_tools_jumpto ();
+extern "C" void apvlv_menu_on_tools_jumpback ();
+extern "C" void apvlv_menu_on_help_about ();
 
-    ApvlvMenu::ApvlvMenu ()
-    {
-      GtkBuilder *builder = gtk_builder_new ();
-      gtk_builder_add_from_file (builder, mainmenubar_glade.c_str (), nullptr);
-      gtk_builder_connect_signals (builder, nullptr);
-      mMenu = GTK_WIDGET (gtk_builder_get_object (builder, "main_menubar"));
-    }
+ApvlvMenu::ApvlvMenu ()
+{
+  GtkBuilder *builder = gtk_builder_new ();
+  gtk_builder_add_from_file (builder, mainmenubar_glade.c_str (), nullptr);
+  gtk_builder_connect_signals (builder, nullptr);
+  mMenu = GTK_WIDGET (gtk_builder_get_object (builder, "main_menubar"));
+}
 
-    ApvlvMenu::~ApvlvMenu ()
-    = default;
+ApvlvMenu::~ApvlvMenu () = default;
 
-    GtkWidget *ApvlvMenu::widget ()
-    {
-      return mMenu;
-    }
+GtkWidget *
+ApvlvMenu::widget ()
+{
+  return mMenu;
+}
 
-    extern "C" void apvlv_menu_on_file_open ()
-    {
-      //mView->open ();
-    }
+extern "C" void
+apvlv_menu_on_file_open ()
+{
+  // mView->open ();
+}
 
-    extern "C" void apvlv_menu_on_file_opentab ()
-    {
-      //gView->newtab (helppdf.c_str ());
-    }
+extern "C" void
+apvlv_menu_on_file_opentab ()
+{
+  // gView->newtab (helppdf.c_str ());
+}
 
-    extern "C" void apvlv_menu_on_file_saveas ()
-    {
-      //        gView->save ();
-    }
+extern "C" void
+apvlv_menu_on_file_saveas ()
+{
+  //        gView->save ();
+}
 
-    extern "C" void apvlv_menu_on_file_print ()
-    {
-      //       gView->print ();
-    }
+extern "C" void
+apvlv_menu_on_file_print ()
+{
+  //       gView->print ();
+}
 
-    extern "C" void apvlv_menu_on_file_quit ()
-    {
-      //gView->quit ();
-    }
+extern "C" void
+apvlv_menu_on_file_quit ()
+{
+  // gView->quit ();
+}
 
-    extern "C" void apvlv_menu_on_page_previous ()
-    {
-      //gView->crtadoc ()->prepage (1);
-    }
+extern "C" void
+apvlv_menu_on_page_previous ()
+{
+  // gView->crtadoc ()->prepage (1);
+}
 
-    extern "C" void apvlv_menu_on_page_next ()
-    {
-      //gView->crtadoc ()->nextpage (1);
-    }
+extern "C" void
+apvlv_menu_on_page_next ()
+{
+  // gView->crtadoc ()->nextpage (1);
+}
 
-    extern "C" void apvlv_menu_on_page_scrollup ()
-    {
-      //gView->crtadoc ()->scrollup (1);
-    }
+extern "C" void
+apvlv_menu_on_page_scrollup ()
+{
+  // gView->crtadoc ()->scrollup (1);
+}
 
-    extern "C" void apvlv_menu_on_page_scrolldown ()
-    {
-      //gView->crtadoc ()->scrolldown (1);
-    }
+extern "C" void
+apvlv_menu_on_page_scrolldown ()
+{
+  // gView->crtadoc ()->scrolldown (1);
+}
 
-    extern "C" void apvlv_menu_on_tools_jumpto ()
-    {
-      //gView->crtadoc ()->gotolink (1);
-    }
+extern "C" void
+apvlv_menu_on_tools_jumpto ()
+{
+  // gView->crtadoc ()->gotolink (1);
+}
 
-    extern "C" void apvlv_menu_on_tools_jumpback ()
-    {
-      //gView->crtadoc ()->returnlink (1);
-    }
+extern "C" void
+apvlv_menu_on_tools_jumpback ()
+{
+  // gView->crtadoc ()->returnlink (1);
+}
 
-    extern "C" void apvlv_menu_on_help_about ()
-    {
-      static const char *author[] =
-          {
-              "Alf",
-              nullptr
-          };
+extern "C" void
+apvlv_menu_on_help_about ()
+{
+  static const char *author[] = { "Alf", nullptr };
 
-      GtkWidget *dia = gtk_about_dialog_new ();
-      gtk_about_dialog_set_program_name (GTK_ABOUT_DIALOG (dia), PACKAGE_NAME);
-      gtk_about_dialog_set_version (GTK_ABOUT_DIALOG (dia), PACKAGE_VERSION);
-      gtk_about_dialog_set_authors (GTK_ABOUT_DIALOG (dia), author);
-      gtk_about_dialog_set_artists (GTK_ABOUT_DIALOG (dia), author);
-      gtk_about_dialog_set_website (GTK_ABOUT_DIALOG (dia),
-                                    "https://naihe2010.github.io/apvlv");
-      gtk_about_dialog_set_copyright (GTK_ABOUT_DIALOG (dia), "GNU");
-      gtk_dialog_run (GTK_DIALOG (dia));
-      gtk_widget_destroy (dia);
-    }
+  GtkWidget *dia = gtk_about_dialog_new ();
+  gtk_about_dialog_set_program_name (GTK_ABOUT_DIALOG (dia), PACKAGE_NAME);
+  gtk_about_dialog_set_version (GTK_ABOUT_DIALOG (dia), PACKAGE_VERSION);
+  gtk_about_dialog_set_authors (GTK_ABOUT_DIALOG (dia), author);
+  gtk_about_dialog_set_artists (GTK_ABOUT_DIALOG (dia), author);
+  gtk_about_dialog_set_website (GTK_ABOUT_DIALOG (dia),
+                                "https://naihe2010.github.io/apvlv");
+  gtk_about_dialog_set_copyright (GTK_ABOUT_DIALOG (dia), "GNU");
+  gtk_dialog_run (GTK_DIALOG (dia));
+  gtk_widget_destroy (dia);
+}
 };
 
 // Local Variables:

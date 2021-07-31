@@ -32,8 +32,8 @@
 #include <gtk/gtk.h>
 
 #include <iostream>
-#include <vector>
 #include <map>
+#include <vector>
 
 #include "ApvlvUtil.h"
 
@@ -41,116 +41,118 @@ using namespace std;
 
 namespace apvlv
 {
-    typedef enum {
-        CT_CMD,
-        CT_STRING,
-        CT_STRING_RETURN
-    } cmdType;
+typedef enum
+{
+  CT_CMD,
+  CT_STRING,
+  CT_STRING_RETURN
+} cmdType;
 
-    typedef map<const char *, gint> StringKeyMap;
+typedef map<const char *, gint> StringKeyMap;
 
-    class ApvlvCmd;
-    typedef vector<gint> ApvlvCmdKeyv;
-    typedef map<ApvlvCmdKeyv, ApvlvCmd *> ApvlvCmdMap;
+class ApvlvCmd;
+typedef vector<gint> ApvlvCmdKeyv;
+typedef map<ApvlvCmdKeyv, ApvlvCmd *> ApvlvCmdMap;
 
-    class ApvlvView;
-    class ApvlvCmd {
-     public:
-      ApvlvCmd ();
+class ApvlvView;
+class ApvlvCmd
+{
+public:
+  ApvlvCmd ();
 
-      ~ApvlvCmd ();
+  ~ApvlvCmd ();
 
-      void process (ApvlvView *);
+  void process (ApvlvView *);
 
-      void push (const char *s, cmdType type = CT_CMD);
+  void push (const char *s, cmdType type = CT_CMD);
 
-      bool append (GdkEventKey *key);
+  bool append (GdkEventKey *key);
 
-      const char *append (const char *s);
+  const char *append (const char *s);
 
-      void type (cmdType type);
+  void type (cmdType type);
 
-      cmdType type ();
+  cmdType type ();
 
-      const char *c_str ();
+  const char *c_str ();
 
-      ApvlvCmdKeyv *keyvalv_p ();
+  ApvlvCmdKeyv *keyvalv_p ();
 
-      ApvlvCmdKeyv keyvalv ();
+  ApvlvCmdKeyv keyvalv ();
 
-      void precount (gint precount);
+  void precount (gint precount);
 
-      gint precount () const;
+  gint precount () const;
 
-      gint keyval (guint id);
+  gint keyval (guint id);
 
-      ApvlvCmd *next ();
+  ApvlvCmd *next ();
 
-      void origin (ApvlvCmd *cmd);
+  void origin (ApvlvCmd *cmd);
 
-      ApvlvCmd *origin ();
+  ApvlvCmd *origin ();
 
-     private:
+private:
+  // command type
+  cmdType mType;
 
-      // command type
-      cmdType mType;
+  // if has count
+  bool mHasPreCount;
 
-      // if has count
-      bool mHasPreCount;
+  // how to describe this command in .apvlvrc
+  // like <C-d><C-w>, <S-b>s, or :run, :vsp, ...
+  string mStrCommand;
 
-      // how to describe this command in .apvlvrc
-      // like <C-d><C-w>, <S-b>s, or :run, :vsp, ...
-      string mStrCommand;
+  // key's value list
+  ApvlvCmdKeyv mKeyVals;
 
-      // key's value list
-      ApvlvCmdKeyv mKeyVals;
+  // cmd's pre count
+  gint mPreCount;
 
-      // cmd's pre count
-      gint mPreCount;
+  // next command
+  ApvlvCmd *mNext;
 
-      // next command
-      ApvlvCmd *mNext;
+  // when a key is map to other, this is the origin cmd.
+  // after a mapped key was processed, return to this cmds
+  ApvlvCmd *mOrigin;
+};
 
-      // when a key is map to other, this is the origin cmd.
-      // after a mapped key was processed, return to this cmds
-      ApvlvCmd *mOrigin;
-    };
+class ApvlvCmds
+{
+public:
+  explicit ApvlvCmds (ApvlvView *view);
 
-    class ApvlvCmds {
-     public:
-      explicit ApvlvCmds (ApvlvView *view);
+  ~ApvlvCmds ();
 
-      ~ApvlvCmds ();
+  void append (GdkEventKey *gev);
 
-      void append (GdkEventKey *gev);
+  static void buildmap (const char *os, const char *ms);
 
-      static void buildmap (const char *os, const char *ms);
+private:
+  ApvlvCmd *process (ApvlvCmd *cmd);
 
-     private:
+  static returnType ismap (ApvlvCmdKeyv *ack);
 
-      ApvlvCmd *process (ApvlvCmd *cmd);
+  static ApvlvCmd *getmap (ApvlvCmd *cmd);
 
-      static returnType ismap (ApvlvCmdKeyv *ack);
+  static gboolean apvlv_cmds_timeout_cb (gpointer);
 
-      static ApvlvCmd *getmap (ApvlvCmd *cmd);
+  ApvlvCmd *mCmdHead;
 
-      static gboolean apvlv_cmds_timeout_cb (gpointer);
+  // command view
+  ApvlvView *mView;
 
-      ApvlvCmd *mCmdHead;
+  enum cmdState
+  {
+    GETTING_COUNT,
+    GETTING_CMD,
+    CMD_OK,
+  } mState;
 
-      // command view
-      ApvlvView *mView;
+  guint mTimeoutTimer;
 
-      enum cmdState {
-          GETTING_COUNT,
-          GETTING_CMD,
-          CMD_OK,
-      } mState;
-
-      guint mTimeoutTimer;
-
-      string mCountString;
-    };
+  string mCountString;
+};
 }
 
 #endif

@@ -32,41 +32,43 @@
 
 namespace apvlv
 {
-    class ApvlvPDF : public ApvlvFile {
-     public:
-      explicit ApvlvPDF (const char *filename, bool check = true);
+class ApvlvPDF : public ApvlvFile
+{
+public:
+  explicit ApvlvPDF (const char *filename, bool check = true);
 
-      ~ApvlvPDF () override;
+  ~ApvlvPDF () override;
 
-      bool writefile (const char *filename) override;
+  bool writefile (const char *filename) override;
 
-      bool pagesize (int page, int rot, double *x, double *y) override;
+  bool pagesize (int page, int rot, double *x, double *y) override;
 
-      int pagesum () override;
+  int pagesum () override;
 
-      bool pagetext (int pn, gdouble x1, gdouble y1, gdouble x2, gdouble y2, char **out) override;
+  bool pagetext (int pn, gdouble x1, gdouble y1, gdouble x2, gdouble y2,
+                 char **out) override;
 
-      bool render (int, int, int, double, int, GdkPixbuf *, char *) override;
+  bool render (int, int, int, double, int, GdkPixbuf *, char *) override;
 
-      bool pageselectsearch (int, int, int, double, int, GdkPixbuf *,
-                             char *, int, ApvlvPoses *) override;
+  bool pageselectsearch (int, int, int, double, int, GdkPixbuf *, char *, int,
+                         ApvlvPoses *) override;
 
-      ApvlvPoses *pagesearch (int pn, const char *s, bool reverse) override;
+  ApvlvPoses *pagesearch (int pn, const char *s, bool reverse) override;
 
-      ApvlvLinks *getlinks (int pn) override;
+  ApvlvLinks *getlinks (int pn) override;
 
-      ApvlvFileIndex *new_index () override;
+  ApvlvFileIndex *new_index () override;
 
-      void free_index (ApvlvFileIndex *) override;
+  void free_index (ApvlvFileIndex *) override;
 
-      bool pageprint (int pn, cairo_t *cr) override;
+  bool pageprint (int pn, cairo_t *cr) override;
 
-     private:
-      bool walk_poppler_index_iter (ApvlvFileIndex *root_index,
-                                    PopplerIndexIter *iter);
+private:
+  bool walk_poppler_index_iter (ApvlvFileIndex *root_index,
+                                PopplerIndexIter *iter);
 
-      PopplerDocument *mDoc;
-    };
+  PopplerDocument *mDoc;
+};
 }
 #endif
 

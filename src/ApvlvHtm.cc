@@ -25,88 +25,99 @@
  */
 /* @date Created: 2011/09/16 13:51:04 Alf*/
 
-#include "ApvlvUtil.h"
 #include "ApvlvHtm.h"
+#include "ApvlvUtil.h"
 
 #include <webkit2/webkit2.h>
 
 namespace apvlv
 {
-    ApvlvHTML::ApvlvHTML (const char *filename, bool check) : ApvlvFile (filename,
-                                                                         check)
+ApvlvHTML::ApvlvHTML (const char *filename, bool check)
+    : ApvlvFile (filename, check)
+{
+  mUri = filename;
+  if (g_path_is_absolute (filename))
     {
-      mUri = filename;
-      if (g_path_is_absolute (filename))
-        {
-          gchar *fileUri = g_filename_to_uri (filename, nullptr, nullptr);
-          mUri = fileUri;
-          g_free (fileUri);
-        }
+      gchar *fileUri = g_filename_to_uri (filename, nullptr, nullptr);
+      mUri = fileUri;
+      g_free (fileUri);
     }
+}
 
-    ApvlvHTML::~ApvlvHTML ()
-    = default;
+ApvlvHTML::~ApvlvHTML () = default;
 
-    bool ApvlvHTML::writefile (const char *filename)
-    {
-      return false;
-    }
+bool
+ApvlvHTML::writefile (const char *filename)
+{
+  return false;
+}
 
-    bool ApvlvHTML::pagesize (int page, int rot, double *x, double *y)
-    {
-      *x = HTML_DEFAULT_WIDTH;
-      *y = HTML_DEFAULT_HEIGHT;
-      return true;
-    }
+bool
+ApvlvHTML::pagesize (int page, int rot, double *x, double *y)
+{
+  *x = HTML_DEFAULT_WIDTH;
+  *y = HTML_DEFAULT_HEIGHT;
+  return true;
+}
 
-    int ApvlvHTML::pagesum ()
-    {
-      return 1;
-    }
+int
+ApvlvHTML::pagesum ()
+{
+  return 1;
+}
 
-    bool ApvlvHTML::pagetext (int, gdouble, gdouble, gdouble, gdouble, char **)
-    {
-      return false;
-    }
+bool
+ApvlvHTML::pagetext (int, gdouble, gdouble, gdouble, gdouble, char **)
+{
+  return false;
+}
 
-    bool ApvlvHTML::renderweb (int pn, int ix, int iy, double zm, int rot, GtkWidget *widget)
-    {
-      webkit_web_view_set_zoom_level (WEBKIT_WEB_VIEW (widget), zm);
-      webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), mUri.c_str ());
-      return false;
-    }
+bool
+ApvlvHTML::renderweb (int pn, int ix, int iy, double zm, int rot,
+                      GtkWidget *widget)
+{
+  webkit_web_view_set_zoom_level (WEBKIT_WEB_VIEW (widget), zm);
+  webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), mUri.c_str ());
+  return false;
+}
 
-    ApvlvPoses *ApvlvHTML::pagesearch (int pn, const char *str, bool reverse)
-    {
-      return nullptr;
-    }
+ApvlvPoses *
+ApvlvHTML::pagesearch (int pn, const char *str, bool reverse)
+{
+  return nullptr;
+}
 
-    bool ApvlvHTML::pageselectsearch (int pn, int ix, int iy,
-                                      double zm, int rot, GdkPixbuf *pix,
-                                      char *buffer, int sel, ApvlvPoses *poses)
-    {
-      return false;
-    }
+bool
+ApvlvHTML::pageselectsearch (int pn, int ix, int iy, double zm, int rot,
+                             GdkPixbuf *pix, char *buffer, int sel,
+                             ApvlvPoses *poses)
+{
+  return false;
+}
 
-    ApvlvLinks *ApvlvHTML::getlinks (int pn)
-    {
-      return nullptr;
-    }
+ApvlvLinks *
+ApvlvHTML::getlinks (int pn)
+{
+  return nullptr;
+}
 
-    ApvlvFileIndex *ApvlvHTML::new_index ()
-    {
-      return nullptr;
-    }
+ApvlvFileIndex *
+ApvlvHTML::new_index ()
+{
+  return nullptr;
+}
 
-    void ApvlvHTML::free_index (ApvlvFileIndex *index)
-    {
-      delete index;
-    }
+void
+ApvlvHTML::free_index (ApvlvFileIndex *index)
+{
+  delete index;
+}
 
-    bool ApvlvHTML::pageprint (int pn, cairo_t *cr)
-    {
-      return false;
-    }
+bool
+ApvlvHTML::pageprint (int pn, cairo_t *cr)
+{
+  return false;
+}
 }
 
 // Local Variables:
