@@ -32,16 +32,15 @@
 
 namespace apvlv
 {
-class ApvlvTxt;
 class ApvlvTxtPage
 {
 public:
-  ApvlvTxtPage (int pn, const gchar *, gsize);
+  ApvlvTxtPage (const gchar *str, gsize size);
   ~ApvlvTxtPage ();
 
-  bool pagesize (int rot, double *x, double *y);
+  bool pagesize (double *px, double *py);
 
-  bool render (int, int, double, int, GdkPixbuf *, char *);
+  bool render (int ix, int iy, double zm, char *buffer);
 
 private:
   GString *mContent;
@@ -52,48 +51,48 @@ private:
 
   gint mWidth, mHeight;
 
-  guint mLayoutWidth, mLayoutHeight;
-  guint mStride;
+  guint mLayoutWidth{}, mLayoutHeight{};
+  guint mStride{};
 
-  gboolean self_render (int);
+  gboolean self_render ();
 };
 
 class ApvlvTXT : public ApvlvFile
 {
 public:
-  ApvlvTXT (const char *filename, bool check = true);
+  explicit ApvlvTXT (const char *filename, bool check = true);
 
-  ~ApvlvTXT ();
+  ~ApvlvTXT () override;
 
-  bool writefile (const char *filename);
+  bool writefile (const char *filename) override;
 
-  bool pagesize (int page, int rot, double *x, double *y);
+  bool pagesize (int page, int rot, double *x, double *y) override;
 
-  int pagesum ();
+  int pagesum () override;
 
-  bool pagetext (int, gdouble, gdouble, gdouble, gdouble, char **);
+  bool pagetext (int, gdouble, gdouble, gdouble, gdouble, char **) override;
 
-  bool render (int, int, int, double, int, GdkPixbuf *, char *);
+  bool render (int, int, int, double, int, GdkPixbuf *, char *) override;
 
   bool pageselectsearch (int, int, int, double, int, GdkPixbuf *, char *, int,
-                         ApvlvPoses *);
+                         ApvlvPoses *) override;
 
-  ApvlvPoses *pagesearch (int pn, const char *s, bool reverse = false);
+  ApvlvPoses *pagesearch (int pn, const char *s, bool reverse) override;
 
-  ApvlvLinks *getlinks (int pn);
+  ApvlvLinks *getlinks (int pn) override;
 
-  ApvlvFileIndex *new_index ();
+  ApvlvFileIndex *new_index () override;
 
-  void free_index (ApvlvFileIndex *);
+  void free_index (ApvlvFileIndex *) override;
 
-  bool pageprint (int pn, cairo_t *cr);
+  bool pageprint (int pn, cairo_t *cr) override;
 
 private:
   GString *mContent;
   gsize mLength;
 
-  gint mPageCount;
-  GPtrArray *mPages;
+  gint mPageCount{};
+  GPtrArray *mPages{};
 
   gboolean load_pages ();
 };

@@ -60,7 +60,7 @@ public:
 
   ApvlvPoses *pagesearch (int pn, const char *s, bool reverse) override;
 
-  ApvlvAnnotTexts *getAnnotTexts (int pn) override;
+  ApvlvAnnotTexts getAnnotTexts (int pn) override;
 
   ApvlvLinks *getlinks (int pn) override;
 

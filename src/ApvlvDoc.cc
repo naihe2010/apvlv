@@ -193,6 +193,8 @@ void
 ApvlvDoc::doubleClickBlank (ApvlvImage *image, double x, double y)
 {
   auto cache = mCurrentCache[image->mId];
+  g_return_if_fail (cache);
+
   ApvlvPos pos = { x, x, y, y };
 
   if (strcasecmp (gParams->values ("doubleclick"), "word") == 0)
@@ -240,6 +242,8 @@ ApvlvDoc::blank (ApvlvImage *image)
   g_return_if_fail (image != nullptr);
 
   auto cache = mCurrentCache[image->mId];
+  g_return_if_fail (cache);
+
   auto poses = cache->getSelected (mLastPoint, mCurPoint, mInVisual);
   auto buffer = cache->getdata (true);
 
@@ -283,6 +287,8 @@ ApvlvDoc::yank (ApvlvImage *image, int times)
 {
   g_return_if_fail (image);
   auto cache = mCurrentCache[image->mId];
+  g_return_if_fail (cache);
+
   auto poses = cache->getSelected (mLastPoint, mCurPoint, mInVisual);
   string content;
   gchar *text;
@@ -306,6 +312,8 @@ void
 ApvlvDoc::annotUnderline (ApvlvImage *image)
 {
   auto cache = mCurrentCache[image->mId];
+  g_return_if_fail (cache);
+
   auto poses = cache->getSelected (mLastPoint, mCurPoint, mInVisual);
   for (auto pos : poses)
     {
@@ -319,6 +327,9 @@ void
 ApvlvDoc::annotText (ApvlvImage *image)
 {
   auto cache = mCurrentCache[image->mId];
+  g_return_if_fail (cache);
+
+  mInVisual = VISUAL_CTRL_V;
   auto poses = cache->getSelected (mLastPoint, mCurPoint, mInVisual);
   if (poses.empty ())
     return;
@@ -1213,6 +1224,8 @@ ApvlvDoc::scrollup (int times)
     }
 
   auto cache = mCurrentCache[mCurrentImage->mId];
+  g_return_if_fail (cache);
+
   auto rate = cache->getHeightOfLine (mCurPoint.y);
 
   gint ny1 = gint (mCurPoint.y - rate * times);
@@ -1243,6 +1256,8 @@ ApvlvDoc::scrolldown (int times)
     }
 
   auto cache = mCurrentCache[mCurrentImage->mId];
+  g_return_if_fail (cache);
+
   auto rate = cache->getHeightOfLine (mCurPoint.y);
 
   gint ny1 = gint (mCurPoint.y + rate * times);
@@ -1292,6 +1307,7 @@ ApvlvDoc::scrollleft (int times)
     }
 
   auto cache = mCurrentCache[mCurrentImage->mId];
+  g_return_if_fail (cache);
   auto rate = cache->getWidthOfWord (mCurPoint.x, mCurPoint.y);
 
   gint nx1 = gint (mCurPoint.x - rate * times);
@@ -1321,6 +1337,8 @@ ApvlvDoc::scrollright (int times)
     }
 
   auto cache = mCurrentCache[mCurrentImage->mId];
+  g_return_if_fail (cache);
+
   auto rate = cache->getWidthOfWord (mCurPoint.x, mCurPoint.y);
 
   gint nx1 = gint (mCurPoint.x + rate * times);
@@ -1736,6 +1754,8 @@ ApvlvDoc::apvlv_doc_button_press_cb (GtkEventBox *box, GdkEventButton *button,
 {
   auto image = doc->getApvlvImageByEventBox (box);
   auto cache = doc->mCurrentCache[image->mId];
+  g_return_if_fail (cache);
+
   gdouble x, y;
   image->toCacheSize (button->x, button->y, cache, &x, &y);
   if (button->button == 1)
@@ -1808,38 +1828,15 @@ ApvlvDoc::apvlv_doc_motion_notify_cb (GtkEventBox *box, GdkEventMotion *motion,
 {
   auto image = doc->getApvlvImageByEventBox (box);
   gdouble x, y;
-  image->toCacheSize (motion->x, motion->y, doc->mCurrentCache[image->mId], &x,
-                      &y);
-  if (!(motion->state & GDK_BUTTON1_MASK))
-    {
-      doc->annotShow (image, x, y);
-      return FALSE;
-    }
+  auto cache = doc->mCurrentCache[image->mId];
+  g_return_val_if_fail (cache, FALSE);
 
+  image->toCacheSize (motion->x, motion->y, cache, &x, &y);
   doc->mInVisual = ApvlvDoc::VISUAL_V;
   if (motion->state & GDK_CONTROL_MASK)
     doc->mInVisual = ApvlvDoc::VISUAL_CTRL_V;
   doc->updateCurPoint (x, y, FALSE);
   doc->blank (image);
-  return TRUE;
-}
-
-gboolean
-ApvlvDoc::apvlv_doc_tooltip_cb (GtkEventBox *box, int x, int y,
-                                gboolean keyboard_mode, GtkTooltip *tooltip,
-                                ApvlvDoc *doc)
-{
-  auto image = doc->getApvlvImageByEventBox (box);
-  auto cache = doc->mCurrentCache[image->mId];
-  gdouble rx, ry;
-  image->toCacheSize (double (x), double (y), cache, &rx, &ry);
-  auto annot = cache->getAnnotText (rx, ry);
-  if (annot == nullptr)
-    {
-      return FALSE;
-    }
-
-  gtk_widget_set_tooltip_text (GTK_WIDGET (box), annot->text.c_str ());
   return TRUE;
 }
 
@@ -2013,7 +2010,6 @@ ApvlvDocCache::ApvlvDocCache (ApvlvFile *file)
 {
   mFile = file;
   mPagenum = -1;
-  mLines = nullptr;
   mData = nullptr;
   mSize = 0;
   mBuf = nullptr;
@@ -2023,7 +2019,6 @@ ApvlvDocCache::ApvlvDocCache (ApvlvFile *file)
   mRotate = 0;
   mWidth = 0;
   mHeight = 0;
-  mAnnotTexts = nullptr;
 }
 
 void
@@ -2033,11 +2028,7 @@ ApvlvDocCache::set (guint p, double zm, guint rot, bool delay)
   mZoom = zm;
   mRotate = rot;
 
-  if (mLines != nullptr)
-    {
-      delete mLines;
-      mLines = nullptr;
-    }
+  mLines.clear ();
 
   if (mData != nullptr)
     {
@@ -2091,6 +2082,14 @@ ApvlvDocCache::load (ApvlvDocCache *ac)
     {
       invert_pixbuf (bu);
     }
+
+  // set annot text
+  auto annottexts = ac->mFile->getAnnotTexts (ac->mPagenum);
+  for (auto &annot : annottexts)
+    {
+      ac->setAnnot (&annot, dat, ac->mSize);
+    }
+
   // backup the pixbuf data
   memcpy (dat + ac->mSize, dat, ac->mSize);
 
@@ -2104,16 +2103,49 @@ ApvlvDocCache::load (ApvlvDocCache *ac)
 
   ac->preGetLines (0, 0, gint (tpagex), gint (tpagey));
   ac->sortLines ();
+}
 
-  delete ac->mAnnotTexts;
-  ac->mAnnotTexts = ac->mFile->getAnnotTexts (ac->mPagenum);
+void
+ApvlvDocCache::setAnnot (ApvlvAnnotText *annot, unsigned char *buffer,
+                         size_t buf_size)
+{
+  int a_width = int (annot->pos.x2 - annot->pos.x1);
+  int a_height = int (annot->pos.y2 - annot->pos.y1);
+  int r_a_width = int (a_width * mZoom);
+  int r_a_height = int (a_height * mZoom + 1);
+  int stride = 4 * r_a_width;
+  GString content = { (char *)annot->text.c_str (), annot->text.size () };
+  unsigned char *tmpbuf = g_new (unsigned char, stride *r_a_height);
+  g_return_if_fail (tmpbuf);
+
+  int e_width, e_height;
+  if (apvlv_text_to_pixbuf_buffer (&content, a_width, a_height, mZoom, tmpbuf,
+                                   stride * r_a_height, &e_width, &e_height)
+      == true)
+    {
+      int y1 = int (mZoom * annot->pos.y1);
+      int y2 = int (mZoom * annot->pos.y2);
+      int x1 = int (mZoom * annot->pos.x1);
+      int x2 = int (mZoom * annot->pos.x2);
+      for (gint y = y1; y < y2; y++)
+        {
+          for (gint x = x1; x < x2; x++)
+            {
+              gint p = (gint)(y * mWidth * 3 + (x * 3));
+              gint s = (gint)((y - y1) * stride + ((x - x1) * 4));
+              buffer[p + 0] = tmpbuf[s + 0];
+              buffer[p + 1] = tmpbuf[s + 1];
+              buffer[p + 2] = tmpbuf[s + 2];
+            }
+        }
+    }
+
+  g_free (tmpbuf);
 }
 
 ApvlvDocCache::~ApvlvDocCache ()
 {
   delete mLinks;
-
-  delete mLines;
 
   delete[] mData;
 
@@ -2121,8 +2153,6 @@ ApvlvDocCache::~ApvlvDocCache ()
     {
       g_object_unref (mBuf);
     }
-
-  delete mAnnotTexts;
 }
 
 gint
@@ -2193,9 +2223,10 @@ ApvlvDocCache::getword (gdouble x, gdouble y)
 ApvlvLine *
 ApvlvDocCache::getline (gdouble y)
 {
-  g_return_val_if_fail (mLines != nullptr, nullptr);
+  if (mLines.empty ())
+    return nullptr;
 
-  for (auto &mLine : *mLines)
+  for (auto &mLine : mLines)
     {
       if (y >= mLine.pos.y1 && y <= mLine.pos.y2)
         {
@@ -2222,7 +2253,7 @@ ApvlvDocCache::preGetLines (gint x1, gint y1, gint x2, gint y2)
       ApvlvPoses *results;
       string word;
 
-      mLines = new vector<ApvlvLine>;
+      mLines.clear ();
 
       std::set<string> processed;
 
@@ -2290,7 +2321,7 @@ ApvlvDocCache::preGetLines (gint x1, gint y1, gint x2, gint y2)
 void
 ApvlvDocCache::sortLines ()
 {
-  for (auto line : *mLines)
+  for (auto line : mLines)
     {
       sort (line.mWords.begin (), line.mWords.end (),
             [] (const ApvlvWord &w1, const ApvlvWord &w2) {
@@ -2298,7 +2329,7 @@ ApvlvDocCache::sortLines ()
             });
     }
 
-  sort (mLines->begin (), mLines->end (),
+  sort (mLines.begin (), mLines.end (),
         [] (const ApvlvLine &line1, const ApvlvLine &line2) {
           return line1.pos.y1 < line2.pos.y1;
         });
@@ -2315,7 +2346,7 @@ ApvlvDocCache::prepare_add (const char *word, ApvlvPoses *results)
       itr.y2 = mHeight - itr.y2 * mZoom;
 
       vector<ApvlvLine>::iterator litr;
-      for (litr = mLines->begin (); litr != mLines->end (); ++litr)
+      for (litr = mLines.begin (); litr != mLines.end (); ++litr)
         {
           if (fabs (itr.y1 - litr->pos.y1) < 0.0001
               && fabs (itr.y2 - litr->pos.y2) < 0.0001)
@@ -2324,7 +2355,7 @@ ApvlvDocCache::prepare_add (const char *word, ApvlvPoses *results)
             }
         }
 
-      if (litr != mLines->end ())
+      if (litr != mLines.end ())
         {
           bool need = true;
           for (auto &mWord : litr->mWords)
@@ -2365,7 +2396,7 @@ ApvlvDocCache::prepare_add (const char *word, ApvlvPoses *results)
           line.pos = itr;
           ApvlvWord w = { itr, word };
           line.mWords.push_back (w);
-          mLines->push_back (line);
+          mLines.push_back (line);
         }
     }
 }
@@ -2373,7 +2404,7 @@ ApvlvDocCache::prepare_add (const char *word, ApvlvPoses *results)
 gdouble
 ApvlvDocCache::getHeightOfLine (gdouble y)
 {
-  for (const auto &line : *mLines)
+  for (const auto &line : mLines)
     {
       if (y > line.pos.y2 && y < line.pos.y1)
         {
@@ -2387,7 +2418,7 @@ ApvlvDocCache::getHeightOfLine (gdouble y)
 gdouble
 ApvlvDocCache::getWidthOfWord (gdouble x, gdouble y)
 {
-  for (const auto &line : *mLines)
+  for (const auto &line : mLines)
     {
       if (y > line.pos.y2 && y < line.pos.y1)
         {
@@ -2476,7 +2507,7 @@ ApvlvDocCache::getlines (gdouble y1, gdouble y2)
 {
   vector<ApvlvLine *> lines;
 
-  for (auto &mLine : *mLines)
+  for (auto &mLine : mLines)
     {
       auto line = &mLine;
       if (line->pos.y2 >= y1 && line->pos.y1 <= y2)
@@ -2484,24 +2515,6 @@ ApvlvDocCache::getlines (gdouble y1, gdouble y2)
     }
 
   return lines;
-}
-
-ApvlvAnnotText *
-ApvlvDocCache::getAnnotText (gdouble x, gdouble y)
-{
-  for (auto &annottext : *mAnnotTexts)
-    {
-      if (x >= annottext.pos.x1 && x <= annottext.pos.x2
-          && y >= annottext.pos.y1 && y <= annottext.pos.y2)
-        {
-          debug ("find annotation: %s, %0.f,%0.f,%0.f,%0.f",
-                 annottext.text.c_str (), annottext.pos.x1, annottext.pos.y1,
-                 annottext.pos.x2, annottext.pos.y2);
-          return &annottext;
-        }
-    }
-
-  return nullptr;
 }
 
 void
@@ -2578,6 +2591,7 @@ ApvlvDoc::find (const char *str)
   g_return_val_if_fail (*str != '\0', true);
 
   auto cache = mCurrentCache[mCurrentImage->mId];
+  g_return_val_if_fail (cache, false);
   auto results = mFile->pagesearch (cache->getpagenum (), str, false);
   g_return_val_if_fail (results != nullptr, false);
 
@@ -2601,23 +2615,6 @@ ApvlvDoc::find (const char *str)
 
   delete results;
   return true;
-}
-
-void
-ApvlvDoc::annotShow (ApvlvImage *image, gdouble x, gdouble y)
-{
-  auto cache = mCurrentCache[image->mId];
-  auto annot = cache->getAnnotText (x, y);
-  if (annot == nullptr)
-    {
-      return;
-    }
-
-  auto win = gtk_window_new (GTK_WINDOW_POPUP);
-  auto label = gtk_label_new_with_mnemonic (annot->text.c_str ());
-  g_timeout_add (1000, G_SOURCE_FUNC (gtk_widget_destroy), win);
-  gtk_container_add (GTK_CONTAINER (win), label);
-  gtk_widget_show_all (win);
 }
 
 static void
@@ -2660,16 +2657,12 @@ ApvlvImage::ApvlvImage (ApvlvDoc *doc, int id)
   g_object_ref (mEventBox);
   mImage = gtk_image_new ();
   gtk_container_add (GTK_CONTAINER (mEventBox), mImage);
-  gtk_widget_add_events (mEventBox, GDK_POINTER_MOTION_MASK);
   g_signal_connect (G_OBJECT (mEventBox), "enter-notify-event",
                     G_CALLBACK (ApvlvDoc::apvlv_doc_enter_notify_cb), mDoc);
   g_signal_connect (G_OBJECT (mEventBox), "button-press-event",
                     G_CALLBACK (ApvlvDoc::apvlv_doc_button_press_cb), mDoc);
   g_signal_connect (G_OBJECT (mEventBox), "motion-notify-event",
                     G_CALLBACK (ApvlvDoc::apvlv_doc_motion_notify_cb), mDoc);
-  // g_object_set (G_OBJECT (mEventBox), "has-tooltip", TRUE, nullptr);
-  // g_signal_connect (G_OBJECT (mEventBox), "query-tooltip",
-  //                   G_CALLBACK (ApvlvDoc::apvlv_doc_tooltip_cb), mDoc);
 }
 
 ApvlvImage::~ApvlvImage () { g_object_unref (mEventBox); }

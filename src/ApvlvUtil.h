@@ -70,6 +70,11 @@ GtkWidget *replace_widget (GtkWidget *owid, GtkWidget *nwid);
 
 void apvlv_widget_set_background (GtkWidget *wid);
 
+bool apvlv_text_to_pixbuf_buffer (GString *content, int width, int height,
+                                  double zoomrate, unsigned char *buffer,
+                                  size_t buffer_size, int *o_width,
+                                  int *o_height);
+
 // command type
 enum
 {

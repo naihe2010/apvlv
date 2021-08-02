@@ -296,6 +296,63 @@ apvlv_system (const char *str)
   return WinExec (str, SW_NORMAL);
 #endif
 }
+
+bool
+apvlv_text_to_pixbuf_buffer (GString *text, int width, int height,
+                             double zoomrate, unsigned char *buffer,
+                             size_t buffer_size, int *o_width, int *o_height)
+{
+  int l_width = int (width * zoomrate);
+  int l_height = int (height * zoomrate);
+  int stride = cairo_format_stride_for_width (CAIRO_FORMAT_RGB24, l_width);
+  g_return_val_if_fail (size_t (stride * l_height) <= buffer_size, false);
+
+  auto surface = cairo_image_surface_create_for_data (
+      buffer, CAIRO_FORMAT_RGB24, l_width, l_height, stride);
+  if (surface == nullptr)
+    {
+      return false;
+    }
+
+  auto cr = cairo_create (surface);
+  if (cr == nullptr)
+    {
+      cairo_surface_destroy (surface);
+      return false;
+    }
+
+  /* init the background */
+  cairo_set_source_rgb (cr, 1.0, 1.0, 1.0);
+  cairo_rectangle (cr, 0, 0, l_width, l_height);
+  cairo_fill (cr);
+
+  cairo_select_font_face (cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
+                          CAIRO_FONT_WEIGHT_NORMAL);
+  cairo_set_font_size (cr, 20 * zoomrate);
+  cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
+
+  auto layout = pango_cairo_create_layout (cr);
+
+  auto wunits = pango_units_from_double (l_width);
+  auto hunits = pango_units_from_double (l_height);
+  pango_layout_set_width (layout, wunits);
+  pango_layout_set_height (layout, hunits);
+  pango_layout_set_wrap (layout, PANGO_WRAP_WORD_CHAR);
+  pango_layout_set_spacing (layout, 80);
+  pango_layout_set_indent (layout, 160);
+
+  pango_layout_set_text (layout, text->str, int (text->len));
+
+  pango_cairo_update_layout (cr, layout);
+  pango_cairo_show_layout (cr, layout);
+
+  pango_layout_get_pixel_size (layout, o_width, o_height);
+  debug ("txt page size: %d:%d", *o_width, *o_height);
+
+  cairo_surface_destroy (surface);
+  cairo_destroy (cr);
+  return true;
+}
 }
 
 // Local Variables:

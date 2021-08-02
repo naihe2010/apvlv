@@ -612,10 +612,10 @@ ApvlvPDF::annot_text (int pn, gdouble x1, gdouble y1, gdouble x2, gdouble y2,
   return true;
 }
 
-ApvlvAnnotTexts *
+ApvlvAnnotTexts
 ApvlvPDF::getAnnotTexts (int pn)
 {
-  auto *texts = new ApvlvAnnotTexts;
+  ApvlvAnnotTexts texts;
   auto page = poppler_document_get_page (mDoc, pn);
   auto lists = poppler_page_get_annot_mapping (page);
   for (auto node = lists; node != nullptr; node = node->next)
@@ -630,7 +630,7 @@ ApvlvPDF::getAnnotTexts (int pn)
       text.pos = { area.x1, area.x2, area.y1, area.y2 };
       auto contents = poppler_annot_get_contents (annot);
       text.text = contents;
-      texts->push_back (text);
+      texts.push_back (text);
       g_free (contents);
     }
 

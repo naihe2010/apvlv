@@ -128,7 +128,7 @@ public:
                                  char *, int, ApvlvPoses *)
       = 0;
 
-  virtual ApvlvAnnotTexts *getAnnotTexts (int pn);
+  virtual ApvlvAnnotTexts getAnnotTexts (int pn);
 
   virtual ApvlvLinks *getlinks (int pn) = 0;
 

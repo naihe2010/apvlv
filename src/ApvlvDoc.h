@@ -115,9 +115,10 @@ public:
 
   vector<ApvlvLine *> getlines (gdouble y1, gdouble y2);
 
-  ApvlvAnnotText *getAnnotText (gdouble x, gdouble y);
-
   vector<ApvlvPos> getSelected (ApvlvPoint last, ApvlvPoint cur, int visual);
+
+  void setAnnot (ApvlvAnnotText *annot, unsigned char *buffer,
+                 size_t buf_size);
 
 private:
   ApvlvFile *mFile;
@@ -131,9 +132,7 @@ private:
   gint mWidth;
   gint mHeight;
 
-  vector<ApvlvLine> *mLines;
-
-  ApvlvAnnotTexts *mAnnotTexts;
+  vector<ApvlvLine> mLines;
 
   void preGetLines (gint x1, gint y1, gint x2, gint y2);
   void sortLines ();
@@ -289,8 +288,6 @@ private:
 
   void updateCurPoint (gdouble x, gdouble y, gboolean updateLast);
 
-  void annotShow (ApvlvImage *image, gdouble x, gdouble y);
-
   static void apvlv_doc_enter_notify_cb (GtkEventBox *box, GdkEvent *event,
                                          ApvlvDoc *doc);
 
@@ -301,10 +298,6 @@ private:
   static gboolean apvlv_doc_motion_notify_cb (GtkEventBox *box,
                                               GdkEventMotion *motion,
                                               ApvlvDoc *doc);
-
-  static gboolean apvlv_doc_tooltip_cb (GtkEventBox *box, int x, int y,
-                                        gboolean keyboard_mode,
-                                        GtkTooltip *tooltip, ApvlvDoc *doc);
 
   static void apvlv_doc_on_mouse (GtkAdjustment *, ApvlvDoc *);
 

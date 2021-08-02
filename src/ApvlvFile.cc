@@ -167,10 +167,11 @@ ApvlvFile::annot_text (int, gdouble, gdouble, gdouble, gdouble,
   return false;
 }
 
-ApvlvAnnotTexts *
+ApvlvAnnotTexts
 ApvlvFile::getAnnotTexts (int pn)
 {
-  return nullptr;
+  ApvlvAnnotTexts texts;
+  return texts;
 }
 
 ApvlvFileIndex *
