@@ -117,12 +117,15 @@ public:
 
   vector<ApvlvPos> getSelected (ApvlvPoint last, ApvlvPoint cur, int visual);
 
-  void setAnnot (ApvlvAnnotText *annot, unsigned char *buffer,
-                 size_t buf_size);
+  bool getAvailableSpace (ApvlvPos pos, ApvlvPos *outpos);
+
+  void setAnnot (const ApvlvAnnotText &annot, unsigned char *buffer,
+                 size_t buf_size) const;
+
+  ApvlvAnnotText *annotAtPos (ApvlvPos vpos);
 
 private:
   ApvlvFile *mFile;
-  ApvlvLinks *mLinks;
   double mZoom;
   guint mRotate;
   gint mPagenum;
@@ -132,7 +135,9 @@ private:
   gint mWidth;
   gint mHeight;
 
+  ApvlvLinks *mLinks;
   vector<ApvlvLine> mLines;
+  ApvlvAnnotTexts mAnnotTexts;
 
   void preGetLines (gint x1, gint y1, gint x2, gint y2);
   void sortLines ();
@@ -158,6 +163,7 @@ public:
                                               ApvlvImage *image);
   static void apvlv_image_underline_cb (GtkMenuItem *item, ApvlvImage *image);
   static void apvlv_image_annotate_cb (GtkMenuItem *item, ApvlvImage *image);
+  static void apvlv_image_comment_cb (GtkMenuItem *item, ApvlvImage *image);
 
 private:
   GtkWidget *mImage;
@@ -264,6 +270,8 @@ private:
 
   void annotText (ApvlvImage *image);
 
+  void commentText (ApvlvImage *image);
+
   returnType subprocess (int ct, guint key);
 
   int convertindex (int p);
@@ -297,6 +305,9 @@ private:
 
   static gboolean apvlv_doc_motion_notify_cb (GtkEventBox *box,
                                               GdkEventMotion *motion,
+                                              ApvlvDoc *doc);
+  static void apvlv_doc_edit_annotation_cb (GtkMenuItem *item, ApvlvDoc *doc);
+  static void apvlv_doc_delete_annotation_cb (GtkMenuItem *item,
                                               ApvlvDoc *doc);
 
   static void apvlv_doc_on_mouse (GtkAdjustment *, ApvlvDoc *);
@@ -338,6 +349,7 @@ private:
   GtkWidget *mWeb[1];
 
   ApvlvImage *mCurrentImage;
+  ApvlvAnnotText *mCurrentAnnotText;
 
   friend class ApvlvDocCache;
   friend class ApvlvImage;

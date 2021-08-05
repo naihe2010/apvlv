@@ -40,6 +40,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <set>
 #include <sstream>
@@ -48,7 +49,9 @@ namespace apvlv
 {
 static void invert_pixbuf (GdkPixbuf *);
 static GtkPrintSettings *settings = nullptr;
+
 const int APVLV_CURSOR_WIDTH_DEFAULT = 2;
+const int APVLV_ANNOT_UNDERLINE_HEIGHT = 10;
 
 DISPLAY_TYPE
 get_display_type_by_filename (const char *name)
@@ -323,6 +326,7 @@ ApvlvDoc::annotUnderline (ApvlvImage *image)
 
   refresh ();
 }
+
 void
 ApvlvDoc::annotText (ApvlvImage *image)
 {
@@ -335,13 +339,52 @@ ApvlvDoc::annotText (ApvlvImage *image)
     return;
 
   auto pos = poses[poses.size () - 1];
-  auto text = ApvlvView::input ("Comment: ", mZoomrate * (pos.x2 - pos.x1),
-                                mZoomrate * (pos.y2 - pos.y1));
+  auto text
+      = ApvlvView::input ("Comment: ", int (mZoomrate * (pos.x2 - pos.x1)),
+                          int (mZoomrate * (pos.y2 - pos.y1)));
   if (text)
     {
       mFile->annot_text (cache->getpagenum (), pos.x1,
                          cache->getheight () - pos.y1, pos.x2,
                          cache->getheight () - pos.y2, text);
+      g_free (text);
+    }
+
+  refresh ();
+}
+
+void
+ApvlvDoc::commentText (ApvlvImage *image)
+{
+  auto cache = mCurrentCache[image->mId];
+  g_return_if_fail (cache);
+
+  auto poses = cache->getSelected (mLastPoint, mCurPoint, mInVisual);
+  if (poses.empty ())
+    return;
+
+  ApvlvPos apos = { mLastPoint.x, mCurPoint.x, mLastPoint.y, mCurPoint.y };
+  ApvlvPos cpos{};
+  if (cache->getAvailableSpace (apos, &cpos) == false)
+    {
+      debug ("not find space");
+      return;
+    }
+
+  for (auto &&pos : poses)
+    {
+      mFile->annot_underline (cache->getpagenum (), pos.x1, pos.y2, pos.x2,
+                              pos.y2);
+    }
+
+  auto text
+      = ApvlvView::input ("Comment: ", int (mZoomrate * (cpos.x2 - cpos.x1)),
+                          int (mZoomrate * (cpos.y2 - cpos.y1)));
+  if (text)
+    {
+      mFile->annot_text (cache->getpagenum (), cpos.x1,
+                         cache->getheight () - cpos.y1, cpos.x2,
+                         cache->getheight () - cpos.y2, text);
       g_free (text);
     }
 
@@ -1749,15 +1792,42 @@ ApvlvDoc::apvlv_doc_monitor_callback (GFileMonitor *fm, GFile *gf1, GFile *gf2,
 }
 
 void
+ApvlvDoc::apvlv_doc_edit_annotation_cb (GtkMenuItem *item, ApvlvDoc *doc)
+{
+  auto cache = doc->mCurrentCache[doc->mCurrentImage->mId];
+  auto pos = doc->mCurrentAnnotText->pos;
+  auto text = ApvlvView::input (
+      "Comment: ", int (doc->mZoomrate * (pos.x2 - pos.x1)),
+      int (doc->mZoomrate * (pos.y2 - pos.y1)), doc->mCurrentAnnotText->text);
+  if (text)
+    {
+      doc->mCurrentAnnotText->text = text;
+      doc->mFile->annot_update (cache->getpagenum (), doc->mCurrentAnnotText);
+      g_free (text);
+    }
+
+  doc->refresh ();
+}
+
+void
+ApvlvDoc::apvlv_doc_delete_annotation_cb (GtkMenuItem *item, ApvlvDoc *doc)
+{
+  auto cache = doc->mCurrentCache[doc->mCurrentImage->mId];
+  doc->mCurrentAnnotText->text = "";
+  doc->mFile->annot_update (cache->getpagenum (), doc->mCurrentAnnotText);
+  doc->refresh ();
+}
+
+void
 ApvlvDoc::apvlv_doc_button_press_cb (GtkEventBox *box, GdkEventButton *button,
                                      ApvlvDoc *doc)
 {
-  auto image = doc->getApvlvImageByEventBox (box);
-  auto cache = doc->mCurrentCache[image->mId];
+  doc->mCurrentImage = doc->getApvlvImageByEventBox (box);
+  auto cache = doc->mCurrentCache[doc->mCurrentImage->mId];
   g_return_if_fail (cache);
 
   gdouble x, y;
-  image->toCacheSize (button->x, button->y, cache, &x, &y);
+  doc->mCurrentImage->toCacheSize (button->x, button->y, cache, &x, &y);
   if (button->button == 1)
     {
       if (button->type == GDK_BUTTON_PRESS)
@@ -1767,14 +1837,14 @@ ApvlvDoc::apvlv_doc_button_press_cb (GtkEventBox *box, GdkEventButton *button,
           if (button->time - doc->mLastpress < 500)
             {
               doc->mInVisual = ApvlvDoc::VISUAL_NONE;
-              doc->doubleClickBlank (image, x, y);
+              doc->doubleClickBlank (doc->mCurrentImage, x, y);
             }
           else
             {
               doc->mInVisual = ApvlvDoc::VISUAL_NONE;
               doc->updateLastPoint (x, y);
               doc->updateCurPoint (x, y, FALSE);
-              doc->blank (image);
+              doc->blank (doc->mCurrentImage);
             }
 
           doc->mLastpress = button->time;
@@ -1782,37 +1852,69 @@ ApvlvDoc::apvlv_doc_button_press_cb (GtkEventBox *box, GdkEventButton *button,
     }
   else if (button->button == 3)
     {
-      if (doc->mInVisual == ApvlvDoc::VISUAL_NONE)
+      GtkWidget *menu = gtk_menu_new ();
+      gtk_menu_attach_to_widget (GTK_MENU (menu), GTK_WIDGET (box), nullptr);
+
+      ApvlvPos pos = { x, x, y, y };
+      doc->mCurrentAnnotText = cache->annotAtPos (pos);
+
+      if (doc->mCurrentAnnotText == nullptr && doc->mInVisual == VISUAL_NONE)
         {
+          gtk_widget_destroy (menu);
           return;
         }
 
-      GtkWidget *menu, *item;
+      else if (doc->mCurrentAnnotText != nullptr)
+        {
+          GtkWidget *item;
 
-      menu = gtk_menu_new ();
-      gtk_menu_attach_to_widget (GTK_MENU (menu), GTK_WIDGET (box), nullptr);
+          if (doc->mCurrentAnnotText->type == APVLV_ANNOT_TEXT)
+            {
+              item = gtk_menu_item_new_with_label ("Edit Annotation text");
+              gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
+              gtk_widget_show (item);
+              g_signal_connect (item, "activate",
+                                G_CALLBACK (apvlv_doc_edit_annotation_cb),
+                                doc);
+            }
 
-      item = gtk_menu_item_new_with_label ("Copy to Clipboard");
-      gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
-      gtk_widget_show (item);
-      g_signal_connect (
-          item, "activate",
-          G_CALLBACK (ApvlvImage::apvlv_image_copytoclipboard_cb), image);
+          item = gtk_menu_item_new_with_label ("Delete Annotation");
+          gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
+          gtk_widget_show (item);
+          g_signal_connect (item, "activate",
+                            G_CALLBACK (apvlv_doc_delete_annotation_cb), doc);
+        }
 
-      item = gtk_menu_item_new_with_label ("Under line");
-      gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
-      gtk_widget_show (item);
-      g_signal_connect (item, "activate",
-                        G_CALLBACK (ApvlvImage::apvlv_image_underline_cb),
-                        image);
+      else if (doc->mInVisual != VISUAL_NONE)
+        {
+          GtkWidget *item = gtk_menu_item_new_with_label ("Copy to Clipboard");
+          gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
+          gtk_widget_show (item);
+          g_signal_connect (
+              item, "activate",
+              G_CALLBACK (ApvlvImage::apvlv_image_copytoclipboard_cb), doc);
 
-      item = gtk_menu_item_new_with_label ("Annotate");
-      gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
-      gtk_widget_show (item);
-      g_signal_connect (item, "activate",
-                        G_CALLBACK (ApvlvImage::apvlv_image_annotate_cb),
-                        image);
+          item = gtk_menu_item_new_with_label ("Under line");
+          gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
+          gtk_widget_show (item);
+          g_signal_connect (item, "activate",
+                            G_CALLBACK (ApvlvImage::apvlv_image_underline_cb),
+                            doc->mCurrentImage);
 
+          item = gtk_menu_item_new_with_label ("Annotate");
+          gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
+          gtk_widget_show (item);
+          g_signal_connect (item, "activate",
+                            G_CALLBACK (ApvlvImage::apvlv_image_annotate_cb),
+                            doc->mCurrentImage);
+
+          item = gtk_menu_item_new_with_label ("Comment");
+          gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
+          gtk_widget_show (item);
+          g_signal_connect (item, "activate",
+                            G_CALLBACK (ApvlvImage::apvlv_image_comment_cb),
+                            doc->mCurrentImage);
+        }
 #if GTK_CHECK_VERSION(3, 22, 0)
       gtk_menu_popup_at_pointer (GTK_MENU (menu), nullptr);
 #else
@@ -2084,10 +2186,11 @@ ApvlvDocCache::load (ApvlvDocCache *ac)
     }
 
   // set annot text
-  auto annottexts = ac->mFile->getAnnotTexts (ac->mPagenum);
-  for (auto &annot : annottexts)
+  ac->mAnnotTexts = ac->mFile->getAnnotTexts (ac->mPagenum);
+  for (const auto &annot : ac->mAnnotTexts)
     {
-      ac->setAnnot (&annot, dat, ac->mSize);
+      if (annot.type == APVLV_ANNOT_TEXT)
+        ac->setAnnot (annot, dat, ac->mSize);
     }
 
   // backup the pixbuf data
@@ -2106,15 +2209,15 @@ ApvlvDocCache::load (ApvlvDocCache *ac)
 }
 
 void
-ApvlvDocCache::setAnnot (ApvlvAnnotText *annot, unsigned char *buffer,
-                         size_t buf_size)
+ApvlvDocCache::setAnnot (const ApvlvAnnotText &annot, unsigned char *buffer,
+                         size_t buf_size) const
 {
-  int a_width = int (annot->pos.x2 - annot->pos.x1);
-  int a_height = int (annot->pos.y2 - annot->pos.y1);
+  int a_width = int (annot.pos.x2 - annot.pos.x1);
+  int a_height = int (annot.pos.y2 - annot.pos.y1);
   int r_a_width = int (a_width * mZoom);
   int r_a_height = int (a_height * mZoom + 1);
   int stride = 4 * r_a_width;
-  GString content = { (char *)annot->text.c_str (), annot->text.size () };
+  GString content = { (char *)annot.text.c_str (), annot.text.size () };
   unsigned char *tmpbuf = g_new (unsigned char, stride *r_a_height);
   g_return_if_fail (tmpbuf);
 
@@ -2123,10 +2226,10 @@ ApvlvDocCache::setAnnot (ApvlvAnnotText *annot, unsigned char *buffer,
                                    stride * r_a_height, &e_width, &e_height)
       == true)
     {
-      int y1 = int (mZoom * annot->pos.y1);
-      int y2 = int (mZoom * annot->pos.y2);
-      int x1 = int (mZoom * annot->pos.x1);
-      int x2 = int (mZoom * annot->pos.x2);
+      int x1 = int (mZoom * annot.pos.x1);
+      int x2 = x1 + e_width;
+      int y1 = int (mHeight - mZoom * annot.pos.y2);
+      int y2 = y1 + e_height;
       for (gint y = y1; y < y2; y++)
         {
           for (gint x = x1; x < x2; x++)
@@ -2141,6 +2244,65 @@ ApvlvDocCache::setAnnot (ApvlvAnnotText *annot, unsigned char *buffer,
     }
 
   g_free (tmpbuf);
+}
+
+bool
+ApvlvDocCache::getAvailableSpace (ApvlvPos pos, ApvlvPos *outpos)
+{
+  g_return_val_if_fail (!mLines.empty (), false);
+
+  auto lines = getlines (pos.y1, pos.y2);
+  if (lines.empty ())
+    {
+      *outpos = pos;
+      return true;
+    }
+
+  auto linelid = lines.size () - 1;
+  auto maxx = lines[0]->pos.x2;
+  for (auto &l : lines)
+    {
+      if (l->pos.x2 > maxx)
+        maxx = l->pos.x2;
+    }
+  ApvlvPos apos = { maxx + 20, double (mWidth - 1), lines[0]->pos.y1,
+                    lines[linelid]->pos.y2 };
+  if (annotAtPos (apos) == nullptr)
+    {
+      *outpos = apos;
+      return true;
+    }
+
+  auto minx = lines[0]->pos.x1;
+  for (auto &l : lines)
+    {
+      if (l->pos.x1 < minx)
+        minx = l->pos.x1;
+    }
+  ApvlvPos bpos = { 1, minx - 20, lines[0]->pos.y1, lines[linelid]->pos.y2 };
+  if (annotAtPos (bpos) == nullptr)
+    {
+      *outpos = bpos;
+      return true;
+    }
+
+  ApvlvPos cpos = { 1, double (mWidth - 1), 1, mLines[0].pos.y1 - 20 };
+  if (annotAtPos (cpos) == nullptr)
+    {
+      *outpos = cpos;
+      return true;
+    }
+
+  auto glid = mLines.size () - 1;
+  ApvlvPos dpos = { 1, double (mWidth - 1), mLines[glid].pos.y2 + 20,
+                    double (mHeight - 1) };
+  if (annotAtPos (dpos) == nullptr)
+    {
+      *outpos = dpos;
+      return true;
+    }
+
+  return false;
 }
 
 ApvlvDocCache::~ApvlvDocCache ()
@@ -2231,6 +2393,31 @@ ApvlvDocCache::getline (gdouble y)
       if (y >= mLine.pos.y1 && y <= mLine.pos.y2)
         {
           return &mLine;
+        }
+    }
+
+  return nullptr;
+}
+
+ApvlvAnnotText *
+ApvlvDocCache::annotAtPos (ApvlvPos vpos)
+{
+  auto x1 = vpos.x1, y1 = mHeight - vpos.y2;
+  auto x2 = vpos.x2, y2 = mHeight - vpos.y1;
+  for (auto &annot : mAnnotTexts)
+    {
+      if (annot.type == APVLV_ANNOT_TEXT)
+        {
+          if (x1 >= annot.pos.x1 && x2 <= annot.pos.x2 && y1 >= annot.pos.y1
+              && y2 <= annot.pos.y2)
+            return &annot;
+        }
+      else
+        {
+          if (x1 >= annot.pos.x1 && x2 <= annot.pos.x2
+              && abs (y1 - annot.pos.y1) < APVLV_ANNOT_UNDERLINE_HEIGHT
+              && abs (y2 - annot.pos.y2) < APVLV_ANNOT_UNDERLINE_HEIGHT)
+            return &annot;
         }
     }
 
@@ -2718,6 +2905,16 @@ ApvlvImage::apvlv_image_annotate_cb (GtkMenuItem *item, ApvlvImage *image)
   image->mDoc->updateCurPoint (image->mDoc->mCurPoint.x,
                                image->mDoc->mCurPoint.y, TRUE);
 }
+
+void
+ApvlvImage::apvlv_image_comment_cb (GtkMenuItem *item, ApvlvImage *image)
+{
+  image->mDoc->commentText (image);
+  image->mDoc->mInVisual = ApvlvDoc::VISUAL_NONE;
+  image->mDoc->updateCurPoint (image->mDoc->mCurPoint.x,
+                               image->mDoc->mCurPoint.y, TRUE);
+}
+
 }
 
 // Local Variables:

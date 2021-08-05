@@ -57,7 +57,7 @@ string inifile = "~\\_apvlvrc";
 string sessionfile = "~\\_apvlvinfo";
 #else
 string helppdf = string (DOCDIR) + "/Startup.pdf";
-string mainmenubar_glade = string (LIBDIR) + "/main_menubar.glade";
+string mainmenubar_glade = string (DOCDIR) + "/main_menubar.glade";
 string iniexam = string (DOCDIR) + "/apvlvrc.example";
 string iconreg = string (PIXMAPDIR) + "/icons/reg.png";
 string icondir = string (PIXMAPDIR) + "/icons/dir.png";
@@ -230,9 +230,23 @@ apvlv_widget_set_background (GtkWidget *wid)
     }
   if (*background != '\0')
     {
+#if GTK_CHECK_VERSION(3, 22, 0) and 0 /* this impl can not work now */
+      gchar *cssstr = g_strdup_printf ("%s {"
+                                       " background-color: %s;"
+                                       "}",
+                                       gtk_widget_get_name (wid), background);
+      debug ("css provider: %s", cssstr);
+      auto provider = gtk_css_provider_new ();
+      gtk_css_provider_load_from_data (provider, cssstr, -1, NULL);
+      g_free (cssstr);
+      auto context = gtk_widget_get_style_context (wid);
+      gtk_style_context_add_provider (context, GTK_STYLE_PROVIDER (provider),
+                                      GTK_STYLE_PROVIDER_PRIORITY_USER);
+#else
       GdkRGBA rgba;
       gdk_rgba_parse (&rgba, background);
       gtk_widget_override_background_color (wid, GTK_STATE_FLAG_NORMAL, &rgba);
+#endif
     }
 }
 
@@ -322,7 +336,7 @@ apvlv_text_to_pixbuf_buffer (GString *text, int width, int height,
     }
 
   /* init the background */
-  cairo_set_source_rgb (cr, 1.0, 1.0, 1.0);
+  cairo_set_source_rgb (cr, 0.95, 0.95, 0.95);
   cairo_rectangle (cr, 0, 0, l_width, l_height);
   cairo_fill (cr);
 
@@ -338,8 +352,8 @@ apvlv_text_to_pixbuf_buffer (GString *text, int width, int height,
   pango_layout_set_width (layout, wunits);
   pango_layout_set_height (layout, hunits);
   pango_layout_set_wrap (layout, PANGO_WRAP_WORD_CHAR);
-  pango_layout_set_spacing (layout, 80);
-  pango_layout_set_indent (layout, 160);
+  pango_layout_set_spacing (layout, 10);
+  pango_layout_set_indent (layout, 40);
 
   pango_layout_set_text (layout, text->str, int (text->len));
 

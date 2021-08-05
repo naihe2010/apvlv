@@ -81,7 +81,8 @@ public:
 
   void infomessage (const char *str, ...);
 
-  static gchar *input (const char *str, int w = 400, int h = 150);
+  static gchar *input (const char *str, int w = 400, int h = 150,
+                       string content = "");
 
   bool run (const char *str);
 

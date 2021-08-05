@@ -173,6 +173,11 @@ ApvlvFile::getAnnotTexts (int pn)
   ApvlvAnnotTexts texts;
   return texts;
 }
+bool
+ApvlvFile::annot_update (int, ApvlvAnnotText *text)
+{
+  return false;
+}
 
 ApvlvFileIndex *
 ApvlvFileIndex::newDirIndex (const gchar *path, ApvlvFileIndex *parent_index)

@@ -62,8 +62,15 @@ struct ApvlvPos
 
 typedef vector<ApvlvPos> ApvlvPoses;
 
+enum ApvlvAnnotType
+{
+  APVLV_ANNOT_UNDERLINE,
+  APVLV_ANNOT_TEXT,
+};
+
 struct ApvlvAnnotText
 {
+  ApvlvAnnotType type;
   ApvlvPos pos;
   string text;
 };
@@ -119,6 +126,8 @@ public:
 
   virtual bool annot_text (int, gdouble, gdouble, gdouble, gdouble,
                            const char *text);
+
+  virtual bool annot_update (int, ApvlvAnnotText *text);
 
   virtual bool renderweb (int pn, int, int, double, int, GtkWidget *widget);
 

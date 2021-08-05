@@ -603,12 +603,13 @@ ApvlvPDF::annot_text (int pn, gdouble x1, gdouble y1, gdouble x2, gdouble y2,
   auto page = poppler_document_get_page (mDoc, pn);
   gdouble width, height;
   poppler_page_get_size (page, &width, &height);
-  PopplerRectangle rect = { x1, height - y1, x2, height - y2 };
-  auto annot = poppler_annot_text_new (mDoc, &rect);
-  poppler_annot_set_flags (annot, POPPLER_ANNOT_FLAG_PRINT);
-  poppler_annot_set_contents (annot, text);
+  PopplerRectangle rect = { x1, y1, x2, y2 };
 
+  auto annot = poppler_annot_text_new (mDoc, &rect);
+  poppler_annot_set_flags (annot, POPPLER_ANNOT_FLAG_NO_VIEW);
+  poppler_annot_set_contents (annot, text);
   poppler_page_add_annot (page, annot);
+
   return true;
 }
 
@@ -623,18 +624,57 @@ ApvlvPDF::getAnnotTexts (int pn)
       auto mapping = (PopplerAnnotMapping *)node->data;
       auto area = mapping->area;
       auto annot = mapping->annot;
-      if (poppler_annot_get_annot_type (annot) != POPPLER_ANNOT_TEXT)
-        continue;
 
       ApvlvAnnotText text;
+      text.type = APVLV_ANNOT_TEXT;
+      if (poppler_annot_get_annot_type (annot) == POPPLER_ANNOT_LINE)
+        text.type = APVLV_ANNOT_UNDERLINE;
+
       text.pos = { area.x1, area.x2, area.y1, area.y2 };
       auto contents = poppler_annot_get_contents (annot);
-      text.text = contents;
+      if (contents)
+        text.text = contents;
       texts.push_back (text);
       g_free (contents);
     }
+  poppler_page_free_annot_mapping (lists);
 
   return texts;
+}
+
+bool
+ApvlvPDF::annot_update (int pn, ApvlvAnnotText *text)
+{
+  auto page = poppler_document_get_page (mDoc, pn);
+  GList *list = poppler_page_get_annot_mapping (page);
+  PopplerAnnot *annot = nullptr;
+  for (auto tlist = list; tlist != nullptr; tlist = tlist->next)
+    {
+      auto mapping = (PopplerAnnotMapping *)tlist->data;
+      if (mapping->area.x1 == text->pos.x1 && mapping->area.x2 == text->pos.x2
+          && mapping->area.y1 == text->pos.y1
+          && mapping->area.y2 == text->pos.y2)
+        {
+          annot = mapping->annot;
+          break;
+        }
+    }
+  if (annot == nullptr)
+    {
+      poppler_page_free_annot_mapping (list);
+      return false;
+    }
+
+  if (text->text.empty ())
+    {
+      poppler_page_remove_annot (page, annot);
+    }
+  else
+    {
+      poppler_annot_set_contents (annot, text->text.c_str ());
+    }
+  poppler_page_free_annot_mapping (list);
+  return true;
 }
 }
 

@@ -601,7 +601,7 @@ ApvlvView::infomessage (const char *str, ...)
 }
 
 gchar *
-ApvlvView::input (const char *str, int width, int height)
+ApvlvView::input (const char *str, int width, int height, string content)
 {
   auto flags = GTK_DIALOG_DESTROY_WITH_PARENT;
   auto dialog = gtk_dialog_new_with_buttons (str, nullptr, flags, "OK",
@@ -611,8 +611,21 @@ ApvlvView::input (const char *str, int width, int height)
   auto entry = gtk_text_view_new ();
   gtk_widget_set_size_request (entry, width, height);
   gtk_text_view_set_wrap_mode (GTK_TEXT_VIEW (entry), GTK_WRAP_WORD_CHAR);
+  gtk_text_buffer_set_text (gtk_text_view_get_buffer (GTK_TEXT_VIEW (entry)),
+                            content.c_str (), content.size ());
   gtk_container_add (GTK_CONTAINER (content_area), entry);
   gtk_widget_show_all (content_area);
+
+  auto provider = gtk_css_provider_new ();
+  gtk_css_provider_load_from_data (provider,
+                                   "textview {"
+                                   " font: 20 Sans;"
+                                   " color: red;"
+                                   "}",
+                                   -1, NULL);
+  auto context = gtk_widget_get_style_context (entry);
+  gtk_style_context_add_provider (context, GTK_STYLE_PROVIDER (provider),
+                                  GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
   gchar *response = nullptr;
   auto result = gtk_dialog_run (GTK_DIALOG (dialog));

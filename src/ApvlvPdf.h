@@ -55,6 +55,8 @@ public:
   bool annot_text (int, gdouble, gdouble, gdouble, gdouble,
                    const char *text) override;
 
+  bool annot_update (int pn, ApvlvAnnotText *text) override;
+
   bool pageselectsearch (int, int, int, double, int, GdkPixbuf *, char *, int,
                          ApvlvPoses *) override;
 
