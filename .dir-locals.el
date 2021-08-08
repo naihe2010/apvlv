@@ -1,0 +1,15 @@
+((nil (eval . (setq-local flycheck-clang-include-path
+                          '("/usr/include/poppler/glib"
+                            "/usr/include/glib-2.0"
+                            "/usr/lib64/glib-2.0/include"
+                            "/usr/include/cairo"
+                            "/usr/include/pixman-1"
+                            "/usr/include/freetype2"
+                            "/usr/include/libxml2"
+                            "/usr/include/poppler"
+                            "/usr/include/pango-1.0"
+                            "/usr/include/glib-2.0"
+                            "/usr/include/gtk-3.0"
+                            "/usr/include/gdk-pixbuf-2.0"
+                            "/usr/include/gio-unix-2.0"
+                            "/usr/include/atk-1.0")))))
