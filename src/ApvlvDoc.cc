@@ -677,6 +677,15 @@ ApvlvDoc::process (int has, int ct, guint key)
     case ('c'):
       toggleContent ();
       break;
+    case ('A'):
+      ApvlvImage::apvlv_image_annotate_cb (nullptr, mCurrentImage);
+      break;
+    case ('U'):
+      ApvlvImage::apvlv_image_underline_cb (nullptr, mCurrentImage);
+      break;
+    case ('C'):
+      ApvlvImage::apvlv_image_comment_cb (nullptr, mCurrentImage);
+      break;
     default:
       return NO_MATCH;
       break;
@@ -891,6 +900,8 @@ ApvlvDoc::loadfile (const char *filename, bool check, bool show_content)
       setDisplayType (get_display_type_by_filename (filename));
 
       mReady = true;
+
+      mCurrentImage = mImg[0];
 
       mSearchStr = "";
       if (mSearchResults != nullptr)
@@ -2774,7 +2785,6 @@ bool
 ApvlvDoc::find (const char *str)
 {
   g_return_val_if_fail (mReady, false);
-  g_return_val_if_fail (gParams->valueb ("visualmode"), false);
   g_return_val_if_fail (*str != '\0', true);
 
   auto cache = mCurrentCache[mCurrentImage->mId];

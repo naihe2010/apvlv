@@ -3,6 +3,7 @@ apvlv 0.4.0
 Add a 'F' command for forwarding to a word in page when enable visual mode.
 use mouse motion to select text, which support Ctrl mask.
 Use mouse select and popup menu to annotate text, underline or comment.
+When using shortcut 'v' or 'C-v' to selected content, shortcut 'A' to annotate text, shortcut 'U' to underline and shortcut 'C' to comment.
 
 apvlv 0.3.0
 ===========
