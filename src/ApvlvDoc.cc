@@ -1312,35 +1312,37 @@ ApvlvDoc::scrolldown (int times)
   auto cache = mCurrentCache[mCurrentImage->mId];
   g_return_if_fail (cache);
 
+  /*
+  debug ("mCurrentImage->mId: %d, mCurpoint.y: %f, image height: %d, page "
+         "size: %f, adj: %f, max: %f",
+         mCurrentImage->mId, mCurPoint.y,
+         gtk_widget_get_allocated_height (mCurrentImage->widget ()),
+         gtk_adjustment_get_page_size (mMainVaj),
+         gtk_adjustment_get_value (mMainVaj),
+         gtk_adjustment_get_upper (mMainVaj));
+  */
   auto rate = cache->getHeightOfLine (mCurPoint.y);
 
   gint ny1 = gint (mCurPoint.y + rate * times);
   gint height = ny1;
-  if (mCurrentImage->mId > 1)
-    {
-      height += mCurrentCache[0]->getheight ();
-    }
-  if (mCurrentImage->mId > 1)
-    {
-      height += mCurrentCache[1]->getheight ();
-    }
 
-  if (height - gtk_adjustment_get_value (mMainVaj)
-      >= gtk_adjustment_get_page_size (mMainVaj))
+  if (mCurrentImage->mId > 0)
+    height += gtk_widget_get_allocated_height (mImg[0]->widget ());
+  if (mCurrentImage->mId > 1)
+    height += gtk_widget_get_allocated_height (mImg[1]->widget ());
+
+  if (height >= gtk_adjustment_get_page_size (mMainVaj)
+                    + gtk_adjustment_get_value (mMainVaj))
     {
       ApvlvCore::scrolldown (times);
     }
 
-  if (ny1 >= cache->getheight ())
+  if (ny1 >= gtk_widget_get_allocated_height (mCurrentImage->widget ()))
     {
       ny1 = 0;
-      if (mCurrentImage->mId == 0)
+      if (mCurrentImage->mId < 2)
         {
-          mCurrentImage = mImg[1];
-        }
-      else if (mCurrentImage->mId == 1)
-        {
-          mCurrentImage = mImg[2];
+          mCurrentImage = mImg[mCurrentImage->mId + 1];
         }
     }
 
