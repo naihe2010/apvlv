@@ -1283,13 +1283,36 @@ ApvlvDoc::scrollup (int times)
   auto rate = cache->getHeightOfLine (mCurPoint.y);
 
   gint ny1 = gint (mCurPoint.y - rate * times);
-  if (ny1 < gtk_adjustment_get_value (mMainVaj))
+  gint height = ny1;
+
+  if (mCurrentImage->mId > 0)
+    height += gtk_widget_get_allocated_height (mImg[0]->widget ());
+  if (mCurrentImage->mId > 1)
+    height += gtk_widget_get_allocated_height (mImg[1]->widget ());
+
+  /*
+  debug ("mCurrentImage->mId: %d, mCurpoint.y: %f, cursor height: %d, image "
+         "height: %d, page "
+         "size: %f, adj: %f, max: %f",
+         mCurrentImage->mId, mCurPoint.y, height,
+         gtk_widget_get_allocated_height (mCurrentImage->widget ()),
+         gtk_adjustment_get_page_size (mMainVaj),
+         gtk_adjustment_get_value (mMainVaj),
+         gtk_adjustment_get_upper (mMainVaj));
+  */
+  if (height < gtk_adjustment_get_value (mMainVaj))
     {
       ApvlvCore::scrollup (times);
     }
 
   if (ny1 <= 0)
-    ny1 = cache->getheight ();
+    {
+      if (mCurrentImage->mId > 0)
+        {
+          mCurrentImage = mImg[mCurrentImage->mId - 1];
+        }
+      ny1 = gtk_widget_get_allocated_height (mCurrentImage->widget ()) - rate;
+    }
 
   updateCurPoint (mCurPoint.x, ny1, mInVisual == VISUAL_NONE);
   blank (mCurrentImage);
@@ -2642,7 +2665,12 @@ ApvlvDocCache::getSelected (ApvlvPoint last, ApvlvPoint cur, int visual)
   auto y1 = last.y, y2 = cur.y;
   auto x1 = last.x, x2 = cur.x;
 
-  g_return_val_if_fail (y1 <= y2, poses);
+  // g_return_val_if_fail (y1 <= y2, poses);
+  if (y1 > y2)
+    {
+      y1 = cur.y, y2 = last.y;
+      x1 = cur.x, x2 = last.x;
+    }
 
   auto lines = getlines (y1, y2);
 
