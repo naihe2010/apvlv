@@ -1,4 +1,4 @@
-# apvlv
+#apvlv
 
 apvlv is a PDF/EPUB Viewer Under Linux/WIN32 and its behaviour like Vim.
 
@@ -16,22 +16,22 @@ The only thing you need to do is typing the number before the command. For examp
 
 What's more import is apvlv can support view a directory as content of a pdf/epub document. Pressing 'k' or 'j' to move selected up or down, 'h' or 'l' to collapse or expand a dir, and press 't' will open the selected document in a new tab.
 
-# Dependencies
+#Dependencies
 
 + GTK+ version 3.0 or higher ( http://www.gtk.org/ )
 + WebKit2GTK 4.0 or higher (https://webkitgtk.org/)
 + Poppler version 0.5.0 with glib bindings ( http://poppler.freedesktop.org/ )
-+ libepub (https://sourceforge.net/projects/ebook-tools/) 
++ libepub (https://sourceforge.net/projects/ebook-tools/)
 
-# Download
+#Download
 
-+ [apvlv-0.3.0.zip](https://github.com/naihe2010/apvlv/archive/v0.3.0.zip)
-+ [apvlv-0.3.0.tar.gz](https://github.com/naihe2010/apvlv/archive/v0.3.0.tar.gz)
++ [apvlv-0.4.0.zip](https://github.com/naihe2010/apvlv/archive/v0.4.0.zip)
++ [apvlv-0.4.0.tar.gz](https://github.com/naihe2010/apvlv/archive/v0.4.0.tar.gz)
 
-# License
+#License
 
 apvlv is licensed under the GNU General Public License (GPL).
 
-# Contact
+#Contact
 + Email: Alf [naihe2010@126.com](mailto:naihe2010@126.com)
 + Sina Weibo: [naihe2010](https://weibo.com/naihe2010)
