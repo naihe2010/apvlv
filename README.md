@@ -35,3 +35,10 @@ apvlv is licensed under the GNU General Public License (GPL).
 #Contact
 + Email: Alf [naihe2010@126.com](mailto:naihe2010@126.com)
 + Sina Weibo: [naihe2010](https://weibo.com/naihe2010)
+
+#Develop Tools
++ Vim (https://www.vim.org/)
++ Emacs (https://www.gnu.org/software/emacs/)
++ CLion (https://www.jetbrains.com/clion/)
+
+  Thanks these great tools.
