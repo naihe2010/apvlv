@@ -35,6 +35,7 @@
 #ifndef WIN32
 #include <getopt.h>
 #endif
+#include <glib.h>
 #include <gtk/gtk.h>
 #include <iostream>
 
@@ -72,6 +73,29 @@ version_exit ()
   exit (0);
 }
 #endif
+
+static char *
+get_xdg_or_home_ini (void)
+{
+  const gchar *xdgdir, *homedir;
+  gchar *configpath;
+
+  xdgdir = g_getenv ("XDG_CONFIG_DIR");
+  homedir = g_getenv ("HOME");
+  if (xdgdir != nullptr)
+    {
+      configpath = g_strdup_printf ("%s/apvlv/apvlvrc", xdgdir);
+    }
+  else if (homedir != nullptr)
+    {
+      configpath = g_strdup_printf ("%s/.config/apvlv/apvlvrc", homedir);
+    }
+
+  if (configpath && g_file_test (configpath, G_FILE_TEST_IS_REGULAR))
+    return configpath;
+  else
+    return nullptr;
+}
 
 static int
 parse_options (int argc, char *argv[])
@@ -120,8 +144,11 @@ parse_options (int argc, char *argv[])
 
   if (ini == nullptr)
     {
-      ini = absolutepath (inifile.c_str ());
+      ini = get_xdg_or_home_ini ();
+      if (ini == nullptr)
+        ini = absolutepath (inifile.c_str ());
     }
+  debug ("using config: %s", ini);
 
   /*
    * load the global sys conf file
