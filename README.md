@@ -28,6 +28,29 @@ What's more import is apvlv can support view a directory as content of a pdf/epu
 + [apvlv-0.4.0.zip](https://github.com/naihe2010/apvlv/archive/v0.4.0.zip)
 + [apvlv-0.4.0.tar.gz](https://github.com/naihe2010/apvlv/archive/v0.4.0.tar.gz)
 
+# Build
+
+1. Using cmake to generate Makefile.
+```
+cmake .
+```
+2. Execute make.
+```
+make
+```
+
+# Install
+
++ Make a package and install it.
+```
+make package
+```
++ Or install it directly.
+```
+sudo make install
+```
+
+
 # License
 
 apvlv is licensed under the GNU General Public License (GPL).
