@@ -63,7 +63,7 @@ string iconreg = string (PIXMAPDIR) + "/icons/reg.png";
 string icondir = string (PIXMAPDIR) + "/icons/dir.png";
 string iconpdf = string (PIXMAPDIR) + "/icons/pdf.png";
 string inifile = "~/.apvlvrc";
-string sessionfile = "~/.apvlvinfo";
+string sessionfile = "~/.cache/apvlvinfo";
 #endif
 
 // Converts the path given to a absolute path.

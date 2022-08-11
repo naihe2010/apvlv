@@ -82,6 +82,10 @@ get_xdg_or_home_ini (void)
 
   xdgdir = g_getenv ("XDG_CONFIG_DIR");
   homedir = g_getenv ("HOME");
+  if (homedir == nullptr)
+    {
+      homedir = g_get_home_dir ();
+    }
   if (xdgdir != nullptr)
     {
       configpath = g_strdup_printf ("%s/apvlv/apvlvrc", xdgdir);
@@ -90,11 +94,43 @@ get_xdg_or_home_ini (void)
     {
       configpath = g_strdup_printf ("%s/.config/apvlv/apvlvrc", homedir);
     }
+  else
+    {
+      configpath = absolutepath (inifile.c_str ());
+    }
 
   if (configpath && g_file_test (configpath, G_FILE_TEST_IS_REGULAR))
     return configpath;
   else
     return nullptr;
+}
+
+static char *
+get_xdg_or_cache_sessionpath (void)
+{
+  const gchar *xdgdir, *homedir;
+  gchar *sessionpath;
+
+  xdgdir = g_getenv ("XDG_CACHE_HOME");
+  homedir = g_getenv ("HOME");
+  if (homedir == nullptr)
+    {
+      homedir = g_get_home_dir ();
+    }
+  if (xdgdir != nullptr)
+    {
+      sessionpath = g_strdup_printf ("%s/apvlvinfo", xdgdir);
+    }
+  else if (homedir != nullptr)
+    {
+      sessionpath = g_strdup_printf ("%s/.cache/apvlvinfo", homedir);
+    }
+  else
+    {
+      sessionpath = absolutepath (sessionfile.c_str ());
+    }
+
+  return sessionpath;
 }
 
 static int
@@ -145,8 +181,6 @@ parse_options (int argc, char *argv[])
   if (ini == nullptr)
     {
       ini = get_xdg_or_home_ini ();
-      if (ini == nullptr)
-        ini = absolutepath (inifile.c_str ());
     }
   debug ("using config: %s", ini);
 
@@ -181,7 +215,7 @@ main (int argc, char *argv[])
   ApvlvParams sParams;
   gParams = &sParams;
 
-  gchar *infopath = absolutepath (sessionfile.c_str ());
+  gchar *infopath = get_xdg_or_cache_sessionpath ();
   ApvlvInfo sInfo (infopath);
   g_free (infopath);
   gInfo = &sInfo;
