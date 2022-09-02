@@ -770,6 +770,10 @@ ApvlvView::subprocess (int ct, guint key)
   mProCmdCnt = 0;
   switch (procmd)
     {
+    case 'Z':
+      if (key == 'Z')
+        quit();
+
     case CTRL ('w'):
       if (key == 'q' || key == CTRL ('Q'))
         {
@@ -835,6 +839,10 @@ ApvlvView::process (int has, int ct, guint key)
 
   switch (key)
     {
+    case 'Z':
+      mProCmd = 'Z';
+      return NEED_MORE;
+
     case CTRL ('w'):
       mProCmd = CTRL ('w');
       mProCmdCnt = has ? ct : 1;
