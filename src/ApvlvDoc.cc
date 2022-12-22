@@ -522,7 +522,7 @@ ApvlvDoc::process (int has, int ct, guint key)
     case CTRL ('p'):
     case GDK_KEY_Up:
     case 'k':
-      if (isControledContent ())
+      if (isControlledContent ())
         {
           mContent->scrollup (ct);
           contentShowPage (mContent->currentIndex (), false);
@@ -539,7 +539,7 @@ ApvlvDoc::process (int has, int ct, guint key)
     case CTRL ('j'):
     case GDK_KEY_Down:
     case 'j':
-      if (isControledContent ())
+      if (isControlledContent ())
         {
           mContent->scrolldown (ct);
           contentShowPage (mContent->currentIndex (), false);
@@ -556,7 +556,7 @@ ApvlvDoc::process (int has, int ct, guint key)
     case GDK_KEY_Left:
     case CTRL ('h'):
     case 'h':
-      if (isControledContent ())
+      if (isControlledContent ())
         {
           mContent->scrollleft (ct);
           contentShowPage (mContent->currentIndex (), false);
@@ -573,7 +573,7 @@ ApvlvDoc::process (int has, int ct, guint key)
     case GDK_KEY_Right:
     case CTRL ('l'):
     case 'l':
-      if (isControledContent ())
+      if (isControlledContent ())
         {
           mContent->scrollright (ct);
           contentShowPage (mContent->currentIndex (), false);
