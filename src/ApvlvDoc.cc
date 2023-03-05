@@ -2200,7 +2200,11 @@ ApvlvDocCache::load (ApvlvDocCache *ac)
     }
 
   double tpagex, tpagey;
-  ac->mFile->pagesize (ac->mPagenum, gint (ac->mRotate), &tpagex, &tpagey);
+  if (!ac->mFile->pagesize (ac->mPagenum, gint (ac->mRotate), &tpagex, &tpagey))
+    {
+        errp("error getting pagesize for pagenum: %d", ac->mPagenum);
+        return;
+    };
 
   ac->mWidth = MAX ((tpagex * ac->mZoom + 0.5), 1);
   ac->mHeight = MAX ((tpagey * ac->mZoom + 0.5), 1);
