@@ -155,7 +155,7 @@ public:
 
   virtual bool isShowContent ();
 
-  virtual bool isControledContent ();
+  virtual bool isControlledContent ();
 
   virtual returnType process (int has, int times, guint keyval) = 0;
 

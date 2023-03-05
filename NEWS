@@ -31,7 +31,7 @@ Add HTML format support
 apvlv 0.1.2
 ===========
 
-Just swaped source from svn to git
+Just swapped source from svn to git
 
 apvlv 0.1.1
 ===========
@@ -57,7 +57,7 @@ News features
 apvlv 0.0.9
 News features
 
-   * More like vim's info file schem
+   * More like vim's info file scheme
 
    * Add `guioptions = "mT"` to support menu and tool bar
 
@@ -100,7 +100,7 @@ Bug Fix
 
    * fix the correct select mark when scroll up or down the page
 
-   * fix the k or j 's length in continous mode
+   * fix the k or j 's length in continuous mode
   
 
 apvlv 0.0.8
@@ -120,9 +120,9 @@ News features
 
 Bug Fix
 
-   * If a pdf file is not entrypted, not ask password when can't open it
+   * If a pdf file is not encrypted, not ask password when can't open it
 
-   * heightlight correcly after zoom in or zoom out
+   * highlight correctly after zoom in or zoom out
 
    * :z[oom] fitwidth or :z[oom] fitheight works
 
@@ -130,11 +130,11 @@ Bug Fix
 apvlv 0.0.7
 ===========
 
-Changes for WARNNING
+Changes for WARNING
 
    * apvlv don't support negative integer now
 
-     Because the '-' cause many bugs in in <C-w>- to smaller a window, apvlv don't support negative interger from 0.0.7.4.
+     Because the '-' cause many bugs in in <C-w>- to smaller a window, apvlv don't support negative integer from 0.0.7.4.
 
 News features
 
@@ -152,7 +152,7 @@ News features
 
    * add global /etc/apvlvrc
 
-   * don't create ~/.apvlvrc automaticlly
+   * don't create ~/.apvlvrc automatically
 
    * made fullscreen really works under some WM
 
@@ -162,7 +162,7 @@ Bug Fix
 
    * fix file is not exist segment fault
 
-   * fix the command histroy segment fault
+   * fix the command history segment fault
 
    * add document of / and ? key which appear from 0.0.3
 
@@ -174,7 +174,7 @@ apvlv 0.0.6
 
 News features
 
-   * Warnning !!! change 'goto' command's 'g' to 'G'
+   * Warning !!! change 'goto' command's 'g' to 'G'
 
    * add continuous view of pdf page
      set in .apvlvrc "set continuous=yes/no"
@@ -189,21 +189,21 @@ News features
 
    * add content view
          * k, j to select up, down
-         * h, l to expand, collapase
+         * h, l to expand, collapse
          * <CR> open selected page
          * 'o' open selected page in split window
          * 't' open selected page in new tab
 
-   * add direcotry view by command 'O'
+   * add directory view by command 'O'
          * k, j to select up, down
-         * h, l to expand, collapase
+         * h, l to expand, collapse
          * <CR> open selected file
          * 'o' open selected file in split window
          * 't' open selected file in new tab
 
-   * add <C-]> goto a heperlink and <C-t> to come back
+   * add <C-]> goto a hyperlink and <C-t> to come back
 
-   * add open entrypted pdf with password support
+   * add open encrypted pdf with password support
 
    * add open last directory
 
@@ -241,7 +241,7 @@ News features
 
     * remove the status bar from the bottom, and add it to every window.
 
-    * make the active window healight the status bar.
+    * make the active window highlight the status bar.
 
     * add 'r' command to rotate page.
 
@@ -265,7 +265,7 @@ apvlv 0.0.3
 
 News features
 
-    * Replace word which like 'C-a' to like '<C-a>' at every nessary place.
+    * Replace word which like 'C-a' to like '<C-a>' at every necessary place.
 
     * Support 'H', 'M' and 'L' to scroll one PDF page.
 

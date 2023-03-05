@@ -230,7 +230,7 @@ ApvlvCore::scrollto (double s)
     return FALSE;
 
   GtkAdjustment *vaj = mMainVaj;
-  if (isControledContent ())
+  if (isControlledContent ())
     {
       vaj = mContentVaj;
     }
@@ -242,7 +242,7 @@ ApvlvCore::scrollto (double s)
                      - gtk_adjustment_get_page_size (vaj);
       gdouble val = maxv * s;
       gtk_adjustment_set_value (vaj, val);
-      if (!isControledContent ())
+      if (!isControlledContent ())
         {
           show ();
         }
@@ -549,9 +549,9 @@ ApvlvCore::toggledControlContent (bool is_right)
       return false;
     }
 
-  auto controled = isControledContent ();
+  auto controlled = isControlledContent ();
 
-  if (!controled && !is_right)
+  if (!controlled && !is_right)
     {
       gtk_widget_set_state_flags (mContentWidget, GTK_STATE_FLAG_FOCUSED,
                                   TRUE);
@@ -559,7 +559,7 @@ ApvlvCore::toggledControlContent (bool is_right)
                                   TRUE);
       return true;
     }
-  else if (controled && is_right)
+  else if (controlled && is_right)
     {
       gtk_widget_set_state_flags (mContentWidget, GTK_STATE_FLAG_INSENSITIVE,
                                   TRUE);
@@ -583,7 +583,7 @@ ApvlvCore::isShowContent ()
 }
 
 bool
-ApvlvCore::isControledContent ()
+ApvlvCore::isControlledContent ()
 {
   auto focused = gtk_widget_get_state_flags (mContentWidget);
   return focused & GTK_STATE_FLAG_FOCUSED;
