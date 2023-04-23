@@ -84,7 +84,7 @@ IF (WIN32)
 ELSE (WIN32)
     ADD_CUSTOM_TARGET(Startup.pdf
             ALL
-            COMMAND "man" "-t" "apvlv.1" "|" "ps2pdf" "-" "${CMAKE_SOURCE_DIR}/Startup.pdf"
+            COMMAND "man" "-t" "${CMAKE_SOURCE_DIR}/apvlv.1" "|" "ps2pdf" "-" "${CMAKE_SOURCE_DIR}/Startup.pdf"
             DEPENDS apvlv.1)
     INSTALL(FILES apvlvrc.example DESTINATION ${SYSCONFDIR}
             RENAME apvlvrc)
