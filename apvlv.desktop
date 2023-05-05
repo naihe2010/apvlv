@@ -16,3 +16,4 @@ Terminal=false
 Categories=Office;Viewer;
 MimeType=application/pdf;application/postscript;application/eps;application/x-eps;image/eps;image/x-eps;image/vnd.djvu;
 Keywords=vim;pdf;
+Icon=x-office-document
