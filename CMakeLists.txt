@@ -54,12 +54,6 @@ ELSE (WIN32)
             )
     ADD_DEFINITIONS(-DPIXMAPDIR="${PIXMAPDIR}")
 
-    SET(MANDIR
-            "${CMAKE_INSTALL_PREFIX}/share/man"
-            CACHE PATH
-            "Directory for man page of apvlv [PREFIX/share/man]"
-            )
-
     SET(APPLICATIONSDIR
             "${CMAKE_INSTALL_PREFIX}/share/applications"
             CACHE PATH
@@ -90,7 +84,7 @@ ELSE (WIN32)
             RENAME apvlvrc)
     INSTALL(FILES apvlvrc.example Startup.pdf main_menubar.glade DESTINATION ${DOCDIR})
     INSTALL(DIRECTORY icons DESTINATION ${DOCDIR})
-    INSTALL(FILES apvlv.1 DESTINATION ${MANDIR}/man1)
+    INSTALL(FILES apvlv.1 TYPE MAN)
     INSTALL(FILES apvlv.desktop DESTINATION ${APPLICATIONSDIR})
 ENDIF (WIN32)
 
