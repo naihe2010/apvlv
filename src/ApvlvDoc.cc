@@ -2811,7 +2811,8 @@ ApvlvDoc::apvlv_doc_enter_notify_cb (GtkEventBox *box, GdkEvent *event,
   if (doc->mCurrentImage->mId < lastId)
     {
       auto cache = doc->mCurrentCache[lastId - 1];
-      doc->mCurPoint.y = cache->getheight ();
+      if (cache != nullptr)
+        doc->mCurPoint.y = cache->getheight ();
     }
 }
 
