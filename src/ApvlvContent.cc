@@ -27,6 +27,7 @@
 /* @date Created: 2021/07/19 20:34:51 Alf*/
 
 #include "ApvlvContent.h"
+#include "ApvlvDoc.h"
 #include "ApvlvParams.h"
 
 #include <glib/gstdio.h>
@@ -38,6 +39,7 @@ namespace apvlv
 ApvlvContent::ApvlvContent ()
 {
   mIndex = nullptr;
+  mDoc = nullptr;
   memset (&mCurrentIter, 0, sizeof (mCurrentIter));
 
   mStore = gtk_tree_store_new (2, G_TYPE_POINTER, G_TYPE_STRING);
@@ -45,6 +47,8 @@ ApvlvContent::ApvlvContent ()
   gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (mTreeView), FALSE);
 
   apvlv_widget_set_background (mTreeView);
+  g_signal_connect (G_OBJECT (mTreeView), "row-activated",
+                    G_CALLBACK (apvlv_content_on_row_activated), this);
 
   mSelection = gtk_tree_view_get_selection (GTK_TREE_VIEW (mTreeView));
   g_signal_connect (G_OBJECT (mSelection), "changed",
@@ -213,12 +217,23 @@ ApvlvContent::scrollright (int times)
       gtk_tree_path_free (path);
     }
 }
+
 void
 ApvlvContent::apvlv_content_on_changed (GtkTreeSelection *selection,
                                         ApvlvContent *content)
 {
   GtkTreeModel *model;
   gtk_tree_selection_get_selected (selection, &model, &content->mCurrentIter);
+}
+
+void
+ApvlvContent::apvlv_content_on_row_activated (GtkTreeView *tree_view,
+                                              GtkTreePath *path,
+                                              GtkTreeViewColumn *column,
+                                              ApvlvContent *content)
+{
+  if (content->mDoc)
+    content->mDoc->contentShowPage (content->currentIndex (), true);
 }
 
 gboolean

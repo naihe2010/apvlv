@@ -41,6 +41,7 @@ using namespace std;
 
 namespace apvlv
 {
+class ApvlvDoc;
 class ApvlvContent
 {
 public:
@@ -55,6 +56,12 @@ public:
   void setIndex (ApvlvFileIndex *index);
 
   void setIndex (ApvlvFileIndex *index, GtkTreeIter *root_itr);
+
+  void
+  setDoc (ApvlvDoc *doc)
+  {
+    mDoc = doc;
+  }
 
   void scrollup (int times);
 
@@ -72,7 +79,14 @@ private:
 
   ApvlvFileIndex *mIndex;
 
+  ApvlvDoc *mDoc;
+
   static void apvlv_content_on_changed (GtkTreeSelection *, ApvlvContent *);
+
+  static void apvlv_content_on_row_activated (GtkTreeView *tree_view,
+                                              GtkTreePath *path,
+                                              GtkTreeViewColumn *column,
+                                              ApvlvContent *content);
 
   static gboolean apvlv_content_first_select_cb (ApvlvContent *);
 

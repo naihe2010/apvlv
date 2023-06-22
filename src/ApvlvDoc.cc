@@ -141,6 +141,8 @@ ApvlvDoc::ApvlvDoc (ApvlvView *view, const char *zm, bool cache)
 
   g_signal_connect (G_OBJECT (mMainVaj), "value-changed",
                     G_CALLBACK (apvlv_doc_on_mouse), this);
+
+  mContent->setDoc (this);
 }
 
 ApvlvDoc::~ApvlvDoc ()
@@ -2200,10 +2202,11 @@ ApvlvDocCache::load (ApvlvDocCache *ac)
     }
 
   double tpagex, tpagey;
-  if (!ac->mFile->pagesize (ac->mPagenum, gint (ac->mRotate), &tpagex, &tpagey))
+  if (!ac->mFile->pagesize (ac->mPagenum, gint (ac->mRotate), &tpagex,
+                            &tpagey))
     {
-        errp("error getting pagesize for pagenum: %d", ac->mPagenum);
-        return;
+      errp ("error getting pagesize for pagenum: %d", ac->mPagenum);
+      return;
     };
 
   ac->mWidth = MAX ((tpagex * ac->mZoom + 0.5), 1);
