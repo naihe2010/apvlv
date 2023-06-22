@@ -248,6 +248,8 @@ ApvlvContent::apvlv_content_first_select_cb (ApvlvContent *content)
                                      &tree_iter))
     {
       gtk_tree_selection_select_iter (content->mSelection, &tree_iter);
+      if (content->mDoc)
+        content->mDoc->contentShowPage (content->currentIndex (), true);
     }
   return FALSE;
 }
