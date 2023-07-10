@@ -170,6 +170,9 @@ ApvlvView::widget ()
 ApvlvWindow *
 ApvlvView::currentWindow ()
 {
+  if (mCurrTabPos == -1)
+    return nullptr;
+
   return mTabList[mCurrTabPos].mRootWindow->activeCoreWindow ();
 }
 
@@ -746,6 +749,10 @@ ApvlvView::fullscreen ()
 {
   if (mHasFull == false)
     {
+      ApvlvCore *core = crtadoc ();
+      if (core)
+        core->toggleContent (false);
+
       gtk_window_fullscreen (GTK_WINDOW (mMainWindow));
       mHasFull = true;
     }
@@ -759,7 +766,11 @@ ApvlvView::fullscreen ()
 ApvlvCore *
 ApvlvView::crtadoc ()
 {
-  return currentWindow ()->getCore ();
+  ApvlvWindow *curwin = currentWindow ();
+  if (curwin == nullptr)
+    return nullptr;
+
+  return curwin->getCore ();
 }
 
 returnType
@@ -772,7 +783,7 @@ ApvlvView::subprocess (int ct, guint key)
     {
     case 'Z':
       if (key == 'Z')
-        quit();
+        quit ();
 
     case CTRL ('w'):
       if (key == 'q' || key == CTRL ('Q'))
