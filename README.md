@@ -25,8 +25,8 @@ What's more import is apvlv can support view a directory as content of a pdf/epu
 
 # Download
 
-+ [apvlv-0.4.0.zip](https://github.com/naihe2010/apvlv/archive/v0.4.0.zip)
-+ [apvlv-0.4.0.tar.gz](https://github.com/naihe2010/apvlv/archive/v0.4.0.tar.gz)
++ [apvlv-0.5.0.zip](https://github.com/naihe2010/apvlv/archive/v0.5.0.zip)
++ [apvlv-0.5.0.tar.gz](https://github.com/naihe2010/apvlv/archive/v0.5.0.tar.gz)
 
 # Build
 
