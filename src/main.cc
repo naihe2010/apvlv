@@ -93,6 +93,11 @@ get_xdg_or_home_ini (void)
   else if (homedir != nullptr)
     {
       configpath = g_strdup_printf ("%s/.config/apvlv/apvlvrc", homedir);
+      if (g_file_test (configpath, G_FILE_TEST_IS_REGULAR) == FALSE)
+        {
+          g_free (configpath);
+          configpath = g_strdup_printf ("%s/.apvlvrc", homedir);
+        }
     }
   else
     {

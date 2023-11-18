@@ -129,7 +129,7 @@
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">JumpTo</property>
                 <property name="use_underline">True</property>
-                <signal name="activate" handler="apvlv_menu_on_tools_jumpto" swapped="no"/>
+                <signal name="activate" handler="apvlv_menu_on_navigate_jumpto" swapped="no"/>
               </object>
             </child>
             <child>
@@ -138,7 +138,7 @@
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">JumpBack</property>
                 <property name="use_underline">True</property>
-                <signal name="activate" handler="apvlv_menu_on_tools_jumpback" swapped="no"/>
+                <signal name="activate" handler="apvlv_menu_on_navigate_jumpback" swapped="no"/>
               </object>
             </child>
           </object>

@@ -41,8 +41,8 @@ extern "C" void apvlv_menu_on_page_previous ();
 extern "C" void apvlv_menu_on_page_next ();
 extern "C" void apvlv_menu_on_page_scrollup ();
 extern "C" void apvlv_menu_on_page_scrolldown ();
-extern "C" void apvlv_menu_on_tools_jumpto ();
-extern "C" void apvlv_menu_on_tools_jumpback ();
+extern "C" void apvlv_menu_on_navigate_jumpto ();
+extern "C" void apvlv_menu_on_navigate_jumpback ();
 extern "C" void apvlv_menu_on_help_about ();
 
 ApvlvMenu::ApvlvMenu ()
@@ -116,13 +116,13 @@ apvlv_menu_on_page_scrolldown ()
 }
 
 extern "C" void
-apvlv_menu_on_tools_jumpto ()
+apvlv_menu_on_navigate_jumpto ()
 {
   // gView->crtadoc ()->gotolink (1);
 }
 
 extern "C" void
-apvlv_menu_on_tools_jumpback ()
+apvlv_menu_on_navigate_jumpback ()
 {
   // gView->crtadoc ()->returnlink (1);
 }
