@@ -32,7 +32,7 @@
 #include "ApvlvCmds.h"
 #include "ApvlvCompletion.h"
 #include "ApvlvDoc.h"
-#include "ApvlvMenu.h"
+#include "ApvlvMenuAndTool.h"
 #include "ApvlvWindow.h"
 
 #include <gtk/gtk.h>
@@ -147,7 +147,7 @@ private:
 
   GtkWidget *mMainWindow;
 
-  ApvlvMenu *mMenu;
+  ApvlvMenuAndTool *mMenu;
 
   GtkWidget *mViewBox;
 

@@ -19,7 +19,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/* @CPPFILE ApvlvMenu.h
+/* @CPPFILE ApvlvMenuAndTool.h
  *
  *  Author: Alf <naihe2010@126.com>
  */
@@ -33,16 +33,17 @@
 namespace apvlv
 {
 class ApvlvView;
-class ApvlvMenu
+class ApvlvMenuAndTool
 {
 public:
-  ApvlvMenu ();
-  ~ApvlvMenu ();
+  explicit ApvlvMenuAndTool (ApvlvView *);
+  ~ApvlvMenuAndTool ();
 
-  GtkWidget *widget ();
+  GtkWidget *menubar ();
+  GtkWidget *toolbar ();
 
 private:
-  GtkWidget *mMenu;
+  GtkBuilder *mBuilder;
 };
 };
 

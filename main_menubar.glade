@@ -1,62 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.18.3 -->
+<!-- Generated with glade 3.40.0 -->
 <interface>
   <requires lib="gtk+" version="3.12"/>
   <object class="GtkMenuBar" id="main_menubar">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <child>
       <object class="GtkMenuItem" id="file">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="label" translatable="yes">_File</property>
-        <property name="use_underline">True</property>
+        <property name="use-underline">True</property>
         <child type="submenu">
           <object class="GtkMenu" id="menu1">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <child>
               <object class="GtkMenuItem" id="open">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">Open</property>
-                <signal name="activate" handler="apvlv_menu_on_file_open" swapped="no"/>
+                <signal name="activate" handler="apvlv_on_file_open" swapped="no"/>
               </object>
             </child>
             <child>
               <object class="GtkMenuItem" id="opentab">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">OpenTab</property>
-                <property name="use_underline">True</property>
-                <signal name="activate" handler="apvlv_menu_on_file_opentab" swapped="no"/>
+                <property name="use-underline">True</property>
+                <signal name="activate" handler="apvlv_on_file_opentab" swapped="no"/>
               </object>
             </child>
             <child>
               <object class="GtkMenuItem" id="saveas">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">SaveAs</property>
-                <property name="use_underline">True</property>
-                <signal name="activate" handler="apvlv_menu_on_file_saveas" swapped="no"/>
+                <property name="use-underline">True</property>
+                <signal name="activate" handler="apvlv_on_file_saveas" swapped="no"/>
               </object>
             </child>
             <child>
               <object class="GtkMenuItem" id="print">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">Print</property>
-                <property name="use_underline">True</property>
-                <signal name="activate" handler="apvlv_menu_on_file_print" swapped="no"/>
+                <property name="use-underline">True</property>
+                <signal name="activate" handler="apvlv_on_file_print" swapped="no"/>
               </object>
             </child>
             <child>
               <object class="GtkMenuItem" id="quit">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">Quit</property>
-                <property name="use_underline">True</property>
-                <signal name="activate" handler="apvlv_menu_on_file_quit" swapped="no"/>
+                <property name="use-underline">True</property>
+                <signal name="activate" handler="apvlv_on_file_quit" swapped="no"/>
               </object>
             </child>
           </object>
@@ -66,47 +66,47 @@
     <child>
       <object class="GtkMenuItem" id="page">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="label" translatable="yes">_Page</property>
-        <property name="use_underline">True</property>
+        <property name="use-underline">True</property>
         <child type="submenu">
           <object class="GtkMenu" id="menu2">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <child>
               <object class="GtkMenuItem" id="previous">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">Previous</property>
-                <property name="use_underline">True</property>
-                <signal name="activate" handler="apvlv_menu_on_page_previous" swapped="no"/>
+                <property name="use-underline">True</property>
+                <signal name="activate" handler="apvlv_on_page_previous" swapped="no"/>
               </object>
             </child>
             <child>
               <object class="GtkMenuItem" id="next">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">Next</property>
-                <property name="use_underline">True</property>
-                <signal name="activate" handler="apvlv_menu_on_page_next" swapped="no"/>
+                <property name="use-underline">True</property>
+                <signal name="activate" handler="apvlv_on_page_next" swapped="no"/>
               </object>
             </child>
             <child>
               <object class="GtkMenuItem" id="scrollup">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">ScrollUp</property>
-                <property name="use_underline">True</property>
-                <signal name="activate" handler="apvlv_menu_on_page_scrollup" swapped="no"/>
+                <property name="use-underline">True</property>
+                <signal name="activate" handler="apvlv_on_page_scrollup" swapped="no"/>
               </object>
             </child>
             <child>
               <object class="GtkMenuItem" id="scrolldown">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">ScrollDown</property>
-                <property name="use_underline">True</property>
-                <signal name="activate" handler="apvlv_menu_on_page_scrolldown" swapped="no"/>
+                <property name="use-underline">True</property>
+                <signal name="activate" handler="apvlv_on_page_scrolldown" swapped="no"/>
               </object>
             </child>
           </object>
@@ -116,29 +116,29 @@
     <child>
       <object class="GtkMenuItem" id="tools">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="label" translatable="yes">_Tools</property>
-        <property name="use_underline">True</property>
+        <property name="can-focus">False</property>
+        <property name="label" translatable="yes">_Navigation</property>
+        <property name="use-underline">True</property>
         <child type="submenu">
           <object class="GtkMenu" id="menu3">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <child>
               <object class="GtkMenuItem" id="jumpto">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">JumpTo</property>
-                <property name="use_underline">True</property>
-                <signal name="activate" handler="apvlv_menu_on_navigate_jumpto" swapped="no"/>
+                <property name="use-underline">True</property>
+                <signal name="activate" handler="apvlv_on_navigate_jumpto" swapped="no"/>
               </object>
             </child>
             <child>
               <object class="GtkMenuItem" id="jumpback">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">JumpBack</property>
-                <property name="use_underline">True</property>
-                <signal name="activate" handler="apvlv_menu_on_navigate_jumpback" swapped="no"/>
+                <property name="use-underline">True</property>
+                <signal name="activate" handler="apvlv_on_navigate_jumpback" swapped="no"/>
               </object>
             </child>
           </object>
@@ -148,25 +148,59 @@
     <child>
       <object class="GtkMenuItem" id="help">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="label" translatable="yes">_Help</property>
-        <property name="use_underline">True</property>
+        <property name="use-underline">True</property>
         <child type="submenu">
           <object class="GtkMenu" id="menu4">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <child>
               <object class="GtkMenuItem" id="about">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">About</property>
-                <property name="use_underline">True</property>
-                <signal name="activate" handler="apvlv_menu_on_help_about" swapped="no"/>
+                <property name="use-underline">True</property>
+                <signal name="activate" handler="apvlv_on_help_about" swapped="no"/>
               </object>
             </child>
           </object>
         </child>
       </object>
+    </child>
+  </object>
+  <object class="GtkToolbar" id="main_toolbar">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="toolbar-style">both-horiz</property>
+    <property name="icon_size">2</property>
+    <child>
+      <object class="GtkToolButton" id="open1">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="label" translatable="yes">Open</property>
+        <property name="use-underline">True</property>
+        <property name="stock-id">gtk-open</property>
+        <signal handler="apvlv_on_file_open" name="clicked" swapped="no"/>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="homogeneous">True</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkToolButton" id="quit1">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="label" translatable="yes">Open</property>
+        <property name="use-underline">True</property>
+        <property name="stock-id">gtk-quit</property>
+        <signal handler="apvlv_on_file_quit" name="clicked" swapped="no"/>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="homogeneous">True</property>
+      </packing>
     </child>
   </object>
 </interface>

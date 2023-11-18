@@ -56,7 +56,7 @@ SET(HEADERS
         ApvlvFile.h
         ApvlvPdf.h
         ApvlvInfo.h
-        ApvlvMenu.h
+        ApvlvMenuAndTool.h
         ApvlvParams.h
         ApvlvUtil.h
         ApvlvView.h
@@ -74,7 +74,7 @@ SET(SOURCES
         ApvlvFile.cc
         ApvlvPdf.cc
         ApvlvInfo.cc
-        ApvlvMenu.cc
+        ApvlvMenuAndTool.cc
         ApvlvParams.cc
         ApvlvUtil.cc
         ApvlvView.cc

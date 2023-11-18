@@ -212,7 +212,7 @@ protected:
 
   double mPagex{}, mPagey{};
 
-  // the main widget
+  // the main menubar
   GtkWidget *mVbox;
 
   // the main panel

@@ -28,15 +28,14 @@
 
 #include "ApvlvView.h"
 #include "ApvlvInfo.h"
+#include "ApvlvMenuAndTool.h"
 #include "ApvlvParams.h"
-
+#include <fstream>
 #include <gdk/gdk.h>
 #include <gdk/gdkkeysyms.h>
 #include <gio/gio.h>
 #include <glib.h>
 #include <gtk/gtk.h>
-
-#include <fstream>
 #include <iostream>
 #include <sstream>
 
@@ -91,11 +90,16 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCurrTabPos (-1), mCmds (this)
   mViewBox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add (GTK_CONTAINER (mMainWindow), mViewBox);
 
-  mMenu = new ApvlvMenu ();
+  mMenu = new ApvlvMenuAndTool (this);
 
   if (strchr (gParams->values ("guioptions"), 'm') != nullptr)
     {
-      gtk_box_pack_start (GTK_BOX (mViewBox), mMenu->widget (), FALSE, FALSE,
+      gtk_box_pack_start (GTK_BOX (mViewBox), mMenu->menubar (), FALSE, FALSE,
+                          0);
+    }
+  if (strchr (gParams->values ("guioptions"), 'T') != nullptr)
+    {
+      gtk_box_pack_start (GTK_BOX (mViewBox), mMenu->toolbar (), FALSE, FALSE,
                           0);
     }
 
