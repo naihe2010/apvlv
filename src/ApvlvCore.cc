@@ -589,6 +589,13 @@ ApvlvCore::isControlledContent ()
   return focused & GTK_STATE_FLAG_FOCUSED;
 }
 
+void
+ApvlvCore::finddups ()
+{
+  if (mDirIndex)
+    mDirIndex->finddups ();
+}
+
 bool
 ApvlvCore::find (const char *str)
 {

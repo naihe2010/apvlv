@@ -99,6 +99,7 @@ public:
   string path;
   ApvlvFileIndexType type;
   vector<ApvlvFileIndex *> children;
+  void finddups ();
 };
 
 class ApvlvFile
