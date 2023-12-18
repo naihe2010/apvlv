@@ -20,6 +20,7 @@ PKG_CHECK_MODULES(GTK gtk+-3.0)
 PKG_CHECK_MODULES(GLIB2 glib-2.0 REQUIRED)
 PKG_CHECK_MODULES(LIBXML libxml-2.0 REQUIRED)
 PKG_CHECK_MODULES(WEBKIT webkit2gtk-4.1)
+PKG_CHECK_MODULES(SQLITE3 sqlite3)
 if (NOT WEBKIT_FOUND)
   PKG_CHECK_MODULES(WEBKIT webkit2gtk-4.0 REQUIRED)
 endif()
@@ -65,6 +66,11 @@ SET(HEADERS
         ApvlvHtm.h
         ApvlvEpub.h
         ApvlvContent.h
+        ApvlvFindDupGui.h
+        ebook.h
+        hash.h
+        find.h
+        cache.h
         )
 
 SET(SOURCES
@@ -83,6 +89,14 @@ SET(SOURCES
         ApvlvHtm.cc
         ApvlvEpub.cc
         ApvlvContent.cc
+        ApvlvFindDupGui.cc
+        ebook.cc
+        ebook_epub.cc
+        ebook_pdf.cc
+        ebook_mobi.cc
+        hash.cc
+        find.cc
+        cache.cc
         main.cc
         )
 
@@ -121,6 +135,7 @@ TARGET_LINK_LIBRARIES(apvlv
         ${GLIB2_LIBRARIES}
         ${GTHREAD2_LIBRARIES}
         ${WEBKIT_LIBRARIES}
+        ${SQLITE3_LIBRARIES}
         "-lepub"
         ${LIBXML_LIBRARIES}
         ${APVLV_REQ_LIBRARIES})
