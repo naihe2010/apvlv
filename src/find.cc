@@ -25,6 +25,7 @@
  */
 
 #include "find.h"
+#include "cache.h"
 #include "ebook.h"
 #include "hash.h"
 
@@ -53,14 +54,11 @@ struct st_file
 struct st_find
 {
   GPtrArray *ptr[0x10];
-  find_type type;
   find_step *step;
   find_step_cb cb;
   GThreadPool *thread_pool;
   gpointer arg;
 };
-
-static void st_file_free (struct st_file *);
 
 int
 find_ebooks (GPtrArray *ptr, find_step_cb cb, gpointer arg)
@@ -68,7 +66,13 @@ find_ebooks (GPtrArray *ptr, find_step_cb cb, gpointer arg)
   guint i, j;
   int dist, count;
   ebook_hash_t *hashs;
+  char *path;
   find_step step[1];
+
+  if (g_cache == nullptr)
+    {
+      cache_open ();
+    }
 
   count = 0;
 
@@ -80,9 +84,19 @@ find_ebooks (GPtrArray *ptr, find_step_cb cb, gpointer arg)
   step->doing = "Generate ebook hash value";
   for (i = 0; i < ptr->len; ++i)
     {
-      ebook_file_hash ((gchar *)g_ptr_array_index (ptr, i), hashs + i);
+      path = (gchar *)g_ptr_array_index (ptr, i);
+      if (cache_get (g_cache, path, 0, 0, &(hashs[i].cover_hash)) != TRUE)
+        {
+          if (ebook_file_hash (path, hashs + i) == 0)
+            {
+              cache_set (g_cache, path, 0, 0, hashs[i].cover_hash);
+            }
+        }
       step->now = i;
-      cb (step, arg);
+      if (cb (step, arg) == FALSE)
+        {
+          goto ret;
+        }
     }
 
   step->doing = "Compare ebook hash value";
@@ -98,25 +112,23 @@ find_ebooks (GPtrArray *ptr, find_step_cb cb, gpointer arg)
               step->bfile = (char *)g_ptr_array_index (ptr, j);
               step->found = TRUE;
               step->type = FD_SAME_EBOOK;
-              cb (step, arg);
+              if (cb (step, arg) == FALSE)
+                goto ret;
+
               ++count;
             }
         }
 
       step->now = i;
       step->found = FALSE;
-      cb (step, arg);
+      if (cb (step, arg) == FALSE)
+        {
+          goto ret;
+        }
     }
 
+ret:
   g_free (hashs);
 
   return count;
-}
-
-static void
-st_file_free (struct st_file *file)
-{
-  if (file->hashArray)
-    hash_array_free (file->hashArray);
-  g_free (file);
 }

@@ -26,10 +26,10 @@
 /* @date Created: 2013/01/16 13:36:10 Alf*/
 
 #include "ApvlvFindDupGui.h"
+#include "ApvlvCore.h"
 #include "cache.h"
 #include "find.h"
 
-#include <cstdlib>
 #include <cstring>
 #include <glib.h>
 #include <glib/gstdio.h>
@@ -94,48 +94,21 @@ static void file_node_free_full (file_node *);
 static void file_node_to_tree_iter (file_node *, GtkTreeStore *,
                                     GtkTreeIter *);
 
-typedef struct
-{
-  GtkWidget *dialog;
-
-  GtkWidget *content;
-  GtkWidget *container;
-
-  GtkWidget *butprev, *butnext;
-
-  const file_node *afn, *bfn;
-
-  gboolean from_tail;
-
-  gint index;
-
-  gint alen;
-  gint blen;
-
-  gui_t *gui;
-} diff_dialog;
-
-static void diff_dialog_new (gui_t *, const file_node *, const file_node *);
-
-static void diffdia_onclose (GtkWidget *, diff_dialog *);
-
-static void diffdia_onresponse (GtkWidget *, gint, diff_dialog *);
-
 static GtkWidget *dir_list_new (gui_t *);
 
 static GtkWidget *find_attr_new (gui_t *);
 
 static GtkWidget *res_tree_new (gui_t *);
 
+static GtkWidget *log_view_new (gui_t *);
+
 static void gui_add_cb (GtkWidget *, gui_t *);
 
 static void gui_find_cb (GtkWidget *, gui_t *);
 
-static void gui_delsel_cb (GtkWidget *, gui_t *);
-
 static void gui_cleanup_cb (GtkWidget *, gui_t *);
 
-static void gui_find_step_cb (const find_step *, gui_t *);
+static gboolean gui_find_step_cb (const find_step *, gui_t *);
 
 static GSList *gui_append_same_slist (gui_t *, GSList *, const gchar *,
                                       const gchar *, same_type);
@@ -191,15 +164,11 @@ static GtkWidget *restree_opendir_menuitem (gui_t *);
 
 static GtkWidget *restree_delete_menuitem (gui_t *);
 
-static GtkWidget *restree_diff_menuitem (gui_t *);
-
 static void restree_open (GtkMenuItem *, gui_t *);
 
 static void restree_opendir (GtkMenuItem *, gui_t *);
 
 static void restree_delete (GtkMenuItem *, gui_t *);
-
-static void restree_diff (GtkMenuItem *, gui_t *);
 
 #ifndef FDUPVES_THREAD_STACK_SIZE
 #define FDUPVES_THREAD_STACK_SIZE (1024 * 1024 * 10)
@@ -212,10 +181,12 @@ static void restree_diff (GtkMenuItem *, gui_t *);
 GtkWidget *
 mainframe_new (gui_t *gui)
 {
-  GtkWidget *hpaned, *vpaned, *vbox, *win;
+  GtkWidget *mvbox, *hpaned, *vpaned, *vbox, *win;
+
+  mvbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
 
   vpaned = gtk_paned_new (GTK_ORIENTATION_VERTICAL);
-  gtk_box_pack_start (GTK_BOX (gui->mainvbox), vpaned, TRUE, TRUE, 2);
+  gtk_box_pack_start (GTK_BOX (mvbox), vpaned, TRUE, TRUE, 2);
 
   hpaned = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
   gtk_paned_add1 (GTK_PANED (vpaned), hpaned);
@@ -223,16 +194,22 @@ mainframe_new (gui_t *gui)
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
   gtk_paned_add1 (GTK_PANED (hpaned), vbox);
 
-  win = dir_list_new (gui);
-  gtk_box_pack_start (GTK_BOX (vbox), win, TRUE, TRUE, 2);
-
   win = find_attr_new (gui);
-  gtk_box_pack_end (GTK_BOX (vbox), win, FALSE, FALSE, 2);
+  gtk_box_pack_start (GTK_BOX (vbox), win, FALSE, FALSE, 2);
+
+  win = dir_list_new (gui);
+  gtk_box_pack_end (GTK_BOX (vbox), win, TRUE, TRUE, 2);
 
   win = res_tree_new (gui);
   gtk_paned_add2 (GTK_PANED (hpaned), win);
 
-  return vpaned;
+  win = log_view_new (gui);
+  gtk_paned_add2 (GTK_PANED (vpaned), win);
+
+  gui->progress = gtk_progress_bar_new ();
+  gtk_box_pack_end (GTK_BOX (mvbox), gui->progress, FALSE, FALSE, 2);
+
+  return mvbox;
 }
 
 static GtkWidget *
@@ -270,7 +247,23 @@ find_attr_new (gui_t *gui)
 {
   GtkWidget *vbox;
 
+  GtkWidget *buttonbox;
+  GtkWidget *add_button, *find_button;
+
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
+
+  buttonbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 2);
+  gtk_box_pack_start (GTK_BOX (vbox), buttonbox, FALSE, FALSE, 2);
+
+  add_button = gtk_button_new_with_label ("Add Directory");
+  gtk_box_pack_start (GTK_BOX (buttonbox), add_button, FALSE, FALSE, 2);
+  g_signal_connect (G_OBJECT (add_button), "clicked", G_CALLBACK (gui_add_cb),
+                    gui);
+
+  find_button = gtk_button_new_with_label ("Find duplicates");
+  gtk_box_pack_start (GTK_BOX (buttonbox), find_button, FALSE, FALSE, 2);
+  g_signal_connect (G_OBJECT (find_button), "clicked",
+                    G_CALLBACK (gui_find_cb), gui);
 
   return vbox;
 }
@@ -377,6 +370,88 @@ res_tree_new (gui_t *gui)
   return win;
 }
 
+static gint
+gui_log_format (gchar *output, size_t outsize, const gchar *message)
+{
+  GDateTime *datetime;
+  gchar *dtstr;
+  int retsize;
+
+  datetime = g_date_time_new_now_local ();
+  if (datetime == NULL)
+    return g_snprintf (output, outsize, "%s", message);
+
+  dtstr = g_date_time_format (datetime, "%Y-%m-%dT%H:%M:%S.%f");
+  g_date_time_unref (datetime);
+  if (dtstr == NULL)
+    return g_snprintf (output, outsize, "%s", message);
+
+  retsize = g_snprintf (output, outsize, "%s %s", dtstr, message);
+  g_free (dtstr);
+
+  return retsize;
+}
+
+static void
+gui_log (const gchar *log_domain, GLogLevelFlags log_level,
+         const gchar *message, gpointer user_data)
+{
+  GtkTreeIter itr[1];
+  GtkTreePath *path;
+  gui_t *gui;
+  gchar fmt_message[1024];
+
+  gui_log_format (fmt_message, sizeof fmt_message, message);
+
+  gui = (gui_t *)user_data;
+
+  if (gui->quit)
+    return;
+
+  gtk_list_store_append (gui->logliststore, itr);
+  gtk_list_store_set (gui->logliststore, itr, 0, fmt_message, -1);
+
+  path = gtk_tree_model_get_path (GTK_TREE_MODEL (gui->logliststore), itr);
+  gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (gui->logtree), path, NULL,
+                                FALSE, 0.0, 0.0);
+  gtk_tree_path_free (path);
+
+  if (gtk_tree_model_iter_n_children (GTK_TREE_MODEL (gui->logliststore), NULL)
+      >= FDUPVES_MAXLOG)
+    {
+      gtk_tree_model_get_iter_first (GTK_TREE_MODEL (gui->logliststore), itr);
+      gtk_list_store_remove (gui->logliststore, itr);
+    }
+}
+
+static GtkWidget *
+log_view_new (gui_t *gui)
+{
+  GtkWidget *win;
+  GtkCellRenderer *renderer;
+  GtkTreeViewColumn *column;
+
+  win = gtk_scrolled_window_new (NULL, NULL);
+  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (win),
+                                  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+  gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (win),
+                                       GTK_SHADOW_IN);
+  gui->logliststore = gtk_list_store_new (1, G_TYPE_STRING);
+  gui->logtree
+      = gtk_tree_view_new_with_model (GTK_TREE_MODEL (gui->logliststore));
+  gtk_container_add (GTK_CONTAINER (win), gui->logtree);
+
+  renderer = gtk_cell_renderer_text_new ();
+  column = gtk_tree_view_column_new_with_attributes (_ ("Message"), renderer,
+                                                     "text", 0, NULL);
+  gtk_tree_view_column_set_resizable (column, TRUE);
+  gtk_tree_view_append_column (GTK_TREE_VIEW (gui->logtree), column);
+
+  g_log_set_handler (NULL, G_LOG_LEVEL_MASK, gui_log, gui);
+
+  return win;
+}
+
 static void
 gui_add_dir (gui_t *gui, const char *path)
 {
@@ -415,22 +490,17 @@ gui_add_cb (GtkWidget *wid, gui_t *gui)
 static void
 gui_find_cb (GtkWidget *wid, gui_t *gui)
 {
-  GThread *th;
-
-  th = g_thread_try_new ("find", (GThreadFunc)gui_find_thread, gui, NULL);
+  GThread *th
+      = g_thread_new ("find_thread", (GThreadFunc)gui_find_thread, gui);
   g_thread_unref (th);
 }
 
 static void
 gui_find_thread (gui_t *gui)
 {
-  int fimage, fvideo, faudio, febook;
+  int febook;
 
   /* disable the add/find tool time */
-  gtk_widget_set_sensitive (GTK_WIDGET (gui->but_add), FALSE);
-  gtk_widget_set_sensitive (GTK_WIDGET (gui->but_find), FALSE);
-  gtk_widget_set_sensitive (GTK_WIDGET (gui->but_del), FALSE);
-
   gtk_progress_bar_set_text (GTK_PROGRESS_BAR (gui->progress), "");
   gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (gui->progress), 0);
 
@@ -446,33 +516,20 @@ gui_find_thread (gui_t *gui)
   gtk_tree_model_foreach (GTK_TREE_MODEL (gui->dirliststore),
                           (GtkTreeModelForeachFunc)dir_find_item, gui);
 
-  fimage = 0;
-  fvideo = 0;
-  faudio = 0;
   febook = 0;
   g_message ("find %d ebooks to process", gui->ebooks->len);
 
   find_ebooks (gui->ebooks, (find_step_cb)gui_find_step_cb, gui);
+
   febook = g_slist_length (gui->same_list);
-  febook -= fimage;
-  febook -= fvideo;
-  febook -= faudio;
   g_message (_ ("find %d groups same audios"), febook);
 
-  g_ptr_array_free (gui->images, TRUE);
-  g_ptr_array_free (gui->videos, TRUE);
-  g_ptr_array_free (gui->audios, TRUE);
   g_ptr_array_free (gui->ebooks, TRUE);
 
   gtk_tree_view_expand_all (GTK_TREE_VIEW (gui->restree));
 
   gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (gui->progress), 0);
   gtk_progress_bar_set_text (GTK_PROGRESS_BAR (gui->progress), "");
-
-  /* disable the add/find tool time */
-  gtk_widget_set_sensitive (GTK_WIDGET (gui->but_add), TRUE);
-  gtk_widget_set_sensitive (GTK_WIDGET (gui->but_find), TRUE);
-  gtk_widget_set_sensitive (GTK_WIDGET (gui->but_del), TRUE);
 }
 
 static void
@@ -620,28 +677,14 @@ restree_onbutpress (GtkWidget *wid, GdkEventButton *event, gui_t *gui)
     }
 
   menu = gtk_menu_new ();
-  switch (selcnt)
+  item = restree_delete_menuitem (gui);
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
+  item = restree_open_menuitem (gui);
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
+  if (selcnt == 1)
     {
-    case 1:
-      item = restree_open_menuitem (gui);
-      gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
       item = restree_opendir_menuitem (gui);
       gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
-      item = restree_delete_menuitem (gui);
-      gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
-      break;
-
-    case 2:
-      item = restree_diff_menuitem (gui);
-      gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
-      item = restree_delete_menuitem (gui);
-      gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
-      break;
-
-    default: /* >= 3 */
-      item = restree_delete_menuitem (gui);
-      gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
-      break;
     }
 
   // TODO
@@ -688,18 +731,6 @@ restree_delete_menuitem (gui_t *gui)
   return item;
 }
 
-static GtkWidget *
-restree_diff_menuitem (gui_t *gui)
-{
-  GtkWidget *item;
-
-  item = gtk_menu_item_new_with_label (_ ("diff"));
-  g_signal_connect (G_OBJECT (item), "activate", G_CALLBACK (restree_diff),
-                    gui);
-
-  return item;
-}
-
 static void
 restreesel_onchanged (GtkTreeSelection *sel, gui_t *gui)
 {
@@ -736,35 +767,7 @@ restreesel_onchanged (GtkTreeSelection *sel, gui_t *gui)
 static void
 restree_open (GtkMenuItem *item, gui_t *gui)
 {
-#ifndef WIN32
-  gchar *uri;
-  GError *err;
-
-  uri = g_filename_to_uri (gui->resselfiles[0]->path, NULL, NULL);
-  err = NULL;
-  gtk_show_uri_on_window (NULL, uri, GDK_CURRENT_TIME, &err);
-  if (err)
-    {
-      g_debug ("Open uri: %s error: %s", uri, err->message);
-      g_error_free (err);
-    }
-  g_free (uri);
-
-#else
-  gchar *filename;
-
-  filename = g_win32_locale_filename_from_utf8 (gui->resselfiles[0]->path);
-  if (filename)
-    {
-      ShellExecute (NULL, "open", filename, NULL, NULL, SW_SHOW);
-      g_free (filename);
-    }
-  else
-    {
-      ShellExecute (NULL, "open", gui->resselfiles[0]->path, NULL, NULL,
-                    SW_SHOW);
-    }
-#endif
+  gui->core->loadfile (gui->resselfiles[0]->path, FALSE, FALSE);
 }
 
 static void
@@ -1081,7 +1084,7 @@ image2widget (const file_node *fn)
   g_free (desc);
 
   err = NULL;
-  pixbuf = gdk_pixbuf_new_from_file_at_scale(fn->path, 64, 64, FALSE, &err);
+  pixbuf = gdk_pixbuf_new_from_file_at_scale (fn->path, 64, 64, FALSE, &err);
   if (err)
     {
       g_warning ("load image: %s error: %s", fn->path, err->message);
@@ -1099,56 +1102,7 @@ image2widget (const file_node *fn)
 }
 
 static void
-restree_diff (GtkMenuItem *item, gui_t *gui)
-{
-  diff_dialog_new (gui, gui->resselfiles[0], gui->resselfiles[1]);
-}
-
-static void
-diff_dialog_new (gui_t *gui, const file_node *afn, const file_node *bfn)
-{
-  diff_dialog *diffdia;
-
-  diffdia = static_cast<diff_dialog *> (g_malloc0 (sizeof (diff_dialog)));
-
-  diffdia->gui = gui;
-
-  diffdia->dialog = gtk_dialog_new_with_buttons (
-      "fdupves diff dialog", GTK_WINDOW (gui->widget),
-      static_cast<GtkDialogFlags> (GTK_DIALOG_MODAL
-                                   | GTK_DIALOG_DESTROY_WITH_PARENT), _ ("Close"),
-      GTK_RESPONSE_CLOSE, NULL);
-
-  diffdia->content
-      = gtk_dialog_get_content_area (GTK_DIALOG (diffdia->dialog));
-
-  g_signal_connect (G_OBJECT (diffdia->dialog), "response",
-                    G_CALLBACK (diffdia_onresponse), diffdia);
-  g_signal_connect (G_OBJECT (diffdia->dialog), "close",
-                    G_CALLBACK (diffdia_onclose), diffdia);
-
-      //diff_add_ebook (diffdia, afn, bfn);
-  gtk_widget_show_all (diffdia->content);
-
-  gtk_dialog_run (GTK_DIALOG (diffdia->dialog));
-}
-
-static void
-diffdia_onclose (GtkWidget *dia, diff_dialog *dialog)
-{
-  gtk_widget_destroy (dialog->dialog);
-  g_free (dialog);
-}
-
-static void
-diffdia_onresponse (GtkWidget *dia, gint res, diff_dialog *dialog)
-{
-  gtk_widget_destroy (dialog->dialog);
-  g_free (dialog);
-}
-
-static void
-gui_find_step_cb (const find_step *step, gui_t *gui)
+gui_find_step_refresh (const find_step *step)
 {
   if (step->doing)
     {
@@ -1168,6 +1122,17 @@ gui_find_step_cb (const find_step *step, gui_t *gui)
       gui->same_list = gui_append_same_slist (gui, gui->same_list, step->afile,
                                               step->bfile, step->type);
     }
+}
+
+static gboolean
+gui_find_step_cb (const find_step *step, gui_t *gui)
+{
+  if (gui->quit)
+    return FALSE;
+
+  g_idle_add ((GSourceFunc)gui_find_step_refresh, (gpointer)step);
+
+  return TRUE;
 }
 
 static GSList *
@@ -1336,15 +1301,6 @@ restree_selcombo_changed (GtkComboBox *comtext, gui_t *gui)
 
     default:
       break;
-    }
-}
-
-static void
-gui_delsel_cb (GtkWidget *but, gui_t *gui)
-{
-  if (gui->resselfiles && gui->resselfiles[0])
-    {
-      restree_delete (NULL, gui);
     }
 }
 
@@ -1669,4 +1625,29 @@ restree_sel_others (same_node *node, gui_t *gui)
                                     g_slist_index (node->files, fn));
         }
     }
+}
+
+int
+find_dup_dialog (apvlv::ApvlvCore *core)
+{
+  GtkWidget *dia, *main;
+
+  dia = gtk_dialog_new ();
+  g_return_val_if_fail (dia, -1);
+
+  gui->quit = FALSE;
+  gui->core = core;
+
+  main = mainframe_new (gui);
+  gtk_widget_show_all (main);
+  gtk_box_pack_start (reinterpret_cast<GtkBox *> (
+                          gtk_dialog_get_content_area (GTK_DIALOG (dia))),
+                      main, TRUE, TRUE, 10);
+
+  gtk_dialog_run (GTK_DIALOG (dia));
+  gui->quit = TRUE;
+
+  gtk_widget_destroy (dia);
+
+  return 0;
 }

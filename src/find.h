@@ -31,34 +31,6 @@
 
 typedef enum
 {
-  FD_COMPARE_ALL = 0,
-  FD_COMPARE_TOP,
-  FD_COMPARE_BOTTOM,
-  FD_COMPARE_LEFT,
-  FD_COMPARE_RIGHT,
-  FD_COMPARE_AUDIO_IN_VIDEO
-} compare_type;
-
-typedef enum
-{
-  FD_FILTER_TIME_RATE_0 = 0,
-  FD_FILTER_TIME_RATE_1,
-  FD_FILTER_TIME_RATE_2,
-  FD_FILTER_TIME_RATE_10,
-  FD_FILTER_TIME_RATE_20,
-  FD_FILTER_TIME_RATE_100
-} filter_timerate_type;
-
-typedef enum
-{
-  FIND_IMAGE,
-  FIND_VIDEO,
-  FIND_AUDIO,
-  FIND_EBOOK
-} find_type;
-
-typedef enum
-{
   FD_SAME_IMAGE,
   FD_SAME_VIDEO_HEAD,
   FD_SAME_VIDEO_TAIL,
@@ -78,13 +50,7 @@ typedef struct
   char *bfile;
 } find_step;
 
-typedef void (*find_step_cb) (const find_step *, gpointer);
-
-int find_images (GPtrArray *, find_step_cb, gpointer);
-
-int find_videos (GPtrArray *, find_step_cb, gpointer);
-
-int find_audios (GPtrArray *, find_step_cb, gpointer);
+typedef gboolean (*find_step_cb) (const find_step *, gpointer);
 
 int find_ebooks (GPtrArray *, find_step_cb, gpointer);
 

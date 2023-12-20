@@ -33,21 +33,17 @@
 
 typedef struct cache_s cache_t;
 
-cache_t *cache_open(const gchar *file);
+cache_t *cache_open ();
 
-void cache_close(cache_t *cache);
+void cache_close (cache_t *cache);
 
-gboolean cache_get(cache_t *, const gchar *, float, int, hash_t *);
+gboolean cache_get (cache_t *, const gchar *, float, int, hash_t *);
 
-gboolean cache_set(cache_t *, const gchar *, float, int, hash_t);
+gboolean cache_set (cache_t *, const gchar *, float, int, hash_t);
 
-gboolean cache_gets(cache_t *, const gchar *, int alg, hash_array_t **);
+gboolean cache_remove (cache_t *, const gchar *);
 
-gboolean cache_sets(cache_t *, const gchar *, int alg, hash_array_t *);
-
-gboolean cache_remove(cache_t *, const gchar *);
-
-void cache_cleanup(cache_t *);
+void cache_cleanup (cache_t *);
 
 extern cache_t *g_cache;
 

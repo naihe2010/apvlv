@@ -28,6 +28,7 @@
 #ifndef _FDUPVES_GUI_H_
 #define _FDUPVES_GUI_H_
 
+#include "ApvlvCore.h"
 #include <gtk/gtk.h>
 
 typedef struct file_node_s file_node;
@@ -36,24 +37,14 @@ struct gui_s
 {
   gboolean quit;
 
-  GtkWidget *widget;
-  GtkWidget *mainvbox;
-  GtkWidget *progress;
+  apvlv::ApvlvCore *core;
 
-  GtkToolItem *but_add;
-  GtkToolItem *but_find;
-  GtkToolItem *but_del;
+  GtkWidget *widget;
+  GtkWidget *progress;
 
   GtkListStore *dirliststore;
 
-  GPtrArray *images;
-  GPtrArray *videos;
-  GPtrArray *audios;
   GPtrArray *ebooks;
-  GSList *same_images;
-  GSList *same_videos;
-  GSList *same_audios;
-  GSList *same_ebooks;
   GSList *same_list;
 
   GtkWidget *logtree;
@@ -67,6 +58,6 @@ struct gui_s
 
 typedef struct gui_s gui_t;
 
-GtkWidget * mainframe_new (gui_t *);
+int find_dup_dialog (apvlv::ApvlvCore *core);
 
 #endif

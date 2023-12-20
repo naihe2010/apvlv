@@ -32,9 +32,6 @@
 enum hash_type
 {
   FDUPVES_IMAGE_HASH,
-  FDUPVES_IMAGE_PHASH,
-  FDUPVES_AUDIO_HASH,
-  FDUPVES_HASH_ALGS_CNT,
 };
 extern const char *hash_phrase[];
 
@@ -49,21 +46,7 @@ hash_t image_file_hash (const char *);
 
 hash_t image_buffer_hash (const char *, int);
 
-hash_t video_time_hash (const char *, float);
-
-hash_t video_time_phash (const char *, float);
-
-hash_t image_file_phash (const char *);
-
-hash_array_t *audio_hashes (const char *);
-
 int hash_cmp (hash_t, hash_t);
-
-hash_array_t *hash_array_new ();
-
-void hash_array_free (hash_array_t *hashArray);
-
-gsize hash_array_size (hash_array_t *hashArray);
 
 void *hash_array_index (hash_array_t *hashArray, int index);
 

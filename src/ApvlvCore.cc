@@ -27,11 +27,10 @@
 /* @date Created: 2009/01/04 09:34:51 Alf*/
 
 #include "ApvlvCore.h"
+#include "ApvlvFindDupGui.h"
 #include "ApvlvParams.h"
 #include "ApvlvView.h"
-
 #include <glib/gstdio.h>
-
 #include <iostream>
 
 namespace apvlv
@@ -592,8 +591,7 @@ ApvlvCore::isControlledContent ()
 void
 ApvlvCore::finddups ()
 {
-  if (mDirIndex)
-    mDirIndex->finddups ();
+  find_dup_dialog (this);
 }
 
 bool

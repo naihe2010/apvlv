@@ -123,7 +123,6 @@ ebook_hash_cmp (ebook_hash_t *ha, ebook_hash_t *hb)
   return FDUPVES_EBOOK_HASH_MAX;
 }
 
-
 xmlNodeSetPtr
 xmldoc_get_nodeset (xmlDocPtr doc, const char *xpath, const char *ns,
                     const char *url)

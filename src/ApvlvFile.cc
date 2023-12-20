@@ -279,10 +279,6 @@ ApvlvFileIndex::~ApvlvFileIndex ()
     }
 }
 
-void
-ApvlvFileIndex::finddups ()
-{
-}
 }
 
 // Local Variables:

@@ -25,8 +25,8 @@
  */
 
 #include "hash.h"
+#include "ApvlvUtil.h"
 #include "cache.h"
-#include "find.h"
 
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <glib.h>
@@ -48,19 +48,12 @@ image_file_hash (const char *file)
   hash_t h;
   GError *err;
 
-  if (g_cache)
-    {
-      if (cache_get (g_cache, file, 0, FDUPVES_IMAGE_HASH, &h))
-        {
-          return h;
-        }
-    }
-
-  buf = gdk_pixbuf_new_from_file_at_scale (file, FDUPVES_HASH_LEN,
-                                             FDUPVES_HASH_LEN, FALSE, &err);
+  err = nullptr;
+  buf = gdk_pixbuf_new_from_file_at_size (file, FDUPVES_HASH_LEN,
+                                          FDUPVES_HASH_LEN, &err);
   if (err)
     {
-      g_warning ("Load file: %s to pixbuf failed: %s", file, err->message);
+      debug ("Load file: %s to pixbuf failed: %s", file, err->message);
       g_error_free (err);
       return 0;
     }
