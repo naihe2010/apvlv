@@ -78,7 +78,8 @@ ApvlvFile::newFile (const char *filename, __attribute__ ((unused)) bool check)
   size_t i;
   for (i = 0; i < sizeof(type_phrase)/sizeof(type_phrase[0]); ++ i)
     {
-      if (strcasecmp (filename + strlen (filename) - strlen (type_phrase[i]),
+      if (strlen (filename) >= strlen (type_phrase[i]) &&
+          strcasecmp (filename + strlen (filename) - strlen (type_phrase[i]),
                       type_phrase[i])
           == 0)
         {
