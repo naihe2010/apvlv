@@ -76,9 +76,10 @@ ApvlvFile::newFile (const char *filename, __attribute__ ((unused)) bool check)
   };
 
   size_t i;
-  for (i = 0; i < 8; ++i)
+  for (i = 0; i < sizeof(type_phrase)/sizeof(type_phrase[0]); ++ i)
     {
-      if (strcasecmp (filename + strlen (filename) - strlen (type_phrase[i]),
+      if (strlen (filename) >= strlen (type_phrase[i]) &&
+          strcasecmp (filename + strlen (filename) - strlen (type_phrase[i]),
                       type_phrase[i])
           == 0)
         {
@@ -86,7 +87,7 @@ ApvlvFile::newFile (const char *filename, __attribute__ ((unused)) bool check)
         }
     }
 
-  if (i == 8)
+  if (i == sizeof(type_phrase)/sizeof(type_phrase[0]))
     {
       debug ("not a valid file: %s, treate as a PDF file", filename);
       i = 0;
