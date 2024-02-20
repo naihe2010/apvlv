@@ -44,7 +44,6 @@ extern "C"
   void apvlv_on_page_scrolldown (GtkWidget *wid, apvlv::ApvlvView *view);
   void apvlv_on_navigate_jumpto (GtkWidget *wid, apvlv::ApvlvView *view);
   void apvlv_on_navigate_jumpback (GtkWidget *wid, apvlv::ApvlvView *view);
-  void apvlv_on_dir_find_dups (GtkWidget *wid, apvlv::ApvlvView *view);
   void apvlv_on_help_about (GtkWidget *wid, apvlv::ApvlvView *view);
 }
 
@@ -155,12 +154,6 @@ extern "C"
   apvlv_on_navigate_jumpback (GtkWidget *wid, apvlv::ApvlvView *view)
   {
     view->crtadoc ()->jump ('\'');
-  }
-
-  void
-  apvlv_on_dir_find_dups (GtkWidget *wid, apvlv::ApvlvView *view)
-  {
-    view->crtadoc ()->finddups ();
   }
 
   void

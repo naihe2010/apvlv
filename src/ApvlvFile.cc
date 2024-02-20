@@ -155,7 +155,6 @@ ApvlvFile::get_anchor ()
 {
   return mAnchor;
 }
-
 bool
 ApvlvFile::annot_underline (int, gdouble, gdouble, gdouble, gdouble)
 {
@@ -279,7 +278,6 @@ ApvlvFileIndex::~ApvlvFileIndex ()
       delete child;
     }
 }
-
 }
 
 // Local Variables:

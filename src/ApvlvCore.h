@@ -159,8 +159,6 @@ public:
 
   virtual returnType process (int has, int times, guint keyval) = 0;
 
-  virtual void finddups ();
-
   ApvlvView *mView;
 
 protected:

@@ -27,10 +27,11 @@
 /* @date Created: 2009/01/04 09:34:51 Alf*/
 
 #include "ApvlvCore.h"
-#include "ApvlvFindDupGui.h"
 #include "ApvlvParams.h"
 #include "ApvlvView.h"
+
 #include <glib/gstdio.h>
+
 #include <iostream>
 
 namespace apvlv
@@ -586,12 +587,6 @@ ApvlvCore::isControlledContent ()
 {
   auto focused = gtk_widget_get_state_flags (mContentWidget);
   return focused & GTK_STATE_FLAG_FOCUSED;
-}
-
-void
-ApvlvCore::finddups ()
-{
-  find_dup_dialog (this);
 }
 
 bool
