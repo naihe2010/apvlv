@@ -297,7 +297,7 @@ ApvlvCore::scrollup (int times)
             }
           else
             {
-              showpage (mPagenum + 1, 0.0);
+              showpage (mPagenum - 1, 0.0);
             }
         }
     }

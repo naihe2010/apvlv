@@ -248,6 +248,10 @@ public:
   static gboolean webview_context_menu_cb (
       WebKitWebView *web_view, WebKitContextMenu *context_menu,
       GdkEvent *event, WebKitHitTestResult *hit_test_result, ApvlvDoc *doc);
+  static void webview_arrive_top (WebKitUserContentManager *,
+                                  WebKitJavascriptResult *, ApvlvDoc *doc);
+  static void webview_arrive_bottom (WebKitUserContentManager *,
+                                     WebKitJavascriptResult *, ApvlvDoc *doc);
 
   ApvlvImage *getApvlvImageByEventBox (GtkEventBox *box);
 
@@ -347,6 +351,8 @@ private:
   // image viewer
   ApvlvImage *mImg[3];
   GtkWidget *mWeb[1];
+  guint64 lastArrive;
+  gboolean mWebScrollUp;
 
   ApvlvImage *mCurrentImage;
   ApvlvAnnotText *mCurrentAnnotText;

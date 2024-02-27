@@ -130,6 +130,7 @@ ApvlvDoc::ApvlvDoc (ApvlvView *view, const char *zm, bool cache)
       mImg[2] = nullptr;
     }
 
+  lastArrive = g_get_monotonic_time ();
   mWeb[0] = webkit_web_view_new ();
   g_object_ref (mWeb[0]);
   g_signal_connect (mWeb[0], "resource-load-started",
@@ -138,6 +139,15 @@ ApvlvDoc::ApvlvDoc (ApvlvView *view, const char *zm, bool cache)
                     G_CALLBACK (webview_load_changed_cb), this);
   g_signal_connect (mWeb[0], "context-menu",
                     G_CALLBACK (webview_context_menu_cb), this);
+
+  auto man
+      = webkit_web_view_get_user_content_manager (WEBKIT_WEB_VIEW (mWeb[0]));
+  webkit_user_content_manager_register_script_message_handler (man, "top");
+  webkit_user_content_manager_register_script_message_handler (man, "bottom");
+  g_signal_connect (man, "script-message-received::top",
+                    G_CALLBACK (webview_arrive_top), this);
+  g_signal_connect (man, "script-message-received::bottom",
+                    G_CALLBACK (webview_arrive_bottom), this);
 
   g_signal_connect (G_OBJECT (mMainVaj), "value-changed",
                     G_CALLBACK (apvlv_doc_on_mouse), this);
@@ -451,6 +461,8 @@ ApvlvDoc::process (int has, int ct, guint key)
     {
       ct = 1;
     }
+
+  lastArrive = g_get_monotonic_time ();
 
   switch (key)
     {
@@ -1455,8 +1467,9 @@ ApvlvDoc::scrollwebto (double xrate, double yrate)
     return;
 
   gchar *javasrc = g_strdup_printf (
-      "window.scroll(window.screenX * %f, window.screenY * %f);", xrate,
-      yrate);
+      "window.scroll(window.screenX * %f, (document.body.offsetHeight - "
+      "window.innerHeight) * %f);",
+      xrate, yrate);
   webkit_web_view_run_javascript (WEBKIT_WEB_VIEW (mWeb[0]), javasrc, nullptr,
                                   nullptr, this);
   g_free (javasrc);
@@ -1997,7 +2010,12 @@ ApvlvDoc::webview_load_changed_cb (WebKitWebView *web_view,
   if (event == WEBKIT_LOAD_FINISHED)
     {
       string anchor = doc->mFile->get_anchor ();
-      if (!anchor.empty ())
+      if (doc->mWebScrollUp)
+        {
+          doc->scrollwebto (0.0, 1.0);
+          doc->mWebScrollUp = FALSE;
+        }
+      else if (!anchor.empty ())
         {
           gchar *javasrc = g_strdup_printf (
               "document.getElementById('%s').scrollIntoView();",
@@ -2006,6 +2024,21 @@ ApvlvDoc::webview_load_changed_cb (WebKitWebView *web_view,
                                           doc);
           g_free (javasrc);
         }
+
+      // javascript for check top or bottom
+      const gchar *javascript
+          = "window.onscroll = function() {"
+            "   if ((window.innerHeight + window.scrollY) >= "
+            "document.body.offsetHeight) {"
+            "       "
+            "window.webkit.messageHandlers.bottom.postMessage('reached');"
+            "   }"
+            "   if (window.scrollY == 0) {"
+            "      window.webkit.messageHandlers.top.postMessage('reached');"
+            "   }"
+            "};";
+      webkit_web_view_run_javascript (web_view, javascript, nullptr, nullptr,
+                                      nullptr);
     }
 }
 
@@ -2017,6 +2050,39 @@ ApvlvDoc::webview_context_menu_cb (WebKitWebView *web_view,
                                    ApvlvDoc *doc)
 {
   return TRUE;
+}
+
+void
+ApvlvDoc::webview_arrive_top (WebKitUserContentManager *man,
+                              WebKitJavascriptResult *res, ApvlvDoc *doc)
+{
+  debug ("webkit arrived top \n");
+  auto now = g_get_monotonic_time ();
+  if (now - doc->lastArrive < 1000 * 1000)
+    {
+      return;
+    }
+
+  doc->lastArrive = now;
+
+  doc->mWebScrollUp = TRUE;
+  ((ApvlvCore *)doc)->scrollup (1);
+}
+
+void
+ApvlvDoc::webview_arrive_bottom (WebKitUserContentManager *man,
+                                 WebKitJavascriptResult *res, ApvlvDoc *doc)
+{
+  debug ("webkit arrived bottom \n");
+  auto now = g_get_monotonic_time ();
+  if (now - doc->lastArrive < 1000 * 1000)
+    {
+      return;
+    }
+
+  doc->lastArrive = now;
+
+  ((ApvlvCore *)doc)->scrolldown (1);
 }
 
 void
