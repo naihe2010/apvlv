@@ -2232,7 +2232,7 @@ ApvlvDocCache::load (ApvlvDocCache *ac)
   ac->mAnnotTexts = ac->mFile->getAnnotTexts (ac->mPagenum);
   for (const auto &annot : ac->mAnnotTexts)
     {
-      if (annot.type == APVLV_ANNOT_TEXT)
+      if (annot.type == APVLV_ANNOT_TEXT && annot.text.length () > 0)
         ac->setAnnot (annot, dat, ac->mSize);
     }
 
