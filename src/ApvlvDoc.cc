@@ -136,6 +136,8 @@ ApvlvDoc::ApvlvDoc (ApvlvView *view, const char *zm, bool cache)
   auto context
       = webkit_web_context_new_with_website_data_manager (data_manager);
   mWeb[0] = webkit_web_view_new_with_context (context);
+  auto set = webkit_web_view_get_settings (WEBKIT_WEB_VIEW (mWeb[0]));
+  webkit_settings_set_default_charset(set, "UTF-8");
   g_object_ref (mWeb[0]);
   g_signal_connect (mWeb[0], "load-changed",
                     G_CALLBACK (webview_load_changed_cb), this);
