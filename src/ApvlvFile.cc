@@ -157,6 +157,12 @@ ApvlvFile::get_ocf_file (const gchar *path, gssize *sizep)
   return nullptr;
 }
 
+const gchar *
+ApvlvFile::get_ocf_mime_type (const gchar *path)
+{
+  return nullptr;
+}
+
 string
 ApvlvFile::get_anchor ()
 {

@@ -140,19 +140,18 @@ ApvlvEPUB::ApvlvEPUB (const char *filename, bool check)
       throw std::bad_alloc ();
     }
 
-  std::map<string, string> idfiles = content_get_media (mEpub, contentfile);
-  if (idfiles.find ("ncx") == idfiles.end ())
+  if (content_get_media (mEpub, contentfile) == false)
     {
       epub_close (mEpub);
       throw std::bad_alloc ();
     }
 
-  if (idfiles.find ("cover") != idfiles.end ())
+  if (idSrcs.find ("cover") != idSrcs.end ())
     {
-      mPages[0] = idfiles["cover"];
+      mPages[0] = idSrcs["cover"];
     }
 
-  mIndex = ncx_get_index (mEpub, idfiles["ncx"]);
+  mIndex = ncx_get_index (mEpub, idSrcs["ncx"]);
 }
 
 ApvlvEPUB::~ApvlvEPUB ()
@@ -206,7 +205,7 @@ ApvlvEPUB::renderweb (int pn, int ix, int iy, double zm, int rot,
       mAnchor = "";
     }
 
-  string epuburi = "apvlv://" + uri;
+  string epuburi = "apvlv:///" + uri;
   webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), epuburi.c_str ());
 
   return true;
@@ -254,10 +253,16 @@ gchar *
 ApvlvEPUB::get_ocf_file (const char *path, gssize *sizep)
 {
   gchar *content = nullptr;
-  string ocf_path = string ("OEBPS") + path;
-
-  *sizep = epub_get_ocf_file (mEpub, ocf_path.c_str (), &content);
+  *sizep = epub_get_ocf_file (mEpub, path, &content);
   return content;
+}
+
+const gchar *
+ApvlvEPUB::get_ocf_mime_type (const char *path)
+{
+  if (srcMimeTypes.find (path) != srcMimeTypes.end ())
+    return srcMimeTypes[path].c_str ();
+  return "text/html";
 }
 
 string
@@ -290,10 +295,9 @@ ApvlvEPUB::container_get_contentfile (const char *container, int len)
   return path;
 }
 
-std::map<string, string>
+bool
 ApvlvEPUB::content_get_media (struct epub *epub, const string &contentfile)
 {
-  std::map<string, string> idfiles;
   char *contentopf;
   xmlDocPtr doc;
   xmlNodeSetPtr nodeset;
@@ -305,7 +309,7 @@ ApvlvEPUB::content_get_media (struct epub *epub, const string &contentfile)
   gint clen = epub_get_ocf_file (epub, contentfile.c_str (), &contentopf);
   if (clen <= 0)
     {
-      return idfiles;
+      return false;
     }
 
   coverp = epub_get_metadata (epub, EPUB_META, &sizep);
@@ -334,7 +338,7 @@ ApvlvEPUB::content_get_media (struct epub *epub, const string &contentfile)
   free (contentopf);
   if (doc == nullptr)
     {
-      return idfiles;
+      return false;
     }
 
   nodeset = xmldoc_get_nodeset (doc, "//c:package/c:manifest/c:item",
@@ -357,13 +361,16 @@ ApvlvEPUB::content_get_media (struct epub *epub, const string &contentfile)
             }
 
           string id = xmlnode_attr_get (node, "id");
-          if (id == "ncx" || id == "cover")
+          string type = xmlnode_attr_get (node, "media-type");
+          if (id == cover_id)
             {
-              idfiles[id] = href;
+              idSrcs["cover"] = href;
+              srcMimeTypes[href] = type;
             }
-          else if (id == cover_id)
+          else
             {
-              idfiles["cover"] = href;
+              idSrcs[id] = href;
+              srcMimeTypes[href] = type;
             }
         }
     }
@@ -371,7 +378,7 @@ ApvlvEPUB::content_get_media (struct epub *epub, const string &contentfile)
   xmlXPathFreeNodeSet (nodeset);
 
   xmlFreeDoc (doc);
-  return idfiles;
+  return true;
 }
 
 ApvlvFileIndex *

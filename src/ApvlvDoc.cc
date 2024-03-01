@@ -137,7 +137,7 @@ ApvlvDoc::ApvlvDoc (ApvlvView *view, const char *zm, bool cache)
       = webkit_web_context_new_with_website_data_manager (data_manager);
   mWeb[0] = webkit_web_view_new_with_context (context);
   auto set = webkit_web_view_get_settings (WEBKIT_WEB_VIEW (mWeb[0]));
-  webkit_settings_set_default_charset(set, "UTF-8");
+  webkit_settings_set_default_charset (set, "UTF-8");
   g_object_ref (mWeb[0]);
   g_signal_connect (mWeb[0], "load-changed",
                     G_CALLBACK (webview_load_changed_cb), this);
@@ -2089,17 +2089,18 @@ ApvlvDoc::webcontext_load_uri_callback (WebKitURISchemeRequest *request,
                                         ApvlvDoc *doc)
 {
   gssize stream_length;
-  const gchar *path;
+  const gchar *path, *type;
 
   path = webkit_uri_scheme_request_get_path (request);
 
-  gchar *contents = doc->mFile->get_ocf_file (path, &stream_length);
+  type = doc->mFile->get_ocf_mime_type (path + 1);
+  gchar *contents = doc->mFile->get_ocf_file (path + 1, &stream_length);
   if (contents)
     {
+      debug ("get [%s] %d contents", type, stream_length);
       auto stream = g_memory_input_stream_new_from_data (
           contents, stream_length, g_free);
-      webkit_uri_scheme_request_finish (request, stream, stream_length,
-                                        "text/html");
+      webkit_uri_scheme_request_finish (request, stream, stream_length, type);
       g_object_unref (stream);
       return;
     }

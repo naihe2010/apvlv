@@ -71,17 +71,20 @@ public:
 
   gchar *get_ocf_file (const char *path, gssize *) override;
 
+  const gchar *get_ocf_mime_type (const char *path) override;
+
 private:
   static string container_get_contentfile (const char *container, int len);
 
-  std::map<string, string> content_get_media (struct epub *epub,
-                                              const string &contentfile);
+  bool content_get_media (struct epub *epub, const string &contentfile);
 
   ApvlvFileIndex *ncx_get_index (struct epub *epub, string ncxfile);
 
   ApvlvFileIndex *ncx_node_get_index (xmlNodePtr node, string ncxfile);
 
   struct epub *mEpub;
+  std::map<string, string> idSrcs;
+  std::map<string, string> srcMimeTypes;
   std::map<int, string> mPages;
 };
 

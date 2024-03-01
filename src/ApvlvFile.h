@@ -149,6 +149,8 @@ public:
 
   virtual gchar *get_ocf_file (const gchar *path, gssize *);
 
+  virtual const gchar *get_ocf_mime_type (const gchar *path);
+
   string get_anchor ();
 
 protected:
