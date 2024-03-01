@@ -33,6 +33,7 @@
 
 #include "epub.h"
 
+#include <glib.h>
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
@@ -117,21 +118,17 @@ xmlnode_attr_get (xmlNodePtr node, const char *attr)
 ApvlvEPUB::ApvlvEPUB (const char *filename, bool check)
     : ApvlvFile (filename, check)
 {
-  struct epub *epub;
-
-  epub = epub_open (filename, 0);
-  if (epub == nullptr)
+  mEpub = epub_open (filename, 0);
+  if (mEpub == nullptr)
     {
       throw std::bad_alloc ();
     }
 
-  mRoot = g_dir_make_tmp ("apvlv_epub_XXXXXXXX", nullptr);
-
   char *container;
-  gint len = epub_get_ocf_file (epub, "META-INF/container.xml", &container);
+  gint len = epub_get_ocf_file (mEpub, "META-INF/container.xml", &container);
   if (len <= 0)
     {
-      epub_close (epub);
+      epub_close (mEpub);
       throw std::bad_alloc ();
     }
 
@@ -139,14 +136,14 @@ ApvlvEPUB::ApvlvEPUB (const char *filename, bool check)
   free (container);
   if (contentfile.empty ())
     {
-      epub_close (epub);
+      epub_close (mEpub);
       throw std::bad_alloc ();
     }
 
-  std::map<string, string> idfiles = content_get_media (epub, contentfile);
+  std::map<string, string> idfiles = content_get_media (mEpub, contentfile);
   if (idfiles.find ("ncx") == idfiles.end ())
     {
-      epub_close (epub);
+      epub_close (mEpub);
       throw std::bad_alloc ();
     }
 
@@ -155,21 +152,13 @@ ApvlvEPUB::ApvlvEPUB (const char *filename, bool check)
       mPages[0] = idfiles["cover"];
     }
 
-  mIndex = ncx_get_index (epub, idfiles["ncx"]);
-
-  epub_close (epub);
+  mIndex = ncx_get_index (mEpub, idfiles["ncx"]);
 }
 
 ApvlvEPUB::~ApvlvEPUB ()
 {
-  if (mRoot != nullptr)
-    {
-      rmrf (mRoot);
-      g_free (mRoot);
-      mRoot = nullptr;
-    }
-
   mPages.clear ();
+  epub_close (mEpub);
 }
 
 bool
@@ -217,10 +206,8 @@ ApvlvEPUB::renderweb (int pn, int ix, int iy, double zm, int rot,
       mAnchor = "";
     }
 
-  string path = string (mRoot) + "/" + uri;
-  gchar *pathuri = g_filename_to_uri (path.c_str (), nullptr, nullptr);
-  webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), pathuri);
-  g_free (pathuri);
+  string epuburi = "apvlv://" + uri;
+  webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), epuburi.c_str ());
 
   return true;
 }
@@ -263,6 +250,16 @@ ApvlvEPUB::pageprint (int pn, cairo_t *cr)
   return false;
 }
 
+gchar *
+ApvlvEPUB::get_ocf_file (const char *path, gssize *sizep)
+{
+  gchar *content = nullptr;
+  string ocf_path = string ("OEBPS") + path;
+
+  *sizep = epub_get_ocf_file (mEpub, ocf_path.c_str (), &content);
+  return content;
+}
+
 string
 ApvlvEPUB::container_get_contentfile (const char *container, int len)
 {
@@ -301,11 +298,35 @@ ApvlvEPUB::content_get_media (struct epub *epub, const string &contentfile)
   xmlDocPtr doc;
   xmlNodeSetPtr nodeset;
   xmlNodePtr node;
+  unsigned char **coverp, *cp;
+  int ind, sizep;
+  string cover_id = "cover";
 
   gint clen = epub_get_ocf_file (epub, contentfile.c_str (), &contentopf);
   if (clen <= 0)
     {
       return idfiles;
+    }
+
+  coverp = epub_get_metadata (epub, EPUB_META, &sizep);
+  if (coverp)
+    {
+      for (ind = 0; ind < sizep; ++ind)
+        {
+          cp = coverp[ind];
+          debug ("epub meta: %s", cp);
+          auto vs = g_strsplit ((char *)cp, ":", 2);
+          if (vs)
+            {
+              if (g_ascii_strcasecmp (vs[0], "cover") == 0)
+                {
+                  cover_id = vs[1];
+                }
+              g_strfreev (vs);
+            }
+          free (cp);
+        }
+      free (coverp);
     }
 
   doc = xmlReadMemory (contentopf, clen, nullptr, nullptr,
@@ -334,26 +355,15 @@ ApvlvEPUB::content_get_media (struct epub *epub, const string &contentfile)
               string dirname = contentfile.substr (0, contentfile.rfind ('/'));
               href = dirname + "/" + href;
             }
-          string path = href;
-          char *data;
-          int dlen = epub_get_ocf_file (epub, href.c_str (), &data);
-          if (dlen > 0)
-            {
-              string localpath = string (mRoot) + "/" + path;
-              gchar *dname = g_path_get_dirname (localpath.c_str ());
-              g_mkdir_with_parents (dname, 0755);
-              g_free (dname);
-              g_file_set_contents (localpath.c_str (), data, dlen, nullptr);
-            }
 
           string id = xmlnode_attr_get (node, "id");
           if (id == "ncx" || id == "cover")
             {
               idfiles[id] = href;
             }
-          else if (id.compare (0, 3, "ncx") == 0)
+          else if (id == cover_id)
             {
-              idfiles["ncx"] = href;
+              idfiles["cover"] = href;
             }
         }
     }
@@ -395,6 +405,12 @@ ApvlvEPUB::ncx_get_index (struct epub *epub, string ncxfile)
     }
 
   index = new ApvlvFileIndex ("__cover__", 0, "", FILE_INDEX_PAGE);
+  if (mPages.find (0) != mPages.end ())
+    {
+      auto childindex = new ApvlvFileIndex ("", 0, mPages[0], FILE_INDEX_PAGE);
+      index->children.push_back (childindex);
+    }
+
   for (node = map->children; node != nullptr; node = node->next)
     {
       if (node->type != XML_ELEMENT_NODE)

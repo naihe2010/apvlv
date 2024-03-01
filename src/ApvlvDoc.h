@@ -239,10 +239,6 @@ public:
 
   void srtranslate (int &rtimes, double &sr, bool single2continuous);
 
-  static void webview_resource_load_started_cb (WebKitWebView *web_view,
-                                                WebKitWebResource *resource,
-                                                WebKitURIRequest *request,
-                                                ApvlvDoc *doc);
   static void webview_load_changed_cb (WebKitWebView *web_view,
                                        WebKitLoadEvent event, ApvlvDoc *doc);
   static gboolean webview_context_menu_cb (
@@ -252,7 +248,8 @@ public:
                                   WebKitJavascriptResult *, ApvlvDoc *doc);
   static void webview_arrive_bottom (WebKitUserContentManager *,
                                      WebKitJavascriptResult *, ApvlvDoc *doc);
-
+  static void webcontext_load_uri_callback (WebKitURISchemeRequest *,
+                                            ApvlvDoc *doc);
   ApvlvImage *getApvlvImageByEventBox (GtkEventBox *box);
 
 private:

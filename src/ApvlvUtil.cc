@@ -161,44 +161,6 @@ walkdir (const char *name, gboolean (*cb) (const char *, void *), void *usrp)
   return TRUE;
 }
 
-bool
-rmrf (const char *path)
-{
-  GDir *dir = g_dir_open (path, 0, nullptr);
-  if (dir == nullptr)
-    {
-      debug ("Open dir: %s failed", path);
-      return FALSE;
-    }
-
-  const gchar *token;
-  while ((token = g_dir_read_name (dir)) != nullptr)
-    {
-      gchar *subname = g_strjoin (PATH_SEP_S, path, token, nullptr);
-      if (subname == nullptr)
-        {
-          continue;
-        }
-
-      if (g_file_test (subname, G_FILE_TEST_IS_REGULAR) == TRUE)
-        {
-          g_unlink (subname);
-        }
-      else if (g_file_test (subname, G_FILE_TEST_IS_DIR) == TRUE)
-        {
-          rmrf (subname);
-        }
-
-      g_free (subname);
-    }
-
-  g_dir_close (dir);
-
-  g_rmdir (path);
-
-  return TRUE;
-}
-
 // replace a widget with a new widget
 // return the parent widget
 GtkWidget *

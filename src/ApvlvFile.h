@@ -147,6 +147,8 @@ public:
 
   virtual bool pageprint (int pn, cairo_t *cr) = 0;
 
+  virtual gchar *get_ocf_file (const gchar *path, gssize *);
+
   string get_anchor ();
 
 protected:

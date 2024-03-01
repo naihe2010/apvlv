@@ -131,10 +131,12 @@ ApvlvDoc::ApvlvDoc (ApvlvView *view, const char *zm, bool cache)
     }
 
   lastArrive = g_get_monotonic_time ();
-  mWeb[0] = webkit_web_view_new ();
+
+  auto data_manager = webkit_website_data_manager_new (nullptr);
+  auto context
+      = webkit_web_context_new_with_website_data_manager (data_manager);
+  mWeb[0] = webkit_web_view_new_with_context (context);
   g_object_ref (mWeb[0]);
-  g_signal_connect (mWeb[0], "resource-load-started",
-                    G_CALLBACK (webview_resource_load_started_cb), this);
   g_signal_connect (mWeb[0], "load-changed",
                     G_CALLBACK (webview_load_changed_cb), this);
   g_signal_connect (mWeb[0], "context-menu",
@@ -148,6 +150,11 @@ ApvlvDoc::ApvlvDoc (ApvlvView *view, const char *zm, bool cache)
                     G_CALLBACK (webview_arrive_top), this);
   g_signal_connect (man, "script-message-received::bottom",
                     G_CALLBACK (webview_arrive_bottom), this);
+
+  webkit_web_context_register_uri_scheme (
+      context, "apvlv",
+      WebKitURISchemeRequestCallback (webcontext_load_uri_callback), this,
+      nullptr);
 
   g_signal_connect (G_OBJECT (mMainVaj), "value-changed",
                     G_CALLBACK (apvlv_doc_on_mouse), this);
@@ -1994,16 +2001,6 @@ ApvlvDoc::apvlv_doc_motion_notify_cb (GtkEventBox *box, GdkEventMotion *motion,
 }
 
 void
-ApvlvDoc::webview_resource_load_started_cb (WebKitWebView *web_view,
-                                            WebKitWebResource *resource,
-                                            WebKitURIRequest *request,
-                                            ApvlvDoc *doc)
-{
-  debug ("resource: %s, request: %s", webkit_web_resource_get_uri (resource),
-         webkit_uri_request_get_uri (request));
-}
-
-void
 ApvlvDoc::webview_load_changed_cb (WebKitWebView *web_view,
                                    WebKitLoadEvent event, ApvlvDoc *doc)
 {
@@ -2083,6 +2080,32 @@ ApvlvDoc::webview_arrive_bottom (WebKitUserContentManager *man,
   doc->lastArrive = now;
 
   ((ApvlvCore *)doc)->scrolldown (1);
+}
+
+void
+ApvlvDoc::webcontext_load_uri_callback (WebKitURISchemeRequest *request,
+                                        ApvlvDoc *doc)
+{
+  gssize stream_length;
+  const gchar *path;
+
+  path = webkit_uri_scheme_request_get_path (request);
+
+  gchar *contents = doc->mFile->get_ocf_file (path, &stream_length);
+  if (contents)
+    {
+      auto stream = g_memory_input_stream_new_from_data (
+          contents, stream_length, g_free);
+      webkit_uri_scheme_request_finish (request, stream, stream_length,
+                                        "text/html");
+      g_object_unref (stream);
+      return;
+    }
+
+  auto error
+      = g_error_new (G_FILE_ERROR_FAULT, -1, "Invalid about:%s page.", path);
+  webkit_uri_scheme_request_finish_error (request, error);
+  g_error_free (error);
 }
 
 void

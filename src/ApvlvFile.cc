@@ -76,18 +76,19 @@ ApvlvFile::newFile (const char *filename, __attribute__ ((unused)) bool check)
   };
 
   size_t i;
-  for (i = 0; i < sizeof(type_phrase)/sizeof(type_phrase[0]); ++ i)
+  for (i = 0; i < sizeof (type_phrase) / sizeof (type_phrase[0]); ++i)
     {
-      if (strlen (filename) >= strlen (type_phrase[i]) &&
-          strcasecmp (filename + strlen (filename) - strlen (type_phrase[i]),
-                      type_phrase[i])
-          == 0)
+      if (strlen (filename) >= strlen (type_phrase[i])
+          && strcasecmp (filename + strlen (filename)
+                             - strlen (type_phrase[i]),
+                         type_phrase[i])
+                 == 0)
         {
           break;
         }
     }
 
-  if (i == sizeof(type_phrase)/sizeof(type_phrase[0]))
+  if (i == sizeof (type_phrase) / sizeof (type_phrase[0]))
     {
       debug ("not a valid file: %s, treate as a PDF file", filename);
       i = 0;
@@ -148,6 +149,12 @@ bool
 ApvlvFile::renderweb (int pn, int, int, double, int, GtkWidget *widget)
 {
   return false;
+}
+
+gchar *
+ApvlvFile::get_ocf_file (const gchar *path, gssize *sizep)
+{
+  return nullptr;
 }
 
 string

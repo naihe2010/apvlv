@@ -35,6 +35,7 @@
 #include <libxml/parser.h>
 
 #include <map>
+#include <memory>
 
 namespace apvlv
 {
@@ -68,6 +69,8 @@ public:
 
   bool pageprint (int pn, cairo_t *cr) override;
 
+  gchar *get_ocf_file (const char *path, gssize *) override;
+
 private:
   static string container_get_contentfile (const char *container, int len);
 
@@ -78,8 +81,8 @@ private:
 
   ApvlvFileIndex *ncx_node_get_index (xmlNodePtr node, string ncxfile);
 
+  struct epub *mEpub;
   std::map<int, string> mPages;
-  gchar *mRoot;
 };
 
 }

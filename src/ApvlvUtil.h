@@ -64,8 +64,6 @@ int apvlv_system (const char *);
 
 char *absolutepath (const char *path);
 
-bool rmrf (const char *path);
-
 GtkWidget *replace_widget (GtkWidget *owid, GtkWidget *nwid);
 
 void apvlv_widget_set_background (GtkWidget *wid);
@@ -100,7 +98,7 @@ typedef enum
 #define strcasecmp _strcmpi
 
 #ifndef S_ISDIR
-#define S_ISDIR(mode) (((mode)&0170000) == (0040000))
+#define S_ISDIR(mode) (((mode) & 0170000) == (0040000))
 #endif /*                                                                     \
         */
 
