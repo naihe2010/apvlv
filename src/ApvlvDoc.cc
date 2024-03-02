@@ -130,8 +130,6 @@ ApvlvDoc::ApvlvDoc (ApvlvView *view, const char *zm, bool cache)
       mImg[2] = nullptr;
     }
 
-  lastArrive = g_get_monotonic_time ();
-
   auto data_manager = webkit_website_data_manager_new (nullptr);
   auto context
       = webkit_web_context_new_with_website_data_manager (data_manager);
@@ -470,8 +468,6 @@ ApvlvDoc::process (int has, int ct, guint key)
     {
       ct = 1;
     }
-
-  lastArrive = g_get_monotonic_time ();
 
   switch (key)
     {
@@ -2009,6 +2005,13 @@ ApvlvDoc::apvlv_doc_motion_notify_cb (GtkEventBox *box, GdkEventMotion *motion,
   return TRUE;
 }
 
+gboolean
+ApvlvDoc::webview_leaved_scrollup (ApvlvDoc *doc)
+{
+  doc->mWebScrollUp = FALSE;
+  return FALSE;
+}
+
 void
 ApvlvDoc::webview_load_changed_cb (WebKitWebView *web_view,
                                    WebKitLoadEvent event, ApvlvDoc *doc)
@@ -2018,7 +2021,8 @@ ApvlvDoc::webview_load_changed_cb (WebKitWebView *web_view,
       if (doc->mWebScrollUp)
         {
           doc->scrollwebto (0.0, 1.0);
-          doc->mWebScrollUp = FALSE;
+          g_timeout_add_seconds (1, G_SOURCE_FUNC (webview_leaved_scrollup),
+                                 doc);
         }
       else if (!doc->mAnchor.empty ())
         {
@@ -2062,14 +2066,6 @@ ApvlvDoc::webview_arrive_top (WebKitUserContentManager *man,
                               WebKitJavascriptResult *res, ApvlvDoc *doc)
 {
   debug ("webkit arrived top \n");
-  auto now = g_get_monotonic_time ();
-  if (now - doc->lastArrive < 1000 * 1000)
-    {
-      return;
-    }
-
-  doc->lastArrive = now;
-
   doc->mWebScrollUp = TRUE;
   ((ApvlvCore *)doc)->scrollup (1);
 }
@@ -2079,15 +2075,8 @@ ApvlvDoc::webview_arrive_bottom (WebKitUserContentManager *man,
                                  WebKitJavascriptResult *res, ApvlvDoc *doc)
 {
   debug ("webkit arrived bottom \n");
-  auto now = g_get_monotonic_time ();
-  if (now - doc->lastArrive < 1000 * 1000)
-    {
-      return;
-    }
-
-  doc->lastArrive = now;
-
-  ((ApvlvCore *)doc)->scrolldown (1);
+  if (doc->mWebScrollUp == FALSE)
+    ((ApvlvCore *)doc)->scrolldown (1);
 }
 
 void

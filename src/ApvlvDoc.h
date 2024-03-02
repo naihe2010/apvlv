@@ -241,6 +241,7 @@ public:
 
   void srtranslate (int &rtimes, double &sr, bool single2continuous);
 
+  static gboolean webview_leaved_scrollup (ApvlvDoc *doc);
   static void webview_load_changed_cb (WebKitWebView *web_view,
                                        WebKitLoadEvent event, ApvlvDoc *doc);
   static gboolean webview_context_menu_cb (
@@ -350,7 +351,6 @@ private:
   // image viewer
   ApvlvImage *mImg[3];
   GtkWidget *mWeb[1];
-  guint64 lastArrive;
   gboolean mWebScrollUp;
 
   ApvlvImage *mCurrentImage;
