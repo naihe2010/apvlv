@@ -1079,6 +1079,13 @@ ApvlvDoc::showpage (int p, double s)
 }
 
 void
+ApvlvDoc::showpage (gint p, const string &anchor)
+{
+  mAnchor = anchor;
+  showpage (p, 0.0);
+}
+
+void
 ApvlvDoc::nextpage (int times)
 {
   showpage (mPagenum + times, 0.0);
@@ -2008,17 +2015,16 @@ ApvlvDoc::webview_load_changed_cb (WebKitWebView *web_view,
 {
   if (event == WEBKIT_LOAD_FINISHED)
     {
-      string anchor = doc->mFile->get_anchor ();
       if (doc->mWebScrollUp)
         {
           doc->scrollwebto (0.0, 1.0);
           doc->mWebScrollUp = FALSE;
         }
-      else if (!anchor.empty ())
+      else if (!doc->mAnchor.empty ())
         {
           gchar *javasrc = g_strdup_printf (
               "document.getElementById('%s').scrollIntoView();",
-              anchor.c_str ());
+              doc->mAnchor.c_str () + 1);
           webkit_web_view_run_javascript (web_view, javasrc, nullptr, nullptr,
                                           doc);
           g_free (javasrc);
@@ -2135,8 +2141,8 @@ ApvlvDoc::contentShowPage (ApvlvFileIndex *index, bool force)
     {
       if (index->type == ApvlvFileIndexType::FILE_INDEX_PAGE)
         {
-          if (index->page != mPagenum)
-            showpage (index->page, 0.0);
+          if (index->page != mPagenum || index->anchor != mAnchor)
+            showpage (index->page, index->anchor);
         }
       return;
     }
@@ -2145,8 +2151,8 @@ ApvlvDoc::contentShowPage (ApvlvFileIndex *index, bool force)
     {
       if (index->type == ApvlvFileIndexType::FILE_INDEX_PAGE)
         {
-          if (index->page != mPagenum)
-            showpage (index->page, 0.0);
+          if (index->page != mPagenum || index->anchor != mAnchor)
+            showpage (index->page, index->anchor);
         }
       else
         {

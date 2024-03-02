@@ -78,14 +78,14 @@ private:
 
   bool content_get_media (struct epub *epub, const string &contentfile);
 
-  ApvlvFileIndex *ncx_get_index (struct epub *epub, string ncxfile);
+  ApvlvFileIndex *ncx_get_index (struct epub *epub, const string &ncxfile);
 
-  ApvlvFileIndex *ncx_node_get_index (xmlNodePtr node, string ncxfile);
+  ApvlvFileIndex *ncx_node_get_index (xmlNodePtr node, const string &ncxfile);
 
   struct epub *mEpub;
   std::map<string, string> idSrcs;
   std::map<string, string> srcMimeTypes;
-  std::map<int, string> mPages;
+  std::vector<string> mPages;
 };
 
 }

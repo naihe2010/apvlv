@@ -95,6 +95,7 @@ public:
   virtual gint pagenumber ();
 
   virtual void showpage (gint, gdouble s);
+  virtual void showpage (gint, const string &anchor);
   virtual void refresh ();
 
   virtual gdouble zoomvalue ();
@@ -207,6 +208,8 @@ protected:
   bool mAdjInchg{};
 
   int mPagenum{};
+
+  string mAnchor{};
 
   int mSkip{};
 

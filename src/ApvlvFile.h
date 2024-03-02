@@ -97,6 +97,7 @@ public:
   string title;
   int page;
   string path;
+  string anchor;
   ApvlvFileIndexType type;
   vector<ApvlvFileIndex *> children;
 };
@@ -151,12 +152,8 @@ public:
 
   virtual const gchar *get_ocf_mime_type (const gchar *path);
 
-  string get_anchor ();
-
 protected:
   ApvlvFileIndex *mIndex;
-
-  string mAnchor;
 
   gchar *mRawdata;
   guint mRawdataSize;

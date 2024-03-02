@@ -198,6 +198,11 @@ ApvlvCore::showpage (gint p, gdouble s)
 }
 
 void
+ApvlvCore::showpage (gint, const string &anchor)
+{
+}
+
+void
 ApvlvCore::refresh ()
 {
 }

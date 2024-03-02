@@ -163,11 +163,6 @@ ApvlvFile::get_ocf_mime_type (const gchar *path)
   return nullptr;
 }
 
-string
-ApvlvFile::get_anchor ()
-{
-  return mAnchor;
-}
 bool
 ApvlvFile::annot_underline (int, gdouble, gdouble, gdouble, gdouble)
 {

@@ -146,11 +146,6 @@ ApvlvEPUB::ApvlvEPUB (const char *filename, bool check)
       throw std::bad_alloc ();
     }
 
-  if (idSrcs.find ("cover") != idSrcs.end ())
-    {
-      mPages[0] = idSrcs["cover"];
-    }
-
   mIndex = ncx_get_index (mEpub, idSrcs["ncx"]);
 }
 
@@ -192,22 +187,8 @@ ApvlvEPUB::renderweb (int pn, int ix, int iy, double zm, int rot,
 {
   webkit_web_view_set_zoom_level (WEBKIT_WEB_VIEW (widget), zm);
   string uri = mPages[pn];
-
-  auto off = uri.find ('#');
-  debug ("view: %p", widget);
-  if (off >= 0)
-    {
-      mAnchor = uri.substr (off + 1, uri.length () - off);
-      uri = uri.substr (0, off);
-    }
-  else
-    {
-      mAnchor = "";
-    }
-
   string epuburi = "apvlv:///" + uri;
   webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), epuburi.c_str ());
-
   return true;
 }
 
@@ -373,16 +354,30 @@ ApvlvEPUB::content_get_media (struct epub *epub, const string &contentfile)
               srcMimeTypes[href] = type;
             }
         }
+
+      xmlXPathFreeNodeSet (nodeset);
     }
 
-  xmlXPathFreeNodeSet (nodeset);
+  nodeset = xmldoc_get_nodeset (doc, "//c:package/c:spine/c:itemref",
+                                "http://www.idpf.org/2007/opf");
+  if (nodeset)
+    {
+      for (int i = 0; i < nodeset->nodeNr; ++i)
+        {
+          node = nodeset->nodeTab[i];
+
+          string id = xmlnode_attr_get (node, "idref");
+          mPages.push_back (idSrcs[id]);
+        }
+      xmlXPathFreeNodeSet (nodeset);
+    }
 
   xmlFreeDoc (doc);
   return true;
 }
 
 ApvlvFileIndex *
-ApvlvEPUB::ncx_get_index (struct epub *epub, string ncxfile)
+ApvlvEPUB::ncx_get_index (struct epub *epub, const string &ncxfile)
 {
   ApvlvFileIndex *index = nullptr;
   xmlDocPtr doc;
@@ -412,11 +407,6 @@ ApvlvEPUB::ncx_get_index (struct epub *epub, string ncxfile)
     }
 
   index = new ApvlvFileIndex ("__cover__", 0, "", FILE_INDEX_PAGE);
-  if (mPages.find (0) != mPages.end ())
-    {
-      auto childindex = new ApvlvFileIndex ("", 0, mPages[0], FILE_INDEX_PAGE);
-      index->children.push_back (childindex);
-    }
 
   for (node = map->children; node != nullptr; node = node->next)
     {
@@ -434,21 +424,10 @@ ApvlvEPUB::ncx_get_index (struct epub *epub, string ncxfile)
 }
 
 ApvlvFileIndex *
-ApvlvEPUB::ncx_node_get_index (xmlNodePtr node, string ncxfile)
+ApvlvEPUB::ncx_node_get_index (xmlNodePtr node, const string &ncxfile)
 {
   auto *index = new ApvlvFileIndex ("", 0, "", FILE_INDEX_PAGE);
   xmlNodePtr child;
-
-  string pagestr = xmlnode_attr_get (node, "playOrder");
-  if (!pagestr.empty ())
-    {
-      auto page = strtol (pagestr.c_str (), nullptr, 10);
-      if (mPages.find (int (page)) != mPages.end ())
-        {
-          page++;
-        }
-      index->page = int (page);
-    }
 
   for (child = node->children; child != nullptr; child = child->next)
     {
@@ -467,14 +446,32 @@ ApvlvEPUB::ncx_node_get_index (xmlNodePtr node, string ncxfile)
       if (g_ascii_strcasecmp ((gchar *)child->name, "content") == 0)
         {
           string srcstr = xmlnode_attr_get (child, "src");
-          if (!srcstr.empty ())
+          if (srcstr.empty ())
+            continue;
+
+          if (ncxfile.find ('/') != string::npos)
             {
-              if (ncxfile.rfind ('/') != string::npos)
+              auto ncxdir = g_path_get_dirname (ncxfile.c_str ());
+              srcstr = string (ncxdir) + '/' + srcstr;
+              g_free (ncxdir);
+            }
+
+          index->path = srcstr;
+
+          auto href = srcstr;
+          if (srcstr.find ('#') != string::npos)
+            {
+              index->anchor = srcstr.substr (srcstr.find ('#'));
+              href = srcstr.substr (0, srcstr.find ('#'));
+            }
+
+          for (decltype (mPages.size ()) ind = 0; ind < mPages.size (); ++ind)
+            {
+              if (mPages[ind] == href)
                 {
-                  string dirname = ncxfile.substr (0, ncxfile.rfind ('/'));
-                  srcstr = dirname + "/" + srcstr;
+                  index->page = int (ind);
+                  break;
                 }
-              mPages[index->page] = srcstr;
             }
         }
 
