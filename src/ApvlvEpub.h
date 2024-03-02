@@ -71,8 +71,6 @@ public:
 
   gchar *get_ocf_file (const char *path, gssize *) override;
 
-  const gchar *get_ocf_mime_type (const char *path) override;
-
 private:
   static string container_get_contentfile (const char *container, int len);
 
@@ -84,8 +82,6 @@ private:
 
   struct epub *mEpub;
   std::map<string, string> idSrcs;
-  std::map<string, string> srcMimeTypes;
-  std::vector<string> mPages;
 };
 
 }

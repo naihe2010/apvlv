@@ -817,7 +817,8 @@ ApvlvDoc::reload ()
 gint
 ApvlvDoc::pagenumber ()
 {
-  if (mContinuous && mCurrentCache[1] != nullptr)
+  if (mDisplayType == DISPLAY_TYPE_IMAGE && mContinuous
+      && mCurrentCache[1] != nullptr)
     {
       if (scrollrate () > 0.5)
         {
@@ -2097,6 +2098,13 @@ ApvlvDoc::webcontext_load_uri_callback (WebKitURISchemeRequest *request,
           contents, stream_length, g_free);
       webkit_uri_scheme_request_finish (request, stream, stream_length, type);
       g_object_unref (stream);
+
+      auto pn = doc->file ()->get_ocf_page (path + 1);
+      if (pn >= 0)
+        {
+          doc->mPagenum = pn;
+          doc->show ();
+        }
       return;
     }
 

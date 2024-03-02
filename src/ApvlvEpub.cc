@@ -149,11 +149,7 @@ ApvlvEPUB::ApvlvEPUB (const char *filename, bool check)
   mIndex = ncx_get_index (mEpub, idSrcs["ncx"]);
 }
 
-ApvlvEPUB::~ApvlvEPUB ()
-{
-  mPages.clear ();
-  epub_close (mEpub);
-}
+ApvlvEPUB::~ApvlvEPUB () { epub_close (mEpub); }
 
 bool
 ApvlvEPUB::writefile (const char *filename)
@@ -236,14 +232,6 @@ ApvlvEPUB::get_ocf_file (const char *path, gssize *sizep)
   gchar *content = nullptr;
   *sizep = epub_get_ocf_file (mEpub, path, &content);
   return content;
-}
-
-const gchar *
-ApvlvEPUB::get_ocf_mime_type (const char *path)
-{
-  if (srcMimeTypes.find (path) != srcMimeTypes.end ())
-    return srcMimeTypes[path].c_str ();
-  return "text/html";
 }
 
 string
@@ -368,6 +356,7 @@ ApvlvEPUB::content_get_media (struct epub *epub, const string &contentfile)
 
           string id = xmlnode_attr_get (node, "idref");
           mPages.push_back (idSrcs[id]);
+          srcPages[idSrcs[id]] = mPages.size () - 1;
         }
       xmlXPathFreeNodeSet (nodeset);
     }

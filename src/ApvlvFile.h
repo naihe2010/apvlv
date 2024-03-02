@@ -32,6 +32,7 @@
 #include <gtk/gtk.h>
 
 #include <iostream>
+#include <map>
 #include <vector>
 using namespace std;
 
@@ -152,11 +153,16 @@ public:
 
   virtual const gchar *get_ocf_mime_type (const gchar *path);
 
+  virtual int get_ocf_page (const gchar *path);
+
 protected:
   ApvlvFileIndex *mIndex;
 
   gchar *mRawdata;
   guint mRawdataSize;
+  std::vector<string> mPages;
+  std::map<string, int> srcPages;
+  std::map<string, string> srcMimeTypes;
 };
 
 };

@@ -60,11 +60,12 @@ ApvlvFile::ApvlvFile (__attribute__ ((unused)) const char *filename,
 
 ApvlvFile::~ApvlvFile ()
 {
-  if (mRawdata != nullptr)
-    {
-      delete[] mRawdata;
-      mRawdata = nullptr;
-    }
+  delete[] mRawdata;
+  mRawdata = nullptr;
+
+  mPages.clear ();
+  srcPages.clear ();
+  srcMimeTypes.clear ();
 }
 
 ApvlvFile *
@@ -160,7 +161,17 @@ ApvlvFile::get_ocf_file (const gchar *path, gssize *sizep)
 const gchar *
 ApvlvFile::get_ocf_mime_type (const gchar *path)
 {
-  return nullptr;
+  if (srcMimeTypes.find (path) != srcMimeTypes.end ())
+    return srcMimeTypes[path].c_str ();
+  return "text/html";
+}
+
+int
+ApvlvFile::get_ocf_page (const gchar *path)
+{
+  if (srcPages.find (path) != srcPages.end ())
+    return srcPages[path];
+  return -1;
 }
 
 bool
