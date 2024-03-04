@@ -102,6 +102,45 @@ ApvlvContent::setIndex (ApvlvFileIndex *index, GtkTreeIter *root_itr)
     }
 }
 
+gboolean
+ApvlvContent::apvlv_set_iter_by_index (GtkTreeModel *model, GtkTreePath *path,
+                                       GtkTreeIter *iter,
+                                       ApvlvContent *content)
+{
+  ApvlvFileIndex *index = nullptr;
+
+  debug ("find index: %d, %s", content->mTargetIndex.first,
+         content->mTargetIndex.second.c_str ());
+  gtk_tree_model_get (model, iter, 0, &index, -1);
+  if (index == nullptr)
+    return FALSE;
+
+  debug ("test index: %d, %s", index->page, index->anchor.c_str ());
+  if (content->mTargetIndex.first != index->page
+      || content->mTargetIndex.second != index->anchor)
+    return FALSE;
+
+  content->mCurrentIter = *iter;
+  gtk_tree_selection_select_iter (content->mSelection, &content->mCurrentIter);
+  gtk_tree_view_expand_to_path (GTK_TREE_VIEW (content->mTreeView), path);
+  gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (content->mTreeView), path,
+                                nullptr, TRUE, 0.5, 0.0);
+  return TRUE;
+}
+
+void
+ApvlvContent::setCurrentIndex (int pn, const char *anchor)
+{
+  if (!mIndex)
+    return;
+
+  mTargetIndex.first = pn;
+  mTargetIndex.second = anchor;
+  gtk_tree_model_foreach (GTK_TREE_MODEL (mStore),
+                          (GtkTreeModelForeachFunc)apvlv_set_iter_by_index,
+                          this);
+}
+
 void
 ApvlvContent::scrollup (int times)
 {

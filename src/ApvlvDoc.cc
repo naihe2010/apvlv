@@ -1061,6 +1061,7 @@ ApvlvDoc::showpage (int p, double s)
         }
     }
 
+  mAnchor = "";
   mPagenum = rp;
 
   if (!mZoominit)
@@ -1078,8 +1079,8 @@ ApvlvDoc::showpage (int p, double s)
 void
 ApvlvDoc::showpage (gint p, const string &anchor)
 {
-  mAnchor = anchor;
   showpage (p, 0.0);
+  mAnchor = anchor;
 }
 
 void
@@ -2875,6 +2876,8 @@ ApvlvDoc::show ()
       labels.emplace_back (temp);
 
       mStatus->show (labels);
+
+      mContent->setCurrentIndex (mPagenum, mAnchor.c_str ());
     }
 }
 

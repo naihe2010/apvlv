@@ -57,6 +57,8 @@ public:
 
   void setIndex (ApvlvFileIndex *index, GtkTreeIter *root_itr);
 
+  void setCurrentIndex (int pn, const char *anchor);
+
   void
   setDoc (ApvlvDoc *doc)
   {
@@ -79,8 +81,13 @@ private:
 
   ApvlvFileIndex *mIndex;
 
-  ApvlvDoc *mDoc;
+  std::pair<int, string> mTargetIndex;
 
+  ApvlvDoc *mDoc;
+  static gboolean apvlv_set_iter_by_index (GtkTreeModel *model,
+                                           GtkTreePath *path,
+                                           GtkTreeIter *iter,
+                                           ApvlvContent *content);
   static void apvlv_content_on_changed (GtkTreeSelection *, ApvlvContent *);
 
   static void apvlv_content_on_row_activated (GtkTreeView *tree_view,
