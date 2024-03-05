@@ -21,8 +21,8 @@ PKG_CHECK_MODULES(GLIB2 glib-2.0 REQUIRED)
 PKG_CHECK_MODULES(LIBXML libxml-2.0 REQUIRED)
 PKG_CHECK_MODULES(WEBKIT webkit2gtk-4.1)
 if (NOT WEBKIT_FOUND)
-  PKG_CHECK_MODULES(WEBKIT webkit2gtk-4.0 REQUIRED)
-endif()
+    PKG_CHECK_MODULES(WEBKIT webkit2gtk-4.0 REQUIRED)
+endif ()
 INCLUDE_DIRECTORIES(${FREETYPE2_INCLUDE_DIRS}
         ${GTK_INCLUDE_DIRS}
         ${GLIB2_INCLUDE_DIRS}
@@ -64,8 +64,9 @@ SET(HEADERS
         ApvlvCompletion.h
         ApvlvHtm.h
         ApvlvEpub.h
+        ApvlvTxt.h
         ApvlvContent.h
-        )
+)
 
 SET(SOURCES
         ApvlvCmds.cc
@@ -82,9 +83,10 @@ SET(SOURCES
         ApvlvCompletion.cc
         ApvlvHtm.cc
         ApvlvEpub.cc
+        ApvlvTxt.cc
         ApvlvContent.cc
         main.cc
-        )
+)
 
 OPTION(APVLV_WITH_DJVU "If build apvlv with djvu format support." OFF)
 IF (APVLV_WITH_DJVU)
@@ -105,14 +107,6 @@ IF (APVLV_WITH_DJVU)
     SET(HEADERS ${HEADERS} ApvlvDjvu.h)
     SET(SOURCES ${SOURCES} ApvlvDjvu.cc)
 ENDIF (APVLV_WITH_DJVU)
-
-OPTION(APVLV_WITH_TXT "If build binary with txt format support." OFF)
-IF (APVLV_WITH_TXT)
-    ADD_DEFINITIONS(-DAPVLV_WITH_TXT)
-
-    SET(HEADERS ${HEADERS} ApvlvTxt.h)
-    SET(SOURCES ${SOURCES} ApvlvTxt.cc)
-ENDIF (APVLV_WITH_TXT)
 
 ADD_EXECUTABLE(apvlv ${HEADERS} ${SOURCES})
 

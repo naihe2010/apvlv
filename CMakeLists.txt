@@ -5,7 +5,7 @@ SET(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 PROJECT(apvlv)
 
 SET(PROJECT_MAJOR "0")
-SET(PROJECT_MINOR "5")
+SET(PROJECT_MINOR "6")
 SET(PROJECT_PATCH "0")
 FIND_PACKAGE(Git)
 IF (GIT_FOUND)
@@ -30,42 +30,42 @@ ELSE (WIN32)
             "/etc"
             CACHE PATH
             "Directory for system configuration of apvlv [/etc]"
-            )
+    )
     ADD_DEFINITIONS(-DSYSCONFDIR="${SYSCONFDIR}")
 
     SET(DOCDIR
             "${CMAKE_INSTALL_PREFIX}/share/doc/apvlv"
             CACHE PATH
             "Directory for documentations of apvlv [PREFIX/share/doc/apvlv]"
-            )
+    )
     ADD_DEFINITIONS(-DDOCDIR="${DOCDIR}")
 
     SET(LIBDIR
             "${CMAKE_INSTALL_PREFIX}/lib/apvlv"
             CACHE PATH
             "Directory for lib of apvlv [PREFIX/lib/apvlv]"
-            )
+    )
     ADD_DEFINITIONS(-DLIBDIR="${LIBDIR}")
 
     SET(PIXMAPDIR
             "${CMAKE_INSTALL_PREFIX}/share/pixmaps/apvlv"
             CACHE PATH
             "Directory for pixmaps of apvlv [PREFIX/share/pixmaps/apvlv]"
-            )
+    )
     ADD_DEFINITIONS(-DPIXMAPDIR="${PIXMAPDIR}")
 
     SET(APPLICATIONSDIR
             "${CMAKE_INSTALL_PREFIX}/share/applications"
             CACHE PATH
             "Directory for desktop file of apvlv [PREFIX/share/applications]"
-            )
+    )
 ENDIF (WIN32)
 
 ADD_DEFINITIONS(-DPACKAGE_NAME="apvlv"
         -DPACKAGE_VERSION="${PACKAGE_VERSION}"
         -DPACKAGE_BUGREPORT="Alf <naihe2010@126.com>"
         -DRELEASE="rel"
-        )
+)
 
 ADD_SUBDIRECTORY(src)
 
@@ -111,7 +111,7 @@ IF (UNIX)
             ".gitignore"
             "win32"
             "~$"
-            )
+    )
 ELSE (UNIX)
     SET(CPACK_GENERATOR NSIS)
     SET(CPACK_NSIS_CONTACT "Alf <naihe2010@126.com>")

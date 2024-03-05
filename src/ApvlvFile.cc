@@ -34,10 +34,10 @@
 #ifdef APVLV_WITH_DJVU
 #include "ApvlvDjvu.h"
 #endif
-#ifdef APVLV_WITH_TXT
 #include "ApvlvTxt.h"
-#endif
 
+#include <algorithm>
+#include <functional>
 #include <glib.h>
 #include <iostream>
 #include <sys/stat.h>
@@ -72,62 +72,38 @@ ApvlvFile *
 ApvlvFile::newFile (const char *filename, __attribute__ ((unused)) bool check)
 {
   ApvlvFile *file;
-  static const char *type_phrase[] = {
-    ".pdf", ".html", ".htm", ".epub", ".djv", ".djvu", ".txt",
-  };
+  map<string, function<ApvlvFile *()> > type_class;
 
-  size_t i;
-  for (i = 0; i < sizeof (type_phrase) / sizeof (type_phrase[0]); ++i)
-    {
-      if (strlen (filename) >= strlen (type_phrase[i])
-          && strcasecmp (filename + strlen (filename)
-                             - strlen (type_phrase[i]),
-                         type_phrase[i])
-                 == 0)
-        {
-          break;
-        }
-    }
+  type_class[".pdf"]
+      = [filename] () -> ApvlvFile * { return new ApvlvPDF (filename); };
+  type_class[".html"]
+      = [filename] () -> ApvlvFile * { return new ApvlvHTML (filename); };
+  type_class[".htm"]
+      = [filename] () -> ApvlvFile * { return new ApvlvHTML (filename); };
+  type_class[".epub"]
+      = [filename] () -> ApvlvFile * { return new ApvlvEPUB (filename); };
+#ifdef APVLV_WITH_DJVU
+  type_class[".djv"]
+      = [filename] () -> ApvlvFile * { return new ApvlvDJVU (filename); };
+  type_class[".djvu"]
+      = [filename] () -> ApvlvFile * { return new ApvlvDJVU (filename); };
+#endif
+  type_class[".txt"]
+      = [filename] () -> ApvlvFile * { return new ApvlvTXT (filename); };
 
-  if (i == sizeof (type_phrase) / sizeof (type_phrase[0]))
-    {
-      debug ("not a valid file: %s, treate as a PDF file", filename);
-      i = 0;
-    }
+  auto extp = strrchr (filename, '.');
+  if (extp == nullptr)
+    return nullptr;
+
+  string ext = extp;
+  transform (ext.begin (), ext.end (), ext.begin (), ::tolower);
+  if (type_class.find (ext) == type_class.end ())
+    return nullptr;
 
   file = nullptr;
   try
     {
-      switch (i)
-        {
-        case 0:
-          file = new ApvlvPDF (filename);
-          break;
-
-        case 1:
-        case 2:
-          file = new ApvlvHTML (filename);
-          break;
-
-        case 3:
-          file = new ApvlvEPUB (filename);
-          break;
-
-        case 4:
-        case 5:
-#ifdef APVLV_WITH_DJVU
-          file = new ApvlvDJVU (filename);
-#endif
-          break;
-
-        case 6:
-#ifdef APVLV_WITH_TXT
-          file = new ApvlvTXT (filename);
-#endif
-          break;
-
-        default:;
-        }
+      file = type_class[ext]();
     }
 
   catch (const bad_alloc &e)
@@ -263,11 +239,8 @@ ApvlvFileIndex::newDirIndex (const gchar *path, ApvlvFileIndex *parent_index)
                    || g_ascii_strncasecmp (name + strlen (name) - 4, ".djv", 4)
                           == 0
 #endif
-#ifdef APVLV_WITH_TXT
                    || g_ascii_strncasecmp (name + strlen (name) - 4, ".txt", 4)
-                          == 0
-#endif
-          )
+                          == 0)
             {
               auto index
                   = new ApvlvFileIndex (name, 0, realname, FILE_INDEX_FILE);

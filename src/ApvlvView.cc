@@ -223,11 +223,9 @@ ApvlvView::open ()
   gtk_file_filter_add_pattern (filter, "*.DJVU");
   gtk_file_filter_add_pattern (filter, "*.djvu");
 #endif
-#ifdef APVLV_WITH_TXT
   gtk_file_filter_add_mime_type (filter, "TXT File");
   gtk_file_filter_add_pattern (filter, "*.TXT");
   gtk_file_filter_add_pattern (filter, "*.txt");
-#endif
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dia), filter);
 
   gint ret = gtk_dialog_run (GTK_DIALOG (dia));
