@@ -32,31 +32,6 @@
 
 namespace apvlv
 {
-class ApvlvTxtPage
-{
-public:
-  ApvlvTxtPage (const gchar *str, gsize size);
-  ~ApvlvTxtPage ();
-
-  bool pagesize (double *px, double *py);
-
-  bool render (int ix, int iy, double zm, char *buffer);
-
-private:
-  GString *mContent;
-
-  guchar *mRenderBuf;
-
-  gdouble mZoomrate;
-
-  gint mWidth, mHeight;
-
-  guint mLayoutWidth{}, mLayoutHeight{};
-  guint mStride{};
-
-  gboolean self_render ();
-};
-
 class ApvlvTXT : public ApvlvFile
 {
 public:
@@ -74,6 +49,9 @@ public:
 
   bool render (int, int, int, double, int, GdkPixbuf *, char *) override;
 
+  bool renderweb (int pn, int ix, int iy, double zm, int rot,
+                  GtkWidget *widget) override;
+
   bool pageselectsearch (int, int, int, double, int, GdkPixbuf *, char *, int,
                          ApvlvPoses *) override;
 
@@ -87,14 +65,13 @@ public:
 
   bool pageprint (int pn, cairo_t *cr) override;
 
+  gchar *get_ocf_file (const gchar *path, gssize *) override;
+
+  const gchar *get_ocf_mime_type (const gchar *path) override;
+
 private:
-  GString *mContent;
+  gchar *mContent;
   gsize mLength;
-
-  gint mPageCount{};
-  GPtrArray *mPages{};
-
-  gboolean load_pages ();
 };
 
 }
