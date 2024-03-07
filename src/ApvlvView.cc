@@ -226,6 +226,9 @@ ApvlvView::open ()
   gtk_file_filter_add_mime_type (filter, "TXT File");
   gtk_file_filter_add_pattern (filter, "*.TXT");
   gtk_file_filter_add_pattern (filter, "*.txt");
+  gtk_file_filter_add_mime_type (filter, "FB2 File");
+  gtk_file_filter_add_pattern (filter, "*.FB2");
+  gtk_file_filter_add_pattern (filter, "*.fb2");
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dia), filter);
 
   gint ret = gtk_dialog_run (GTK_DIALOG (dia));

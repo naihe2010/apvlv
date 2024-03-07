@@ -71,14 +71,6 @@ struct ApvlvLine
   vector<ApvlvWord> mWords;
 };
 
-typedef enum
-{
-  DISPLAY_TYPE_IMAGE = 0,
-  DISPLAY_TYPE_HTML = 1,
-} DISPLAY_TYPE;
-
-DISPLAY_TYPE get_display_type_by_filename (const char *filename);
-
 class ApvlvDoc;
 class ApvlvDocCache
 {

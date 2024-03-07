@@ -65,6 +65,7 @@ SET(HEADERS
         ApvlvHtm.h
         ApvlvEpub.h
         ApvlvTxt.h
+        ApvlvFb2.h
         ApvlvContent.h
 )
 
@@ -84,6 +85,7 @@ SET(SOURCES
         ApvlvHtm.cc
         ApvlvEpub.cc
         ApvlvTxt.cc
+        ApvlvFb2.cc
         ApvlvContent.cc
         main.cc
 )

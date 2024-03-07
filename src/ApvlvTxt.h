@@ -69,6 +69,12 @@ public:
 
   const gchar *get_ocf_mime_type (const gchar *path) override;
 
+  DISPLAY_TYPE
+  get_display_type () override
+  {
+    return DISPLAY_TYPE_HTML;
+  }
+
 private:
   gchar *mContent;
   gsize mLength;

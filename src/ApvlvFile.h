@@ -38,6 +38,13 @@ using namespace std;
 
 namespace apvlv
 {
+
+typedef enum
+{
+  DISPLAY_TYPE_IMAGE = 0,
+  DISPLAY_TYPE_HTML = 1,
+} DISPLAY_TYPE;
+
 //
 // link to a url, or a page num
 //
@@ -154,6 +161,8 @@ public:
   virtual const gchar *get_ocf_mime_type (const gchar *path);
 
   virtual int get_ocf_page (const gchar *path);
+
+  virtual DISPLAY_TYPE get_display_type ();
 
 protected:
   ApvlvFileIndex *mIndex;

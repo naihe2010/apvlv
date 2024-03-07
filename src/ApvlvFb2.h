@@ -19,31 +19,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/* @CPPFILE ApvlvEpub.h
+/* @CPPFILE ApvlvFb2.h
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2018/04/19 13:50:49 Alf*/
+/* @date Created: 2024/03/07 11:05:10 Alf*/
 
-#ifndef _APVLV_EPUB_H_
-#define _APVLV_EPUB_H_
+#ifndef _APVLV_FB2_H_
+#define _APVLV_FB2_H_
 
 #include "ApvlvFile.h"
 
-#include <epub.h>
-#include <gtk/gtk.h>
-#include <libxml/parser.h>
-
-#include <map>
-#include <memory>
-
 namespace apvlv
 {
-class ApvlvEPUB : public ApvlvFile
+class ApvlvFB2 : public ApvlvFile
 {
 public:
-  explicit ApvlvEPUB (const char *, bool check = true);
-  ~ApvlvEPUB () override;
+  explicit ApvlvFB2 (const char *filename, bool check = true);
+
+  ~ApvlvFB2 () override;
 
   bool writefile (const char *filename) override;
 
@@ -53,13 +47,15 @@ public:
 
   bool pagetext (int, gdouble, gdouble, gdouble, gdouble, char **) override;
 
+  bool render (int, int, int, double, int, GdkPixbuf *, char *) override;
+
   bool renderweb (int pn, int ix, int iy, double zm, int rot,
                   GtkWidget *widget) override;
 
-  ApvlvPoses *pagesearch (int pn, const char *str, bool reverse) override;
-
   bool pageselectsearch (int, int, int, double, int, GdkPixbuf *, char *, int,
                          ApvlvPoses *) override;
+
+  ApvlvPoses *pagesearch (int pn, const char *s, bool reverse) override;
 
   ApvlvLinks *getlinks (int pn) override;
 
@@ -69,29 +65,17 @@ public:
 
   bool pageprint (int pn, cairo_t *cr) override;
 
-  gchar *get_ocf_file (const char *path, gssize *) override;
+  gchar *get_ocf_file (const gchar *path, gssize *) override;
 
-  DISPLAY_TYPE
-  get_display_type () override
-  {
-    return DISPLAY_TYPE_HTML;
-  }
+  const gchar *get_ocf_mime_type (const gchar *path) override;
 
+  DISPLAY_TYPE get_display_type () override { return DISPLAY_TYPE_HTML; }
 private:
-  static string container_get_contentfile (const char *container, int len);
-
-  bool content_get_media (struct epub *epub, const string &contentfile);
-
-  ApvlvFileIndex *ncx_get_index (struct epub *epub, const string &ncxfile);
-
-  ApvlvFileIndex *ncx_node_get_index (xmlNodePtr node, const string &ncxfile);
-
-  struct epub *mEpub;
-  std::map<string, string> idSrcs;
+  gchar *mContent;
+  gsize mLength;
 };
 
 }
-
 #endif
 
 /* Local Variables: */

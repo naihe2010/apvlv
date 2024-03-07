@@ -34,6 +34,7 @@
 #ifdef APVLV_WITH_DJVU
 #include "ApvlvDjvu.h"
 #endif
+#include "ApvlvFb2.h"
 #include "ApvlvTxt.h"
 
 #include <algorithm>
@@ -90,6 +91,8 @@ ApvlvFile::newFile (const char *filename, __attribute__ ((unused)) bool check)
 #endif
   type_class[".txt"]
       = [filename] () -> ApvlvFile * { return new ApvlvTXT (filename); };
+  type_class[".fb2"]
+      = [filename] () -> ApvlvFile * { return new ApvlvFB2 (filename); };
 
   auto extp = strrchr (filename, '.');
   if (extp == nullptr)
@@ -149,6 +152,9 @@ ApvlvFile::get_ocf_page (const gchar *path)
     return srcPages[path];
   return -1;
 }
+
+DISPLAY_TYPE
+ApvlvFile::get_display_type () { return DISPLAY_TYPE_IMAGE; }
 
 bool
 ApvlvFile::annot_underline (int, gdouble, gdouble, gdouble, gdouble)

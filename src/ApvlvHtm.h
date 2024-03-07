@@ -69,6 +69,12 @@ public:
 
   bool pageprint (int pn, cairo_t *cr) override;
 
+  DISPLAY_TYPE
+  get_display_type () override
+  {
+    return DISPLAY_TYPE_HTML;
+  }
+
 private:
   string mUri;
 };

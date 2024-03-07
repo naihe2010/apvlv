@@ -53,28 +53,6 @@ static GtkPrintSettings *settings = nullptr;
 const int APVLV_CURSOR_WIDTH_DEFAULT = 2;
 const int APVLV_ANNOT_UNDERLINE_HEIGHT = 10;
 
-DISPLAY_TYPE
-get_display_type_by_filename (const char *name)
-{
-  vector<string> html_types = { ".html", ".htm", ".txt", ".epub" };
-
-  auto extp = strrchr (name, '.');
-  if (extp != nullptr)
-    {
-      string ext = extp;
-      transform (ext.begin (), ext.end (), ext.begin (), ::tolower);
-
-      for (auto iter = html_types.rbegin (); iter != html_types.rend ();
-           iter++)
-        {
-          if (ext == *iter)
-            return DISPLAY_TYPE_HTML;
-        }
-    }
-
-  return DISPLAY_TYPE_IMAGE;
-}
-
 ApvlvDoc::ApvlvDoc (ApvlvView *view, const char *zm, bool cache)
     : ApvlvCore (view)
 {
@@ -918,7 +896,7 @@ ApvlvDoc::loadfile (const char *filename, bool check, bool show_content)
           mCurrentCache[2] = new ApvlvDocCache (mFile);
         }
 
-      setDisplayType (get_display_type_by_filename (filename));
+      setDisplayType (mFile->get_display_type ());
 
       loadlastposition (filename);
 
