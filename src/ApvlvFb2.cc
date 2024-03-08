@@ -35,7 +35,17 @@
 
 namespace apvlv
 {
-const string stylesheet_content = ".block_ {\n"
+const string stylesheet_content = ".block_c {\n"
+                                  "  display: block;\n"
+                                  "  font-size: 2.5em;\n"
+                                  "  font-weight: normal;\n"
+                                  "  line-height: 33.6pt;\n"
+                                  "  text-align: center;\n"
+                                  "  text-indent: 0;\n"
+                                  "  margin: 17pt 0;\n"
+                                  "  padding: 0;\n"
+                                  "}\n"
+                                  ".block_ {\n"
                                   "  display: block;\n"
                                   "  font-size: 1.5em;\n"
                                   "  font-weight: normal;\n"
@@ -63,6 +73,10 @@ const string title_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
                               "content=\"text/html; charset=utf-8\"/>\n"
                               "  </head>\n"
                               "  <body>\n"
+                              "  <br />\n"
+                              "  <br />\n"
+                              "  <br />\n"
+                              "  <br />\n"
                               "    %s\n"
                               "  </body>\n"
                               "</html>\n";
@@ -107,7 +121,7 @@ bool
 ApvlvFB2::parse_fb2 (const char *content, size_t len)
 {
   mPages.push_back ("__cover__");
-  mPages.push_back ("__title__");
+  mPages.push_back ("TITLE");
 
   auto doc = xmlReadMemory (content, (int)len, nullptr, nullptr,
                             XML_PARSE_NOBLANKS | XML_PARSE_NSCLEAN);
@@ -182,7 +196,7 @@ ApvlvFB2::parse_body (xmlNodePtr node)
                 }
               else if (strcmp ((const char *)c->name, "p") == 0)
                 {
-                  content << "<h1 class=\"block_\"><span>";
+                  content << "<h1 class=\"block_c\"><span>";
                   content << (const char *)c->children[0].content;
                   content << "</span></h1>";
                   content << "<br />";
@@ -191,7 +205,7 @@ ApvlvFB2::parse_body (xmlNodePtr node)
 
           auto htmlstr = g_strdup_printf (title_template.c_str (),
                                           content.str ().c_str ());
-          titleSections.insert ({ "__title__", htmlstr });
+          titleSections.insert ({ "TITLE", htmlstr });
           g_free (htmlstr);
           srcMimeTypes.insert ({ "1", "application/xhtml+xml" });
         }
@@ -205,7 +219,8 @@ ApvlvFB2::parse_body (xmlNodePtr node)
             {
               if (strcmp ((const char *)c->name, "title") == 0)
                 {
-                  title = (const char *)c->children[0].children[0].content;
+                  auto titlenode = xmlLastElementChild (c);
+                  title = (const char *)titlenode->children[0].content;
                   content << "<h1 class=\"block_\"><span>";
                   content << title;
                   content << "</span></h1>";
