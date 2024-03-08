@@ -1,8 +1,8 @@
 # apvlv
 
-apvlv is a PDF/EPUB Viewer Under Linux/WIN32 and its behaviour like Vim.
+apvlv is a PDF/EPUB/TXT/FB2 Viewer Under Linux/WIN32 and its behaviour like Vim.
 
-Apvlv is a open source software, was created by Alf and is hosted on [github](https://github.com/naihe2010/apvlv).
+Apvlv is an open source software, was created by Alf and is hosted on [github](https://github.com/naihe2010/apvlv).
 
 Now, it is still growing.
 
