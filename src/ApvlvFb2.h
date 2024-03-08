@@ -29,6 +29,7 @@
 #define _APVLV_FB2_H_
 
 #include "ApvlvFile.h"
+#include <libxml/tree.h>
 
 namespace apvlv
 {
@@ -67,12 +68,18 @@ public:
 
   gchar *get_ocf_file (const gchar *path, gssize *) override;
 
-  const gchar *get_ocf_mime_type (const gchar *path) override;
+  DISPLAY_TYPE
+  get_display_type () override { return DISPLAY_TYPE_HTML; }
 
-  DISPLAY_TYPE get_display_type () override { return DISPLAY_TYPE_HTML; }
 private:
-  gchar *mContent;
-  gsize mLength;
+  map<string, string> titleSections;
+  string mCoverHref;
+
+  bool parse_fb2 (const char *, size_t len);
+  bool parse_description (xmlNodePtr node);
+  bool parse_body (xmlNodePtr node);
+  bool parse_binary (xmlNodePtr node);
+  ApvlvFileIndex *fb2_get_index ();
 };
 
 }

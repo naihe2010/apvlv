@@ -41,80 +41,6 @@
 
 namespace apvlv
 {
-xmlNodeSetPtr
-xmldoc_get_nodeset (xmlDocPtr doc, const char *xpath, const char *ns)
-{
-  xmlXPathContextPtr xpathctx;
-  xmlXPathObjectPtr xpathobj;
-  xmlNodeSetPtr nodes;
-
-  xpathctx = xmlXPathNewContext (doc);
-  if (xpathctx == nullptr)
-    {
-      debug ("unable to create new XPath context\n");
-      return nullptr;
-    }
-
-  if (ns != nullptr)
-    {
-      xmlXPathRegisterNs (xpathctx, BAD_CAST "c", BAD_CAST ns);
-    }
-
-  xpathobj = xmlXPathEvalExpression (BAD_CAST xpath, xpathctx);
-  xmlXPathFreeContext (xpathctx);
-  if (xpathobj == nullptr)
-    {
-      debug ("unable to evaluate xpath expression \"%s\"\n", xpath);
-      return nullptr;
-    }
-
-  if (xmlXPathNodeSetIsEmpty (xpathobj->nodesetval))
-    {
-      debug ("unable to get \"%s\"\n", xpath);
-      xmlXPathFreeObject (xpathobj);
-      return nullptr;
-    }
-
-  nodes = xpathobj->nodesetval;
-
-  xmlXPathFreeNodeSetList (xpathobj);
-
-  return nodes;
-}
-
-xmlNodePtr
-xmldoc_get_node (xmlDocPtr doc, const char *xpath, const char *ns)
-{
-  xmlNodePtr node = nullptr;
-  xmlNodeSetPtr nodes = xmldoc_get_nodeset (doc, xpath, ns);
-  if (nodes != nullptr)
-    {
-      node = nodes->nodeTab[0];
-      xmlXPathFreeNodeSet (nodes);
-    }
-
-  return node;
-}
-
-string
-xmlnode_attr_get (xmlNodePtr node, const char *attr)
-{
-  xmlAttrPtr prop;
-  string value;
-
-  for (prop = node->properties; prop != nullptr; prop = prop->next)
-    {
-      if (prop->type == XML_ATTRIBUTE_NODE
-          && strcmp ((char *)prop->name, attr) == 0)
-        {
-          value = (char *)prop->children->content;
-          break;
-        }
-    }
-
-  return value;
-}
-
 ApvlvEPUB::ApvlvEPUB (const char *filename, bool check)
     : ApvlvFile (filename, check)
 {
@@ -248,9 +174,9 @@ ApvlvEPUB::container_get_contentfile (const char *container, int len)
       return path;
     }
 
-  node = xmldoc_get_node (doc,
-                          "//c:container/c:rootfiles/c:rootfile/@full-path",
-                          "urn:oasis:names:tc:opendocument:xmlns:container");
+  node = xmldoc_get_node (
+      doc, "//c:container/c:rootfiles/c:rootfile/@full-path", "c",
+      "urn:oasis:names:tc:opendocument:xmlns:container");
   if (node == nullptr)
     {
       xmlFreeDoc (doc);
@@ -310,7 +236,7 @@ ApvlvEPUB::content_get_media (struct epub *epub, const string &contentfile)
       return false;
     }
 
-  nodeset = xmldoc_get_nodeset (doc, "//c:package/c:manifest/c:item",
+  nodeset = xmldoc_get_nodeset (doc, "//c:package/c:manifest/c:item", "c",
                                 "http://www.idpf.org/2007/opf");
   if (nodeset)
     {
@@ -346,7 +272,7 @@ ApvlvEPUB::content_get_media (struct epub *epub, const string &contentfile)
       xmlXPathFreeNodeSet (nodeset);
     }
 
-  nodeset = xmldoc_get_nodeset (doc, "//c:package/c:spine/c:itemref",
+  nodeset = xmldoc_get_nodeset (doc, "//c:package/c:spine/c:itemref", "c",
                                 "http://www.idpf.org/2007/opf");
   if (nodeset)
     {
@@ -387,7 +313,7 @@ ApvlvEPUB::ncx_get_index (struct epub *epub, const string &ncxfile)
       return index;
     }
 
-  map = xmldoc_get_node (doc, "//c:ncx/c:navMap",
+  map = xmldoc_get_node (doc, "//c:ncx/c:navMap", "c",
                          "http://www.daisy.org/z3986/2005/ncx/");
   if (map == nullptr)
     {

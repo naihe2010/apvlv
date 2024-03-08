@@ -34,6 +34,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <libxml/xpath.h>
 using namespace std;
 
 namespace apvlv
@@ -72,6 +73,14 @@ bool apvlv_text_to_pixbuf_buffer (GString *content, int width, int height,
                                   double zoomrate, unsigned char *buffer,
                                   size_t buffer_size, int *o_width,
                                   int *o_height);
+
+xmlNodeSetPtr xmldoc_get_nodeset (xmlDocPtr doc, const char *xpath,
+                                  const char *pre, const char *ns);
+
+xmlNodePtr xmldoc_get_node (xmlDocPtr doc, const char *xpath, const char *pre,
+                            const char *ns);
+
+string xmlnode_attr_get (xmlNodePtr node, const char *attr);
 
 // command type
 enum

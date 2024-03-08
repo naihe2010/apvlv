@@ -29,15 +29,64 @@
 #include "ApvlvUtil.h"
 
 #include <cmath>
+#include <libxml/tree.h>
+#include <sstream>
 #include <webkit2/webkit2.h>
 
 namespace apvlv
 {
+const string stylesheet_content = ".block_ {\n"
+                                  "  display: block;\n"
+                                  "  font-size: 1.5em;\n"
+                                  "  font-weight: normal;\n"
+                                  "  line-height: 33.6pt;\n"
+                                  "  text-align: justify;\n"
+                                  "  text-indent: 0;\n"
+                                  "  margin: 17pt 0;\n"
+                                  "  padding: 0;\n"
+                                  "}\n"
+                                  ".block_1 {\n"
+                                  "  display: block;\n"
+                                  "  line-height: 1.2;\n"
+                                  "  text-align: justify;\n"
+                                  "  margin: 0 0 7pt;\n"
+                                  "  padding: 0;\n"
+                                  "}\n";
+const string title_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
+                              "<html xmlns=\"http://www.w3.org/1999/xhtml\" "
+                              "lang=\"en\" xml:lang=\"en\">\n"
+                              "  <head>\n"
+                              "    <title></title>\n"
+                              "    <link rel=\"stylesheet\" type=\"text/css\" "
+                              "href=\"stylesheet.css\"/>\n"
+                              "    <meta http-equiv=\"Content-Type\" "
+                              "content=\"text/html; charset=utf-8\"/>\n"
+                              "  </head>\n"
+                              "  <body>\n"
+                              "    %s\n"
+                              "  </body>\n"
+                              "</html>\n";
+const string section_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
+                                "<html xmlns=\"http://www.w3.org/1999/xhtml\" "
+                                "lang=\"en\" xml:lang=\"en\">\n"
+                                "  <head>\n"
+                                "    <title></title>\n"
+                                "    <link rel=\"stylesheet\" "
+                                "type=\"text/css\" href=\"stylesheet.css\"/>\n"
+                                "    <meta http-equiv=\"Content-Type\" "
+                                "content=\"text/html; charset=utf-8\"/>\n"
+                                "  </head>\n"
+                                "  <body>\n"
+                                "    %s\n"
+                                "  </body>\n"
+                                "</html>\n";
 ApvlvFB2::ApvlvFB2 (const char *filename, bool check)
     : ApvlvFile (filename, check)
 {
+  gchar *content;
+  gsize length;
   GError *error = nullptr;
-  if (g_file_get_contents (filename, &mContent, &mLength, &error) == FALSE)
+  if (g_file_get_contents (filename, &content, &length, &error) == FALSE)
     {
       if (error != nullptr)
         {
@@ -47,17 +96,182 @@ ApvlvFB2::ApvlvFB2 (const char *filename, bool check)
 
       throw bad_alloc ();
     }
+
+  parse_fb2 (content, length);
+  g_free (content);
 }
 
-ApvlvFB2::~ApvlvFB2 () { g_free (mContent); }
+ApvlvFB2::~ApvlvFB2 () {}
+
+bool
+ApvlvFB2::parse_fb2 (const char *content, size_t len)
+{
+  mPages.push_back ("__cover__");
+  mPages.push_back ("__title__");
+
+  auto doc = xmlReadMemory (content, (int)len, nullptr, nullptr,
+                            XML_PARSE_NOBLANKS | XML_PARSE_NSCLEAN);
+  if (doc == nullptr)
+    {
+      return false;
+    }
+
+  auto fictionbook = doc->children;
+  for (auto node = xmlFirstElementChild (fictionbook); node != nullptr;
+       node = xmlNextElementSibling (node))
+    {
+      if (strcmp ((const char *)node->name, "description") == 0)
+        {
+          parse_description (node);
+        }
+      else if (strcmp ((const char *)node->name, "body") == 0)
+        {
+          parse_body (node);
+        }
+      else if (strcmp ((const char *)node->name, "binary") == 0)
+        {
+          parse_binary (node);
+        }
+    }
+
+  xmlFreeDoc (doc);
+
+  mIndex = fb2_get_index ();
+  return true;
+}
+
+bool
+ApvlvFB2::parse_description (xmlNodePtr node)
+{
+  for (auto child = xmlFirstElementChild (node); child != nullptr;
+       child = xmlNextElementSibling (child))
+    {
+      if (strcmp ((const char *)child->name, "title-info") == 0)
+        {
+          for (auto c = xmlFirstElementChild (child); c != nullptr;
+               c = xmlNextElementSibling (c))
+            {
+              if (strcmp ((const char *)c->name, "coverpage") == 0)
+                {
+                  mCoverHref
+                      = xmlnode_attr_get (xmlFirstElementChild (c), "href");
+                  return true;
+                }
+            }
+        }
+    }
+
+  return true;
+}
+
+bool
+ApvlvFB2::parse_body (xmlNodePtr node)
+{
+  for (auto child = xmlFirstElementChild (node); child != nullptr;
+       child = xmlNextElementSibling (child))
+    {
+      if (strcmp ((const char *)child->name, "title") == 0)
+        {
+          stringstream content;
+          for (auto c = xmlFirstElementChild (child); c != nullptr;
+               c = xmlNextElementSibling (c))
+            {
+              if (strcmp ((const char *)c->name, "empty-line") == 0)
+                {
+                  content << "<br />";
+                }
+              else if (strcmp ((const char *)c->name, "p") == 0)
+                {
+                  content << "<h1 class=\"block_\"><span>";
+                  content << (const char *)c->children[0].content;
+                  content << "</span></h1>";
+                  content << "<br />";
+                }
+            }
+
+          auto htmlstr = g_strdup_printf (title_template.c_str (),
+                                          content.str ().c_str ());
+          titleSections.insert ({ "__title__", htmlstr });
+          g_free (htmlstr);
+          srcMimeTypes.insert ({ "1", "application/xhtml+xml" });
+        }
+      else if (strcmp ((const char *)child->name, "section") == 0)
+        {
+          stringstream content;
+          string title;
+          char pagenum[10];
+          for (auto c = xmlFirstElementChild (child); c != nullptr;
+               c = xmlNextElementSibling (c))
+            {
+              if (strcmp ((const char *)c->name, "title") == 0)
+                {
+                  title = (const char *)c->children[0].children[0].content;
+                  content << "<h1 class=\"block_\"><span>";
+                  content << title;
+                  content << "</span></h1>";
+                  content << "<br />";
+                }
+              else if (strcmp ((const char *)c->name, "p") == 0)
+                {
+                  content << "<p class=\"block_1\"><span>";
+                  content << (const char *)c->children[0].content;
+                  content << "</span></p>";
+                  content << "<br />";
+                }
+            }
+          auto htmlstr = g_strdup_printf (section_template.c_str (),
+                                          content.str ().c_str ());
+          snprintf (pagenum, sizeof pagenum, "%d", (int)mPages.size ());
+          titleSections.insert ({ title, htmlstr });
+          g_free (htmlstr);
+          srcMimeTypes.insert ({ pagenum, "application/xhtml+xml" });
+          mPages.emplace_back (title);
+        }
+    }
+
+  return true;
+}
+
+bool
+ApvlvFB2::parse_binary (xmlNodePtr node)
+{
+  auto idstr = xmlnode_attr_get (node, "id");
+  if (mCoverHref.empty () || idstr == mCoverHref.substr (1))
+    {
+      auto mimetype = xmlnode_attr_get (node, "content-type");
+      gsize len;
+      auto content
+          = g_base64_decode ((const char *)node->children[0].content, &len);
+      string section;
+      section.append ((char *)content, len);
+      titleSections.insert ({ "__cover__", section });
+      srcMimeTypes.insert ({ "0", mimetype });
+      g_free (content);
+    }
+  return true;
+}
+
+ApvlvFileIndex *
+ApvlvFB2::fb2_get_index ()
+{
+  char pagenum[16];
+  auto index = new ApvlvFileIndex ("", 0, "", FILE_INDEX_PAGE);
+  for (int ind = 0; ind < (int)mPages.size (); ++ind)
+    {
+      snprintf (pagenum, sizeof pagenum, "%d", ind);
+      if (mPages[ind] == "__cover__")
+        continue;
+
+      auto chap
+          = new ApvlvFileIndex (mPages[ind], ind, pagenum, FILE_INDEX_PAGE);
+      index->children.push_back (chap);
+    }
+  return index;
+}
 
 bool
 ApvlvFB2::writefile (const char *filename)
 {
-  if (g_file_set_contents (filename, mContent, int (mLength), nullptr) == TRUE)
-    {
-      return true;
-    }
   return false;
 }
 
@@ -70,7 +284,7 @@ ApvlvFB2::pagesize (int pn, int rot, double *px, double *py)
 int
 ApvlvFB2::pagesum ()
 {
-  return 1;
+  return (int)mPages.size ();
 }
 
 bool
@@ -110,22 +324,23 @@ bool
 ApvlvFB2::renderweb (int pn, int ix, int iy, double zm, int rot,
                      GtkWidget *widget)
 {
+  char uri[0x100];
   webkit_web_view_set_zoom_level (WEBKIT_WEB_VIEW (widget), zm);
-  string uri = "ascii";
-  string epuburi = "apvlv:///" + uri;
-  webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), epuburi.c_str ());
+  snprintf (uri, sizeof uri, "apvlv:///%d", pn);
+  webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), uri);
   return true;
 }
 
 ApvlvFileIndex *
 ApvlvFB2::new_index ()
 {
-  return nullptr;
+  return mIndex;
 }
 
 void
 ApvlvFB2::free_index (ApvlvFileIndex *index)
 {
+  delete index;
 }
 
 bool
@@ -135,16 +350,19 @@ ApvlvFB2::pageprint (int pn, cairo_t *cr)
 }
 
 gchar *
-ApvlvFB2::get_ocf_file (const gchar *path, gssize *lenp)
+ApvlvFB2::get_ocf_file (const gchar *pagenum, gssize *lenp)
 {
-  *lenp = (gssize)mLength;
-  return g_strdup (mContent);
-}
+  if (strcmp (pagenum, "stylesheet.css") == 0)
+    {
+      *lenp = (gssize)stylesheet_content.size ();
+      return g_strdup (stylesheet_content.c_str ());
+    }
 
-const gchar *
-ApvlvFB2::get_ocf_mime_type (const gchar *path)
-{
-  return "text/plain";
+  auto path = mPages[atoi (pagenum)];
+  *lenp = (gssize)titleSections[path].size ();
+  auto content = g_malloc0 (*lenp);
+  memcpy (content, titleSections[path].data (), *lenp);
+  return (gchar *)content;
 }
 
 }
