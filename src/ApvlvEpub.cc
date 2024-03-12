@@ -28,7 +28,6 @@
 #include "ApvlvEpub.h"
 #include "ApvlvHtm.h"
 #include "ApvlvInfo.h"
-#include "ApvlvParams.h"
 #include "ApvlvUtil.h"
 
 #include "epub.h"
@@ -36,7 +35,6 @@
 #include <glib.h>
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
-#include <libxml/xpathInternals.h>
 #include <webkit2/webkit2.h>
 
 namespace apvlv
@@ -213,7 +211,6 @@ ApvlvEPUB::content_get_media (struct epub *epub, const string &contentfile)
       for (ind = 0; ind < sizep; ++ind)
         {
           cp = coverp[ind];
-          debug ("epub meta: %s", cp);
           auto vs = g_strsplit ((char *)cp, ":", 2);
           if (vs)
             {

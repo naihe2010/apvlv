@@ -115,9 +115,9 @@ ApvlvDoc::ApvlvDoc (ApvlvView *view, const char *zm, bool cache)
       mImg[2] = nullptr;
     }
 
-  auto data_manager = webkit_website_data_manager_new (nullptr);
-  auto context
-      = webkit_web_context_new_with_website_data_manager (data_manager);
+  auto context = webkit_web_context_new_ephemeral ();
+  webkit_web_context_set_cache_model (context,
+                                      WEBKIT_CACHE_MODEL_DOCUMENT_VIEWER);
   mWeb[0] = webkit_web_view_new_with_context (context);
   auto set = webkit_web_view_get_settings (WEBKIT_WEB_VIEW (mWeb[0]));
   webkit_settings_set_default_charset (set, "UTF-8");
