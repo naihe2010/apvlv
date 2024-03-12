@@ -39,6 +39,7 @@
 #include <windows.h>
 #endif
 
+#include <algorithm>
 #include <iostream>
 #include <libxml/tree.h>
 #include <libxml/xpath.h>
@@ -408,6 +409,19 @@ xmlnode_attr_get (xmlNodePtr node, const char *attr)
 
   return value;
 }
+
+string
+filename_ext (const char *filename)
+{
+  auto pointp = strrchr (filename, '.');
+  if (pointp == nullptr)
+    return "";
+
+  string ext = pointp;
+  transform (ext.begin (), ext.end (), ext.begin (), ::tolower);
+  return ext;
+}
+
 }
 
 // Local Variables:

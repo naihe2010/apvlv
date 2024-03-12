@@ -113,6 +113,9 @@ public:
 class ApvlvFile
 {
 public:
+  const static map<string, vector<string> > &supportMimeTypes ();
+  const static vector<string> &supportFileExts ();
+
   ApvlvFile (__attribute__ ((unused)) const char *filename,
              __attribute__ ((unused)) bool check);
 
@@ -172,6 +175,10 @@ protected:
   std::vector<string> mPages;
   std::map<string, int> srcPages;
   std::map<string, string> srcMimeTypes;
+
+private:
+  const static std::map<string, std::vector<string> > mSupportMimeTypes;
+  const static std::vector<string> mSupportFileExts;
 };
 
 };

@@ -205,30 +205,13 @@ ApvlvView::open ()
   g_free (dirname);
 
   GtkFileFilter *filter = gtk_file_filter_new ();
-  gtk_file_filter_add_mime_type (filter, "PDF File");
-  gtk_file_filter_add_pattern (filter, "*.pdf");
-  gtk_file_filter_add_pattern (filter, "*.PDF");
-  gtk_file_filter_add_mime_type (filter, "HTML File");
-  gtk_file_filter_add_pattern (filter, "*.HTM");
-  gtk_file_filter_add_pattern (filter, "*.htm");
-  gtk_file_filter_add_pattern (filter, "*.HTML");
-  gtk_file_filter_add_pattern (filter, "*.html");
-  gtk_file_filter_add_mime_type (filter, "ePub File");
-  gtk_file_filter_add_pattern (filter, "*.EPUB");
-  gtk_file_filter_add_pattern (filter, "*.epub");
-#ifdef APVLV_WITH_DJVU
-  gtk_file_filter_add_mime_type (filter, "DJVU File");
-  gtk_file_filter_add_pattern (filter, "*.DJV");
-  gtk_file_filter_add_pattern (filter, "*.djv");
-  gtk_file_filter_add_pattern (filter, "*.DJVU");
-  gtk_file_filter_add_pattern (filter, "*.djvu");
-#endif
-  gtk_file_filter_add_mime_type (filter, "TXT File");
-  gtk_file_filter_add_pattern (filter, "*.TXT");
-  gtk_file_filter_add_pattern (filter, "*.txt");
-  gtk_file_filter_add_mime_type (filter, "FB2 File");
-  gtk_file_filter_add_pattern (filter, "*.FB2");
-  gtk_file_filter_add_pattern (filter, "*.fb2");
+  auto mimes = ApvlvFile::supportMimeTypes ();
+  for (auto m = mimes.rbegin (); m != mimes.rend (); ++m)
+    {
+      gtk_file_filter_add_mime_type (filter, m->first.c_str ());
+      for (auto v = m->second.rbegin (); v != m->second.rend (); ++v)
+        gtk_file_filter_add_pattern (filter, v->c_str ());
+    }
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dia), filter);
 
   gint ret = gtk_dialog_run (GTK_DIALOG (dia));

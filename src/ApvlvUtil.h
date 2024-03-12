@@ -82,6 +82,8 @@ xmlNodePtr xmldoc_get_node (xmlDocPtr doc, const char *xpath, const char *pre,
 
 string xmlnode_attr_get (xmlNodePtr node, const char *attr);
 
+string filename_ext (const char *filename);
+
 // command type
 enum
 {

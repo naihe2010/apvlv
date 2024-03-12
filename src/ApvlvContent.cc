@@ -134,6 +134,9 @@ ApvlvContent::setCurrentIndex (int pn, const char *anchor)
   if (!mIndex)
     return;
 
+  if (mIndex->type == FILE_INDEX_DIR)
+    return;
+
   mTargetIndex.first = pn;
   mTargetIndex.second = anchor;
   gtk_tree_model_foreach (GTK_TREE_MODEL (mStore),

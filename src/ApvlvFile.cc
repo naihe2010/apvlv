@@ -50,6 +50,32 @@ namespace apvlv
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #endif
 
+const map<string, vector<string> > &
+ApvlvFile::supportMimeTypes ()
+{
+  return mSupportMimeTypes;
+}
+
+const map<string, vector<string> > ApvlvFile::mSupportMimeTypes = {
+  { "PDF File", { "*.pdf", "*.PDF" } },
+  { "HTML File", { ".HTM", ".htm", "*.HTML", ".html" } },
+  { "ePub File", { "*.EPUB", "*.epub" } },
+#ifdef APVLV_WITH_DJVU
+  { "DJVU File", { "*.DJV", "*.djv", "*.DJVU", "*.djvu" } },
+#endif
+  { "TXT File", { "*.TXT", "*.txt" } },
+  { "FB2 File", { "*.FB2", "*.fb2" } },
+};
+
+const vector<string> &
+ApvlvFile::supportFileExts ()
+{
+  return mSupportFileExts;
+}
+
+const vector<string> ApvlvFile::mSupportFileExts
+    = { ".pdf", ".html", ".htm", ".epub", ".djv", ".djvu", ".txt", ".fb2" };
+
 ApvlvFile::ApvlvFile (__attribute__ ((unused)) const char *filename,
                       __attribute__ ((unused)) bool check)
 {
@@ -94,12 +120,10 @@ ApvlvFile::newFile (const char *filename, __attribute__ ((unused)) bool check)
   type_class[".fb2"]
       = [filename] () -> ApvlvFile * { return new ApvlvFB2 (filename); };
 
-  auto extp = strrchr (filename, '.');
-  if (extp == nullptr)
+  auto ext = filename_ext (filename);
+  if (ext.empty ())
     return nullptr;
 
-  string ext = extp;
-  transform (ext.begin (), ext.end (), ext.begin (), ::tolower);
   if (type_class.find (ext) == type_class.end ())
     return nullptr;
 
@@ -221,6 +245,8 @@ ApvlvFileIndex::newDirIndex (const gchar *path, ApvlvFileIndex *parent_index)
               continue;
             }
 
+          auto file_ext = filename_ext (name);
+
           if (S_ISDIR (buf->st_mode))
             {
               auto index
@@ -228,29 +254,18 @@ ApvlvFileIndex::newDirIndex (const gchar *path, ApvlvFileIndex *parent_index)
               root_index->children.push_back (index);
               newDirIndex (realname, index);
             }
-          else if (g_ascii_strncasecmp (name + strlen (name) - 4, ".pdf", 4)
-                       == 0
-                   || g_ascii_strncasecmp (name + strlen (name) - 4, ".htm", 4)
-                          == 0
-                   || g_ascii_strncasecmp (name + strlen (name) - 5, ".html",
-                                           5)
-                          == 0
-                   || g_ascii_strncasecmp (name + strlen (name) - 5, ".epub",
-                                           5)
-                          == 0
-#ifdef APVLV_WITH_DJVU
-                   || g_ascii_strncasecmp (name + strlen (name) - 5, ".djvu",
-                                           5)
-                          == 0
-                   || g_ascii_strncasecmp (name + strlen (name) - 4, ".djv", 4)
-                          == 0
-#endif
-                   || g_ascii_strncasecmp (name + strlen (name) - 4, ".txt", 4)
-                          == 0)
+          else if (!file_ext.empty ())
             {
-              auto index
-                  = new ApvlvFileIndex (name, 0, realname, FILE_INDEX_FILE);
-              root_index->children.push_back (index);
+              auto exts = ApvlvFile::supportFileExts ();
+              for (auto ext = exts.rbegin (); ext != exts.rend (); ++ext)
+                {
+                  if (*ext == file_ext)
+                    {
+                      auto index = new ApvlvFileIndex (name, 0, realname,
+                                                       FILE_INDEX_FILE);
+                      root_index->children.push_back (index);
+                    }
+                }
             }
 
           g_free (realname);
