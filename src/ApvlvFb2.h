@@ -72,13 +72,19 @@ public:
   get_display_type () override { return DISPLAY_TYPE_HTML; }
 
 private:
-  map<string, string> titleSections;
+  map<string, pair<string, string> > titleSections;
   string mCoverHref;
 
   bool parse_fb2 (const char *, size_t len);
   bool parse_description (xmlNodePtr node);
   bool parse_body (xmlNodePtr node);
   bool parse_binary (xmlNodePtr node);
+  void appendCoverpage (const string &section, const string &mime);
+  void appendTitle (const string &section, const string &mime);
+  void appendSection (const string &title, const string &section,
+                      const string &mime);
+  void appendPage (const string &uri, const string &title,
+                   const string &section, const string &mime);
   ApvlvFileIndex *fb2_get_index ();
 };
 

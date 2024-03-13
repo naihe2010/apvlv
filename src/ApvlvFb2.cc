@@ -120,9 +120,6 @@ ApvlvFB2::~ApvlvFB2 () {}
 bool
 ApvlvFB2::parse_fb2 (const char *content, size_t len)
 {
-  mPages.push_back ("__cover__");
-  mPages.push_back ("TITLE");
-
   auto doc = xmlReadMemory (content, (int)len, nullptr, nullptr,
                             XML_PARSE_NOBLANKS | XML_PARSE_NSCLEAN);
   if (doc == nullptr)
@@ -131,6 +128,8 @@ ApvlvFB2::parse_fb2 (const char *content, size_t len)
     }
 
   auto fictionbook = doc->children;
+
+  // Parse description/binary first
   for (auto node = xmlFirstElementChild (fictionbook); node != nullptr;
        node = xmlNextElementSibling (node))
     {
@@ -138,13 +137,19 @@ ApvlvFB2::parse_fb2 (const char *content, size_t len)
         {
           parse_description (node);
         }
-      else if (strcmp ((const char *)node->name, "body") == 0)
-        {
-          parse_body (node);
-        }
       else if (strcmp ((const char *)node->name, "binary") == 0)
         {
           parse_binary (node);
+        }
+    }
+
+  // Then, parse body
+  for (auto node = xmlFirstElementChild (fictionbook); node != nullptr;
+       node = xmlNextElementSibling (node))
+    {
+      if (strcmp ((const char *)node->name, "body") == 0)
+        {
+          parse_body (node);
         }
     }
 
@@ -205,15 +210,13 @@ ApvlvFB2::parse_body (xmlNodePtr node)
 
           auto htmlstr = g_strdup_printf (title_template.c_str (),
                                           content.str ().c_str ());
-          titleSections.insert ({ "TITLE", htmlstr });
+          appendTitle (htmlstr, "application/xhtml+xml");
           g_free (htmlstr);
-          srcMimeTypes.insert ({ "1", "application/xhtml+xml" });
         }
       else if (strcmp ((const char *)child->name, "section") == 0)
         {
           stringstream content;
           string title;
-          char pagenum[10];
           for (auto c = xmlFirstElementChild (child); c != nullptr;
                c = xmlNextElementSibling (c))
             {
@@ -236,11 +239,8 @@ ApvlvFB2::parse_body (xmlNodePtr node)
             }
           auto htmlstr = g_strdup_printf (section_template.c_str (),
                                           content.str ().c_str ());
-          snprintf (pagenum, sizeof pagenum, "%d", (int)mPages.size ());
-          titleSections.insert ({ title, htmlstr });
+          appendSection (title, htmlstr, "application/xhtml+xml");
           g_free (htmlstr);
-          srcMimeTypes.insert ({ pagenum, "application/xhtml+xml" });
-          mPages.emplace_back (title);
         }
     }
 
@@ -259,11 +259,41 @@ ApvlvFB2::parse_binary (xmlNodePtr node)
           = g_base64_decode ((const char *)node->children[0].content, &len);
       string section;
       section.append ((char *)content, len);
-      titleSections.insert ({ "__cover__", section });
-      srcMimeTypes.insert ({ "0", mimetype });
+      appendCoverpage (section, mimetype);
       g_free (content);
     }
   return true;
+}
+
+void
+ApvlvFB2::appendCoverpage (const string &section, const string &mime)
+{
+  appendSection ("__cover__", section, mime);
+}
+
+void
+ApvlvFB2::appendTitle (const string &section, const string &mime)
+{
+  appendSection ("TITLE", section, mime);
+}
+
+void
+ApvlvFB2::appendSection (const string &title, const string &section,
+                         const string &mime)
+{
+  char uri[10];
+  snprintf (uri, sizeof uri, "%zd", mPages.size ());
+  appendPage (uri, title, section, mime);
+}
+
+void
+ApvlvFB2::appendPage (const string &uri, const string &title,
+                      const string &section, const string &mime)
+{
+  srcPages[uri] = (int)mPages.size ();
+  mPages.push_back (uri);
+  titleSections.insert ({ uri, { title, section } });
+  srcMimeTypes.insert ({ uri, mime });
 }
 
 ApvlvFileIndex *
@@ -277,8 +307,8 @@ ApvlvFB2::fb2_get_index ()
       if (mPages[ind] == "__cover__")
         continue;
 
-      auto chap
-          = new ApvlvFileIndex (mPages[ind], ind, pagenum, FILE_INDEX_PAGE);
+      auto title = titleSections[mPages[ind]].first;
+      auto chap = new ApvlvFileIndex (title, ind, pagenum, FILE_INDEX_PAGE);
       index->children.push_back (chap);
     }
   return index;
@@ -365,18 +395,17 @@ ApvlvFB2::pageprint (int pn, cairo_t *cr)
 }
 
 gchar *
-ApvlvFB2::get_ocf_file (const gchar *pagenum, gssize *lenp)
+ApvlvFB2::get_ocf_file (const gchar *uri, gssize *lenp)
 {
-  if (strcmp (pagenum, "stylesheet.css") == 0)
+  if (strcmp (uri, "stylesheet.css") == 0)
     {
       *lenp = (gssize)stylesheet_content.size ();
       return g_strdup (stylesheet_content.c_str ());
     }
 
-  auto path = mPages[atoi (pagenum)];
-  *lenp = (gssize)titleSections[path].size ();
+  *lenp = (gssize)titleSections[uri].second.size ();
   auto content = g_malloc0 (*lenp);
-  memcpy (content, titleSections[path].data (), *lenp);
+  memcpy (content, titleSections[uri].second.data (), *lenp);
   return (gchar *)content;
 }
 
