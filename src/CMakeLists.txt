@@ -67,6 +67,7 @@ SET(HEADERS
         ApvlvTxt.h
         ApvlvFb2.h
         ApvlvContent.h
+        ApvlvLab.h
 )
 
 SET(SOURCES
@@ -87,6 +88,7 @@ SET(SOURCES
         ApvlvTxt.cc
         ApvlvFb2.cc
         ApvlvContent.cc
+        ApvlvLab.cc
         main.cc
 )
 
