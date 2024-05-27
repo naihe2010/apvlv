@@ -53,6 +53,12 @@ struct ApvlvLink
   int mPage;
 };
 
+struct ApvlvCover
+{
+  string content;
+  string mime_type;
+};
+
 typedef vector<ApvlvLink> ApvlvLinks;
 
 struct ApvlvPoint
@@ -167,6 +173,8 @@ public:
 
   virtual DISPLAY_TYPE get_display_type ();
 
+  virtual const ApvlvCover &get_cover() { return mCover;}
+
 protected:
   ApvlvFileIndex *mIndex;
 
@@ -175,6 +183,7 @@ protected:
   std::vector<string> mPages;
   std::map<string, int> srcPages;
   std::map<string, string> srcMimeTypes;
+  ApvlvCover mCover;
 
 private:
   const static std::map<string, std::vector<string> > mSupportMimeTypes;
