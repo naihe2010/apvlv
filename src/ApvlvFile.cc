@@ -30,6 +30,13 @@
 #include "ApvlvHtm.h"
 #include "ApvlvPdf.h"
 #include "ApvlvUtil.h"
+#include <algorithm>
+#include <filesystem>
+#include <functional>
+#include <glib.h>
+#include <iostream>
+#include <sys/stat.h>
+#include <utility>
 
 #ifdef APVLV_WITH_DJVU
 #include "ApvlvDjvu.h"
@@ -37,18 +44,14 @@
 #include "ApvlvFb2.h"
 #include "ApvlvTxt.h"
 
-#include <algorithm>
-#include <functional>
-#include <glib.h>
-#include <iostream>
-#include <sys/stat.h>
-#include <utility>
-
 namespace apvlv
 {
 #ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #endif
+
+using namespace std;
+using namespace std::filesystem;
 
 const map<string, vector<string> > &
 ApvlvFile::supportMimeTypes ()
@@ -204,65 +207,30 @@ ApvlvFile::annot_update (int, ApvlvAnnotText *text)
 }
 
 void
-ApvlvFileIndex::load_dir (const gchar *path)
+ApvlvFileIndex::load_dir (const gchar *path1)
 {
-  GDir *dir = g_dir_open (path, 0, nullptr);
-  if (dir != nullptr)
+  for (auto &entry :
+       directory_iterator (path1, directory_options::follow_directory_symlink))
     {
-      const gchar *name;
-      while ((name = g_dir_read_name (dir)) != nullptr)
+      if (entry.is_directory ())
         {
-          if (strcmp (name, ".") == 0)
+          auto index = ApvlvFileIndex (entry.path ().filename (), 0,
+                                       entry.path (), FILE_INDEX_DIR);
+          index.load_dir (entry.path ().c_str ());
+          children.emplace_back (index);
+        }
+      else if (entry.file_size () > 0)
+        {
+          auto file_ext = filename_ext (entry.path ().filename ().c_str ());
+          auto exts = ApvlvFile::supportFileExts ();
+          if (count (exts.rbegin (), exts.rend (), file_ext) > 0)
             {
-              debug ("avoid hidden file: %s", name);
-              continue;
-            }
-
-          gchar *realname = g_strjoin (PATH_SEP_S, path, name, nullptr);
-          struct stat buf[1];
-          char *wrealname
-              = g_locale_from_utf8 (realname, -1, nullptr, nullptr, nullptr);
-          if (wrealname == nullptr)
-            {
-              g_free (realname);
-              continue;
-            }
-
-          int ret = stat (wrealname, buf);
-          g_free (wrealname);
-
-          if (ret < 0)
-            {
-              g_free (realname);
-              continue;
-            }
-
-          auto file_ext = filename_ext (name);
-
-          if (S_ISDIR (buf->st_mode))
-            {
-              auto index = ApvlvFileIndex (name, 0, realname, FILE_INDEX_DIR);
-              index.load_dir (realname);
+              auto index = ApvlvFileIndex (entry.path ().filename (), 0,
+                                           entry.path (), FILE_INDEX_FILE);
               children.emplace_back (index);
             }
-          else if (!file_ext.empty ())
-            {
-              auto exts = ApvlvFile::supportFileExts ();
-              for (auto ext = exts.rbegin (); ext != exts.rend (); ++ext)
-                {
-                  if (*ext == file_ext)
-                    {
-                      auto index = ApvlvFileIndex (name, 0, realname,
-                                                   FILE_INDEX_FILE);
-                      children.emplace_back (index);
-                    }
-                }
-            }
-
-          g_free (realname);
         }
     }
-  g_dir_close (dir);
 }
 
 ApvlvFileIndex::ApvlvFileIndex (string title, int page, string path,

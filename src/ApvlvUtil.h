@@ -115,8 +115,6 @@ typedef enum
 
 #endif
 
-gboolean walkdir (const char *, gboolean (*) (const char *, void *), void *);
-
 // log system
 #if defined DEBUG || defined _DEBUG
 #define debug(...) logv ("DEBUG", __FILE__, __LINE__, __func__, __VA_ARGS__)

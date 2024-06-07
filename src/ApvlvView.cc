@@ -26,10 +26,7 @@
  */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
-#include "ApvlvView.h"
-#include "ApvlvInfo.h"
-#include "ApvlvMenuAndTool.h"
-#include "ApvlvParams.h"
+#include <filesystem>
 #include <fstream>
 #include <gdk/gdk.h>
 #include <gdk/gdkkeysyms.h>
@@ -38,6 +35,11 @@
 #include <gtk/gtk.h>
 #include <iostream>
 #include <sstream>
+
+#include "ApvlvInfo.h"
+#include "ApvlvMenuAndTool.h"
+#include "ApvlvParams.h"
+#include "ApvlvView.h"
 
 namespace apvlv
 {
@@ -488,55 +490,24 @@ ApvlvCompletion *
 ApvlvView::filecompleteinit (const char *path)
 {
   auto *comp = new ApvlvCompletion;
-  GList *list = g_list_alloc ();
-  gchar *dname, *bname;
-  const gchar *name;
+  GList *list = nullptr;
 
-  dname = g_path_get_dirname (path);
-  GDir *dir = g_dir_open ((const char *)dname, 0, nullptr);
-  if (dir != nullptr)
+  auto fspath = filesystem::path{ path };
+  auto filename = fspath.filename ();
+  auto dirname = fspath.parent_path ();
+  for (auto &entry : filesystem::directory_iterator (dirname))
     {
-      bname = g_path_get_basename (path);
-      size_t len = strlen (bname);
-      while ((name = g_dir_read_name (dir)) != nullptr)
+      auto entry_filename = entry.path ().filename ().string ();
+      if (filename.empty () || entry_filename.find (filename.string ()) == 0)
         {
-          gchar *fname
-              = g_locale_from_utf8 (name, -1, nullptr, nullptr, nullptr);
-
-          if (strcmp (bname, PATH_SEP_S) != 0)
-            {
-              if (strncmp (fname, bname, len) != 0)
-                {
-                  g_free (fname);
-                  continue;
-                }
-            }
-
-          if (strcmp (dname, ".") == 0)
-            {
-              list->data = g_strdup (fname);
-            }
-          else
-            {
-              if (dname[strlen (dname) - 1] == PATH_SEP_C)
-                {
-                  list->data = g_strjoin ("", dname, fname, nullptr);
-                }
-              else
-                {
-                  list->data = g_strjoin (PATH_SEP_S, dname, fname, nullptr);
-                }
-            }
-
-          g_free (fname);
-
-          debug ("add a item: %s", (char *)list->data);
-          comp->add_items (list);
+          auto listdata
+              = g_strdup_printf ("%s%s", entry.path ().c_str (),
+                                 entry.is_directory () ? PATH_SEP_S : "");
+          debug ("add a item: %s", listdata);
+          list = g_list_append (list, listdata);
         }
-      g_free (bname);
-      g_dir_close (dir);
     }
-  g_free (dname);
+  comp->add_items (list);
 
   g_list_free (list);
 
@@ -665,6 +636,11 @@ ApvlvView::cmd_auto (const char *ps)
   stringstream ss (ps);
   string cmd, np, argu;
   ss >> cmd >> np >> argu;
+
+  if (np.empty ())
+    {
+      return;
+    }
 
   if (np[np.length () - 1] == '\\')
     {
