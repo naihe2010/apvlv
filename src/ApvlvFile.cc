@@ -79,8 +79,6 @@ const vector<string> ApvlvFile::mSupportFileExts
 ApvlvFile::ApvlvFile (__attribute__ ((unused)) const char *filename,
                       __attribute__ ((unused)) bool check)
 {
-  mIndex = nullptr;
-
   mRawdata = nullptr;
   mRawdataSize = 0;
 }
@@ -205,15 +203,9 @@ ApvlvFile::annot_update (int, ApvlvAnnotText *text)
   return false;
 }
 
-ApvlvFileIndex *
-ApvlvFileIndex::newDirIndex (const gchar *path, ApvlvFileIndex *parent_index)
+void
+ApvlvFileIndex::load_dir (const gchar *path)
 {
-  ApvlvFileIndex *root_index = parent_index;
-  if (root_index == nullptr)
-    {
-      root_index = new ApvlvFileIndex ("", 0, "", FILE_INDEX_DIR);
-    }
-
   GDir *dir = g_dir_open (path, 0, nullptr);
   if (dir != nullptr)
     {
@@ -249,10 +241,9 @@ ApvlvFileIndex::newDirIndex (const gchar *path, ApvlvFileIndex *parent_index)
 
           if (S_ISDIR (buf->st_mode))
             {
-              auto index
-                  = new ApvlvFileIndex (name, 0, realname, FILE_INDEX_DIR);
-              root_index->children.push_back (index);
-              newDirIndex (realname, index);
+              auto index = ApvlvFileIndex (name, 0, realname, FILE_INDEX_DIR);
+              index.load_dir (realname);
+              children.emplace_back (index);
             }
           else if (!file_ext.empty ())
             {
@@ -261,9 +252,9 @@ ApvlvFileIndex::newDirIndex (const gchar *path, ApvlvFileIndex *parent_index)
                 {
                   if (*ext == file_ext)
                     {
-                      auto index = new ApvlvFileIndex (name, 0, realname,
-                                                       FILE_INDEX_FILE);
-                      root_index->children.push_back (index);
+                      auto index = ApvlvFileIndex (name, 0, realname,
+                                                   FILE_INDEX_FILE);
+                      children.emplace_back (index);
                     }
                 }
             }
@@ -272,9 +263,8 @@ ApvlvFileIndex::newDirIndex (const gchar *path, ApvlvFileIndex *parent_index)
         }
     }
   g_dir_close (dir);
-
-  return root_index;
 }
+
 ApvlvFileIndex::ApvlvFileIndex (string title, int page, string path,
                                 ApvlvFileIndexType type)
 {
@@ -284,13 +274,7 @@ ApvlvFileIndex::ApvlvFileIndex (string title, int page, string path,
   this->type = type;
 }
 
-ApvlvFileIndex::~ApvlvFileIndex ()
-{
-  for (auto *child : children)
-    {
-      delete child;
-    }
-}
+ApvlvFileIndex::~ApvlvFileIndex () {}
 }
 
 // Local Variables:

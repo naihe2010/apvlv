@@ -206,17 +206,6 @@ ApvlvDJVU::pagetext (int pn, double x1, double y1, double x2, double y2,
   return false;
 }
 
-ApvlvFileIndex *
-ApvlvDJVU::new_index ()
-{
-  return nullptr;
-}
-
-void
-ApvlvDJVU::free_index (ApvlvFileIndex *index)
-{
-}
-
 bool
 ApvlvDJVU::pageprint (int pn, cairo_t *cr)
 {

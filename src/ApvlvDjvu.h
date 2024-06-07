@@ -58,10 +58,6 @@ public:
 
   ApvlvLinks *getlinks (int pn) override;
 
-  ApvlvFileIndex *new_index () override;
-
-  void free_index (ApvlvFileIndex *) override;
-
   bool pageprint (int pn, cairo_t *cr) override;
 
 private:

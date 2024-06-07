@@ -2101,12 +2101,9 @@ ApvlvDoc::webcontext_load_uri_callback (WebKitURISchemeRequest *request,
 }
 
 void
-ApvlvDoc::contentShowPage (ApvlvFileIndex *index, bool force)
+ApvlvDoc::contentShowPage (const ApvlvFileIndex &index, bool force)
 {
-  if (index == nullptr)
-    return;
-
-  if (index->type == ApvlvFileIndexType::FILE_INDEX_DIR)
+  if (index.type == ApvlvFileIndexType::FILE_INDEX_DIR)
     return;
 
   auto follow_mode = "always";
@@ -2122,26 +2119,26 @@ ApvlvDoc::contentShowPage (ApvlvFileIndex *index, bool force)
 
   else if (g_ascii_strcasecmp (follow_mode, "page") == 0)
     {
-      if (index->type == ApvlvFileIndexType::FILE_INDEX_PAGE)
+      if (index.type == ApvlvFileIndexType::FILE_INDEX_PAGE)
         {
-          if (index->page != mPagenum || index->anchor != mAnchor)
-            showpage (index->page, index->anchor);
+          if (index.page != mPagenum || index.anchor != mAnchor)
+            showpage (index.page, index.anchor);
         }
       return;
     }
 
   else if (g_ascii_strcasecmp (follow_mode, "always") == 0)
     {
-      if (index->type == ApvlvFileIndexType::FILE_INDEX_PAGE)
+      if (index.type == ApvlvFileIndexType::FILE_INDEX_PAGE)
         {
-          if (index->page != mPagenum || index->anchor != mAnchor)
-            showpage (index->page, index->anchor);
+          if (index.page != mPagenum || index.anchor != mAnchor)
+            showpage (index.page, index.anchor);
         }
       else
         {
-          if (index->path != filename ())
+          if (index.path != filename ())
             {
-              loadfile (index->path.c_str (), true, false);
+              loadfile (index.path.c_str (), true, false);
             }
         }
     }

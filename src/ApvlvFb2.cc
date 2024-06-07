@@ -155,7 +155,7 @@ ApvlvFB2::parse_fb2 (const char *content, size_t len)
 
   xmlFreeDoc (doc);
 
-  mIndex = fb2_get_index ();
+  fb2_get_index ();
   return true;
 }
 
@@ -296,11 +296,12 @@ ApvlvFB2::appendPage (const string &uri, const string &title,
   srcMimeTypes.insert ({ uri, mime });
 }
 
-ApvlvFileIndex *
+bool
 ApvlvFB2::fb2_get_index ()
 {
   char pagenum[16];
-  auto index = new ApvlvFileIndex ("", 0, "", FILE_INDEX_PAGE);
+
+  mIndex = { "", 0, "", FILE_INDEX_PAGE };
   for (int ind = 0; ind < (int)mPages.size (); ++ind)
     {
       snprintf (pagenum, sizeof pagenum, "%d", ind);
@@ -308,10 +309,11 @@ ApvlvFB2::fb2_get_index ()
         continue;
 
       auto title = titleSections[mPages[ind]].first;
-      auto chap = new ApvlvFileIndex (title, ind, pagenum, FILE_INDEX_PAGE);
-      index->children.push_back (chap);
+      auto chap = ApvlvFileIndex (title, ind, pagenum, FILE_INDEX_PAGE);
+      mIndex.children.emplace_back (chap);
     }
-  return index;
+
+  return true;
 }
 
 bool
@@ -374,18 +376,6 @@ ApvlvFB2::renderweb (int pn, int ix, int iy, double zm, int rot,
   snprintf (uri, sizeof uri, "apvlv:///%d", pn);
   webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), uri);
   return true;
-}
-
-ApvlvFileIndex *
-ApvlvFB2::new_index ()
-{
-  return mIndex;
-}
-
-void
-ApvlvFB2::free_index (ApvlvFileIndex *index)
-{
-  delete index;
 }
 
 bool

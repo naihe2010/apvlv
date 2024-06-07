@@ -201,7 +201,7 @@ public:
 
   void showpage (int p, const string &anchor) override;
 
-  void contentShowPage (ApvlvFileIndex *index, bool force);
+  void contentShowPage (const ApvlvFileIndex &index, bool force);
 
   void nextpage (int times) override;
 

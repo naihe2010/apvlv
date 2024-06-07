@@ -165,7 +165,7 @@ public:
 protected:
   ApvlvFile *mFile{};
 
-  ApvlvFileIndex *mDirIndex{};
+  ApvlvFileIndex mDirIndex{};
 
   bool mAutoScrollPage{};
   bool mAutoScrollDoc{};

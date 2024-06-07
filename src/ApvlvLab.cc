@@ -117,18 +117,6 @@ ApvlvLab::renderweb (int pn, int ix, int iy, double zm, int rot,
   return true;
 }
 
-ApvlvFileIndex *
-ApvlvLab::new_index ()
-{
-  return nullptr;
-}
-
-void
-ApvlvLab::free_index (ApvlvFileIndex *index)
-{
-  delete index;
-}
-
 }
 
 // Local Variables:

@@ -117,17 +117,6 @@ ApvlvTXT::renderweb (int pn, int ix, int iy, double zm, int rot,
   return true;
 }
 
-ApvlvFileIndex *
-ApvlvTXT::new_index ()
-{
-  return nullptr;
-}
-
-void
-ApvlvTXT::free_index (ApvlvFileIndex *index)
-{
-}
-
 bool
 ApvlvTXT::pageprint (int pn, cairo_t *cr)
 {

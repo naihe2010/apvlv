@@ -38,7 +38,6 @@ namespace apvlv
 {
 ApvlvContent::ApvlvContent ()
 {
-  mIndex = nullptr;
   mDoc = nullptr;
   memset (&mCurrentIter, 0, sizeof (mCurrentIter));
 
@@ -71,32 +70,27 @@ ApvlvContent::widget ()
 }
 
 void
-ApvlvContent::setIndex (ApvlvFileIndex *index)
+ApvlvContent::setIndex (const ApvlvFileIndex &index)
 {
-  setIndex (index, nullptr);
+  gtk_tree_store_clear (mStore);
+
+  mIndex = index;
+
+  setIndex (mIndex, nullptr);
 
   g_timeout_add (50, (gboolean (*) (gpointer))apvlv_content_first_select_cb,
                  this);
 }
 
 void
-ApvlvContent::setIndex (ApvlvFileIndex *index, GtkTreeIter *root_itr)
+ApvlvContent::setIndex (const ApvlvFileIndex &index, GtkTreeIter *root_itr)
 {
   GtkTreeIter iter;
 
-  if (index == nullptr)
-    return;
-
-  if (root_itr == nullptr)
-    {
-      mIndex = index;
-      gtk_tree_store_clear (mStore);
-    }
-
-  for (const auto child : index->children)
+  for (const auto &child : index.children)
     {
       gtk_tree_store_append (mStore, &iter, root_itr);
-      gtk_tree_store_set (mStore, &iter, 0, child, 1, child->title.c_str (),
+      gtk_tree_store_set (mStore, &iter, 0, &child, 1, child.title.c_str (),
                           -1);
       setIndex (child, &iter);
     }
@@ -131,10 +125,7 @@ ApvlvContent::apvlv_set_iter_by_index (GtkTreeModel *model, GtkTreePath *path,
 void
 ApvlvContent::setCurrentIndex (int pn, const char *anchor)
 {
-  if (!mIndex)
-    return;
-
-  if (mIndex->type == FILE_INDEX_DIR)
+  if (mIndex.type == FILE_INDEX_DIR)
     return;
 
   mTargetIndex.first = pn;
@@ -147,9 +138,6 @@ ApvlvContent::setCurrentIndex (int pn, const char *anchor)
 void
 ApvlvContent::scrollup (int times)
 {
-  if (!mIndex)
-    return;
-
   GtkTreePath *path;
 
   if ((path = gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter))
@@ -173,9 +161,6 @@ ApvlvContent::scrollup (int times)
 void
 ApvlvContent::scrolldown (int times)
 {
-  if (!mIndex)
-    return;
-
   GtkTreeIter itr;
   gboolean ret;
 
@@ -204,9 +189,6 @@ ApvlvContent::scrolldown (int times)
 void
 ApvlvContent::scrollleft (int times)
 {
-  if (!mIndex)
-    return;
-
   GtkTreeIter itr;
   for (gboolean ret = TRUE; times > 0 && ret; times--)
     {
@@ -234,9 +216,6 @@ ApvlvContent::scrollleft (int times)
 void
 ApvlvContent::scrollright (int times)
 {
-  if (!mIndex)
-    return;
-
   GtkTreeIter itr;
   for (gboolean ret = TRUE; times > 0 && ret; times--)
     {
@@ -281,9 +260,6 @@ ApvlvContent::apvlv_content_on_row_activated (GtkTreeView *tree_view,
 gboolean
 ApvlvContent::apvlv_content_first_select_cb (ApvlvContent *content)
 {
-  if (!content->mIndex)
-    return FALSE;
-
   GtkTreeIter tree_iter;
 
   if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (content->mStore),
@@ -296,15 +272,12 @@ ApvlvContent::apvlv_content_first_select_cb (ApvlvContent *content)
   return FALSE;
 }
 
-ApvlvFileIndex *
+const ApvlvFileIndex
 ApvlvContent::currentIndex ()
 {
-  if (!mIndex)
-    return nullptr;
-
   ApvlvFileIndex *index;
   gtk_tree_model_get (GTK_TREE_MODEL (mStore), &mCurrentIter, 0, &index, -1);
-  return index;
+  return *index;
 }
 }
 

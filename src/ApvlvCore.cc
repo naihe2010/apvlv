@@ -502,13 +502,9 @@ ApvlvCore::toggleContent (bool show)
 {
   if (show)
     {
-      ApvlvFileIndex *index = mFile->new_index ();
-      if (index)
-        {
-          mContent->setIndex (index);
-          delete mDirIndex;
-          mDirIndex = nullptr;
-        }
+      const ApvlvFileIndex &index = mFile->get_index ();
+      mContent->setIndex (index);
+      mDirIndex = {};
       gtk_paned_set_position (GTK_PANED (mPaned), APVLV_DEFAULT_CONTENT_WIDTH);
     }
   else
@@ -537,13 +533,9 @@ ApvlvCore::setactive (bool act)
 void
 ApvlvCore::setDirIndex (const gchar *path)
 {
-  ApvlvFileIndex *index = ApvlvFileIndex::newDirIndex (path);
-  if (index)
-    {
-      mContent->setIndex (index);
-      delete mDirIndex;
-      mDirIndex = index;
-    }
+  mDirIndex = { "", 0, "", FILE_INDEX_DIR };
+  mDirIndex.load_dir (path);
+  mContent->setIndex (mDirIndex);
 }
 
 bool

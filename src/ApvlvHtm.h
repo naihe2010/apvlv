@@ -63,17 +63,10 @@ public:
 
   ApvlvLinks *getlinks (int pn) override;
 
-  ApvlvFileIndex *new_index () override;
-
-  void free_index (ApvlvFileIndex *) override;
-
   bool pageprint (int pn, cairo_t *cr) override;
 
   DISPLAY_TYPE
-  get_display_type () override
-  {
-    return DISPLAY_TYPE_HTML;
-  }
+  get_display_type () override { return DISPLAY_TYPE_HTML; }
 
 private:
   string mUri;

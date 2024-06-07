@@ -43,8 +43,7 @@ public:
   bool render (int, int, int, double, int, GdkPixbuf *, char *) override;
   bool renderweb (int pn, int ix, int iy, double zm, int rot,
                   GtkWidget *widget) override;
-  ApvlvFileIndex *new_index () override;
-  void free_index (ApvlvFileIndex *index) override;
+
 private:
 };
 

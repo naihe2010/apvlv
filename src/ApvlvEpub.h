@@ -63,28 +63,22 @@ public:
 
   ApvlvLinks *getlinks (int pn) override;
 
-  ApvlvFileIndex *new_index () override;
-
-  void free_index (ApvlvFileIndex *) override;
-
   bool pageprint (int pn, cairo_t *cr) override;
 
   gchar *get_ocf_file (const char *path, gssize *) override;
 
   DISPLAY_TYPE
-  get_display_type () override
-  {
-    return DISPLAY_TYPE_HTML;
-  }
+  get_display_type () override { return DISPLAY_TYPE_HTML; }
 
 private:
   static string container_get_contentfile (const char *container, int len);
 
   bool content_get_media (struct epub *epub, const string &contentfile);
 
-  ApvlvFileIndex *ncx_get_index (struct epub *epub, const string &ncxfile);
+  bool ncx_set_index (struct epub *epub, const string &ncxfile);
 
-  ApvlvFileIndex *ncx_node_get_index (xmlNodePtr node, const string &ncxfile);
+  void ncx_node_set_index (xmlNodePtr node, const string &ncxfile,
+                           ApvlvFileIndex &index);
 
   struct epub *mEpub;
   std::map<string, string> idSrcs;

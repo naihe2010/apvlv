@@ -59,10 +59,6 @@ public:
 
   ApvlvLinks *getlinks (int pn) override;
 
-  ApvlvFileIndex *new_index () override;
-
-  void free_index (ApvlvFileIndex *) override;
-
   bool pageprint (int pn, cairo_t *cr) override;
 
   gchar *get_ocf_file (const gchar *path, gssize *) override;
@@ -70,10 +66,7 @@ public:
   const gchar *get_ocf_mime_type (const gchar *path) override;
 
   DISPLAY_TYPE
-  get_display_type () override
-  {
-    return DISPLAY_TYPE_HTML;
-  }
+  get_display_type () override { return DISPLAY_TYPE_HTML; }
 
 private:
   gchar *mContent;

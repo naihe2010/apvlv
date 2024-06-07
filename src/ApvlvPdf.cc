@@ -29,7 +29,7 @@
 #include "ApvlvView.h"
 
 #ifndef POPPLER_WITH_GDK
-//#include <goo/gtypes.h>
+// #include <goo/gtypes.h>
 
 static void
 copy_cairo_surface_to_pixbuf (cairo_surface_t *surface, GdkPixbuf *pixbuf)
@@ -477,33 +477,21 @@ ApvlvPDF::getlinks (int pn)
   return links;
 }
 
-ApvlvFileIndex *
-ApvlvPDF::new_index ()
+bool
+ApvlvPDF::pdf_get_index ()
 {
-  if (mIndex != nullptr)
-    {
-      debug ("file %p has index: %p, return", this, mIndex);
-      return mIndex;
-    }
-
   PopplerIndexIter *itr = poppler_index_iter_new (mDoc);
   if (itr == nullptr)
     {
       debug ("no index.");
-      return nullptr;
+      return false;
     }
 
-  mIndex = new ApvlvFileIndex ("", 0, "", FILE_INDEX_PAGE);
-  walk_poppler_index_iter (mIndex, itr);
+  mIndex = { "", 0, "", FILE_INDEX_PAGE };
+  walk_poppler_index_iter (&mIndex, itr);
   poppler_index_iter_free (itr);
 
-  return mIndex;
-}
-
-void
-ApvlvPDF::free_index (ApvlvFileIndex *index)
-{
-  delete index;
+  return true;
 }
 
 bool
@@ -514,7 +502,7 @@ ApvlvPDF::walk_poppler_index_iter (ApvlvFileIndex *root_index,
   do
     {
       has = false;
-      ApvlvFileIndex *index;
+      ApvlvFileIndex index;
 
       PopplerAction *act = poppler_index_iter_get_action (iter);
       if (act)
@@ -532,14 +520,12 @@ ApvlvPDF::walk_poppler_index_iter (ApvlvFileIndex *root_index,
                       pn = destnew->page_num - 1;
                       poppler_dest_free (destnew);
                     }
-                  index = new ApvlvFileIndex (pagd->title, pn, "",
-                                              FILE_INDEX_PAGE);
+                  index = { pagd->title, pn, "", FILE_INDEX_PAGE };
                 }
               else
                 {
-                  index = new ApvlvFileIndex (pagd->title,
-                                              pagd->dest->page_num - 1, "",
-                                              FILE_INDEX_PAGE);
+                  index = { pagd->title, pagd->dest->page_num - 1, "",
+                            FILE_INDEX_PAGE };
                 }
 
               has = true;
@@ -552,7 +538,7 @@ ApvlvPDF::walk_poppler_index_iter (ApvlvFileIndex *root_index,
       if (child)
         {
           bool chas
-              = walk_poppler_index_iter (has ? index : root_index, child);
+              = walk_poppler_index_iter (has ? &index : root_index, child);
           has = has ? has : chas;
           poppler_index_iter_free (child);
         }

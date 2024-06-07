@@ -51,11 +51,11 @@ public:
 
   GtkWidget *widget ();
 
-  ApvlvFileIndex *currentIndex ();
+  const ApvlvFileIndex currentIndex ();
 
-  void setIndex (ApvlvFileIndex *index);
+  void setIndex (const ApvlvFileIndex &index);
 
-  void setIndex (ApvlvFileIndex *index, GtkTreeIter *root_itr);
+  void setIndex (const ApvlvFileIndex &index, GtkTreeIter *root_itr);
 
   void setCurrentIndex (int pn, const char *anchor);
 
@@ -79,7 +79,7 @@ private:
   GtkTreeSelection *mSelection;
   GtkTreeIter mCurrentIter;
 
-  ApvlvFileIndex *mIndex;
+  ApvlvFileIndex mIndex;
 
   std::pair<int, string> mTargetIndex;
 

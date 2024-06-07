@@ -101,18 +101,6 @@ ApvlvHTML::getlinks (int pn)
   return nullptr;
 }
 
-ApvlvFileIndex *
-ApvlvHTML::new_index ()
-{
-  return nullptr;
-}
-
-void
-ApvlvHTML::free_index (ApvlvFileIndex *index)
-{
-  delete index;
-}
-
 bool
 ApvlvHTML::pageprint (int pn, cairo_t *cr)
 {

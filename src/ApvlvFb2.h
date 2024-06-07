@@ -60,10 +60,6 @@ public:
 
   ApvlvLinks *getlinks (int pn) override;
 
-  ApvlvFileIndex *new_index () override;
-
-  void free_index (ApvlvFileIndex *) override;
-
   bool pageprint (int pn, cairo_t *cr) override;
 
   gchar *get_ocf_file (const gchar *path, gssize *) override;
@@ -85,7 +81,7 @@ private:
                       const string &mime);
   void appendPage (const string &uri, const string &title,
                    const string &section, const string &mime);
-  ApvlvFileIndex *fb2_get_index ();
+  bool fb2_get_index ();
 };
 
 }

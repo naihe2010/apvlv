@@ -33,6 +33,7 @@
 
 #include <iostream>
 #include <map>
+#include <memory>
 #include <vector>
 using namespace std;
 
@@ -101,19 +102,19 @@ enum ApvlvFileIndexType
 class ApvlvFileIndex
 {
 public:
+  ApvlvFileIndex () = default;
   ApvlvFileIndex (string title, int page, string path,
                   ApvlvFileIndexType type);
   ~ApvlvFileIndex ();
 
-  static ApvlvFileIndex *newDirIndex (const gchar *path,
-                                      ApvlvFileIndex *parent_index = nullptr);
+  void load_dir (const gchar *path);
 
   string title;
   int page;
   string path;
   string anchor;
   ApvlvFileIndexType type;
-  vector<ApvlvFileIndex *> children;
+  vector<ApvlvFileIndex> children;
 };
 
 class ApvlvFile
@@ -159,10 +160,6 @@ public:
 
   virtual ApvlvLinks *getlinks (int pn) = 0;
 
-  virtual ApvlvFileIndex *new_index () = 0;
-
-  virtual void free_index (ApvlvFileIndex *) = 0;
-
   virtual bool pageprint (int pn, cairo_t *cr) = 0;
 
   virtual gchar *get_ocf_file (const gchar *path, gssize *);
@@ -173,10 +170,20 @@ public:
 
   virtual DISPLAY_TYPE get_display_type ();
 
-  virtual const ApvlvCover &get_cover() { return mCover;}
+  const ApvlvCover &
+  get_cover ()
+  {
+    return mCover;
+  }
+
+  const ApvlvFileIndex &
+  get_index ()
+  {
+    return mIndex;
+  }
 
 protected:
-  ApvlvFileIndex *mIndex;
+  ApvlvFileIndex mIndex;
 
   gchar *mRawdata;
   guint mRawdataSize;

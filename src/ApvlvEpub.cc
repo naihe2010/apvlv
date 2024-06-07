@@ -70,7 +70,7 @@ ApvlvEPUB::ApvlvEPUB (const char *filename, bool check)
       throw std::bad_alloc ();
     }
 
-  mIndex = ncx_get_index (mEpub, idSrcs["ncx"]);
+  ncx_set_index (mEpub, idSrcs["ncx"]);
 }
 
 ApvlvEPUB::~ApvlvEPUB () { epub_close (mEpub); }
@@ -130,18 +130,6 @@ ApvlvLinks *
 ApvlvEPUB::getlinks (int pn)
 {
   return nullptr;
-}
-
-ApvlvFileIndex *
-ApvlvEPUB::new_index ()
-{
-  return mIndex;
-}
-
-void
-ApvlvEPUB::free_index (ApvlvFileIndex *index)
-{
-  delete index;
 }
 
 bool
@@ -288,10 +276,9 @@ ApvlvEPUB::content_get_media (struct epub *epub, const string &contentfile)
   return true;
 }
 
-ApvlvFileIndex *
-ApvlvEPUB::ncx_get_index (struct epub *epub, const string &ncxfile)
+bool
+ApvlvEPUB::ncx_set_index (struct epub *epub, const string &ncxfile)
 {
-  ApvlvFileIndex *index = nullptr;
   xmlDocPtr doc;
   xmlNodePtr map, node;
 
@@ -307,7 +294,7 @@ ApvlvEPUB::ncx_get_index (struct epub *epub, const string &ncxfile)
   free (tocncx);
   if (doc == nullptr)
     {
-      return index;
+      return false;
     }
 
   map = xmldoc_get_node (doc, "//c:ncx/c:navMap", "c",
@@ -315,10 +302,10 @@ ApvlvEPUB::ncx_get_index (struct epub *epub, const string &ncxfile)
   if (map == nullptr)
     {
       xmlFreeDoc (doc);
-      return index;
+      return false;
     }
 
-  index = new ApvlvFileIndex ("__cover__", 0, "", FILE_INDEX_PAGE);
+  mIndex = { "__cover__", 0, "", FILE_INDEX_PAGE };
 
   for (node = map->children; node != nullptr; node = node->next)
     {
@@ -327,18 +314,19 @@ ApvlvEPUB::ncx_get_index (struct epub *epub, const string &ncxfile)
           continue;
         }
 
-      ApvlvFileIndex *childindex = ncx_node_get_index (node, ncxfile);
-      index->children.push_back (childindex);
+      auto childindex = ApvlvFileIndex{};
+      ncx_node_set_index (node, ncxfile, childindex);
+      mIndex.children.emplace_back (childindex);
     }
 
   xmlFreeDoc (doc);
-  return index;
+  return true;
 }
 
-ApvlvFileIndex *
-ApvlvEPUB::ncx_node_get_index (xmlNodePtr node, const string &ncxfile)
+void
+ApvlvEPUB::ncx_node_set_index (xmlNodePtr node, const string &ncxfile,
+                               ApvlvFileIndex &index)
 {
-  auto *index = new ApvlvFileIndex ("", 0, "", FILE_INDEX_PAGE);
   xmlNodePtr child;
 
   for (child = node->children; child != nullptr; child = child->next)
@@ -349,7 +337,7 @@ ApvlvEPUB::ncx_node_get_index (xmlNodePtr node, const string &ncxfile)
             {
               if (g_ascii_strcasecmp ((gchar *)ln->name, "text") == 0)
                 {
-                  index->title = string ((char *)ln->children->content);
+                  index.title = (char *)ln->children->content;
                   break;
                 }
             }
@@ -368,12 +356,12 @@ ApvlvEPUB::ncx_node_get_index (xmlNodePtr node, const string &ncxfile)
               g_free (ncxdir);
             }
 
-          index->path = srcstr;
+          index.path = srcstr;
 
           auto href = srcstr;
           if (srcstr.find ('#') != string::npos)
             {
-              index->anchor = srcstr.substr (srcstr.find ('#'));
+              index.anchor = srcstr.substr (srcstr.find ('#'));
               href = srcstr.substr (0, srcstr.find ('#'));
             }
 
@@ -381,7 +369,7 @@ ApvlvEPUB::ncx_node_get_index (xmlNodePtr node, const string &ncxfile)
             {
               if (mPages[ind] == href)
                 {
-                  index->page = int (ind);
+                  index.page = int (ind);
                   break;
                 }
             }
@@ -389,12 +377,11 @@ ApvlvEPUB::ncx_node_get_index (xmlNodePtr node, const string &ncxfile)
 
       if (g_ascii_strcasecmp ((gchar *)child->name, "navPoint") == 0)
         {
-          ApvlvFileIndex *childindex = ncx_node_get_index (child, ncxfile);
-          index->children.push_back (childindex);
+          auto childindex = ApvlvFileIndex{};
+          ncx_node_set_index (child, ncxfile, childindex);
+          index.children.emplace_back (childindex);
         }
     }
-
-  return index;
 }
 }
 
