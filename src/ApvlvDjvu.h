@@ -49,16 +49,13 @@ public:
 
   bool pagetext (int, double, double, double, double, char **) override;
 
-  bool render (int, int, int, double, int, GdkPixbuf *, char *) override;
-
-  bool pageselectsearch (int, int, int, double, int, GdkPixbuf *, char *, int,
-                         ApvlvPoses *) override;
+  bool render (int, int, int, double, int, QImage *, char *) override;
 
   ApvlvPoses *pagesearch (int pn, const char *s, bool reverse) override;
 
   ApvlvLinks *getlinks (int pn) override;
 
-  bool pageprint (int pn, cairo_t *cr) override;
+  bool pageprint (int pn, QPrinter *cr) override;
 
 private:
   ddjvu_context_t *mContext;

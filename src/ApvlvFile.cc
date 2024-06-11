@@ -25,19 +25,22 @@
  */
 /* @date Created: 2009/11/20 19:38:30 Alf*/
 
-#include "ApvlvFile.h"
-#include "ApvlvEpub.h"
-#include "ApvlvHtm.h"
-#include "ApvlvPdf.h"
-#include "ApvlvUtil.h"
 #include <algorithm>
 #include <filesystem>
 #include <functional>
-#include <glib.h>
 #include <iostream>
-#include <sys/stat.h>
+#include <optional>
 #include <utility>
 
+#ifdef APVLV_WITH_POPPLER
+#include "ApvlvPopplerPdf.h"
+#else
+#include "ApvlvQtPdf.h"
+#endif
+#include "ApvlvEpub.h"
+#include "ApvlvFile.h"
+#include "ApvlvHtm.h"
+#include "ApvlvUtil.h"
 #ifdef APVLV_WITH_DJVU
 #include "ApvlvDjvu.h"
 #endif
@@ -60,7 +63,9 @@ ApvlvFile::supportMimeTypes ()
 }
 
 const map<string, vector<string> > ApvlvFile::mSupportMimeTypes = {
+#ifdef APVLV_WITH_POPPLER
   { "PDF File", { "*.pdf", "*.PDF" } },
+#endif
   { "HTML File", { ".HTM", ".htm", "*.HTML", ".html" } },
   { "ePub File", { "*.EPUB", "*.epub" } },
 #ifdef APVLV_WITH_DJVU
@@ -76,28 +81,24 @@ ApvlvFile::supportFileExts ()
   return mSupportFileExts;
 }
 
-const vector<string> ApvlvFile::mSupportFileExts
-    = { ".pdf", ".html", ".htm", ".epub", ".djv", ".djvu", ".txt", ".fb2" };
+const vector<string> ApvlvFile::mSupportFileExts = {
+#ifdef APVLV_WITH_POPPLER
+  ".pdf",
+#endif
+  ".html", ".htm", ".epub", ".djv", ".djvu", ".txt", ".fb2"
+};
 
-ApvlvFile::ApvlvFile (__attribute__ ((unused)) const char *filename,
-                      __attribute__ ((unused)) bool check)
-{
-  mRawdata = nullptr;
-  mRawdataSize = 0;
-}
+ApvlvFile::ApvlvFile (const string &filename, bool check) {}
 
 ApvlvFile::~ApvlvFile ()
 {
-  delete[] mRawdata;
-  mRawdata = nullptr;
-
   mPages.clear ();
   srcPages.clear ();
   srcMimeTypes.clear ();
 }
 
 ApvlvFile *
-ApvlvFile::newFile (const char *filename, __attribute__ ((unused)) bool check)
+ApvlvFile::newFile (const string &filename, bool check)
 {
   ApvlvFile *file;
   map<string, function<ApvlvFile *()> > type_class;
@@ -144,34 +145,33 @@ ApvlvFile::newFile (const char *filename, __attribute__ ((unused)) bool check)
 }
 
 bool
-ApvlvFile::render (int pn, int ix, int iy, double zm, int rot, GdkPixbuf *pix,
-                   char *buffer)
+ApvlvFile::render (int pn, int ix, int iy, double zm, int rot, QImage *pix)
 {
   return false;
 }
 
 bool
-ApvlvFile::renderweb (int pn, int, int, double, int, GtkWidget *widget)
+ApvlvFile::render (int pn, int, int, double, int, QWebEngineView *)
 {
   return false;
 }
 
-gchar *
-ApvlvFile::get_ocf_file (const gchar *path, gssize *sizep)
+optional<QByteArray>
+ApvlvFile::get_ocf_file (const string &path)
 {
-  return nullptr;
+  return nullopt;
 }
 
-const gchar *
-ApvlvFile::get_ocf_mime_type (const gchar *path)
+string
+ApvlvFile::get_ocf_mime_type (const string &path)
 {
   if (srcMimeTypes.find (path) != srcMimeTypes.end ())
-    return srcMimeTypes[path].c_str ();
+    return srcMimeTypes[path];
   return "text/html";
 }
 
 int
-ApvlvFile::get_ocf_page (const gchar *path)
+ApvlvFile::get_ocf_page (const string &path)
 {
   if (srcPages.find (path) != srcPages.end ())
     return srcPages[path];
@@ -182,14 +182,55 @@ DISPLAY_TYPE
 ApvlvFile::get_display_type () { return DISPLAY_TYPE_IMAGE; }
 
 bool
-ApvlvFile::annot_underline (int, gdouble, gdouble, gdouble, gdouble)
+ApvlvFile::hasByteArray (const string &key)
+{
+  return mCacheByteArray.contains (key);
+}
+
+optional<const QByteArray>
+ApvlvFile::getByteArray (const string &key)
+{
+  if (mCacheByteArray.contains (key))
+    return mCacheByteArray[key];
+  else
+    return nullopt;
+}
+
+void
+ApvlvFile::cacheByteArray (const string &key, const QByteArray &array)
+{
+  mCacheByteArray.insert (key, array);
+}
+
+bool
+ApvlvFile::pageselectsearch (int pn, int ix, int iy, double zm, int rot,
+                             QImage *pix, ApvlvPoses *poses)
+{
+  for (auto const &pos : *poses)
+    {
+      for (int w = pos.p1x * zm; w < pos.p2x * zm; ++w)
+        {
+          for (int h = pos.p2y * zm; h < pos.p1y * zm; ++h)
+            {
+              QColor rgb = pix->pixel (w, h);
+              rgb.setRgb (255 - rgb.red (), 255 - rgb.green (),
+                          255 - rgb.blue ());
+              pix->setPixel (w, h, rgb.rgba ());
+            }
+        }
+    }
+
+  return true;
+}
+
+bool
+ApvlvFile::annot_underline (int, double, double, double, double)
 {
   return false;
 }
 
 bool
-ApvlvFile::annot_text (int, gdouble, gdouble, gdouble, gdouble,
-                       const char *text)
+ApvlvFile::annot_text (int, double, double, double, double, const char *text)
 {
   return false;
 }
@@ -207,27 +248,29 @@ ApvlvFile::annot_update (int, ApvlvAnnotText *text)
 }
 
 void
-ApvlvFileIndex::load_dir (const gchar *path1)
+ApvlvFileIndex::load_dir (const string &path1)
 {
   for (auto &entry :
        directory_iterator (path1, directory_options::follow_directory_symlink))
     {
       if (entry.is_directory ())
         {
-          auto index = ApvlvFileIndex (entry.path ().filename (), 0,
-                                       entry.path (), FILE_INDEX_DIR);
-          index.load_dir (entry.path ().c_str ());
-          children.emplace_back (index);
+          auto index
+              = ApvlvFileIndex (entry.path ().string (), 0,
+                                entry.path ().string (), FILE_INDEX_DIR);
+          index.load_dir (entry.path ().string ());
+          mChildrenIndex.emplace_back (index);
         }
       else if (entry.file_size () > 0)
         {
-          auto file_ext = filename_ext (entry.path ().filename ().c_str ());
+          auto file_ext = filename_ext (entry.path ().string ());
           auto exts = ApvlvFile::supportFileExts ();
           if (count (exts.rbegin (), exts.rend (), file_ext) > 0)
             {
-              auto index = ApvlvFileIndex (entry.path ().filename (), 0,
-                                           entry.path (), FILE_INDEX_FILE);
-              children.emplace_back (index);
+              auto index
+                  = ApvlvFileIndex (entry.path ().string (), 0,
+                                    entry.path ().string (), FILE_INDEX_FILE);
+              mChildrenIndex.emplace_back (index);
             }
         }
     }

@@ -74,21 +74,15 @@ ApvlvParams::ApvlvParams ()
 ApvlvParams::~ApvlvParams () { mSettings.clear (); }
 
 bool
-ApvlvParams::loadfile (const char *filename)
+ApvlvParams::loadfile (const string &filename)
 {
-  if (filename == nullptr
-      || g_file_test (filename, G_FILE_TEST_IS_REGULAR) == FALSE)
-    {
-      return false;
-    }
-
   //    debug ("load debug: %s", filename);
   string str;
   fstream os (filename, ios::in);
 
   if (!os.is_open ())
     {
-      errp ("Open configure file %s error", filename);
+      errp ("Open configure file %s error", filename.c_str ());
       return false;
     }
 
@@ -128,7 +122,7 @@ ApvlvParams::loadfile (const char *filename)
                   p++;
                 }
 
-              g_snprintf (v, sizeof v, "%s", *p ? p : "");
+              snprintf (v, sizeof v, "%s", *p ? p : "");
 
               p = (char *)v + strlen (v) - 1;
               while (isspace (*p) && p >= v)

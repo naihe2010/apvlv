@@ -19,28 +19,29 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/* @CPPFILE ApvlvHtm.h
+/* @CPPFILE ApvlvPdf.h
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2011/09/16 13:50:49 Alf*/
+/* @date Created: 2011/09/16 13:50:04 Alf*/
 
-#ifndef _APVLV_HTM_H_
-#define _APVLV_HTM_H_
+#ifndef _APVLV_POPPLERPDF_H_
+#define _APVLV_POPPLERPDF_H_
+
+#include <qt6/poppler-qt6.h>
 
 #include "ApvlvFile.h"
 
 namespace apvlv
 {
-const double HTML_DEFAULT_WIDTH = 800;
-const double HTML_DEFAULT_HEIGHT = 800;
 
-class ApvlvHTML : public ApvlvFile
+using namespace Poppler;
+class ApvlvPDF : public ApvlvFile
 {
 public:
-  explicit ApvlvHTML (const string &filename, bool check = true);
+  explicit ApvlvPDF (const string &filename, bool check = true);
 
-  ~ApvlvHTML () override;
+  ~ApvlvPDF () override = default;
 
   bool writefile (const char *filename) override;
 
@@ -48,27 +49,35 @@ public:
 
   int pagesum () override;
 
-  bool pagetext (int, double, double, double, double, char **) override;
+  bool pagetext (int pn, double x1, double y1, double x2, double y2,
+                 char **out) override;
 
-  bool render (int pn, int ix, int iy, double zm, int rot,
-               QWebEngineView *webview) override;
+  bool render (int, int, int, double, int, QImage *) override;
 
-  unique_ptr<ApvlvPoses> pagesearch (int pn, const char *str,
+  bool annot_underline (int, double, double, double, double) override;
+
+  bool annot_text (int, double, double, double, double,
+                   const char *text) override;
+
+  bool annot_update (int pn, ApvlvAnnotText *text) override;
+
+  unique_ptr<ApvlvPoses> pagesearch (int pn, const char *s,
                                      bool reverse) override;
+
+  ApvlvAnnotTexts getAnnotTexts (int pn) override;
 
   unique_ptr<ApvlvLinks> getlinks (int pn) override;
 
   bool pageprint (int pn, QPrinter *cr) override;
 
-  DISPLAY_TYPE
-  get_display_type () override { return DISPLAY_TYPE_HTML; }
-
 private:
-  string mUri;
+  bool pdf_get_index ();
+  void pdf_get_children_index (ApvlvFileIndex &root_index,
+                               QVector<OutlineItem> &outlines);
+
+  unique_ptr<Document> mDoc;
 };
-
 }
-
 #endif
 
 /* Local Variables: */

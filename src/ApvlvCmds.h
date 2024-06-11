@@ -29,9 +29,8 @@
 #ifndef _APVLV_CMDS_H_
 #define _APVLV_CMDS_H_
 
-#include <gtk/gtk.h>
-
-#include <iostream>
+#include <QKeyEvent>
+#include <QTimer>
 #include <map>
 #include <vector>
 
@@ -48,10 +47,10 @@ typedef enum
   CT_STRING_RETURN
 } cmdType;
 
-typedef map<const char *, gint> StringKeyMap;
+typedef map<const char *, int> StringKeyMap;
 
 class ApvlvCmd;
-typedef vector<gint> ApvlvCmdKeyv;
+typedef vector<int> ApvlvCmdKeyv;
 typedef map<ApvlvCmdKeyv, ApvlvCmd *> ApvlvCmdMap;
 
 class ApvlvView;
@@ -66,7 +65,7 @@ public:
 
   void push (const char *s, cmdType type = CT_CMD);
 
-  bool append (GdkEventKey *key);
+  bool append (QKeyEvent *key);
 
   const char *append (const char *s);
 
@@ -80,11 +79,11 @@ public:
 
   ApvlvCmdKeyv keyvalv ();
 
-  void precount (gint precount);
+  void precount (int precount);
 
-  gint precount () const;
+  [[nodiscard]] int precount () const;
 
-  gint keyval (guint id);
+  int keyval (uint id);
 
   ApvlvCmd *next ();
 
@@ -96,7 +95,7 @@ private:
   // command type
   cmdType mType;
 
-  // if has count
+  // if it has count
   bool mHasPreCount;
 
   // how to describe this command in .apvlvrc
@@ -107,7 +106,7 @@ private:
   ApvlvCmdKeyv mKeyVals;
 
   // cmd's pre count
-  gint mPreCount;
+  int mPreCount;
 
   // next command
   ApvlvCmd *mNext;
@@ -117,14 +116,15 @@ private:
   ApvlvCmd *mOrigin;
 };
 
-class ApvlvCmds
+class ApvlvCmds : public QObject
 {
+  Q_OBJECT
 public:
   explicit ApvlvCmds (ApvlvView *view);
 
-  ~ApvlvCmds ();
+  ~ApvlvCmds () override;
 
-  void append (GdkEventKey *gev);
+  void append (QKeyEvent *gev);
 
   static void buildmap (const char *os, const char *ms);
 
@@ -134,8 +134,6 @@ private:
   static returnType ismap (ApvlvCmdKeyv *ack);
 
   static ApvlvCmd *getmap (ApvlvCmd *cmd);
-
-  static gboolean apvlv_cmds_timeout_cb (gpointer);
 
   ApvlvCmd *mCmdHead;
 
@@ -149,9 +147,12 @@ private:
     CMD_OK,
   } mState;
 
-  guint mTimeoutTimer;
+  unique_ptr<QTimer> mTimeoutTimer;
 
   string mCountString;
+
+private slots:
+  void timeout_cb ();
 };
 }
 

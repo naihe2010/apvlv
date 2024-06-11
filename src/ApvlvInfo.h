@@ -28,14 +28,15 @@
 #ifndef _APVLV_INFO_H_
 #define _APVLV_INFO_H_
 
-#include <glib.h>
+#include <optional>
 #include <string>
+#include <vector>
 
 using namespace std;
 
 namespace apvlv
 {
-struct infofile
+struct InfoFile
 {
   int page;
   int skip;
@@ -46,19 +47,19 @@ struct infofile
 class ApvlvInfo
 {
 public:
-  explicit ApvlvInfo (const char *file);
-  ~ApvlvInfo ();
+  ApvlvInfo (const string &file);
+  ~ApvlvInfo () = default;
 
   bool update ();
 
-  infofile *file (int);
-  infofile *file (const char *);
-  bool file (int, double, const char *, int);
+  optional<InfoFile *> file (int);
+  optional<InfoFile *> file (const string &filename);
+  bool updateFile (int page, int skip, double rate, const string &filename);
 
 private:
   string mFileName;
 
-  GSList *mFileHead;
+  vector<InfoFile> mInfoFiles;
   int mFileMax;
 
   bool ini_add_position (const char *);

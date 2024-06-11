@@ -26,13 +26,18 @@
  */
 /* @date Created: 2009/01/04 09:34:51 Alf*/
 
+#include <QLineEdit>
+#include <QScrollArea>
+#include <QSplitter>
+#include <QWebEngineProfile>
+#include <QWebEngineView>
+#include <filesystem>
+#include <iostream>
+#include <sstream>
+
 #include "ApvlvCore.h"
 #include "ApvlvParams.h"
 #include "ApvlvView.h"
-
-#include <glib/gstdio.h>
-
-#include <iostream>
 
 namespace apvlv
 {
@@ -55,64 +60,52 @@ ApvlvCore::ApvlvCore (ApvlvView *view)
   mSearchResults = nullptr;
   mSearchStr = "";
 
-  mVbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-  g_object_ref (mVbox);
+  mVbox = new QVBoxLayout ();
+  setLayout (mVbox);
 
-  mPaned = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
+  mPaned = new QSplitter ();
+  mPaned->setHandleWidth (4);
 
   auto f_width = gParams->valuei ("fix_width");
   auto f_height = gParams->valuei ("fix_height");
 
   if (f_width > 0 && f_height > 0)
     {
-      gtk_widget_set_size_request (mPaned, f_width, f_height);
+      mPaned->setFixedSize (f_width, f_height);
 
-      auto hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-      gtk_box_pack_start (GTK_BOX (hbox), mPaned, TRUE, FALSE, 0);
-      gtk_box_pack_start (GTK_BOX (mVbox), hbox, TRUE, FALSE, 0);
+      auto hbox = new QHBoxLayout ();
+      hbox->addWidget (mPaned, 0);
+      mVbox->addLayout (hbox, 1);
     }
   else
     {
-      gtk_box_pack_start (GTK_BOX (mVbox), mPaned, TRUE, TRUE, 0);
+      mVbox->addWidget (mPaned, 1);
     }
 
-  mContentWidget = gtk_scrolled_window_new (nullptr, nullptr);
-  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mContentWidget),
-                                  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-
   mContent = new ApvlvContent ();
-  gtk_container_add (GTK_CONTAINER (mContentWidget), mContent->widget ());
+  QObject::connect (this, SIGNAL (indexGenerited (const ApvlvFileIndex &)),
+                    mContent, SLOT (setIndex (const ApvlvFileIndex &)));
 
-  mContentVaj = gtk_scrolled_window_get_vadjustment (
-      GTK_SCROLLED_WINDOW (mContentWidget));
-  gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (mContentWidget));
+  mPaned->addWidget (mContent);
 
-  mMainWidget = gtk_scrolled_window_new (nullptr, nullptr);
-  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (mMainWidget),
-                                  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+  initImageUi ();
 
-  mMainVaj = gtk_scrolled_window_get_vadjustment (
-      GTK_SCROLLED_WINDOW (mMainWidget));
-  mMainHaj = gtk_scrolled_window_get_hadjustment (
-      GTK_SCROLLED_WINDOW (mMainWidget));
+  initWebUi ();
 
-  gtk_paned_add1 (GTK_PANED (mPaned), mContentWidget);
-  gtk_paned_add2 (GTK_PANED (mPaned), mMainWidget);
-
-  gtk_paned_set_position (GTK_PANED (mPaned), 0);
+  showImage ();
 
   mStatus = new ApvlvStatus ();
-  gtk_box_pack_end (GTK_BOX (mVbox), mStatus->widget (), FALSE, FALSE, 0);
+  mVbox->addWidget (mStatus, 0);
+  debug ("ApvlvCore: %p be created", this);
 }
 
 ApvlvCore::~ApvlvCore ()
 {
-  if (mGMonitor)
-    {
-      mGMonitor = nullptr;
-    }
-
-  g_object_unref (mVbox);
+  debug ("ApvlvCore: %p be freed", this);
+  if (mMainImageScrolView->parent () == nullptr)
+    mMainImageScrolView->deleteLater ();
+  if (mMainWebView->parent () == nullptr)
+    mMainWebView->deleteLater ();
 }
 
 bool
@@ -125,12 +118,6 @@ void
 ApvlvCore::inuse (bool use)
 {
   mInuse = use;
-
-  if (!mInuse && mView->hasloaded (filename ()) == nullptr)
-    {
-      debug ("core :%p is not needed, delete it\n", this);
-      delete this;
-    }
 }
 
 bool
@@ -148,16 +135,16 @@ ApvlvCore::copy ()
 const char *
 ApvlvCore::filename ()
 {
-  return mFilestr.length () > 0 ? mFilestr.c_str () : nullptr;
+  return mFilestr.empty () ? nullptr : mFilestr.c_str ();
 }
 
-gint
+int
 ApvlvCore::pagenumber ()
 {
   return mPagenum + 1;
 }
 
-gdouble
+double
 ApvlvCore::zoomvalue ()
 {
   return mZoomrate;
@@ -181,24 +168,18 @@ ApvlvCore::writefile (const char *name)
 }
 
 bool
-ApvlvCore::loadfile (const char *file, bool check, bool show_content)
+ApvlvCore::loadfile (const string &file, bool check, bool show_content)
 {
   return false;
 }
 
-GtkWidget *
-ApvlvCore::widget ()
-{
-  return mVbox;
-}
-
 void
-ApvlvCore::showpage (gint p, gdouble s)
+ApvlvCore::showpage (int p, double s)
 {
 }
 
 void
-ApvlvCore::showpage (gint, const string &anchor)
+ApvlvCore::showpage (int, const string &anchor)
 {
 }
 
@@ -210,10 +191,12 @@ ApvlvCore::refresh ()
 double
 ApvlvCore::scrollrate ()
 {
-  gdouble maxv = gtk_adjustment_get_upper (mMainVaj)
-                 - gtk_adjustment_get_lower (mMainVaj)
-                 - gtk_adjustment_get_page_size (mMainVaj);
-  gdouble val = gtk_adjustment_get_value (mMainVaj) / maxv;
+  if (mMainVaj == nullptr)
+    return 0.0;
+
+  double maxv
+      = mMainVaj->maximum () - mMainVaj->minimum () - mMainVaj->height ();
+  double val = mMainVaj->value () / maxv;
   if (val > 1.0)
     {
       return 1.00;
@@ -228,35 +211,95 @@ ApvlvCore::scrollrate ()
     }
 }
 
-gboolean
+bool
 ApvlvCore::scrollto (double s)
 {
   if (!mReady)
-    return FALSE;
+    return false;
 
-  GtkAdjustment *vaj = mMainVaj;
-  if (isControlledContent ())
-    {
-      vaj = mContentVaj;
-    }
+  auto maxv = mMainVaj->maximum () - mMainVaj->minimum ();
+  auto val = static_cast<double> (maxv) * s;
+  mMainVaj->setValue (val);
+  display ();
+  return true;
+}
 
-  if (gtk_adjustment_get_upper (vaj) != gtk_adjustment_get_lower (vaj))
+void
+ApvlvCore::scrollweb (int times, int h, int v)
+{
+  if (!mReady)
+    return;
+
+  stringstream scripts;
+  scripts << "window.scrollBy(" << times * h << "," << times * v << ")";
+  auto page = mMainWebView->page ();
+  page->runJavaScript (QString::fromStdString (scripts.str ()));
+}
+
+void
+ApvlvCore::scrollwebto (double xrate, double yrate)
+{
+  if (!mReady)
+    return;
+
+  stringstream scripts;
+  scripts << "window.scroll(window.screenX * " << xrate << ",";
+  scripts << " (document.body.offsetHeight - window.innerHeight) * " << yrate
+          << ");";
+  auto page = mMainWebView->page ();
+  page->runJavaScript (QString::fromStdString (scripts.str ()));
+}
+
+void
+ApvlvCore::scrollupweb (int times)
+{
+  scrollweb (times, 0, -50);
+
+  if (mAutoScrollPage && webIsScrolledToTop ())
     {
-      gdouble maxv = gtk_adjustment_get_upper (vaj)
-                     - gtk_adjustment_get_lower (vaj)
-                     - gtk_adjustment_get_page_size (vaj);
-      gdouble val = maxv * s;
-      gtk_adjustment_set_value (vaj, val);
-      if (!isControlledContent ())
-        {
-          show ();
-        }
-      return TRUE;
+      mWebScrollUp = true;
+      showpage (mPagenum - 1, 0.0);
     }
-  else
+}
+
+void
+ApvlvCore::scrolldownweb (int times)
+{
+  scrollweb (times, 0, 50);
+
+  if (mAutoScrollPage && webIsScrolledToBottom ())
     {
-      return FALSE;
+      showpage (mPagenum + 1, 0.0);
     }
+}
+
+void
+ApvlvCore::scrollleftweb (int times)
+{
+  scrollweb (times, -50, 0);
+}
+
+void
+ApvlvCore::scrollrightweb (int times)
+{
+  scrollweb (times, 50, 0);
+}
+
+bool
+ApvlvCore::webIsScrolledToTop ()
+{
+  auto page = mMainWebView->page ();
+  auto p = page->scrollPosition ();
+  return p.y () < 0.5;
+}
+
+bool
+ApvlvCore::webIsScrolledToBottom ()
+{
+  auto page = mMainWebView->page ();
+  auto p = page->scrollPosition ();
+  auto cs = page->contentsSize ();
+  return p.y () + mMainWebView->height () + 0.5 > cs.height ();
 }
 
 void
@@ -264,22 +307,15 @@ ApvlvCore::scrollup (int times)
 {
   if (!mReady)
     return;
-  gdouble val = gtk_adjustment_get_value (mMainVaj);
-  gdouble sub = gtk_adjustment_get_upper (mMainVaj)
-                - gtk_adjustment_get_lower (mMainVaj);
-  gdouble page_size = sub / 3;
-  gdouble screen_size = gtk_adjustment_get_page_size (mMainVaj);
 
-  if (val - APVLV_LINE_HEIGHT_DEFAULT * times
-      > gtk_adjustment_get_lower (mMainVaj))
+  auto rate = APVLV_LINE_HEIGHT_DEFAULT * times;
+  if (mMainVaj->value () - rate >= mMainVaj->minimum ())
     {
-      gtk_adjustment_set_value (mMainVaj,
-                                val - APVLV_LINE_HEIGHT_DEFAULT * times);
+      mMainVaj->setValue (mMainVaj->value () - rate);
     }
-  else if (val > gtk_adjustment_get_lower (mMainVaj))
+  else if (mMainVaj->value () > mMainVaj->minimum ())
     {
-      // set to min scroll value
-      gtk_adjustment_set_value (mMainVaj, gtk_adjustment_get_lower (mMainVaj));
+      mMainVaj->setValue (mMainVaj->minimum ());
     }
   else
     {
@@ -287,18 +323,16 @@ ApvlvCore::scrollup (int times)
         {
           if (mContinuous)
             {
-              /* set to pos so that one page is hidden above
-               * this is the same pos as in the previous case
-               * So one scroll step does nothing visible.
-               * This is still useful because scrolling overshoots most times
-               because of the
-               * reload lag.
-               * TODO: add more pages and start loading in background somehow
-               prior the transition is reached. full_scroll = sub - screen_size
-                 hide one page -> page_size/full_scroll =
-               page_size/(sub-screen_size)
-              */
-              showpage (mPagenum - 1, page_size / (sub - screen_size));
+              auto doc_size = mMainVaj->maximum () - mMainVaj->minimum ()
+                              + mMainVaj->pageStep ();
+              if (gParams->valuei ("continuouspad") > 0)
+                doc_size -= (2 * 5); // 2 separates
+              auto page_size = doc_size / 3;
+              double scrollto
+                  = static_cast<double> (mMainVaj->minimum () + page_size
+                                         - rate)
+                    / (mMainVaj->maximum () - mMainVaj->minimum ());
+              showpage (mPagenum - 1, scrollto);
             }
           else
             {
@@ -307,7 +341,7 @@ ApvlvCore::scrollup (int times)
         }
     }
 
-  show ();
+  display ();
 }
 
 void
@@ -315,22 +349,15 @@ ApvlvCore::scrolldown (int times)
 {
   if (!mReady)
     return;
-  gdouble val = gtk_adjustment_get_value (mMainVaj);
-  gdouble sub = gtk_adjustment_get_upper (mMainVaj)
-                - gtk_adjustment_get_lower (mMainVaj);
-  gdouble page_size = sub / 3;
-  gdouble screen_size = gtk_adjustment_get_page_size (mMainVaj);
 
-  if (val + APVLV_LINE_HEIGHT_DEFAULT * times + screen_size < sub)
+  auto rate = APVLV_LINE_HEIGHT_DEFAULT * times;
+  if (mMainVaj->value () + rate <= mMainVaj->maximum ())
     {
-      gtk_adjustment_set_value (mMainVaj,
-                                val + APVLV_LINE_HEIGHT_DEFAULT * times);
+      mMainVaj->setValue (mMainVaj->value () + rate);
     }
-  else if (val + screen_size < sub)
+  else if (mMainVaj->value () < mMainVaj->maximum ())
     {
-      // not enough for one step, set to full scroll val
-      // full_scroll = sub - screen_size
-      gtk_adjustment_set_value (mMainVaj, sub - screen_size);
+      mMainVaj->setValue (mMainVaj->maximum ());
     }
   else
     {
@@ -338,21 +365,17 @@ ApvlvCore::scrolldown (int times)
         {
           if (mContinuous)
             {
-              /* set to pos so that one page is hidden below
-               * this is the same pos as in the previous case
-               * so one scroll step does nothing visible
-               * this is still useful because scrolling overshoots most times
-               because of the
-               * reload lag.
-               * TODO: add more pages and start loading in background somehow
-               prior the transition is reached. full_scroll = sub - screen_size
-                 abs_pos = full_scroll - page_size = sub - screen_size -
-               page_size rel_pos = abs_pos/full_scroll = (sub - screen_size -
-               page_size) / (sub - screen_size) =  1 - page_size/(sub -
-               screen_size)
-
-              */
-              showpage (mPagenum + 1, 1 - page_size / (sub - screen_size));
+              auto doc_size = mMainVaj->maximum () - mMainVaj->minimum ()
+                              + mMainVaj->pageStep ();
+              if (gParams->valuei ("continuouspad") > 0)
+                doc_size -= (2 * 5); // 2 separates
+              auto page_size = doc_size / 3;
+              double scrollto
+                  = static_cast<double> (mMainVaj->maximum ()
+                                         - mMainVaj->minimum () - page_size
+                                         + rate)
+                    / (mMainVaj->maximum () - mMainVaj->minimum ());
+              showpage (mPagenum + 1, scrollto);
             }
           else
             {
@@ -361,7 +384,7 @@ ApvlvCore::scrolldown (int times)
         }
     }
 
-  show ();
+  display ();
 }
 
 void
@@ -370,15 +393,14 @@ ApvlvCore::scrollleft (int times)
   if (!mReady)
     return;
 
-  gdouble val
-      = gtk_adjustment_get_value (mMainHaj) - APVLV_WORD_WIDTH_DEFAULT * times;
-  if (val > gtk_adjustment_get_lower (mMainVaj))
+  auto val = mMainHaj->value () - APVLV_WORD_WIDTH_DEFAULT * times;
+  if (val > mMainHaj->minimumWidth ())
     {
-      gtk_adjustment_set_value (mMainHaj, val);
+      mMainHaj->setValue (val);
     }
   else
     {
-      gtk_adjustment_set_value (mMainHaj, gtk_adjustment_get_lower (mMainHaj));
+      mMainHaj->setValue (mMainHaj->minimumWidth ());
     }
 }
 
@@ -388,18 +410,14 @@ ApvlvCore::scrollright (int times)
   if (!mReady)
     return;
 
-  gdouble val
-      = gtk_adjustment_get_value (mMainHaj) + APVLV_WORD_WIDTH_DEFAULT * times;
-  if (val + gtk_adjustment_get_page_size (mMainHaj)
-      < gtk_adjustment_get_upper (mMainHaj))
+  auto val = mMainHaj->value () + APVLV_WORD_WIDTH_DEFAULT * times;
+  if (val + mMainHaj->width () < mMainHaj->maximumWidth ())
     {
-      gtk_adjustment_set_value (mMainHaj, val);
+      mMainHaj->setValue (val);
     }
   else
     {
-      gtk_adjustment_set_value (mMainHaj,
-                                gtk_adjustment_get_upper (mMainHaj)
-                                    - gtk_adjustment_get_page_size (mMainHaj));
+      mMainHaj->setValue (mMainHaj->maximumWidth () - mMainHaj->width ());
     }
 }
 
@@ -502,15 +520,25 @@ ApvlvCore::toggleContent (bool show)
 {
   if (show)
     {
-      const ApvlvFileIndex &index = mFile->get_index ();
-      mContent->setIndex (index);
-      mDirIndex = {};
-      gtk_paned_set_position (GTK_PANED (mPaned), APVLV_DEFAULT_CONTENT_WIDTH);
+      if (mContent->isReady ())
+        {
+          mDirIndex = {};
+          auto psize = mPaned->size ();
+          QList<int> sizes{ APVLV_DEFAULT_CONTENT_WIDTH,
+                            psize.width () - mPaned->handleWidth ()
+                                - APVLV_DEFAULT_CONTENT_WIDTH };
+          mPaned->setSizes (sizes);
+          return;
+        }
+      else
+        {
+          errp ("no content, disable content !");
+        }
     }
-  else
-    {
-      gtk_paned_set_position (GTK_PANED (mPaned), 0);
-    }
+
+  auto psize = mPaned->size ();
+  QList<int> sizes{ 0, psize.width () - mPaned->handleWidth () };
+  mPaned->setSizes (sizes);
 }
 
 void
@@ -519,23 +547,39 @@ ApvlvCore::returnlink (int ct)
 }
 
 void
-ApvlvCore::setactive (bool act)
+ApvlvCore::setActive (bool act)
 {
   mActive = act;
 
+  if (act)
+    {
+      if (mDisplayType == DISPLAY_TYPE_IMAGE)
+        mMainImageScrolView->setFocus ();
+      else
+        mMainWebView->setFocus ();
+    }
+  else
+    {
+      mMainImageScrolView->clearFocus ();
+      mMainWebView->clearFocus ();
+      clearFocus ();
+    }
+
   if (mActive && filename ())
     {
-      gchar *base = g_path_get_basename (filename ());
-      mView->settitle (base);
-      g_free (base);
+      auto path = filesystem::path (filename ());
+      auto base = path.filename ();
+      mView->settitle (base.string ());
     }
+
+  mStatus->setActive (act);
 }
 void
-ApvlvCore::setDirIndex (const gchar *path)
+ApvlvCore::setDirIndex (const string &path)
 {
   mDirIndex = { "", 0, "", FILE_INDEX_DIR };
   mDirIndex.load_dir (path);
-  mContent->setIndex (mDirIndex);
+  emit indexGenerited (mDirIndex);
 }
 
 bool
@@ -550,17 +594,12 @@ ApvlvCore::toggledControlContent (bool is_right)
 
   if (!controlled && !is_right)
     {
-      gtk_widget_set_state_flags (mContentWidget, GTK_STATE_FLAG_FOCUSED,
-                                  TRUE);
-      gtk_widget_set_state_flags (mMainWidget, GTK_STATE_FLAG_INSENSITIVE,
-                                  TRUE);
+      mContent->setIsFocused (true);
       return true;
     }
   else if (controlled && is_right)
     {
-      gtk_widget_set_state_flags (mContentWidget, GTK_STATE_FLAG_INSENSITIVE,
-                                  TRUE);
-      gtk_widget_set_state_flags (mMainWidget, GTK_STATE_FLAG_FOCUSED, TRUE);
+      mContent->setIsFocused (false);
       return true;
     }
 
@@ -568,22 +607,38 @@ ApvlvCore::toggledControlContent (bool is_right)
 }
 
 void
-ApvlvCore::show ()
+ApvlvCore::display ()
 {
 }
 
 bool
 ApvlvCore::isShowContent ()
 {
-  auto position = gtk_paned_get_position (GTK_PANED (mPaned));
-  return position >= 1;
+  auto sizes = mPaned->sizes ();
+  return sizes[0] > 1;
 }
 
 bool
 ApvlvCore::isControlledContent ()
 {
-  auto focused = gtk_widget_get_state_flags (mContentWidget);
-  return focused & GTK_STATE_FLAG_FOCUSED;
+  if (!isShowContent ())
+    return false;
+
+  return mContent->isFocused ();
+}
+
+ApvlvCore *
+ApvlvCore::findByWidget (QWidget *widget)
+{
+  for (auto doc = widget; doc != nullptr; doc = doc->parentWidget ())
+    {
+      if (doc->inherits ("apvlv::ApvlvDoc"))
+        return dynamic_cast<ApvlvCore *> (doc);
+
+      debug ("doc is a %s", doc->metaObject ()->className ());
+    }
+
+  return nullptr;
 }
 
 bool
@@ -592,54 +647,147 @@ ApvlvCore::find (const char *str)
   return false;
 }
 
-ApvlvStatus::ApvlvStatus ()
+void
+ApvlvCore::initImageUi ()
 {
-  mHbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-  g_object_ref (mHbox);
-}
+  mMainImageScrolView = new QScrollArea ();
+  mMainImageScrolView->setAlignment (Qt::AlignCenter);
+  mMainImageScrolView->setHorizontalScrollBarPolicy (
+      Qt::ScrollBarPolicy::ScrollBarAsNeeded);
+  mMainImageScrolView->setVerticalScrollBarPolicy (
+      Qt::ScrollBarPolicy::ScrollBarAsNeeded);
 
-ApvlvStatus::~ApvlvStatus () { g_object_unref (mHbox); }
-
-GtkWidget *
-ApvlvStatus::widget ()
-{
-  return mHbox;
+  mMainImageFrame = new QFrame (this);
+  mMainImageScrolView->setWidget (mMainImageFrame);
 }
 
 void
-ApvlvStatus::active (bool act)
+ApvlvCore::initWebUi ()
 {
-  auto children = gtk_container_get_children (GTK_CONTAINER (mHbox));
-  for (auto child = children; child != nullptr; child = child->next)
+  mWebProfile = make_unique<QWebEngineProfile> ();
+  mMainWebView = new QWebEngineView (mWebProfile.get ());
+  QObject::connect (mMainWebView, SIGNAL (loadFinished (bool)), this,
+                    SLOT (webview_load_finished (bool)));
+  // QObject::connect (mWeb[0].get (),
+  //                  SIGNAL (customContextMenuRequested (const QPoint &)),
+  //                  this, SLOT (webview_context_menu_cb (const QPoint &)));
+  // g_signal_connect (G_OBJECT (mMainVaj), "value-changed",
+  //                  G_CALLBACK (apvlv_doc_on_mouse), this);
+}
+
+void
+ApvlvCore::showImage ()
+{
+  if (mMainWebView->parent () != nullptr)
     {
-      gtk_widget_set_state_flags (
-          GTK_WIDGET (child->data),
-          (act) ? GTK_STATE_FLAG_ACTIVE : GTK_STATE_FLAG_INSENSITIVE, TRUE);
+      mMainWebView->setParent (nullptr);
+    }
+  if (mMainImageScrolView->parent () == nullptr)
+    {
+      mPaned->addWidget (mMainImageScrolView);
+      mMainVaj = mMainImageScrolView->verticalScrollBar ();
+      mMainHaj = mMainImageScrolView->horizontalScrollBar ();
     }
 }
 
 void
-ApvlvStatus::show (const vector<string> &msgs)
+ApvlvCore::showWeb ()
 {
-  vector<GtkWidget *> newlabels;
-  auto children = gtk_container_get_children (GTK_CONTAINER (mHbox));
-  for (const auto &msg : msgs)
+  if (mMainImageScrolView->parent () != nullptr)
     {
-      if (children != nullptr)
+      mMainImageScrolView->setParent (nullptr);
+    }
+  if (mMainWebView->parent () == nullptr)
+    {
+      mPaned->addWidget (mMainWebView);
+      mMainVaj = nullptr;
+      mMainHaj = nullptr;
+    }
+}
+
+void
+ApvlvCore::webview_update (const string &key)
+{
+  auto pn = file ()->get_ocf_page (key);
+  if (pn >= 0)
+    {
+      mPagenum = pn;
+      display ();
+    }
+}
+
+void
+ApvlvCore::webview_load_finished (bool suc)
+{
+  if (suc)
+    {
+      if (!mAnchor.empty ())
         {
-          gtk_label_set_text (GTK_LABEL (children->data), msg.c_str ());
-          children = children->next;
+          auto page = mMainWebView->page ();
+          stringstream javasrc;
+          javasrc << "document.getElementById('";
+          javasrc << mAnchor.substr (1);
+          javasrc << "').scrollIntoView();";
+          page->runJavaScript (QString::fromStdString (javasrc.str ()));
+        }
+      else if (mWebScrollUp)
+        {
+          scrollwebto (0.0, 1.0);
+          mWebScrollUp = false;
+        }
+    }
+}
+
+void
+ApvlvCore::webview_context_menu_cb (const QPoint &)
+{
+}
+
+ApvlvStatus::ApvlvStatus ()
+{
+  setFrameShape (QFrame::NoFrame);
+  auto layout = new QHBoxLayout ();
+  debug ("status layout: %p", layout);
+  setLayout (layout);
+}
+
+void
+ApvlvStatus::setActive (bool act)
+{
+  auto children = findChildren<QLabel *> ();
+  for (auto child : children)
+    {
+      if (child)
+        {
+          child->setEnabled (act);
+        }
+    }
+}
+
+void
+ApvlvStatus::showMessages (const vector<string> &msgs)
+{
+  auto children = findChildren<QLabel *> ();
+  vector<QWidget *> newlabels;
+  for (size_t ind = 0; ind < msgs.size (); ++ind)
+    {
+      if (children.size () > (qsizetype)ind)
+        {
+          auto label = children[ind];
+          label->setText (QString::fromStdString (msgs[ind]));
         }
       else
         {
-          auto label = gtk_label_new (msg.c_str ());
+          auto label = new QLabel ();
+          label->setText (QString::fromStdString (msgs[ind]));
           newlabels.push_back (label);
         }
     }
 
+  auto hbox = layout ();
   for (auto label : newlabels)
     {
-      gtk_box_pack_start (GTK_BOX (mHbox), label, TRUE, TRUE, 0);
+      hbox->addWidget (label);
     }
 }
 }

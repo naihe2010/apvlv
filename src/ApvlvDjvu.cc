@@ -61,7 +61,7 @@ ApvlvDJVU::ApvlvDJVU (const char *filename, bool check)
   mContext = ddjvu_context_create ("apvlv");
   if (mContext)
     {
-      mDoc = ddjvu_document_create_by_filename (mContext, filename, FALSE);
+      mDoc = ddjvu_document_create_by_filename (mContext, filename, false);
     }
 
   if (mDoc != nullptr)
@@ -110,7 +110,7 @@ ApvlvDJVU::writefile (const char *filename)
       ddjvu_job_t *job = ddjvu_document_save (mDoc, fp, 0, nullptr);
       while (!ddjvu_job_done (job))
         {
-          handle_ddjvu_messages (mContext, TRUE);
+          handle_ddjvu_messages (mContext, true);
         }
       fclose (fp);
       return true;
@@ -144,7 +144,7 @@ ApvlvDJVU::pagesum ()
 }
 
 bool
-ApvlvDJVU::render (int pn, int ix, int iy, double zm, int rot, GdkPixbuf *pix,
+ApvlvDJVU::render (int pn, int ix, int iy, double zm, int rot, QImage *pix,
                    char *buffer)
 {
   ddjvu_page_t *tpage;
@@ -163,13 +163,13 @@ ApvlvDJVU::render (int pn, int ix, int iy, double zm, int rot, GdkPixbuf *pix,
             static_cast<unsigned int> (ix), static_cast<unsigned int> (iy) } };
   ddjvu_format_t *format
       = ddjvu_format_create (DDJVU_FORMAT_RGB24, 0, nullptr);
-  ddjvu_format_set_row_order (format, TRUE);
+  ddjvu_format_set_row_order (format, true);
 
-  gint retry = 0;
+  int retry = 0;
   while (retry <= 20
          && ddjvu_page_render (tpage, DDJVU_RENDER_COLOR, prect, rrect, format,
                                3 * ix, (char *)buffer)
-                == FALSE)
+                == false)
     {
       usleep (50 * 1000);
       ++retry;
@@ -177,14 +177,6 @@ ApvlvDJVU::render (int pn, int ix, int iy, double zm, int rot, GdkPixbuf *pix,
     }
 
   return true;
-}
-
-bool
-ApvlvDJVU::pageselectsearch (int pn, int ix, int iy, double zm, int rot,
-                             GdkPixbuf *pix, char *buffer, int sel,
-                             ApvlvPoses *poses)
-{
-  return false;
 }
 
 ApvlvPoses *
@@ -207,7 +199,7 @@ ApvlvDJVU::pagetext (int pn, double x1, double y1, double x2, double y2,
 }
 
 bool
-ApvlvDJVU::pageprint (int pn, cairo_t *cr)
+ApvlvDJVU::pageprint (int pn, QPrinter *cr)
 {
   return false;
 }

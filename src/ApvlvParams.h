@@ -29,8 +29,6 @@
 #ifndef _APVLV_PARAMS_H_
 #define _APVLV_PARAMS_H_
 
-#include "ApvlvUtil.h"
-
 #include <iostream>
 #include <map>
 #include <string>
@@ -47,7 +45,7 @@ public:
   ApvlvParams ();
   ~ApvlvParams ();
 
-  bool loadfile (const char *filename);
+  bool loadfile (const string &filename);
 
   bool push (string &ch, string &str);
 

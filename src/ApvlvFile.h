@@ -28,18 +28,17 @@
 #ifndef _APVLV_FILE_H_
 #define _APVLV_FILE_H_
 
-#include <glib/poppler.h>
-#include <gtk/gtk.h>
-
+#include <QPrinter>
+#include <QWebEngineView>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <vector>
-using namespace std;
 
 namespace apvlv
 {
 
+using namespace std;
 typedef enum
 {
   DISPLAY_TYPE_IMAGE = 0,
@@ -47,7 +46,7 @@ typedef enum
 } DISPLAY_TYPE;
 
 //
-// link to a url, or a page num
+// link to an url, or a page num
 //
 struct ApvlvLink
 {
@@ -68,11 +67,11 @@ struct ApvlvPoint
 };
 
 //
-// position of a search result, or just a area
+// position of a search result, or just an area
 //
 struct ApvlvPos
 {
-  double x1, x2, y1, y2;
+  double p1x, p1y, p2x, p2y;
 };
 
 typedef vector<ApvlvPos> ApvlvPoses;
@@ -107,14 +106,14 @@ public:
                   ApvlvFileIndexType type);
   ~ApvlvFileIndex ();
 
-  void load_dir (const gchar *path);
+  void load_dir (const string &path1);
 
   string title;
   int page;
   string path;
   string anchor;
   ApvlvFileIndexType type;
-  vector<ApvlvFileIndex> children;
+  vector<ApvlvFileIndex> mChildrenIndex;
 };
 
 class ApvlvFile
@@ -123,13 +122,11 @@ public:
   const static map<string, vector<string> > &supportMimeTypes ();
   const static vector<string> &supportFileExts ();
 
-  ApvlvFile (__attribute__ ((unused)) const char *filename,
-             __attribute__ ((unused)) bool check);
+  ApvlvFile (const string &filename, bool check);
 
   virtual ~ApvlvFile ();
 
-  static ApvlvFile *newFile (const char *filename,
-                             __attribute__ ((unused)) bool check = false);
+  static ApvlvFile *newFile (const string &filename, bool check = false);
 
   virtual bool writefile (const char *filename) = 0;
 
@@ -137,36 +134,37 @@ public:
 
   virtual int pagesum () = 0;
 
-  virtual bool pagetext (int, gdouble, gdouble, gdouble, gdouble, char **) = 0;
+  virtual bool pagetext (int, double, double, double, double, char **) = 0;
 
-  virtual bool render (int, int, int, double, int, GdkPixbuf *, char *buffer);
+  virtual bool render (int, int, int, double, int, QImage *);
 
-  virtual bool annot_underline (int, gdouble, gdouble, gdouble, gdouble);
+  virtual bool render (int pn, int, int, double, int, QWebEngineView *);
 
-  virtual bool annot_text (int, gdouble, gdouble, gdouble, gdouble,
+  virtual unique_ptr<ApvlvPoses> pagesearch (int pn, const char *str,
+                                             bool reverse)
+      = 0;
+
+  virtual bool pageselectsearch (int, int, int, double, int, QImage *,
+                                 ApvlvPoses *);
+
+  virtual bool annot_underline (int, double, double, double, double);
+
+  virtual bool annot_text (int, double, double, double, double,
                            const char *text);
 
   virtual bool annot_update (int, ApvlvAnnotText *text);
 
-  virtual bool renderweb (int pn, int, int, double, int, GtkWidget *widget);
-
-  virtual ApvlvPoses *pagesearch (int pn, const char *str, bool reverse) = 0;
-
-  virtual bool pageselectsearch (int, int, int, double, int, GdkPixbuf *,
-                                 char *, int, ApvlvPoses *)
-      = 0;
-
   virtual ApvlvAnnotTexts getAnnotTexts (int pn);
 
-  virtual ApvlvLinks *getlinks (int pn) = 0;
+  virtual unique_ptr<ApvlvLinks> getlinks (int pn) = 0;
 
-  virtual bool pageprint (int pn, cairo_t *cr) = 0;
+  virtual bool pageprint (int pn, QPrinter *cr) = 0;
 
-  virtual gchar *get_ocf_file (const gchar *path, gssize *);
+  virtual optional<QByteArray> get_ocf_file (const string &path);
 
-  virtual const gchar *get_ocf_mime_type (const gchar *path);
+  virtual string get_ocf_mime_type (const string &path);
 
-  virtual int get_ocf_page (const gchar *path);
+  virtual int get_ocf_page (const string &path);
 
   virtual DISPLAY_TYPE get_display_type ();
 
@@ -182,17 +180,20 @@ public:
     return mIndex;
   }
 
+  bool hasByteArray (const string &key);
+  optional<const QByteArray> getByteArray (const string &key);
+  void cacheByteArray (const string &key, const QByteArray &array);
+
 protected:
   ApvlvFileIndex mIndex;
-
-  gchar *mRawdata;
-  guint mRawdataSize;
   std::vector<string> mPages;
   std::map<string, int> srcPages;
   std::map<string, string> srcMimeTypes;
   ApvlvCover mCover;
 
 private:
+  QMap<string, QByteArray> mCacheByteArray;
+
   const static std::map<string, std::vector<string> > mSupportMimeTypes;
   const static std::vector<string> mSupportFileExts;
 };

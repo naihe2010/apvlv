@@ -27,21 +27,14 @@
 
 #include "ApvlvHtm.h"
 #include "ApvlvUtil.h"
-
-#include <webkit2/webkit2.h>
+#include <QWebEngineView>
 
 namespace apvlv
 {
-ApvlvHTML::ApvlvHTML (const char *filename, bool check)
+ApvlvHTML::ApvlvHTML (const string &filename, bool check)
     : ApvlvFile (filename, check)
 {
   mUri = filename;
-  if (g_path_is_absolute (filename))
-    {
-      gchar *fileUri = g_filename_to_uri (filename, nullptr, nullptr);
-      mUri = fileUri;
-      g_free (fileUri);
-    }
 }
 
 ApvlvHTML::~ApvlvHTML () = default;
@@ -67,42 +60,34 @@ ApvlvHTML::pagesum ()
 }
 
 bool
-ApvlvHTML::pagetext (int, gdouble, gdouble, gdouble, gdouble, char **)
+ApvlvHTML::pagetext (int, double, double, double, double, char **)
 {
   return false;
 }
 
 bool
-ApvlvHTML::renderweb (int pn, int ix, int iy, double zm, int rot,
-                      GtkWidget *widget)
+ApvlvHTML::render (int pn, int ix, int iy, double zm, int rot,
+                   QWebEngineView *webview)
 {
-  webkit_web_view_set_zoom_level (WEBKIT_WEB_VIEW (widget), zm);
-  webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), mUri.c_str ());
+  auto url = QUrl (QString::fromStdString (mUri));
+  webview->load (url);
   return false;
 }
 
-ApvlvPoses *
+unique_ptr<ApvlvPoses>
 ApvlvHTML::pagesearch (int pn, const char *str, bool reverse)
 {
   return nullptr;
 }
 
-bool
-ApvlvHTML::pageselectsearch (int pn, int ix, int iy, double zm, int rot,
-                             GdkPixbuf *pix, char *buffer, int sel,
-                             ApvlvPoses *poses)
-{
-  return false;
-}
-
-ApvlvLinks *
+unique_ptr<ApvlvLinks>
 ApvlvHTML::getlinks (int pn)
 {
   return nullptr;
 }
 
 bool
-ApvlvHTML::pageprint (int pn, cairo_t *cr)
+ApvlvHTML::pageprint (int pn, QPrinter *cr)
 {
   return false;
 }

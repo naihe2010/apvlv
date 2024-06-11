@@ -26,14 +26,13 @@
  */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
+#include <QApplication>
+#include <QFileDialog>
+#include <QKeyEvent>
+#include <QLineEdit>
+#include <QMainWindow>
+#include <QVBoxLayout>
 #include <filesystem>
-#include <fstream>
-#include <gdk/gdk.h>
-#include <gdk/gdkkeysyms.h>
-#include <gio/gio.h>
-#include <glib.h>
-#include <gtk/gtk.h>
-#include <iostream>
 #include <sstream>
 
 #include "ApvlvInfo.h"
@@ -43,7 +42,7 @@
 
 namespace apvlv
 {
-ApvlvView::ApvlvView (ApvlvView *parent) : mCurrTabPos (-1), mCmds (this)
+ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
 {
   mParent = parent;
   if (mParent)
@@ -58,78 +57,58 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCurrTabPos (-1), mCmds (this)
 
   mCurrHistroy = -1;
 
-  mHasFull = FALSE;
+  mHasFull = false;
 
   keyLastEnd = true;
 
   processInLast = false;
-
-  mMainWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 
   int w = gParams->valuei ("width");
   int h = gParams->valuei ("height");
 
   if (gParams->valueb ("fullscreen"))
     {
-#if GTK_CHECK_VERSION(3, 22, 0)
-      GdkRectangle rect[1];
-      GdkDisplay *display = gdk_display_get_default ();
-      GdkMonitor *monitor = gdk_display_get_primary_monitor (display);
-      gdk_monitor_get_geometry (monitor, rect);
-#else
-      GdkScreen *scr = gdk_screen_get_default ();
-      mWidth = gdk_screen_get_width (scr);
-      mHeight = gdk_screen_get_height (scr);
-#endif
       fullscreen ();
     }
   else
     {
-      gtk_window_set_default_size (GTK_WINDOW (mMainWindow), w > 1 ? w : 800,
-                                   h > 1 ? h : 600);
+      resize (w > 1 ? w : 800, h > 1 ? h : 600);
     }
+  show ();
 
-  mViewBox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-  gtk_container_add (GTK_CONTAINER (mMainWindow), mViewBox);
+  mCentral = new QFrame ();
+  setCentralWidget (mCentral);
 
-  mMenu = new ApvlvMenuAndTool (this);
+  mMenu = make_unique<ApvlvMenuAndTool> (this);
 
   if (strchr (gParams->values ("guioptions"), 'm') != nullptr)
     {
-      gtk_box_pack_start (GTK_BOX (mViewBox), mMenu->menubar (), FALSE, FALSE,
-                          0);
+      setMenuBar (mMenu->menubar ());
     }
   if (strchr (gParams->values ("guioptions"), 'T') != nullptr)
     {
-      gtk_box_pack_start (GTK_BOX (mViewBox), mMenu->toolbar (), FALSE, FALSE,
-                          0);
+      addToolBar (mMenu->toolbar ());
     }
 
-  mTabContainer = gtk_notebook_new ();
-  gtk_notebook_set_show_tabs (GTK_NOTEBOOK (mTabContainer), FALSE);
-  gtk_notebook_set_scrollable (GTK_NOTEBOOK (mTabContainer), TRUE);
-  gtk_box_pack_start (GTK_BOX (mViewBox), mTabContainer, TRUE, TRUE, 0);
+  auto box = new QVBoxLayout ();
+  mCentral->setLayout (box);
 
-  mCommandBar = gtk_entry_new ();
-  gtk_box_pack_end (GTK_BOX (mViewBox), mCommandBar, FALSE, FALSE, 0);
+  mTabContainer = new QTabWidget (this);
+  mTabContainer->setTabBarAutoHide (true);
+  box->addWidget (mTabContainer, 1);
 
-  g_signal_connect (G_OBJECT (mMainWindow), "key-press-event",
-                    G_CALLBACK (apvlv_view_keypress_cb), this);
+  QObject::connect (mTabContainer, SIGNAL (currentChanged (int)), this,
+                    SLOT (notebook_switch_cb (int)));
+  QObject::connect (mTabContainer, SIGNAL (tabCloseRequested (int)), this,
+                    SLOT (notebook_close_cb (int)));
 
-  g_signal_connect (G_OBJECT (mMainWindow), "delete-event",
-                    G_CALLBACK (apvlv_view_delete_cb), this);
-  g_signal_connect (G_OBJECT (mMainWindow), "destroy-event",
-                    G_CALLBACK (apvlv_view_delete_cb), this);
+  mCommandBar = new QLineEdit ();
+  box->addWidget (mCommandBar, 0);
 
-  g_signal_connect (G_OBJECT (mTabContainer), "switch-page",
-                    G_CALLBACK (apvlv_notebook_switch_cb), this);
-
-  g_signal_connect (G_OBJECT (mCommandBar), "key-press-event",
-                    G_CALLBACK (apvlv_view_commandbar_cb), this);
-
-  apvlv_widget_set_background (mMainWindow);
-
-  gtk_widget_show_all (mMainWindow);
+  QObject::connect (mCommandBar, SIGNAL (textEdited (const QString &)), this,
+                    SLOT (commandbar_edit_cb (const QString &)));
+  QObject::connect (mCommandBar, SIGNAL (returnPressed ()), this,
+                    SLOT (commandbar_return_cb ()));
 
   cmd_hide ();
 }
@@ -148,155 +127,130 @@ ApvlvView::~ApvlvView ()
       itr = mChildren.begin ();
     }
 
-  size_t i;
-
-  delete mMenu;
-
   for (auto &t : mTabList)
     {
-      delete t.mRootWindow;
+      delete t->getRootWindow ();
     }
   mTabList.clear ();
 
   mCmdHistroy.clear ();
-
-  for (i = 0; i < mDocs.size (); ++i)
-    {
-      auto *core = (ApvlvCore *)mDocs[i];
-      delete core;
-    }
-}
-
-GtkWidget *
-ApvlvView::widget ()
-{
-  return mMainWindow;
 }
 
 ApvlvWindow *
 ApvlvView::currentWindow ()
 {
-  if (mCurrTabPos == -1)
-    return nullptr;
+  auto index = mTabContainer->currentIndex ();
+  Q_ASSERT (index != -1);
 
-  return mTabList[mCurrTabPos].mRootWindow->activeCoreWindow ();
+  auto widget = QApplication::focusWidget ();
+  if (widget)
+    {
+      auto win = mTabList[index]->findWindowByWidget (widget);
+      if (win)
+        return win;
+    }
+
+  return mTabList[index]->getActiveWindow ();
 }
 
 void
-ApvlvView::delcurrentWindow ()
+ApvlvView::delCurrentWindow ()
 {
-  mTabList[mCurrTabPos].mRootWindow = currentWindow ()->unbirth ();
-  mTabList[mCurrTabPos].mWindowCount--;
+  auto win = currentWindow ();
+  if (win)
+    win->unbirth ();
   updatetabname ();
 }
 
 void
 ApvlvView::open ()
 {
-  gchar *dirname;
+  QString dirname;
+  auto fp = gInfo->file (0);
+  if (fp)
+    {
+      dirname = QString::fromStdString (
+          filesystem::path (fp.value ()->file).parent_path ().string ());
+    }
+  else
+    {
+      dirname = QDir::homePath ();
+    }
 
-  GtkWidget *dia = gtk_file_chooser_dialog_new (
-      "Open ...", GTK_WINDOW (mMainWindow), GTK_FILE_CHOOSER_ACTION_SAVE,
-      ("_Cancel"), GTK_RESPONSE_CANCEL, ("_OK"), GTK_RESPONSE_ACCEPT, nullptr);
-  infofile *fp = gInfo->file (0);
-  dirname = fp ? g_path_get_dirname (fp->file.c_str ())
-               : g_strdup (gParams->values ("defaultdir"));
-  debug ("lastfile: [%s], dirname: [%s]", fp ? fp->file.c_str () : "",
-         dirname);
-  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dia), dirname);
-  g_free (dirname);
-
-  GtkFileFilter *filter = gtk_file_filter_new ();
+  // debug ("lastfile: [%s], dirname: [%s]", fp ? fp->file.c_str () : "",
+  // dirname);
   auto mimes = ApvlvFile::supportMimeTypes ();
-  for (auto m = mimes.rbegin (); m != mimes.rend (); ++m)
+  QString filters;
+  for (auto &m : mimes)
     {
-      gtk_file_filter_add_mime_type (filter, m->first.c_str ());
-      for (auto v = m->second.rbegin (); v != m->second.rend (); ++v)
-        gtk_file_filter_add_pattern (filter, v->c_str ());
+      filters += m.first.c_str ();
+      filters += "(";
+      filters += m.second[0];
+      filters += ");;";
     }
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dia), filter);
 
-  gint ret = gtk_dialog_run (GTK_DIALOG (dia));
-  if (ret == GTK_RESPONSE_ACCEPT)
+  QString selected;
+  auto filename = QFileDialog::getOpenFileName (this, "open file", dirname,
+                                                filters, &selected);
+  if (!filename.isEmpty ())
     {
-      gchar *filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dia));
-      loadfile (filename);
-      g_free (filename);
+      loadfile (filename.toStdString ());
     }
-  gtk_widget_destroy (dia);
 }
 
 void
 ApvlvView::opendir ()
 {
-  gchar *dirname;
-
-  GtkWidget *dia = gtk_file_chooser_dialog_new (
-      "", GTK_WINDOW (mMainWindow), GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
-      ("_Cancel"), GTK_RESPONSE_CANCEL, ("_OK"), GTK_RESPONSE_ACCEPT, nullptr);
-  infofile *fp = gInfo->file (0);
-  dirname = fp ? g_path_get_dirname (fp->file.c_str ())
-               : g_strdup (gParams->values ("defaultdir"));
-  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dia), dirname);
-  g_free (dirname);
-
-  gint ret = gtk_dialog_run (GTK_DIALOG (dia));
-  if (ret == GTK_RESPONSE_ACCEPT)
+  QString dirname;
+  auto fp = gInfo->file (0);
+  if (fp)
     {
-      gchar *filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dia));
-
-      loaddir (filename);
-      g_free (filename);
+      dirname = QString::fromStdString (
+          filesystem::path (fp.value ()->file).parent_path ().string ());
     }
-  gtk_widget_destroy (dia);
+  else
+    {
+      dirname = QDir::homePath ();
+    }
+
+  auto filename = QFileDialog::getExistingDirectory (
+      this, "open dir", dirname, QFileDialog::ShowDirsOnly);
+  if (!filename.isEmpty ())
+    {
+      loaddir (filename.toStdString ());
+    }
 }
 
 bool
-ApvlvView::loaddir (const char *path)
+ApvlvView::loaddir (const string &path)
 {
   crtadoc ()->setDirIndex (path);
   return true;
 }
 
-bool
-ApvlvView::loadfile (const string &file)
-{
-  return loadfile (file.c_str ());
-}
-
 void
 ApvlvView::quit ()
 {
-  if (int (mTabList.size ()) == 1)
+  if (int (mTabList.size ()) <= 1)
     {
       mTabList.clear ();
-      apvlv_view_delete_cb (nullptr, nullptr, this);
+      closeEvent (nullptr);
       return;
     }
 
-  auto p = mCurrTabPos;
-  if (mCurrTabPos < int (mTabList.size ()) - 1)
-    switch_tabcontext (mCurrTabPos + 1);
-  else
-    switch_tabcontext (mCurrTabPos - 1);
-
-  gtk_notebook_set_current_page (GTK_NOTEBOOK (mTabContainer),
-                                 (gint)mCurrTabPos);
-  gtk_notebook_remove_page (GTK_NOTEBOOK (mTabContainer), (gint)p);
-  delete_tabcontext (p);
-
-  if (mCurrTabPos > p)
-    --mCurrTabPos;
+  auto index = mTabContainer->currentIndex ();
+  Q_ASSERT (index != -1);
+  delete_tabcontext (index);
+  mTabContainer->removeTab (index);
 }
 
 bool
-ApvlvView::newtab (const char *filename, bool disable_content)
+ApvlvView::newtab (const string &filename, bool disable_content)
 {
-  ApvlvCore *ndoc = hasloaded (filename);
-
-  if (ndoc == nullptr)
+  auto optndoc = hasloaded (filename);
+  if (!optndoc)
     {
-      ndoc = new ApvlvDoc (this, gParams->values ("zoom"), false);
+      auto ndoc = new ApvlvDoc (this, gParams->values ("zoom"), false);
       if (!ndoc->loadfile (filename, true, gParams->valueb ("content")))
         {
           delete ndoc;
@@ -306,12 +260,13 @@ ApvlvView::newtab (const char *filename, bool disable_content)
       if (ndoc)
         {
           regloaded (ndoc);
+          optndoc = make_optional<ApvlvCore *> (ndoc);
         }
     }
 
-  if (ndoc)
+  if (optndoc)
     {
-      newtab (ndoc);
+      newtab (optndoc.value ());
       return true;
     }
   else
@@ -325,104 +280,49 @@ ApvlvView::newtab (ApvlvCore *core)
 {
   auto pos = new_tabcontext (core);
 
-  switch_tabcontext (pos);
+  auto basename
+      = core->filename ()
+            ? filesystem::path (core->filename ()).filename ().string ()
+            : "NONE";
+  mTabContainer->insertTab (pos, mTabList[pos],
+                            QString::fromStdString (basename));
+  mTabContainer->setCurrentIndex (pos);
 
-  gchar *base = core->filename () ? g_path_get_basename (core->filename ())
-                                  : g_strdup ("NONE");
-  GtkWidget *tabname = gtk_label_new (base);
-  g_free (base);
-
-  auto *parentbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-  gtk_box_pack_start (GTK_BOX (parentbox),
-                      mTabList[mCurrTabPos].mRootWindow->widget (), TRUE, TRUE,
-                      0);
-
-  gtk_notebook_insert_page (GTK_NOTEBOOK (mTabContainer), parentbox, tabname,
-                            gint (pos));
-
-  gtk_widget_show_all (parentbox);
-  gtk_notebook_set_current_page (GTK_NOTEBOOK (mTabContainer),
-                                 (gint)mCurrTabPos);
   return true;
 }
 
-__attribute__ ((unused)) bool
-ApvlvView::newview (const gchar *filename, gint pn, bool disable_content)
-{
-  auto *view = new ApvlvView (this);
-  view->newtab (filename, disable_content);
-  view->crtadoc ()->showpage (pn, 0.0);
-  return TRUE;
-}
-
-long
+int
 ApvlvView::new_tabcontext (ApvlvCore *core)
 {
-  auto *troot = new ApvlvWindow (core, this);
-  TabEntry context (troot, 1);
-  if (mCurrTabPos == -1)
-    {
-      mTabList.push_back (context);
-      mCurrTabPos = 0;
-      return 0;
-    }
+  auto context = new ApvlvWindowContext (this);
 
-  auto insPos = mTabList.begin () + mCurrTabPos + 1;
+  new ApvlvWindow (context, core);
+
+  auto index = mTabContainer->currentIndex () + 1;
+  auto insPos = mTabList.begin () + index;
   mTabList.insert (insPos, context);
 
-  if (mTabList.size () > 1)
-    {
-      gtk_notebook_set_show_tabs (GTK_NOTEBOOK (mTabContainer), TRUE);
-    }
-
-  return ++mCurrTabPos;
+  return index;
 }
 
 void
-ApvlvView::delete_tabcontext (long tabPos)
+ApvlvView::delete_tabcontext (int tabPos)
 {
-  auto remPos = mTabList.begin () + tabPos;
-
-  if (remPos->mRootWindow != nullptr)
-    {
-      delete remPos->mRootWindow;
-      remPos->mRootWindow = nullptr;
-    }
-
-  mTabList.erase (remPos);
-
-  if (int (mTabList.size ()) <= 1)
-    {
-      gtk_notebook_set_show_tabs (GTK_NOTEBOOK (mTabContainer), FALSE);
-    }
-}
-
-void
-ApvlvView::switch_tabcontext (long tabPos)
-{
-  mCurrTabPos = tabPos;
+  auto iter = mTabList.begin () + tabPos;
+  delete (*iter)->getRootWindow ();
+  mTabList.erase (iter);
 }
 
 bool
-ApvlvView::loadfile (const char *filename)
+ApvlvView::loadfile (const string &filename)
 {
-  if (filename == nullptr || *filename == '\0')
-    {
-      return false;
-    }
-
-  char *abpath = absolutepath (filename);
-  if (abpath == nullptr)
-    {
-      return false;
-    }
+  auto abpath = filesystem::absolute (filename).string ();
 
   ApvlvWindow *win = currentWindow ();
-  ApvlvCore *ndoc;
+  ApvlvCore *ndoc = nullptr;
 
-  ndoc = hasloaded (abpath);
-
-  if (ndoc == nullptr)
+  auto optndoc = hasloaded (abpath);
+  if (!optndoc)
     {
       ndoc = new ApvlvDoc (this, gParams->values ("zoom"), false);
       if (!ndoc->loadfile (filename, true, gParams->valueb ("content")))
@@ -430,37 +330,34 @@ ApvlvView::loadfile (const char *filename)
           delete ndoc;
           ndoc = nullptr;
         }
-
-      if (ndoc != nullptr)
+      else
         {
           regloaded (ndoc);
+          optndoc = make_optional<ApvlvCore *> (ndoc);
         }
     }
 
-  if (ndoc != nullptr)
+  if (optndoc)
     {
-      win->setCore (ndoc);
+      win->setCore (optndoc.value ());
       updatetabname ();
     }
-  g_free (abpath);
 
   return ndoc != nullptr;
 }
 
-ApvlvCore *
-ApvlvView::hasloaded (const char *abpath)
+optional<ApvlvCore *>
+ApvlvView::hasloaded (const string &abpath)
 {
-  ApvlvCore *core;
-  size_t i;
-  for (i = 0; i < mDocs.size (); ++i)
+  for (auto &core : mDocs)
     {
-      core = (ApvlvCore *)mDocs[i];
-      if (!core->inuse () && strcmp (core->filename (), abpath) == 0)
+      if (!core->inuse () && abpath == core->filename ())
         {
-          return core;
+          return make_optional<ApvlvCore *> (core.get ());
         }
     }
-  return nullptr;
+
+  return nullopt;
 }
 
 void
@@ -473,24 +370,30 @@ ApvlvView::regloaded (ApvlvCore *core)
 
   if (mDocs.size () >= (size_t)gParams->valuei ("pdfcache"))
     {
-      auto itr = mDocs.begin ();
-      debug ("to pdf cache size: %d, remove first: %p\n",
-             gParams->valuei ("pdfcache"), *itr);
-      if ((*itr)->inuse () == false)
+      auto found_itr = mDocs.end ();
+      for (auto itr = mDocs.begin (); itr != mDocs.end (); ++itr)
         {
-          delete *itr;
+          if ((*itr)->inuse () == false)
+            {
+              found_itr = itr;
+              break;
+            }
         }
-      mDocs.erase (itr);
+
+      if (found_itr != mDocs.end ())
+        {
+          mDocs.erase (found_itr);
+        }
     }
 
-  mDocs.push_back (core);
+  mDocs.push_back (unique_ptr<ApvlvCore> (core));
 }
 
 ApvlvCompletion *
 ApvlvView::filecompleteinit (const char *path)
 {
   auto *comp = new ApvlvCompletion;
-  GList *list = nullptr;
+  vector<string> items;
 
   auto fspath = filesystem::path{ path };
   auto filename = fspath.filename ();
@@ -500,16 +403,13 @@ ApvlvView::filecompleteinit (const char *path)
       auto entry_filename = entry.path ().filename ().string ();
       if (filename.empty () || entry_filename.find (filename.string ()) == 0)
         {
-          auto listdata
-              = g_strdup_printf ("%s%s", entry.path ().c_str (),
-                                 entry.is_directory () ? PATH_SEP_S : "");
-          debug ("add a item: %s", listdata);
-          list = g_list_append (list, listdata);
+          auto item = entry.path ().string ()
+                      + (entry.is_directory () ? PATH_SEP_S : "");
+          debug ("add a item: %s", item);
+          items.emplace_back (item);
         }
     }
-  comp->add_items (list);
-
-  g_list_free (list);
+  comp->add_items (items);
 
   return comp;
 }
@@ -519,113 +419,66 @@ ApvlvView::promptcommand (char ch)
 {
   char s[2] = { 0 };
   s[0] = ch;
-  gtk_entry_set_text (GTK_ENTRY (mCommandBar), s);
+  mCommandBar->setText (s);
   cmd_show (CMD_CMD);
 }
 
 void
 ApvlvView::promptcommand (const char *s)
 {
-  gtk_entry_set_text (GTK_ENTRY (mCommandBar), s);
+  mCommandBar->setText (s);
   cmd_show (CMD_CMD);
 }
 
 void
 ApvlvView::errormessage (const char *str, ...)
 {
-  gchar estr[512];
-  gint pos;
+  char estr[512];
   va_list vap;
   va_start (vap, str);
   vsnprintf (estr, sizeof estr, str, vap);
   va_end (vap);
-  gtk_entry_set_text (GTK_ENTRY (mCommandBar), "ERROR: ");
-  gtk_editable_set_position (GTK_EDITABLE (mCommandBar), -1);
-  pos = gtk_editable_get_position (GTK_EDITABLE (mCommandBar));
-  gtk_editable_insert_text (GTK_EDITABLE (mCommandBar), estr, -1, &pos);
+  mCommandBar->setText (QString ("ERROR: ") + estr);
   cmd_show (CMD_MESSAGE);
 }
 
 void
 ApvlvView::infomessage (const char *str, ...)
 {
-  gchar estr[512];
-  gint pos;
+  char estr[512];
   va_list vap;
   va_start (vap, str);
   vsnprintf (estr, sizeof estr, str, vap);
   va_end (vap);
-  gtk_entry_set_text (GTK_ENTRY (mCommandBar), "INFO: ");
-  gtk_editable_set_position (GTK_EDITABLE (mCommandBar), -1);
-  pos = gtk_editable_get_position (GTK_EDITABLE (mCommandBar));
-  gtk_editable_insert_text (GTK_EDITABLE (mCommandBar), estr, -1, &pos);
+  mCommandBar->setText (QString ("INFO: ") + estr);
   cmd_show (CMD_MESSAGE);
 }
 
-gchar *
+char *
 ApvlvView::input (const char *str, int width, int height, string content)
 {
-  auto flags = GTK_DIALOG_DESTROY_WITH_PARENT;
-  auto dialog = gtk_dialog_new_with_buttons (str, nullptr, flags, "OK",
-                                             GTK_RESPONSE_ACCEPT, "Cancel",
-                                             GTK_RESPONSE_CANCEL, NULL);
-  auto content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
-  auto entry = gtk_text_view_new ();
-  gtk_widget_set_size_request (entry, width, height);
-  gtk_text_view_set_wrap_mode (GTK_TEXT_VIEW (entry), GTK_WRAP_WORD_CHAR);
-  gtk_text_buffer_set_text (gtk_text_view_get_buffer (GTK_TEXT_VIEW (entry)),
-                            content.c_str (), content.size ());
-  gtk_container_add (GTK_CONTAINER (content_area), entry);
-  gtk_widget_show_all (content_area);
-
-  auto provider = gtk_css_provider_new ();
-  gtk_css_provider_load_from_data (provider,
-                                   "textview {"
-                                   " font: 20 Sans;"
-                                   " color: red;"
-                                   "}",
-                                   -1, NULL);
-  auto context = gtk_widget_get_style_context (entry);
-  gtk_style_context_add_provider (context, GTK_STYLE_PROVIDER (provider),
-                                  GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-  gchar *response = nullptr;
-  auto result = gtk_dialog_run (GTK_DIALOG (dialog));
-  if (result == GTK_RESPONSE_ACCEPT)
-    {
-      auto buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (entry));
-      GtkTextIter start, end;
-      gtk_text_buffer_get_start_iter (buffer, &start);
-      gtk_text_buffer_get_end_iter (buffer, &end);
-      response = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
-    }
-  gtk_widget_destroy (dialog);
-  return response;
+  // need impl
+  return nullptr;
 }
 
 void
 ApvlvView::cmd_show (int cmdtype)
 {
-  if (mMainWindow == nullptr)
-    return;
-
   mCmdType = cmdtype;
 
-  gtk_widget_show (mCommandBar);
-  gtk_widget_grab_focus (mCommandBar);
-  gtk_editable_set_position (GTK_EDITABLE (mCommandBar), -1);
+  mCommandBar->show ();
+  mCommandBar->setCursorPosition (1);
+  mCommandBar->setFocus ();
 }
 
 void
 ApvlvView::cmd_hide ()
 {
-  if (mMainWindow == nullptr)
-    return;
   mCmdType = CMD_NONE;
+  mCmdTime = chrono::steady_clock::now ();
 
-  gtk_widget_hide (mCommandBar);
-
-  gtk_widget_grab_focus (mMainWindow);
+  mCommandBar->hide ();
+  mTabContainer->setFocus ();
 }
 
 void
@@ -661,43 +514,39 @@ ApvlvView::cmd_auto (const char *ps)
   else if (cmd == "doc")
     {
       comp = new ApvlvCompletion;
-      GList *list = g_list_alloc ();
-      size_t i;
-      for (i = 0; i < mDocs.size (); ++i)
+      vector<string> items;
+      for (auto &doc : mDocs)
         {
-          list->data = g_strdup (((ApvlvCore *)mDocs[i])->filename ());
-          comp->add_items (list);
+          items.emplace_back (doc->filename ());
         }
-      g_list_free (list);
+      comp->add_items (items);
     }
 
   if (comp != nullptr)
     {
-      char *comtext = nullptr;
       debug ("find match: %s", np.c_str ());
-      comp->complete (np.c_str (), &comtext);
-      if (comtext != nullptr)
+      auto comtext = comp->complete (np);
+      if (!comtext.empty ())
         {
           char text[PATH_MAX];
 
           debug ("get a match: %s", comtext);
-          gchar **v;
+          char **v;
 
-          v = g_strsplit (comtext, " ", -1);
+          // need impl
+          // v = g_strsplit (comtext, " ", -1);
           if (v != nullptr)
             {
-              gchar *comstr = g_strjoinv ("\\ ", v);
-              g_snprintf (text, sizeof text, ":%s %s", cmd.c_str (), comstr);
-              g_free (comstr);
-              g_strfreev (v);
+              // char *comstr = g_strjoinv ("\\ ", v);
+              // snprintf (text, sizeof text, ":%s %s", cmd.c_str (), comstr);
+              // g_free (comstr);
+              // g_strfreev (v);
             }
           else
             {
-              g_snprintf (text, sizeof text, ":%s %s", cmd.c_str (), comtext);
+              // snprintf (text, sizeof text, ":%s %s", cmd.c_str (), comtext);
             }
-          gtk_entry_set_text (GTK_ENTRY (mCommandBar), text);
-          gtk_editable_set_position (GTK_EDITABLE (mCommandBar), -1);
-          g_free (comtext);
+          mCommandBar->setText (text);
         }
       else
         {
@@ -717,12 +566,12 @@ ApvlvView::fullscreen ()
       if (core)
         core->toggleContent (false);
 
-      gtk_window_fullscreen (GTK_WINDOW (mMainWindow));
+      showFullScreen ();
       mHasFull = true;
     }
   else
     {
-      gtk_window_unfullscreen (GTK_WINDOW (mMainWindow));
+      showNormal ();
       mHasFull = false;
     }
 }
@@ -730,17 +579,25 @@ ApvlvView::fullscreen ()
 ApvlvCore *
 ApvlvView::crtadoc ()
 {
-  ApvlvWindow *curwin = currentWindow ();
-  if (curwin == nullptr)
-    return nullptr;
+  auto widget = QApplication::focusWidget ();
+  if (widget)
+    {
+      auto meta = widget->metaObject ();
+      debug ("now focus in a %s widget", meta->className ());
+      auto doc = ApvlvCore::findByWidget (widget);
+      if (doc)
+        return doc;
+    }
 
+  ApvlvWindow *curwin = currentWindow ();
+  Q_ASSERT (curwin);
   return curwin->getCore ();
 }
 
 returnType
-ApvlvView::subprocess (int ct, guint key)
+ApvlvView::subprocess (int ct, uint key)
 {
-  guint procmd = mProCmd;
+  uint procmd = mProCmd;
   mProCmd = 0;
   mProCmdCnt = 0;
   switch (procmd)
@@ -752,13 +609,13 @@ ApvlvView::subprocess (int ct, guint key)
     case CTRL ('w'):
       if (key == 'q' || key == CTRL ('Q'))
         {
-          if (currentWindow ()->isAncestor ())
+          if (currentWindow ()->isRoot ())
             {
               quit ();
             }
           else
             {
-              delcurrentWindow ();
+              delCurrentWindow ();
             }
         }
       else
@@ -773,14 +630,14 @@ ApvlvView::subprocess (int ct, guint key)
       if (key == 't')
         {
           if (ct == 0)
-            switchtab (mCurrTabPos + 1);
+            switchtab (mTabContainer->currentIndex () + 1);
           else
             switchtab (ct - 1);
         }
       else if (key == 'T')
         {
           if (ct == 0)
-            switchtab (mCurrTabPos - 1);
+            switchtab (mTabContainer->currentIndex () - 1);
           else
             switchtab (ct - 1);
         }
@@ -800,7 +657,7 @@ ApvlvView::subprocess (int ct, guint key)
 }
 
 returnType
-ApvlvView::process (int has, int ct, guint key)
+ApvlvView::process (int has, int ct, uint key)
 {
   if (mProCmd != 0)
     {
@@ -886,9 +743,9 @@ ApvlvView::run (const char *str)
 }
 
 void
-ApvlvView::settitle (const char *title)
+ApvlvView::settitle (const string &title)
 {
-  gtk_window_set_title (GTK_WINDOW (mMainWindow), title);
+  setWindowTitle (QString::fromStdString (title));
 }
 
 bool
@@ -898,7 +755,7 @@ ApvlvView::runcmd (const char *str)
 
   if (*str == '!')
     {
-      apvlv_system (str + 1);
+      system (str + 1);
     }
   else
     {
@@ -953,13 +810,13 @@ ApvlvView::runcmd (const char *str)
                 }
             }
 
-          if (g_file_test (subcmd.c_str (), G_FILE_TEST_IS_DIR))
+          if (filesystem::is_directory (subcmd))
             {
-              ret = loaddir (subcmd.c_str ());
+              ret = loaddir (subcmd);
             }
-          else if (g_file_test (subcmd.c_str (), G_FILE_TEST_EXISTS))
+          else if (filesystem::is_regular_file (subcmd))
             {
-              ret = loadfile (subcmd.c_str ());
+              ret = loadfile (subcmd);
             }
           else
             {
@@ -979,13 +836,17 @@ ApvlvView::runcmd (const char *str)
         }
       else if (cmd == "sp")
         {
-          currentWindow ()->birth (ApvlvWindow::AW_SP, nullptr);
-          windowadded ();
+          if (currentWindow ()->birth (ApvlvWindow::AW_SP, nullptr))
+            {
+              windowadded ();
+            }
         }
       else if (cmd == "vsp")
         {
-          currentWindow ()->birth (ApvlvWindow::AW_VSP, nullptr);
-          windowadded ();
+          if (currentWindow ()->birth (ApvlvWindow::AW_VSP, nullptr))
+            {
+              windowadded ();
+            }
         }
       else if ((cmd == "zoom" || cmd == "z") && !subcmd.empty ())
         {
@@ -1022,13 +883,13 @@ ApvlvView::runcmd (const char *str)
         }
       else if (cmd == "q" || cmd == "quit")
         {
-          if (currentWindow ()->isAncestor ())
+          if (currentWindow ()->isRoot ())
             {
               quit ();
             }
           else
             {
-              delcurrentWindow ();
+              delCurrentWindow ();
             }
         }
       else if (cmd == "qall")
@@ -1037,15 +898,15 @@ ApvlvView::runcmd (const char *str)
         }
       else if (cmd == "tabnew")
         {
-          newtab (helppdf.c_str ());
+          newtab (helppdf);
         }
       else if (cmd == "tabn" || cmd == "tabnext")
         {
-          switchtab (mCurrTabPos + 1);
+          switchtab (mTabContainer->currentIndex () + 1);
         }
       else if (cmd == "tabp" || cmd == "tabprevious")
         {
-          switchtab (mCurrTabPos - 1);
+          switchtab (mTabContainer->currentIndex () - 1);
         }
       else if (cmd == "w" || cmd == "write")
         {
@@ -1086,28 +947,30 @@ ApvlvView::runcmd (const char *str)
   return ret;
 }
 
-gint
-ApvlvView::apvlv_view_keypress_cb (__attribute__ ((unused)) GtkWidget *wid,
-                                   GdkEvent *ev, ApvlvView *view)
+void
+ApvlvView::keyPressEvent (QKeyEvent *evt)
 {
-  if (view->mCmdType == CMD_NONE)
+  if (mCmdType != CMD_NONE)
     {
-      view->mCmds.append ((GdkEventKey *)ev);
-      return TRUE;
+      return;
     }
 
-  return FALSE;
+  auto now = chrono::steady_clock::now ();
+  auto millis
+      = std::chrono::duration_cast<std::chrono::milliseconds> (now - mCmdTime)
+            .count ();
+  if (millis < 1000L)
+    return;
+
+  mCmds.append (evt);
 }
 
 bool
-isalt_escape (GdkEventKey *event)
+isalt_escape (QKeyEvent *event)
 {
-  /* Grab the default modifier mask... */
-  guint modifiers = gtk_accelerator_get_default_mod_mask ();
-
-  if (event->keyval == GDK_KEY_bracketleft &&
+  if (event->key () == Qt::Key_BracketLeft &&
       /* ...so we can ignore mod keys like numlock and capslock. */
-      (event->state & modifiers) == GDK_CONTROL_MASK)
+      (event->modifiers () & Qt::ControlModifier))
     {
       return true;
     }
@@ -1115,137 +978,117 @@ isalt_escape (GdkEventKey *event)
   return false;
 }
 
-gint
-ApvlvView::apvlv_view_commandbar_cb (__attribute__ ((unused)) GtkWidget *wid,
-                                     GdkEvent *ev, ApvlvView *view)
+void
+ApvlvView::commandbar_edit_cb (const QString &str)
 {
-  if (view->mCmdType == CMD_CMD)
+}
+
+void
+ApvlvView::commandbar_return_cb ()
+{
+  if (mCmdType == CMD_CMD)
     {
-      auto *gek = (GdkEventKey *)ev;
-      if (gek->keyval == GDK_KEY_Return)
+      auto str = mCommandBar->text ();
+      if (!str.isEmpty ())
         {
-          auto *str
-              = (gchar *)gtk_entry_get_text (GTK_ENTRY (view->mCommandBar));
-          if (str && strlen (str) > 0)
+          if (run (str.toStdString ().c_str ()))
             {
-              if (view->run (str))
-                {
-                  view->mCmdHistroy.emplace_back (str);
-                  view->mCurrHistroy = view->mCmdHistroy.size () - 1;
-                  view->cmd_hide ();
-                  return TRUE;
-                }
-              else
-                {
-                  debug ("");
-                  return TRUE;
-                }
+              mCmdHistroy.emplace_back (str.toStdString ());
+              mCurrHistroy = mCmdHistroy.size () - 1;
+              cmd_hide ();
             }
           else
             {
-              view->cmd_hide ();
-              return TRUE;
+              debug ("");
             }
         }
-      else if (gek->keyval == GDK_KEY_Tab)
+      else
         {
-          auto *str
-              = (gchar *)gtk_entry_get_text (GTK_ENTRY (view->mCommandBar));
-          if (str && strlen (str) > 0)
-            {
-              view->cmd_auto (str + 1);
-            }
-          return TRUE;
+          cmd_hide ();
         }
-      else if (gek->keyval == GDK_KEY_BackSpace)
-        {
-          auto *str
-              = (gchar *)gtk_entry_get_text (GTK_ENTRY (view->mCommandBar));
-          if (str == nullptr || strlen (str) == 1)
-            {
-              view->cmd_hide ();
-              view->mCurrHistroy = view->mCmdHistroy.size () - 1;
-              return TRUE;
-            }
-        }
-      else if (gek->keyval == GDK_KEY_Escape || isalt_escape (gek))
-        {
-          view->cmd_hide ();
-          view->mCurrHistroy = view->mCmdHistroy.size () - 1;
-          return TRUE;
-        }
-      else if (gek->keyval == GDK_KEY_Up)
-        {
-          if (view->mCmdHistroy.empty ())
-            {
-              return TRUE;
-            }
-
-          gtk_entry_set_text (
-              GTK_ENTRY (view->mCommandBar),
-              view->mCurrHistroy > 0
-                  ? view->mCmdHistroy[view->mCurrHistroy--].c_str ()
-                  : view->mCmdHistroy[0].c_str ());
-          return TRUE;
-        }
-      else if (gek->keyval == GDK_KEY_Down)
-        {
-          if (view->mCmdHistroy.empty ())
-            {
-              return TRUE;
-            }
-
-          gtk_entry_set_text (
-              GTK_ENTRY (view->mCommandBar),
-              (size_t)view->mCurrHistroy < view->mCmdHistroy.size () - 1
-                  ? view->mCmdHistroy[++view->mCurrHistroy].c_str ()
-                  : view->mCmdHistroy[view->mCmdHistroy.size () - 1].c_str ());
-          return TRUE;
-        }
-
-      return FALSE;
     }
-  else if (view->mCmdType == CMD_MESSAGE)
+  /*
+      else if (gek->key () == Qt::Key_Tab)
+        {
+          auto str = mCommandBar->text ();
+          if (!str.isEmpty ())
+            {
+              cmd_auto (str.toStdString ().c_str () + 1);
+            }
+        }
+      else if (gek->key () == Qt::Key_Backspace)
+        {
+          auto str = mCommandBar->text ();
+          if (str.length () == 1)
+            {
+              cmd_hide ();
+              mCurrHistroy = mCmdHistroy.size () - 1;
+            }
+        }
+      else if (gek->key () == Qt::Key_Escape || isalt_escape (gek))
+        {
+          cmd_hide ();
+          mCurrHistroy = mCmdHistroy.size () - 1;
+        }
+      else if (gek->key () == Qt::Key_Up)
+        {
+          if (!mCmdHistroy.empty ())
+            {
+              mCommandBar->setText (QString::fromStdString (
+                  mCurrHistroy > 0 ? mCmdHistroy[mCurrHistroy--]
+                                   : mCmdHistroy[0]));
+            }
+        }
+      else if (gek->key () == Qt::Key_Down)
+        {
+          if (!mCmdHistroy.empty ())
+            {
+              mCommandBar->setText (QString::fromStdString (
+                  (size_t)mCurrHistroy < mCmdHistroy.size () - 1
+                      ? mCmdHistroy[++mCurrHistroy]
+                      : mCmdHistroy[mCmdHistroy.size () - 1]));
+            }
+        }
+    } */
+  else if (mCmdType == CMD_MESSAGE)
     {
       debug ("");
-      view->cmd_hide ();
-      return TRUE;
-    }
-
-  return FALSE;
-}
-
-void
-ApvlvView::apvlv_view_delete_cb (__attribute__ ((unused)) GtkWidget *wid,
-                                 __attribute__ ((unused)) GtkAllocation *al,
-                                 ApvlvView *view)
-{
-  debug ("delete cb: %p", view);
-  GtkWidget *widget = view->mMainWindow;
-  if (widget)
-    {
-      gtk_widget_destroy (widget);
-    }
-  view->mMainWindow = nullptr;
-  if (view->mParent == nullptr)
-    {
-      gtk_main_quit ();
+      cmd_hide ();
     }
 }
 
 void
-ApvlvView::apvlv_notebook_switch_cb (__attribute__ ((unused)) GtkWidget *wid,
-                                     __attribute__ ((unused))
-                                     GtkNotebook *notebook,
-                                     guint pnum, ApvlvView *view)
+ApvlvView::closeEvent (QCloseEvent *evt)
 {
-  view->mCurrTabPos = pnum;
-
-  if (view->crtadoc () && view->crtadoc ()->filename ())
+  if (mParent == nullptr)
     {
-      gchar *base = g_path_get_basename (view->crtadoc ()->filename ());
-      view->settitle (base);
-      g_free (base);
+      QGuiApplication::exit ();
+    }
+}
+
+void
+ApvlvView::notebook_switch_cb (int pnum)
+{
+  debug ("tabwidget switch to: %d", pnum);
+  if (pnum == -1)
+    return;
+
+  auto adoc = crtadoc ();
+  if (adoc && adoc->filename ())
+    {
+      auto filename = filesystem::path (crtadoc ()->filename ()).filename ();
+      settitle (filename.string ());
+    }
+}
+
+void
+ApvlvView::notebook_close_cb (int ind)
+{
+  debug ("tabwidget will close %d", ind);
+  if (mTabContainer->currentIndex () == -1)
+    {
+      if (mTabContainer->count () > 0)
+        mTabContainer->setCurrentIndex (0);
     }
 }
 
@@ -1257,15 +1100,14 @@ ApvlvView::switchtab (long tabPos)
     tabPos += ntabs;
 
   tabPos = tabPos % ntabs;
-  switch_tabcontext (tabPos);
-  gtk_notebook_set_current_page (GTK_NOTEBOOK (mTabContainer),
-                                 gint (mCurrTabPos));
+  mTabContainer->setCurrentIndex (tabPos);
 }
 
 void
 ApvlvView::windowadded ()
 {
-  mTabList[mCurrTabPos].mWindowCount++;
+  auto index = mTabContainer->currentIndex ();
+  Q_ASSERT (index != -1);
   updatetabname ();
 }
 
@@ -1275,30 +1117,24 @@ ApvlvView::updatetabname ()
   char tagname[26];
 
   const char *filename = currentWindow ()->getCore ()->filename ();
-  gchar *gfilename;
+  string gfilename;
 
   if (filename == nullptr)
-    gfilename = g_strdup ("None");
+    gfilename = "None";
   else
-    gfilename = g_path_get_basename (filename);
+    gfilename = filesystem::path (filename).filename ().string ();
 
   settitle (gfilename);
 
-  if (mTabList[mCurrTabPos].mWindowCount > 1)
-    g_snprintf (tagname, sizeof tagname, "[%d] %s",
-                mTabList[mCurrTabPos].mWindowCount, gfilename);
+  auto index = mTabContainer->currentIndex ();
+  Q_ASSERT (index != -1);
+  if (mTabList[index]->getWindowCount () > 1)
+    snprintf (tagname, sizeof tagname, "[%d] %s",
+              mTabList[index]->getWindowCount (), gfilename.c_str ());
   else
-    g_snprintf (tagname, sizeof tagname, "%s", gfilename);
+    snprintf (tagname, sizeof tagname, "%s", gfilename.c_str ());
 
-  g_free (gfilename);
-
-  GtkWidget *tabname = gtk_label_new (tagname);
-  GtkWidget *tabwidget = gtk_notebook_get_nth_page (
-      GTK_NOTEBOOK (mTabContainer), gint (mCurrTabPos));
-  gtk_notebook_set_tab_label (GTK_NOTEBOOK (mTabContainer), tabwidget,
-                              tabname);
-  gtk_notebook_set_current_page (GTK_NOTEBOOK (mTabContainer),
-                                 gint (mCurrTabPos));
+  mTabContainer->setTabText (index, tagname);
 }
 
 void
@@ -1321,7 +1157,7 @@ ApvlvView::erase_child (ApvlvView *view)
 }
 
 void
-ApvlvView::saveKey (int has, int ct, guint key, bool end)
+ApvlvView::saveKey (int has, int ct, uint key, bool end)
 {
   if (processInLast)
     return;

@@ -36,11 +36,10 @@ namespace apvlv
 {
 ApvlvInfo *gInfo = nullptr;
 
-ApvlvInfo::ApvlvInfo (const char *filename)
+ApvlvInfo::ApvlvInfo (const string &filename)
 {
   mFileName = filename;
 
-  mFileHead = nullptr;
   mFileMax = 10;
 
   ifstream is (mFileName.c_str (), ios::in);
@@ -62,20 +61,8 @@ ApvlvInfo::ApvlvInfo (const char *filename)
           ini_add_position (p);
         }
 
-      mFileHead = g_slist_reverse (mFileHead);
-
       is.close ();
     }
-}
-
-ApvlvInfo::~ApvlvInfo ()
-{
-  for (GSList *list = mFileHead; list != nullptr; list = g_slist_next (list))
-    {
-      auto *fp = (infofile *)(list->data);
-      delete fp;
-    }
-  g_slist_free (mFileHead);
 }
 
 bool
@@ -87,79 +74,62 @@ ApvlvInfo::update ()
       return false;
     }
 
-  int i;
-  GSList *lfp;
-  infofile *fp;
-  for (i = 0, lfp = mFileHead; i < mFileMax && lfp != nullptr;
-       ++i, lfp = g_slist_next (lfp))
+  int i = 0;
+  for (auto &infofile : mInfoFiles)
     {
-      fp = (infofile *)(lfp->data);
-      if (fp)
-        {
-          os << "'" << i << "\t";
-          os << fp->page << ':' << fp->skip << "\t";
-          os << fp->rate << "\t";
-          os << fp->file << endl;
-        }
+      os << "'" << i++ << "\t";
+      os << infofile.page << ':' << infofile.skip << "\t";
+      os << infofile.rate << "\t";
+      os << infofile.file << endl;
+      if (i >= mFileMax)
+        break;
     }
 
   os.close ();
   return true;
 }
 
-infofile *
+optional<InfoFile *>
 ApvlvInfo::file (int id)
 {
-  auto *fp = (infofile *)g_slist_nth_data (mFileHead, id);
-  return fp;
+  if (id < static_cast<int> (mInfoFiles.size ()))
+    {
+      auto &infofile = mInfoFiles[id];
+      return &infofile;
+    }
+
+  return nullopt;
 }
 
-infofile *
-ApvlvInfo::file (const char *filename)
+optional<InfoFile *>
+ApvlvInfo::file (const string &filename)
 {
-  GSList *lfp;
-  infofile *fp;
-
-  for (lfp = mFileHead; lfp != nullptr; lfp = g_slist_next (lfp))
+  for (auto &infofile : mInfoFiles)
     {
-      fp = (infofile *)(lfp->data);
-      if (fp->file == filename)
+      if (infofile.file == filename)
         {
-          break;
+          return &infofile;
         }
     }
 
-  if (lfp == nullptr)
-    {
-      fp = new infofile;
-      fp->page = 0;
-      fp->skip = 0;
-      fp->rate = 0.0;
-      fp->file = filename;
-      mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
-    }
-  else
-    {
-      mFileHead = g_slist_remove (mFileHead, fp);
-      mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
-    }
-
-  return fp;
+  return nullopt;
 }
 
 bool
-ApvlvInfo::file (int page, double rate, const char *filename, int skip)
+ApvlvInfo::updateFile (int page, int skip, double rate, const string &filename)
 {
-  infofile *fp;
+  InfoFile infofile{ page, skip, rate, filename };
+  auto optinfofile = file (filename);
+  if (optinfofile)
+    {
+      *optinfofile.value () = infofile;
+    }
+  else
+    {
+      mInfoFiles.emplace_back (infofile);
+    }
 
-  fp = file (filename);
-
-  fp->page = page;
-  fp->rate = rate;
-  fp->skip = skip;
-  update ();
-
-  return true;
+  return update ();
 }
 
 bool
@@ -225,12 +195,8 @@ ApvlvInfo::ini_add_position (const char *str)
       return false;
     }
 
-  auto *fp = new infofile;
-  fp->page = page;
-  fp->rate = rate;
-  fp->skip = skip;
-  fp->file = p;
-  mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
+  auto fp = InfoFile{ page, skip, rate, p };
+  mInfoFiles.emplace_back (fp);
   return true;
 }
 };

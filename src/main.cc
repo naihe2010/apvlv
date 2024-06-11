@@ -26,18 +26,20 @@
  */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
+#ifndef WIN32
+#include <getopt.h>
+#endif
+#include <QApplication>
+#include <QDir>
+#include <QFile>
+#include <QLocale>
+#include <QMessageBox>
+#include <QTranslator>
+
 #include "ApvlvInfo.h"
 #include "ApvlvParams.h"
 #include "ApvlvUtil.h"
 #include "ApvlvView.h"
-
-#include <clocale>
-#ifndef WIN32
-#include <getopt.h>
-#endif
-#include <glib.h>
-#include <gtk/gtk.h>
-#include <iostream>
 
 using namespace apvlv;
 
@@ -74,81 +76,16 @@ version_exit ()
 }
 #endif
 
-static char *
-get_xdg_or_home_ini (void)
-{
-  const gchar *xdgdir, *homedir;
-  gchar *configpath;
-
-  xdgdir = g_getenv ("XDG_CONFIG_DIR");
-  homedir = g_getenv ("HOME");
-  if (homedir == nullptr)
-    {
-      homedir = g_get_home_dir ();
-    }
-  if (xdgdir != nullptr)
-    {
-      configpath = g_strdup_printf ("%s/apvlv/apvlvrc", xdgdir);
-    }
-  else if (homedir != nullptr)
-    {
-      configpath = g_strdup_printf ("%s/.config/apvlv/apvlvrc", homedir);
-      if (g_file_test (configpath, G_FILE_TEST_IS_REGULAR) == FALSE)
-        {
-          g_free (configpath);
-          configpath = g_strdup_printf ("%s/.apvlvrc", homedir);
-        }
-    }
-  else
-    {
-      configpath = absolutepath (inifile.c_str ());
-    }
-
-  if (configpath && g_file_test (configpath, G_FILE_TEST_IS_REGULAR))
-    return configpath;
-  else
-    return nullptr;
-}
-
-static char *
-get_xdg_or_cache_sessionpath (void)
-{
-  const gchar *xdgdir, *homedir;
-  gchar *sessionpath;
-
-  xdgdir = g_getenv ("XDG_CACHE_HOME");
-  homedir = g_getenv ("HOME");
-  if (homedir == nullptr)
-    {
-      homedir = g_get_home_dir ();
-    }
-  if (xdgdir != nullptr)
-    {
-      sessionpath = g_strdup_printf ("%s/apvlvinfo", xdgdir);
-    }
-  else if (homedir != nullptr)
-    {
-      sessionpath = g_strdup_printf ("%s/.cache/apvlvinfo", homedir);
-    }
-  else
-    {
-      sessionpath = absolutepath (sessionfile.c_str ());
-    }
-
-  return sessionpath;
-}
-
 static int
 parse_options (int argc, char *argv[])
 {
-  gchar *ini;
+  string ini;
 
 #ifdef WIN32
-  ini = absolutepath (inifile.c_str ());
-  if (ini != nullptr)
+  ini = filesystem::absolute (filesystem::path (inifile)).string ();
+  if (!ini.empty ())
     {
       gParams->loadfile (ini);
-      g_free (ini);
     }
   return 1;
 #else
@@ -160,13 +97,12 @@ parse_options (int argc, char *argv[])
           { nullptr, 0, nullptr, 0 } };
 
   index = 0;
-  ini = nullptr;
   while ((c = getopt_long (argc, argv, "c:hv", long_options, &index)) != -1)
     {
       switch (c)
         {
         case 'c':
-          ini = absolutepath (optarg);
+          ini = filesystem::absolute (optarg).string ();
           break;
 
         case 'h':
@@ -183,59 +119,61 @@ parse_options (int argc, char *argv[])
         }
     }
 
-  if (ini == nullptr)
+  if (ini.empty ())
     {
-      ini = get_xdg_or_home_ini ();
+      ini = inifile;
     }
-  debug ("using config: %s", ini);
+  debug ("using config: %s", ini.c_str ());
 
   /*
    * load the global sys conf file
    * */
-  gchar *sysIni = g_strdup_printf ("%s/%s", SYSCONFDIR, "apvlvrc");
-  if (sysIni)
-    {
-      gParams->loadfile (sysIni);
-      g_free (sysIni);
-    }
+  auto sysIni = string (SYSCONFDIR) + "/apvlvrc";
+  gParams->loadfile (sysIni);
 
   /*
    * load the user conf file
    * */
-  if (ini != nullptr)
-    {
-      gParams->loadfile (ini);
-      g_free (ini);
-    }
+  gParams->loadfile (ini);
 
   return optind;
 #endif
 }
 
+static void
+loadTranslator ()
+{
+  QTranslator translator;
+  map<string, string> lanuage_translator{ { "Chinese", "zh_CN" } };
+  auto lan = QLocale::system ().language ();
+  auto lanstr = QLocale::languageToString (lan).toStdString ();
+  if (lanuage_translator.find (lanstr) != lanuage_translator.end ())
+    {
+      auto lantrans = lanuage_translator[lanstr];
+      if (!translator.load (QString::fromStdString (lantrans),
+                            QString::fromStdString (translations)))
+        {
+          errp ("Load i18n file failed, using English");
+        }
+      else
+        {
+          QApplication::installTranslator (&translator);
+        }
+    }
+}
+
 int
 main (int argc, char *argv[])
 {
-  setlocale (LC_ALL, "");
+  QApplication app (argc, argv);
+
+  getRuntimePaths ();
 
   ApvlvParams sParams;
   gParams = &sParams;
 
-  gchar *infopath = get_xdg_or_cache_sessionpath ();
-  ApvlvInfo sInfo (infopath);
-  g_free (infopath);
+  ApvlvInfo sInfo (sessionfile);
   gInfo = &sInfo;
-
-#ifdef _WIN32
-  gchar *temp = absolutepath (iconpdf.c_str ());
-  iconpdf = temp;
-  g_free (temp);
-  temp = absolutepath (icondir.c_str ());
-  icondir = temp;
-  g_free (temp);
-  temp = absolutepath (iconreg.c_str ());
-  iconreg = temp;
-  g_free (temp);
-#endif
 
   int opt = parse_options (argc, argv);
   if (opt < 0)
@@ -244,8 +182,7 @@ main (int argc, char *argv[])
       return 1;
     }
 
-  gchar *path;
-  bool isHelpPdf = false;
+  string path;
   if (opt > 0 && argc > opt)
     {
       path = argv[opt];
@@ -253,33 +190,18 @@ main (int argc, char *argv[])
     }
   else
     {
-      path = (gchar *)helppdf.c_str ();
-      isHelpPdf = true;
+      path = helppdf;
     }
 
-  gchar *rpath = g_locale_to_utf8 (path, -1, nullptr, nullptr, nullptr);
-  if (rpath == nullptr)
+  if (!filesystem::is_regular_file (path))
     {
-      errp ("Convert path: '%s' to utf8 failed.\n", path);
+      errp ("File '%s' is not readable.\n", path.c_str ());
       return 1;
     }
 
-  path = absolutepath (rpath);
-  g_free (rpath);
-  if (path == nullptr)
-    {
-      errp ("Convert '%s' to absolute path failed.\n", rpath);
-      return 1;
-    }
+  ApvlvDoc::webEngineRegisterScheme ();
 
-  if (g_file_test (path, G_FILE_TEST_IS_REGULAR) == FALSE)
-    {
-      errp ("File '%s' is not readable.\n", path);
-      g_free (path);
-      return 1;
-    }
-
-  gtk_init (&argc, &argv);
+  loadTranslator ();
 
   ApvlvView sView (nullptr);
   if (!sView.newtab (path))
@@ -287,29 +209,16 @@ main (int argc, char *argv[])
       exit (1);
     }
 
-  if (isHelpPdf)
-    {
-      helppdf = path;
-    }
-  g_free (path);
-
   while (opt < argc)
     {
-      path = absolutepath (argv[opt++]);
-      if (path == nullptr)
+      auto apath = filesystem::absolute (argv[opt++]).string ();
+      if (!sView.loadfile (apath))
         {
-          continue;
+          errp ("Can't open document: %s", apath.c_str ());
         }
-
-      if (!sView.loadfile (path))
-        {
-          errp ("Can't open document: %s", path);
-        }
-
-      g_free (path);
     }
 
-  gtk_main ();
+  QApplication::exec ();
 
   return 0;
 }

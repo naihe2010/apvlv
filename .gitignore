@@ -3,3 +3,5 @@
 cscope.files
 cscope.out
 /.idea
+share/doc/apvlv/translations/*
+share/doc/apvlv/Startup.pdf

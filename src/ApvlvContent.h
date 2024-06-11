@@ -29,33 +29,40 @@
 #ifndef _APVLV_CONTENT_H_
 #define _APVLV_CONTENT_H_
 
-#include "ApvlvFile.h"
-#include "ApvlvUtil.h"
-
-#include <gtk/gtk.h>
-
+#include <QTimer>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
 #include <iostream>
 #include <map>
+
+#include "ApvlvFile.h"
+#include "ApvlvUtil.h"
 
 using namespace std;
 
 namespace apvlv
 {
 class ApvlvDoc;
-class ApvlvContent
+
+const int CONTENT_COL_TITLE = 0;
+const int CONTENT_COL_PAGE = 1;
+const int CONTENT_COL_ANCHOR = 2;
+const int CONTENT_COL_PATH = 3;
+
+class ApvlvContent : public QTreeWidget
 {
+  Q_OBJECT
 public:
-  explicit ApvlvContent ();
+  ApvlvContent ();
 
-  virtual ~ApvlvContent ();
+  ~ApvlvContent () override = default;
 
-  GtkWidget *widget ();
+  bool isReady ();
 
-  const ApvlvFileIndex currentIndex ();
+  unique_ptr<ApvlvFileIndex> currentIndex ();
 
-  void setIndex (const ApvlvFileIndex &index);
-
-  void setIndex (const ApvlvFileIndex &index, GtkTreeIter *root_itr);
+  bool find_index_and_select (QTreeWidgetItem *itr, int pn,
+                              const char *anchor);
 
   void setCurrentIndex (int pn, const char *anchor);
 
@@ -73,31 +80,37 @@ public:
 
   void scrollright (int times);
 
+  bool
+  isFocused ()
+  {
+    return mIsFocused;
+  }
+
+  void
+  setIsFocused (bool is_focused)
+  {
+    mIsFocused = is_focused;
+  }
+
 private:
-  GtkWidget *mTreeView;
-  GtkTreeStore *mStore;
-  GtkTreeSelection *mSelection;
-  GtkTreeIter mCurrentIter;
+  bool mIsFocused;
 
   ApvlvFileIndex mIndex;
 
-  std::pair<int, string> mTargetIndex;
+  ApvlvDoc *mDoc{ nullptr };
 
-  ApvlvDoc *mDoc;
-  static gboolean apvlv_set_iter_by_index (GtkTreeModel *model,
-                                           GtkTreePath *path,
-                                           GtkTreeIter *iter,
-                                           ApvlvContent *content);
-  static void apvlv_content_on_changed (GtkTreeSelection *, ApvlvContent *);
+  unique_ptr<QTimer> mFirstTimer;
 
-  static void apvlv_content_on_row_activated (GtkTreeView *tree_view,
-                                              GtkTreePath *path,
-                                              GtkTreeViewColumn *column,
-                                              ApvlvContent *content);
+  QTreeWidgetItem *mCurrentItem{ nullptr };
 
-  static gboolean apvlv_content_first_select_cb (ApvlvContent *);
+  void setIndex (const ApvlvFileIndex &index, QTreeWidgetItem *root_itr);
 
-private:
+private slots:
+  void on_changed ();
+  void on_row_activated (QTreeWidgetItem *item, int column);
+  void on_row_doubleclicked ();
+  void first_select_cb ();
+  void setIndex (const ApvlvFileIndex &index);
 };
 }
 

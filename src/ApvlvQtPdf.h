@@ -25,19 +25,22 @@
  */
 /* @date Created: 2011/09/16 13:50:04 Alf*/
 
-#ifndef _APVLV_PDF_H_
-#define _APVLV_PDF_H_
+#ifndef _APVLV_QTPDF_H_
+#define _APVLV_QTPDF_H_
+
+#include <QPdfDocument>
 
 #include "ApvlvFile.h"
 
 namespace apvlv
 {
+
 class ApvlvPDF : public ApvlvFile
 {
 public:
-  explicit ApvlvPDF (const char *filename, bool check = true);
+  explicit ApvlvPDF (const string &filename, bool check = true);
 
-  ~ApvlvPDF () override;
+  ~ApvlvPDF () override = default;
 
   bool writefile (const char *filename) override;
 
@@ -45,35 +48,31 @@ public:
 
   int pagesum () override;
 
-  bool pagetext (int pn, gdouble x1, gdouble y1, gdouble x2, gdouble y2,
+  bool pagetext (int pn, double x1, double y1, double x2, double y2,
                  char **out) override;
 
-  bool render (int, int, int, double, int, GdkPixbuf *, char *) override;
+  bool render (int, int, int, double, int, QImage *) override;
 
-  bool annot_underline (int, gdouble, gdouble, gdouble, gdouble) override;
+  bool annot_underline (int, double, double, double, double) override;
 
-  bool annot_text (int, gdouble, gdouble, gdouble, gdouble,
+  bool annot_text (int, double, double, double, double,
                    const char *text) override;
 
   bool annot_update (int pn, ApvlvAnnotText *text) override;
 
-  bool pageselectsearch (int, int, int, double, int, GdkPixbuf *, char *, int,
-                         ApvlvPoses *) override;
-
-  ApvlvPoses *pagesearch (int pn, const char *s, bool reverse) override;
+  unique_ptr<ApvlvPoses> pagesearch (int pn, const char *s,
+                                     bool reverse) override;
 
   ApvlvAnnotTexts getAnnotTexts (int pn) override;
 
-  ApvlvLinks *getlinks (int pn) override;
+  unique_ptr<ApvlvLinks> getlinks (int pn) override;
 
-  bool pageprint (int pn, cairo_t *cr) override;
+  bool pageprint (int pn, QPrinter *cr) override;
 
 private:
   bool pdf_get_index ();
-  bool walk_poppler_index_iter (ApvlvFileIndex *root_index,
-                                PopplerIndexIter *iter);
 
-  PopplerDocument *mDoc;
+  unique_ptr<QPdfDocument> mDoc;
 };
 }
 #endif

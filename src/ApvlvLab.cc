@@ -28,9 +28,7 @@
 #include "ApvlvLab.h"
 #include "ApvlvUtil.h"
 
-#include <libxml/tree.h>
 #include <sstream>
-#include <webkit2/webkit2.h>
 
 namespace apvlv
 {
@@ -101,19 +99,18 @@ ApvlvLab::ApvlvLab (const char *filename, bool check)
 ApvlvLab::~ApvlvLab () {}
 
 bool
-ApvlvLab::render (int, int, int, double, int, GdkPixbuf *, char *)
+ApvlvLab::render (int, int, int, double, int, QImage *)
 {
   return false;
 }
 
 bool
-ApvlvLab::renderweb (int pn, int ix, int iy, double zm, int rot,
-                     GtkWidget *widget)
+ApvlvLab::render (int pn, int ix, int iy, double zm, int rot,
+                  QWebEngineView *webview)
 {
-  char uri[0x100];
-  webkit_web_view_set_zoom_level (WEBKIT_WEB_VIEW (widget), zm);
-  snprintf (uri, sizeof uri, "apvlv:///%d", pn);
-  webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), uri);
+  webview->setZoomFactor (zm);
+  QUrl url = QString ("apvlv:///") + QString::number (pn);
+  webview->load (url);
   return true;
 }
 

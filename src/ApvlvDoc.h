@@ -29,26 +29,44 @@
 #ifndef _APVLV_DOC_H_
 #define _APVLV_DOC_H_
 
-#include "ApvlvCore.h"
-#include "ApvlvFile.h"
-#include "ApvlvUtil.h"
-
-#include <gtk/gtk.h>
-#include <webkit2/webkit2.h>
-
+#include <QBoxLayout>
+#include <QLabel>
+#include <QUrl>
+#include <QWebEngineUrlRequestJob>
+#include <QWebEngineUrlSchemeHandler>
 #include <iostream>
 #include <list>
 #include <map>
 #include <vector>
 
-using namespace std;
+#include "ApvlvCore.h"
+#include "ApvlvFile.h"
+#include "ApvlvUtil.h"
 
 namespace apvlv
 {
+
+class ApvlvDoc;
+class ApvlvSchemeHandler : public QWebEngineUrlSchemeHandler
+{
+  Q_OBJECT
+public:
+  explicit ApvlvSchemeHandler (ApvlvDoc *doc) { mDoc = doc; }
+  ~ApvlvSchemeHandler () = default;
+
+  void requestStarted (QWebEngineUrlRequestJob *job) override;
+
+private:
+  ApvlvDoc *mDoc;
+
+signals:
+  void webpageUpdated (const string &key);
+};
+
 struct PrintData
 {
   ApvlvFile *file;
-  guint frmpn, endpn;
+  uint frmpn, endpn;
 };
 
 struct ApvlvDocPosition
@@ -71,6 +89,13 @@ struct ApvlvLine
   vector<ApvlvWord> mWords;
 };
 
+enum class ApvlvVisualMode
+{
+  VISUAL_NONE,
+  VISUAL_V,
+  VISUAL_CTRL_V
+};
+
 class ApvlvDoc;
 class ApvlvDocCache
 {
@@ -79,101 +104,96 @@ public:
 
   ~ApvlvDocCache ();
 
-  void set (guint p, double zm, guint rot, bool delay = true);
+  void set (uint p, double zm, uint rot, bool delay = true);
 
-  static void load (ApvlvDocCache *);
+  void load ();
 
-  gint getpagenum () const;
+  [[nodiscard]] int getpagenum () const;
 
-  guchar *getdata (bool wait);
+  const QImage &getbuf (bool wait);
 
-  GdkPixbuf *getbuf (bool wait);
+  [[nodiscard]] int getwidth () const;
 
-  gint getwidth () const;
+  [[nodiscard]] int getheight () const;
 
-  gint getheight () const;
+  double getHeightOfLine (double y);
 
-  gdouble getHeightOfLine (gdouble y);
-
-  gdouble getWidthOfWord (gdouble x, gdouble y);
+  double getWidthOfWord (double x, double y);
 
   ApvlvLinks *getlinks ();
 
   bool mInverted;
 
-  ApvlvWord *getword (gdouble x, gdouble y);
+  ApvlvWord *getword (double x, double y);
 
-  ApvlvLine *getline (gdouble y);
+  ApvlvLine *getline (double y);
 
-  vector<ApvlvLine *> getlines (gdouble y1, gdouble y2);
+  vector<ApvlvLine *> getlines (double y1, double y2);
 
-  vector<ApvlvPos> getSelected (ApvlvPoint last, ApvlvPoint cur, int visual);
+  vector<ApvlvPos> getSelected (ApvlvPoint last, ApvlvPoint cur,
+                                ApvlvVisualMode visual);
 
   bool getAvailableSpace (ApvlvPos pos, ApvlvPos *outpos);
 
-  void setAnnot (const ApvlvAnnotText &annot, unsigned char *buffer,
-                 size_t buf_size) const;
+  void setAnnot (const ApvlvAnnotText &annot) const;
 
   ApvlvAnnotText *annotAtPos (ApvlvPos vpos);
 
 private:
   ApvlvFile *mFile;
   double mZoom;
-  guint mRotate;
-  gint mPagenum;
-  guchar *mData;
-  gint mSize;
-  GdkPixbuf *mBuf;
-  gint mWidth;
-  gint mHeight;
+  uint mRotate;
+  int mPagenum;
+  QImage mBuf;
+  int mWidth;
+  int mHeight;
 
-  ApvlvLinks *mLinks;
+  unique_ptr<ApvlvLinks> mLinks;
   vector<ApvlvLine> mLines;
   ApvlvAnnotTexts mAnnotTexts;
 
-  void preGetLines (gint x1, gint y1, gint x2, gint y2);
+  void preGetLines (int x1, int y1, int x2, int y2);
   void sortLines ();
   void prepare_add (const char *word, ApvlvPoses *results);
 };
 
-class ApvlvImage
+class ApvlvImage : public QLabel
 {
+  Q_OBJECT
 public:
   ApvlvImage (ApvlvDoc *doc, int id);
-  ~ApvlvImage ();
+  ~ApvlvImage () = default;
 
   int mId;
 
-  GtkWidget *widget ();
+  void toCacheSize (double x, double y, ApvlvDocCache *cache, double *rx,
+                    double *ry);
 
-  void toCacheSize (gdouble x, gdouble y, ApvlvDocCache *cache, gdouble *rx,
-                    gdouble *ry);
-
-  void setFromPixbuf (GdkPixbuf *buf);
-
-  static void apvlv_image_copytoclipboard_cb (GtkMenuItem *item,
-                                              ApvlvImage *image);
-  static void apvlv_image_underline_cb (GtkMenuItem *item, ApvlvImage *image);
-  static void apvlv_image_annotate_cb (GtkMenuItem *item, ApvlvImage *image);
-  static void apvlv_image_comment_cb (GtkMenuItem *item, ApvlvImage *image);
+  void setImage (const QImage &buf);
 
 private:
-  GtkWidget *mImage;
-
-  GtkWidget *mEventBox;
-
   ApvlvDoc *mDoc;
+
+  void contextMenuEvent (QContextMenuEvent *ev) override;
+  void mouseMoveEvent (QMouseEvent *evt) override;
+  void mousePressEvent (QMouseEvent *evt) override;
+  void mouseReleaseEvent (QMouseEvent *evt) override;
+
+public slots:
+  void copytoclipboard_cb ();
+  void underline_cb ();
+  void annotate_cb ();
+  void comment_cb ();
 };
 
 class ApvlvDoc : public ApvlvCore
 {
+  Q_OBJECT
 public:
   explicit ApvlvDoc (ApvlvView *, const char *zm = "NORMAL",
                      bool cache = false);
 
   ~ApvlvDoc () override;
-
-  void setactive (bool act) override;
 
   ApvlvDoc *copy () override;
 
@@ -181,7 +201,7 @@ public:
 
   void usecache (bool use) override;
 
-  bool loadfile (const char *src, bool check, bool show_content) override;
+  bool loadfile (const string &src, bool check, bool show_content) override;
 
   int pagenumber () override;
 
@@ -201,7 +221,7 @@ public:
 
   void showpage (int p, const string &anchor) override;
 
-  void contentShowPage (const ApvlvFileIndex &index, bool force);
+  void contentShowPage (ApvlvFileIndex *index, bool force);
 
   void nextpage (int times) override;
 
@@ -216,16 +236,11 @@ public:
   void scrollleft (int times) override;
   void scrollright (int times) override;
 
-  void scrollupweb (int times);
-  void scrolldownweb (int times);
-  void scrollleftweb (int times);
-  void scrollrightweb (int times);
-
   bool search (const char *str, bool reverse) override;
 
   bool find (const char *str) override;
 
-  returnType process (int hastimes, int times, guint keyval) override;
+  returnType process (int hastimes, int times, uint keyval) override;
 
   void gotolink (int ct) override;
 
@@ -233,32 +248,19 @@ public:
 
   void srtranslate (int &rtimes, double &sr, bool single2continuous);
 
-  static gboolean webview_leaved_scrollup (ApvlvDoc *doc);
-  static void webview_load_changed_cb (WebKitWebView *web_view,
-                                       WebKitLoadEvent event, ApvlvDoc *doc);
-  static gboolean webview_context_menu_cb (
-      WebKitWebView *web_view, WebKitContextMenu *context_menu,
-      GdkEvent *event, WebKitHitTestResult *hit_test_result, ApvlvDoc *doc);
-  static void webview_arrive_top (WebKitUserContentManager *,
-                                  WebKitJavascriptResult *, ApvlvDoc *doc);
-  static void webview_arrive_bottom (WebKitUserContentManager *,
-                                     WebKitJavascriptResult *, ApvlvDoc *doc);
-  static void webcontext_load_uri_callback (WebKitURISchemeRequest *,
-                                            ApvlvDoc *doc);
-  ApvlvImage *getApvlvImageByEventBox (GtkEventBox *box);
+  void updateUrlHandler (ApvlvFile *file);
+
+  static void webEngineRegisterScheme ();
 
 private:
   void blank (ApvlvImage *img);
 
-  static void blankarea (ApvlvImage *image, ApvlvPos pos, guchar *buffer,
+  static void blankarea (ApvlvImage *image, ApvlvPos pos, uchar *buffer,
                          int width, int height);
 
   void doubleClickBlank (ApvlvImage *img, double x, double y);
 
   void togglevisual (int type);
-
-  void scrollweb (int times, int w, int h);
-  void scrollwebto (double xrate, double yrate);
 
   void yank (ApvlvImage *image, int times);
 
@@ -268,7 +270,7 @@ private:
 
   void commentText (ApvlvImage *image);
 
-  returnType subprocess (int ct, guint key);
+  returnType subprocess (int ct, uint key);
 
   int convertindex (int p);
 
@@ -278,78 +280,49 @@ private:
 
   void refresh () override;
 
-  void show () override;
+  void display () override;
 
   bool reload () override;
 
   bool savelastposition (const char *filename);
 
-  bool loadlastposition (const char *filename);
+  bool loadlastposition (const string &filename);
 
   void setDisplayType (DISPLAY_TYPE type);
 
-  void updateLastPoint (gdouble x, gdouble y);
+  void updateLastPoint (double x, double y);
 
-  void updateCurPoint (gdouble x, gdouble y, gboolean updateLast);
+  void updateCurPoint (double x, double y, bool updateLast);
 
-  static void apvlv_doc_enter_notify_cb (GtkEventBox *box, GdkEvent *event,
-                                         ApvlvDoc *doc);
+  ApvlvVisualMode mInVisual;
 
-  static void apvlv_doc_button_press_cb (GtkEventBox *box,
-                                         GdkEventButton *button,
-                                         ApvlvDoc *doc);
-
-  static gboolean apvlv_doc_motion_notify_cb (GtkEventBox *box,
-                                              GdkEventMotion *motion,
-                                              ApvlvDoc *doc);
-  static void apvlv_doc_edit_annotation_cb (GtkMenuItem *item, ApvlvDoc *doc);
-  static void apvlv_doc_delete_annotation_cb (GtkMenuItem *item,
-                                              ApvlvDoc *doc);
-
-  static void apvlv_doc_on_mouse (GtkAdjustment *, ApvlvDoc *);
-
-  static void begin_print (GtkPrintOperation *operation,
-                           GtkPrintContext *context, PrintData *data);
-  static void draw_page (GtkPrintOperation *operation,
-                         GtkPrintContext *context, gint page_nr,
-                         PrintData *data);
-  static void end_print (GtkPrintOperation *operation,
-                         GtkPrintContext *context, PrintData *data);
-
-  static void apvlv_doc_monitor_callback (GFileMonitor *, GFile *, GFile *,
-                                          GFileMonitorEvent, ApvlvDoc *);
-
-  enum
-  {
-    VISUAL_NONE,
-    VISUAL_V,
-    VISUAL_CTRL_V
-  };
-  gint mInVisual;
-
-  guint mLastpress;
+  uint mLastpress;
 
   ApvlvPoint mLastPoint, mCurPoint;
 
   ApvlvDocPositionMap mPositions;
   vector<ApvlvDocPosition> mLinkPositions;
 
-  ApvlvDocCache *mCurrentCache[3];
+  unique_ptr<ApvlvDocCache> mCurrentCache[3];
 
-  DISPLAY_TYPE mDisplayType;
-
-  GtkWidget *mVbox;
+  QBoxLayout *mVbox;
 
   // image viewer
-  ApvlvImage *mImg[3];
-  GtkWidget *mWeb[1];
-  gboolean mWebScrollUp;
+  unique_ptr<ApvlvImage> mImg[3];
 
   ApvlvImage *mCurrentImage;
   ApvlvAnnotText *mCurrentAnnotText;
 
+  shared_ptr<ApvlvSchemeHandler> mSchemeHanlder;
+
   friend class ApvlvDocCache;
   friend class ApvlvImage;
+
+private slots:
+  void edit_annotation_cb ();
+  void delete_annotation_cb ();
+  void on_mouse ();
+  void monitor_callback ();
 };
 }
 

@@ -28,17 +28,18 @@
 #ifndef _APVLV_FB2_H_
 #define _APVLV_FB2_H_
 
+#include <QXmlStreamReader>
+
 #include "ApvlvFile.h"
-#include <libxml/tree.h>
 
 namespace apvlv
 {
 class ApvlvFB2 : public ApvlvFile
 {
 public:
-  explicit ApvlvFB2 (const char *filename, bool check = true);
+  explicit ApvlvFB2 (const string &filename, bool check = true);
 
-  ~ApvlvFB2 () override;
+  ~ApvlvFB2 () override = default;
 
   bool writefile (const char *filename) override;
 
@@ -46,23 +47,21 @@ public:
 
   int pagesum () override;
 
-  bool pagetext (int, gdouble, gdouble, gdouble, gdouble, char **) override;
+  bool pagetext (int, double, double, double, double, char **) override;
 
-  bool render (int, int, int, double, int, GdkPixbuf *, char *) override;
+  bool render (int, int, int, double, int, QImage *) override;
 
-  bool renderweb (int pn, int ix, int iy, double zm, int rot,
-                  GtkWidget *widget) override;
+  bool render (int pn, int ix, int iy, double zm, int rot,
+               QWebEngineView *webview) override;
 
-  bool pageselectsearch (int, int, int, double, int, GdkPixbuf *, char *, int,
-                         ApvlvPoses *) override;
+  unique_ptr<ApvlvPoses> pagesearch (int pn, const char *s,
+                                     bool reverse) override;
 
-  ApvlvPoses *pagesearch (int pn, const char *s, bool reverse) override;
+  unique_ptr<ApvlvLinks> getlinks (int pn) override;
 
-  ApvlvLinks *getlinks (int pn) override;
+  bool pageprint (int pn, QPrinter *cr) override;
 
-  bool pageprint (int pn, cairo_t *cr) override;
-
-  gchar *get_ocf_file (const gchar *path, gssize *) override;
+  optional<QByteArray> get_ocf_file (const string &path) override;
 
   DISPLAY_TYPE
   get_display_type () override { return DISPLAY_TYPE_HTML; }
@@ -71,10 +70,10 @@ private:
   map<string, pair<string, string> > titleSections;
   string mCoverHref;
 
-  bool parse_fb2 (const char *, size_t len);
-  bool parse_description (xmlNodePtr node);
-  bool parse_body (xmlNodePtr node);
-  bool parse_binary (xmlNodePtr node);
+  bool parse_fb2 (const char *content, size_t length);
+  bool parse_description (const char *content, size_t length);
+  bool parse_body (const char *content, size_t length);
+  bool parse_binary (const char *content, size_t length);
   void appendCoverpage (const string &section, const string &mime);
   void appendTitle (const string &section, const string &mime);
   void appendSection (const string &title, const string &section,

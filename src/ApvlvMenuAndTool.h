@@ -28,10 +28,14 @@
 #ifndef _APVLV_MENU_H_
 #define _APVLV_MENU_H_
 
-#include <gtk/gtk.h>
+#include <QMenuBar>
+#include <QToolBar>
 
 namespace apvlv
 {
+
+using namespace std;
+
 class ApvlvView;
 class ApvlvMenuAndTool
 {
@@ -39,11 +43,20 @@ public:
   explicit ApvlvMenuAndTool (ApvlvView *);
   ~ApvlvMenuAndTool ();
 
-  GtkWidget *menubar ();
-  GtkWidget *toolbar ();
+  QMenuBar *
+  menubar ()
+  {
+    return mMenuBar.get ();
+  }
+  QToolBar *
+  toolbar ()
+  {
+    return mToolBar.get ();
+  }
 
 private:
-  GtkBuilder *mBuilder;
+  unique_ptr<QMenuBar> mMenuBar;
+  unique_ptr<QToolBar> mToolBar;
 };
 };
 

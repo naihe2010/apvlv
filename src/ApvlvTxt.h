@@ -35,9 +35,9 @@ namespace apvlv
 class ApvlvTXT : public ApvlvFile
 {
 public:
-  explicit ApvlvTXT (const char *filename, bool check = true);
+  explicit ApvlvTXT (const string &filename, bool check = true);
 
-  ~ApvlvTXT () override;
+  ~ApvlvTXT () = default;
 
   bool writefile (const char *filename) override;
 
@@ -45,32 +45,30 @@ public:
 
   int pagesum () override;
 
-  bool pagetext (int, gdouble, gdouble, gdouble, gdouble, char **) override;
+  bool pagetext (int, double, double, double, double, char **) override;
 
-  bool render (int, int, int, double, int, GdkPixbuf *, char *) override;
+  bool render (int, int, int, double, int, QImage *) override;
 
-  bool renderweb (int pn, int ix, int iy, double zm, int rot,
-                  GtkWidget *widget) override;
+  bool render (int pn, int ix, int iy, double zm, int rot,
+               QWebEngineView *webview) override;
 
-  bool pageselectsearch (int, int, int, double, int, GdkPixbuf *, char *, int,
-                         ApvlvPoses *) override;
+  unique_ptr<ApvlvPoses> pagesearch (int pn, const char *s,
+                                     bool reverse) override;
 
-  ApvlvPoses *pagesearch (int pn, const char *s, bool reverse) override;
+  unique_ptr<ApvlvLinks> getlinks (int pn) override;
 
-  ApvlvLinks *getlinks (int pn) override;
+  bool pageprint (int pn, QPrinter *cr) override;
 
-  bool pageprint (int pn, cairo_t *cr) override;
+  optional<QByteArray> get_ocf_file (const string &path) override;
 
-  gchar *get_ocf_file (const gchar *path, gssize *) override;
-
-  const gchar *get_ocf_mime_type (const gchar *path) override;
+  string get_ocf_mime_type (const string &path) override;
 
   DISPLAY_TYPE
   get_display_type () override { return DISPLAY_TYPE_HTML; }
 
 private:
-  gchar *mContent;
-  gsize mLength;
+  unique_ptr<char> mContent;
+  int mLength;
 };
 
 }

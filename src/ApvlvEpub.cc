@@ -25,55 +25,55 @@
  */
 /* @date Created: 2018/04/19 13:51:04 Alf*/
 
+#include <QDomDocument>
+#include <QXmlStreamReader>
+#include <filesystem>
+#include <quazipfile.h>
+
 #include "ApvlvEpub.h"
 #include "ApvlvHtm.h"
 #include "ApvlvInfo.h"
 #include "ApvlvUtil.h"
 
-#include "epub.h"
-
-#include <glib.h>
-#include <libxml/parser.h>
-#include <libxml/xpath.h>
-#include <webkit2/webkit2.h>
-
 namespace apvlv
 {
-ApvlvEPUB::ApvlvEPUB (const char *filename, bool check)
+ApvlvEPUB::ApvlvEPUB (const string &filename, bool check)
     : ApvlvFile (filename, check)
 {
-  mEpub = epub_open (filename, 0);
-  if (mEpub == nullptr)
+  mQuaZip = make_unique<QuaZip> (QString::fromStdString (filename));
+  if (mQuaZip->open (QuaZip::mdUnzip) == false)
     {
       throw std::bad_alloc ();
     }
 
-  char *container;
-  gint len = epub_get_ocf_file (mEpub, "META-INF/container.xml", &container);
-  if (len <= 0)
+  auto filenames = mQuaZip->getFileNameList ();
+  if (!filenames.contains ("META-INF/container.xml"))
     {
-      epub_close (mEpub);
       throw std::bad_alloc ();
     }
 
-  string contentfile = container_get_contentfile (container, len);
-  free (container);
+  auto optcontainer = get_zip_file_contents ("META-INF/container.xml");
+  if (!optcontainer)
+    {
+      throw std::bad_alloc ();
+    }
+
+  string contentfile = container_get_contentfile (optcontainer->constData (),
+                                                  optcontainer->length ());
   if (contentfile.empty ())
     {
-      epub_close (mEpub);
       throw std::bad_alloc ();
     }
 
-  if (content_get_media (mEpub, contentfile) == false)
+  if (content_get_media (contentfile) == false)
     {
-      epub_close (mEpub);
       throw std::bad_alloc ();
     }
 
-  ncx_set_index (mEpub, idSrcs["ncx"]);
+  ncx_set_index (idSrcs["ncx"]);
 }
 
-ApvlvEPUB::~ApvlvEPUB () { epub_close (mEpub); }
+ApvlvEPUB::~ApvlvEPUB () { mQuaZip->close (); }
 
 bool
 ApvlvEPUB::writefile (const char *filename)
@@ -96,141 +96,122 @@ ApvlvEPUB::pagesum ()
 }
 
 bool
-ApvlvEPUB::pagetext (int, gdouble, gdouble, gdouble, gdouble, char **)
+ApvlvEPUB::pagetext (int, double, double, double, double, char **)
 {
   return false;
 }
 
 bool
-ApvlvEPUB::renderweb (int pn, int ix, int iy, double zm, int rot,
-                      GtkWidget *widget)
+ApvlvEPUB::render (int pn, int ix, int iy, double zm, int rot,
+                   QWebEngineView *webview)
 {
-  webkit_web_view_set_zoom_level (WEBKIT_WEB_VIEW (widget), zm);
-  string uri = mPages[pn];
-  string epuburi = "apvlv:///" + uri;
-  webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), epuburi.c_str ());
+  webview->setZoomFactor (zm);
+  QUrl epuburi = QString ("apvlv:///") + QString::fromStdString (mPages[pn]);
+  webview->load (epuburi);
   return true;
 }
 
-ApvlvPoses *
+unique_ptr<ApvlvPoses>
 ApvlvEPUB::pagesearch (int pn, const char *str, bool reverse)
 {
   return nullptr;
 }
 
-bool
-ApvlvEPUB::pageselectsearch (int pn, int ix, int iy, double zm, int rot,
-                             GdkPixbuf *pix, char *buffer, int sel,
-                             ApvlvPoses *poses)
-{
-  return false;
-}
-
-ApvlvLinks *
+unique_ptr<ApvlvLinks>
 ApvlvEPUB::getlinks (int pn)
 {
   return nullptr;
 }
 
 bool
-ApvlvEPUB::pageprint (int pn, cairo_t *cr)
+ApvlvEPUB::pageprint (int pn, QPrinter *cr)
 {
   return false;
 }
 
-gchar *
-ApvlvEPUB::get_ocf_file (const char *path, gssize *sizep)
+optional<QByteArray>
+ApvlvEPUB::get_ocf_file (const string &path)
 {
-  gchar *content = nullptr;
-  *sizep = epub_get_ocf_file (mEpub, path, &content);
-  return content;
+  auto optcontent = get_zip_file_contents (QString::fromStdString (path));
+  return optcontent;
+}
+
+optional<QByteArray>
+ApvlvEPUB::get_zip_file_contents (const QString &name)
+{
+  if (mQuaZip->setCurrentFile (name) == false)
+    return nullopt;
+
+  auto zipfile = make_unique<QuaZipFile> (mQuaZip.get ());
+  zipfile->open (QIODevice::ReadOnly);
+  auto qarray = zipfile->readAll ();
+  zipfile->close ();
+  return qarray;
 }
 
 string
 ApvlvEPUB::container_get_contentfile (const char *container, int len)
 {
-  xmlDocPtr doc;
-  xmlNodePtr node;
-  string path;
-
-  doc = xmlReadMemory (container, len, nullptr, nullptr,
-                       XML_PARSE_NOBLANKS | XML_PARSE_NSCLEAN);
-  if (doc == nullptr)
-    {
-      return path;
-    }
-
-  node = xmldoc_get_node (
-      doc, "//c:container/c:rootfiles/c:rootfile/@full-path", "c",
-      "urn:oasis:names:tc:opendocument:xmlns:container");
-  if (node == nullptr)
-    {
-      xmlFreeDoc (doc);
-      return path;
-    }
-
-  path = (char *)node->children->content;
-
-  xmlFreeDoc (doc);
-
-  return path;
+  vector<string> names{ "container", "rootfiles", "rootfile" };
+  return xml_content_get_attribute_value (container, len, names, "full-path");
 }
 
 bool
-ApvlvEPUB::content_get_media (struct epub *epub, const string &contentfile)
+ApvlvEPUB::content_get_media (const string &contentfile)
 {
-  char *contentopf;
-  xmlDocPtr doc;
-  xmlNodeSetPtr nodeset;
-  xmlNodePtr node;
-  unsigned char **coverp, *cp;
-  int ind, sizep;
   string cover_id = "cover";
 
-  gint clen = epub_get_ocf_file (epub, contentfile.c_str (), &contentopf);
-  if (clen <= 0)
+  auto optcontent
+      = get_zip_file_contents (QString::fromStdString (contentfile));
+  if (!optcontent)
     {
       return false;
     }
 
-  coverp = epub_get_metadata (epub, EPUB_META, &sizep);
-  if (coverp)
+  vector<string> metas{ "package", "metadata" };
+  auto optcover = xml_content_get_element (optcontent->constData (),
+                                           optcontent->length (), metas);
+  if (optcover)
     {
-      for (ind = 0; ind < sizep; ++ind)
+      auto xml = optcover->get ();
+      while (
+          !xml->atEnd ()
+          && !(xml->isEndElement () && xml->name ().toString () == "metadata"))
         {
-          cp = coverp[ind];
-          auto vs = g_strsplit ((char *)cp, ":", 2);
-          if (vs)
+          xml->readNext ();
+          if (xml->isStartElement () && xml->name ().toString () == "meta")
             {
-              if (g_ascii_strcasecmp (vs[0], "cover") == 0)
+              auto attrs = xml->attributes ();
+              for (auto const &attr : attrs)
                 {
-                  cover_id = vs[1];
+                  if (attr.name ().toString () == "name"
+                      && attr.value ().toString () == "cover")
+                    {
+                      cover_id = xml->attributes ()
+                                     .value ("content")
+                                     .toString ()
+                                     .toStdString ();
+                    }
                 }
-              g_strfreev (vs);
             }
-          free (cp);
         }
-      free (coverp);
     }
 
-  doc = xmlReadMemory (contentopf, clen, nullptr, nullptr,
-                       XML_PARSE_NOBLANKS | XML_PARSE_NSCLEAN);
-  free (contentopf);
-  if (doc == nullptr)
-    {
-      return false;
-    }
+  vector<string> items = { "package", "manifest", "item" };
+  auto optxml = xml_content_get_element (optcontent->constData (),
+                                         optcontent->length (), items);
+  if (!optxml)
+    return false;
 
-  nodeset = xmldoc_get_nodeset (doc, "//c:package/c:manifest/c:item", "c",
-                                "http://www.idpf.org/2007/opf");
-  if (nodeset)
+  auto xml = optxml->get ();
+  while (!xml->atEnd () && xml->name ().toString () == "item")
     {
-      for (int i = 0; i < nodeset->nodeNr; ++i)
+      if (xml->isStartElement ())
         {
-          node = nodeset->nodeTab[i];
-          string href = xmlnode_attr_get (node, "href");
+          string href = xml_stream_get_attribute_value (xml, "href");
           if (href.empty ())
             {
+              xml->readNextStartElement ();
               continue;
             }
 
@@ -240,8 +221,8 @@ ApvlvEPUB::content_get_media (struct epub *epub, const string &contentfile)
               href = dirname + "/" + href;
             }
 
-          string id = xmlnode_attr_get (node, "id");
-          string type = xmlnode_attr_get (node, "media-type");
+          string id = xml_stream_get_attribute_value (xml, "id");
+          string type = xml_stream_get_attribute_value (xml, "media-type");
           if (id == cover_id)
             {
               idSrcs["cover"] = href;
@@ -254,133 +235,131 @@ ApvlvEPUB::content_get_media (struct epub *epub, const string &contentfile)
             }
         }
 
-      xmlXPathFreeNodeSet (nodeset);
+      xml->readNextStartElement ();
     }
 
-  nodeset = xmldoc_get_nodeset (doc, "//c:package/c:spine/c:itemref", "c",
-                                "http://www.idpf.org/2007/opf");
-  if (nodeset)
+  vector<string> names{ "package", "spine", "itemref" };
+  optxml = xml_content_get_element (optcontent->constData (),
+                                    optcontent->length (), names);
+  if (!optxml)
+    return false;
+
+  xml = optxml->get ();
+  while (!xml->atEnd () && xml->name ().toString () == "itemref")
     {
-      for (int i = 0; i < nodeset->nodeNr; ++i)
+      if (xml->isStartElement ())
         {
-          node = nodeset->nodeTab[i];
-
-          string id = xmlnode_attr_get (node, "idref");
+          string id = xml_stream_get_attribute_value (xml, "idref");
           mPages.push_back (idSrcs[id]);
-          srcPages[idSrcs[id]] = mPages.size () - 1;
+          srcPages[idSrcs[id]] = static_cast<int> (mPages.size () - 1);
         }
-      xmlXPathFreeNodeSet (nodeset);
+      xml->readNextStartElement ();
     }
 
-  xmlFreeDoc (doc);
   return true;
 }
 
 bool
-ApvlvEPUB::ncx_set_index (struct epub *epub, const string &ncxfile)
+ApvlvEPUB::ncx_set_index (const string &ncxfile)
 {
-  xmlDocPtr doc;
-  xmlNodePtr map, node;
-
-  char *tocncx;
-  gint len = epub_get_ocf_file (epub, ncxfile.c_str (), &tocncx);
-  if (len <= 0)
-    {
-      return FALSE;
-    }
-
-  doc = xmlReadMemory (tocncx, len, nullptr, nullptr,
-                       XML_PARSE_NOBLANKS | XML_PARSE_NSCLEAN);
-  free (tocncx);
-  if (doc == nullptr)
+  auto opttoc = get_zip_file_contents (QString::fromStdString (ncxfile));
+  if (!opttoc)
     {
       return false;
     }
 
-  map = xmldoc_get_node (doc, "//c:ncx/c:navMap", "c",
-                         "http://www.daisy.org/z3986/2005/ncx/");
-  if (map == nullptr)
+  vector<string> names{ "ncx", "navMap" };
+  auto optxml = xml_content_get_element (opttoc->constData (),
+                                         opttoc->length (), names);
+
+  if (!optxml)
     {
-      xmlFreeDoc (doc);
       return false;
     }
 
   mIndex = { "__cover__", 0, "", FILE_INDEX_PAGE };
 
-  for (node = map->children; node != nullptr; node = node->next)
-    {
-      if (node->type != XML_ELEMENT_NODE)
-        {
-          continue;
-        }
+  auto xml = optxml->get ();
+  ncx_node_set_index (xml, "navMap", ncxfile, mIndex);
 
-      auto childindex = ApvlvFileIndex{};
-      ncx_node_set_index (node, ncxfile, childindex);
-      mIndex.children.emplace_back (childindex);
-    }
-
-  xmlFreeDoc (doc);
   return true;
 }
 
 void
-ApvlvEPUB::ncx_node_set_index (xmlNodePtr node, const string &ncxfile,
-                               ApvlvFileIndex &index)
+ApvlvEPUB::ncx_node_set_index (QXmlStreamReader *xml,
+                               const string &element_name,
+                               const string &ncxfile, ApvlvFileIndex &index)
 {
-  xmlNodePtr child;
-
-  for (child = node->children; child != nullptr; child = child->next)
+  while (!xml->atEnd ()
+         && !(xml->isEndElement ()
+              && xml->name ().toString ().toStdString () == element_name))
     {
-      if (g_ascii_strcasecmp ((gchar *)child->name, "navLabel") == 0)
+      if (xml->isStartElement ())
         {
-          for (xmlNodePtr ln = child->children; ln != nullptr; ++ln)
+          if (xml->name ().toString () == "navLabel")
             {
-              if (g_ascii_strcasecmp ((gchar *)ln->name, "text") == 0)
+              while (!(xml->isEndElement ()
+                       && xml->name ().toString () == "navLabel"))
                 {
-                  index.title = (char *)ln->children->content;
-                  break;
+                  xml->readNextStartElement ();
+                  if (xml->name ().toString () == "text")
+                    {
+                      auto text = xml->readElementText (
+                          QXmlStreamReader::ReadElementTextBehaviour::
+                              SkipChildElements);
+                      index.title = text.toStdString ();
+                      break;
+                    }
                 }
-            }
-        }
 
-      if (g_ascii_strcasecmp ((gchar *)child->name, "content") == 0)
-        {
-          string srcstr = xmlnode_attr_get (child, "src");
-          if (srcstr.empty ())
-            continue;
-
-          if (ncxfile.find ('/') != string::npos)
-            {
-              auto ncxdir = g_path_get_dirname (ncxfile.c_str ());
-              srcstr = string (ncxdir) + '/' + srcstr;
-              g_free (ncxdir);
+              xml->readNextStartElement ();
             }
 
-          index.path = srcstr;
-
-          auto href = srcstr;
-          if (srcstr.find ('#') != string::npos)
+          if (xml->name ().toString () == "content")
             {
-              index.anchor = srcstr.substr (srcstr.find ('#'));
-              href = srcstr.substr (0, srcstr.find ('#'));
-            }
+              string srcstr = xml_stream_get_attribute_value (xml, "src");
+              if (srcstr.empty ())
+                continue;
 
-          for (decltype (mPages.size ()) ind = 0; ind < mPages.size (); ++ind)
-            {
-              if (mPages[ind] == href)
+              if (ncxfile.find ('/') != string::npos)
                 {
-                  index.page = int (ind);
-                  break;
+                  auto ncxdir
+                      = filesystem::path (ncxfile).parent_path ().string ();
+                  srcstr = string (ncxdir) + '/' + srcstr;
                 }
+
+              index.path = srcstr;
+
+              auto href = srcstr;
+              if (srcstr.find ('#') != string::npos)
+                {
+                  index.anchor = srcstr.substr (srcstr.find ('#'));
+                  href = srcstr.substr (0, srcstr.find ('#'));
+                }
+
+              for (decltype (mPages.size ()) ind = 0; ind < mPages.size ();
+                   ++ind)
+                {
+                  if (mPages[ind] == href)
+                    {
+                      index.page = int (ind);
+                      break;
+                    }
+                }
+
+              xml->readNextStartElement ();
+            }
+
+          if (xml->name ().toString () == "navPoint")
+            {
+              xml->readNextStartElement ();
+              auto childindex = ApvlvFileIndex{};
+              ncx_node_set_index (xml, "navPoint", ncxfile, childindex);
+              index.mChildrenIndex.emplace_back (childindex);
             }
         }
 
-      if (g_ascii_strcasecmp ((gchar *)child->name, "navPoint") == 0)
-        {
-          auto childindex = ApvlvFileIndex{};
-          ncx_node_set_index (child, ncxfile, childindex);
-          index.children.emplace_back (childindex);
-        }
+      xml->readNextStartElement ();
     }
 }
 }

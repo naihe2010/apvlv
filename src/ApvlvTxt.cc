@@ -27,37 +27,35 @@
 
 #include "ApvlvTxt.h"
 #include "ApvlvUtil.h"
+#include <filesystem>
+#include <fstream>
 
-#include <cmath>
-#include <webkit2/webkit2.h>
+#include <QWebEngineView>
 
 namespace apvlv
 {
-ApvlvTXT::ApvlvTXT (const char *filename, bool check)
+ApvlvTXT::ApvlvTXT (const string &filename, bool check)
     : ApvlvFile (filename, check)
 {
-  GError *error = nullptr;
-  if (g_file_get_contents (filename, &mContent, &mLength, &error) == FALSE)
+  auto path = filesystem::path (filename);
+  auto size = filesystem::file_size (path);
+  ifstream ifs (filename, ifstream::binary);
+  if (ifs.is_open ())
     {
-      if (error != nullptr)
-        {
-          debug ("get file: %s centents error: %s", filename, error->message);
-          g_error_free (error);
-        }
-
+      mContent = make_unique<char> (size);
+      ifs.read (mContent.get (), streamsize (size));
+      ifs.close ();
+    }
+  else
+    {
       throw bad_alloc ();
     }
+  mLength = size;
 }
-
-ApvlvTXT::~ApvlvTXT () { g_free (mContent); }
 
 bool
 ApvlvTXT::writefile (const char *filename)
 {
-  if (g_file_set_contents (filename, mContent, int (mLength), nullptr) == TRUE)
-    {
-      return true;
-    }
   return false;
 }
 
@@ -73,65 +71,55 @@ ApvlvTXT::pagesum ()
   return 1;
 }
 
-bool
-ApvlvTXT::pageselectsearch (int pn, int ix, int iy, double zm, int rot,
-                            GdkPixbuf *pix, char *buffer, int sel,
-                            ApvlvPoses *poses)
-{
-  return false;
-}
-
-ApvlvPoses *
+unique_ptr<ApvlvPoses>
 ApvlvTXT::pagesearch (int pn, const char *str, bool reverse)
 {
   return nullptr;
 }
 
-ApvlvLinks *
+unique_ptr<ApvlvLinks>
 ApvlvTXT::getlinks (int pn)
 {
   return nullptr;
 }
 
 bool
-ApvlvTXT::pagetext (int pn, gdouble x1, gdouble y1, gdouble x2, gdouble y2,
+ApvlvTXT::pagetext (int pn, double x1, double y1, double x2, double y2,
                     char **out)
 {
   return false;
 }
 
 bool
-ApvlvTXT::render (int, int, int, double, int, GdkPixbuf *, char *)
+ApvlvTXT::render (int, int, int, double, int, QImage *)
 {
   return false;
 }
 
 bool
-ApvlvTXT::renderweb (int pn, int ix, int iy, double zm, int rot,
-                     GtkWidget *widget)
+ApvlvTXT::render (int pn, int ix, int iy, double zm, int rot,
+                  QWebEngineView *webview)
 {
-  webkit_web_view_set_zoom_level (WEBKIT_WEB_VIEW (widget), zm);
-  string uri = "ascii";
-  string epuburi = "apvlv:///" + uri;
-  webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), epuburi.c_str ());
+  webview->setZoomFactor (zm);
+  // need impl
   return true;
 }
 
 bool
-ApvlvTXT::pageprint (int pn, cairo_t *cr)
+ApvlvTXT::pageprint (int pn, QPrinter *cr)
 {
   return false;
 }
 
-gchar *
-ApvlvTXT::get_ocf_file (const gchar *path, gssize *lenp)
+optional<QByteArray>
+ApvlvTXT::get_ocf_file (const string &path)
 {
-  *lenp = (gssize)mLength;
-  return g_strdup (mContent);
+  QByteArray byte_array{ mContent.get () };
+  return byte_array;
 }
 
-const gchar *
-ApvlvTXT::get_ocf_mime_type (const gchar *path)
+string
+ApvlvTXT::get_ocf_mime_type (const string &path)
 {
   return "text/plain";
 }

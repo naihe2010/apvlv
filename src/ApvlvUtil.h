@@ -29,25 +29,24 @@
 #ifndef _APVLV_UTIL_H_
 #define _APVLV_UTIL_H_
 
-#include <gtk/gtk.h>
+#include <QXmlStreamReader>
 
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <libxml/xpath.h>
 using namespace std;
 
 namespace apvlv
 {
 // Global files
 extern string helppdf;
-extern string mainmenubar_glade;
 extern string iniexam;
-extern string inifile;
 extern string icondir;
 extern string iconreg;
 extern string iconpdf;
+extern string translations;
+
+extern string inifile;
 extern string sessionfile;
+
+void getRuntimePaths ();
 
 #ifndef PATH_MAX
 #define PATH_MAX 4096
@@ -61,28 +60,18 @@ extern string sessionfile;
 #define PATH_SEP_S "/"
 #endif
 
-int apvlv_system (const char *);
+optional<unique_ptr<QXmlStreamReader> >
+xml_content_get_element (const char *content, size_t length,
+                         const vector<string> &names);
 
-char *absolutepath (const char *path);
+string xml_stream_get_attribute_value (QXmlStreamReader *xml,
+                                       const string &key);
 
-GtkWidget *replace_widget (GtkWidget *owid, GtkWidget *nwid);
+string xml_content_get_attribute_value (const char *content, size_t length,
+                                        const vector<string> &names,
+                                        const string &key);
 
-void apvlv_widget_set_background (GtkWidget *wid);
-
-bool apvlv_text_to_pixbuf_buffer (GString *content, int width, int height,
-                                  double zoomrate, unsigned char *buffer,
-                                  size_t buffer_size, int *o_width,
-                                  int *o_height);
-
-xmlNodeSetPtr xmldoc_get_nodeset (xmlDocPtr doc, const char *xpath,
-                                  const char *pre, const char *ns);
-
-xmlNodePtr xmldoc_get_node (xmlDocPtr doc, const char *xpath, const char *pre,
-                            const char *ns);
-
-string xmlnode_attr_get (xmlNodePtr node, const char *attr);
-
-string filename_ext (const char *filename);
+string filename_ext (const string &filename);
 
 // command type
 enum
@@ -102,8 +91,8 @@ typedef enum
 
 // some windows macro
 #ifdef WIN32
-#include <winbase.h>
-#include <wtypes.h>
+// #include <winbase.h>
+// #include <wtypes.h>
 #define usleep(x) Sleep ((x) / 1000)
 #define __func__ __FUNCTION__
 #define strcasecmp _strcmpi

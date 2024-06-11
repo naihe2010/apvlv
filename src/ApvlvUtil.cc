@@ -26,154 +26,106 @@
  */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
-#include "ApvlvUtil.h"
-#include "ApvlvParams.h"
-
-#include <glib/gstdio.h>
-#include <gtk/gtk.h>
-
-#ifndef WIN32
-#include <sys/wait.h>
-#endif
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-#include <algorithm>
+#include <QByteArray>
+#include <QCoreApplication>
+#include <QDir>
+#include <QProcessEnvironment>
+#include <QXmlStreamReader>
+#include <cstdarg>
 #include <iostream>
-#include <libxml/tree.h>
-#include <libxml/xpath.h>
-#include <libxml/xpathInternals.h>
+#include <memory>
+#include <optional>
 #include <string>
+
+#include "ApvlvUtil.h"
+
 using namespace std;
 
 namespace apvlv
 {
 
-#ifdef WIN32
-string helppdf = "~\\Startup.pdf";
-string mainmenubar_glade = "~\\main_menubar.glade";
-string iniexam = "~\\apvlvrc.example";
-string iconreg = "~\\icons\\reg.png";
-string icondir = "~\\icons\\dir.png";
-string iconpdf = "~\\icons\\pdf.png";
-string inifile = "~\\_apvlvrc";
-string sessionfile = "~\\_apvlvinfo";
-#else
-string helppdf = string (DOCDIR) + "/Startup.pdf";
-string mainmenubar_glade = string (DOCDIR) + "/main_menubar.glade";
-string iniexam = string (DOCDIR) + "/apvlvrc.example";
-string iconreg = string (PIXMAPDIR) + "/icons/reg.png";
-string icondir = string (PIXMAPDIR) + "/icons/dir.png";
-string iconpdf = string (PIXMAPDIR) + "/icons/pdf.png";
-string inifile = "~/.apvlvrc";
-string sessionfile = "~/.cache/apvlvinfo";
-#endif
+string helppdf;
+string iniexam;
+string icondir;
+string iconreg;
+string iconpdf;
+string translations;
 
-// Converts the path given to a absolute path.
-// Warning: The string is returned a new allocated buffer, NEED TO BE g_free
-char *
-absolutepath (const char *path)
+string inifile;
+string sessionfile;
+
+static void
+get_xdg_or_home_ini (const QString &appdir)
 {
-  char abpath[PATH_MAX];
+  auto sysenv = QProcessEnvironment::systemEnvironment ();
+  auto xdgdir = sysenv.value ("XDG_CONFIG_DIR").toStdString ();
+  auto homedir = sysenv.value ("HOME").toStdString ();
 
-  if (g_path_is_absolute (path))
+  if (homedir.empty ())
     {
-      return g_strdup (path);
+      homedir = QDir::homePath ().toStdString ();
     }
 
-  if (*path == '~' && *(path + 1) == PATH_SEP_C)
+  inifile = appdir.toStdString() + "/.apvlvrc";
+
+  if (!xdgdir.empty ())
     {
-      const gchar *home;
-
-#ifdef WIN32
-      home = g_win32_get_package_installation_directory_of_module (nullptr);
-#else
-      home = getenv ("HOME");
-      if (home == nullptr)
+      inifile = xdgdir + "/apvlv/apvlvrc";
+    }
+  else if (!homedir.empty ())
+    {
+      inifile = homedir + "/.config/apvlv/apvlvrc";
+      if (!filesystem::is_regular_file (inifile))
         {
-          home = g_get_home_dir ();
-        }
-#endif
-
-      if (home != nullptr)
-        {
-          g_snprintf (abpath, sizeof abpath, "%s%s", home, ++path);
-        }
-      else
-        {
-          debug ("Can't find home directory, use current");
-          g_snprintf (abpath, sizeof abpath, "%s", path + 2);
+          inifile = homedir + "/.apvlvrc";
         }
     }
-  else
-    {
-      const gchar *pwd;
-
-      pwd = g_get_current_dir ();
-      if (pwd != nullptr)
-        {
-          g_snprintf (abpath, sizeof abpath, "%s/%s", pwd, path);
-        }
-      else
-        {
-          debug ("Can't find current directory, use current");
-          g_snprintf (abpath, sizeof abpath, "%s", path);
-        }
-    }
-
-  return g_strdup (abpath);
 }
 
-// replace a widget with a new widget
-// return the parent widget
-GtkWidget *
-replace_widget (GtkWidget *owid, GtkWidget *nwid)
+static void
+get_xdg_or_cache_sessionpath (const QString &appdir)
 {
-  GtkWidget *parent = gtk_widget_get_parent (owid);
-  debug ("parent: %p, owid: %p, nwid: %p", parent, owid, nwid);
-  gtk_container_remove (GTK_CONTAINER (parent), owid);
-  if (GTK_IS_BOX (parent))
+  auto sysenv = QProcessEnvironment::systemEnvironment ();
+  auto xdgdir = sysenv.value ("XDG_CACHE_HOME").toStdString ();
+  auto homedir = sysenv.value ("HOME").toStdString ();
+  if (homedir.empty ())
     {
-      gtk_box_pack_start (GTK_BOX (parent), nwid, TRUE, TRUE, 0);
+      homedir = QDir::homePath ().toStdString ();
     }
-  else
+
+  sessionfile = appdir.toStdString () + "/apvlvinfo";
+  if (!xdgdir.empty ())
     {
-      gtk_container_add (GTK_CONTAINER (parent), nwid);
+      sessionfile = xdgdir + "/apvlvinfo";
     }
-  gtk_widget_show_all (parent);
-  return parent;
+  else if (!homedir.empty ())
+    {
+      sessionfile = homedir + "/.cache/apvlvinfo";
+    }
 }
 
 void
-apvlv_widget_set_background (GtkWidget *wid)
+getRuntimePaths ()
 {
-  auto inverted = gParams->valueb ("inverted");
-  auto background = gParams->values ("background");
-  if (inverted && *background == '\0')
-    {
-      background = "black";
-    }
-  if (*background != '\0')
-    {
-#if GTK_CHECK_VERSION(3, 22, 0) and 0 /* this impl can not work now */
-      gchar *cssstr = g_strdup_printf ("%s {"
-                                       " background-color: %s;"
-                                       "}",
-                                       gtk_widget_get_name (wid), background);
-      debug ("css provider: %s", cssstr);
-      auto provider = gtk_css_provider_new ();
-      gtk_css_provider_load_from_data (provider, cssstr, -1, NULL);
-      g_free (cssstr);
-      auto context = gtk_widget_get_style_context (wid);
-      gtk_style_context_add_provider (context, GTK_STYLE_PROVIDER (provider),
-                                      GTK_STYLE_PROVIDER_PRIORITY_USER);
+  auto dirpath = QDir (QCoreApplication::applicationDirPath ());
+  dirpath.cdUp();
+  auto prefix = dirpath.path().toStdString();
+  auto apvlvdir = prefix + "/share/doc/apvlv";
+
+  helppdf = apvlvdir + "/Startup.pdf";
+  iconreg = apvlvdir + "/icons/reg.png";
+  icondir = apvlvdir + "/icons/dir.png";
+  iconpdf = apvlvdir + "/icons/pdf.png";
+  translations = apvlvdir + "/translations";
+
+#ifndef WIN32
+  iniexam = string(SYSCONFDIR) + "/apvlvrc.example";
 #else
-      GdkRGBA rgba;
-      gdk_rgba_parse (&rgba, background);
-      gtk_widget_override_background_color (wid, GTK_STATE_FLAG_NORMAL, &rgba);
+  iniexam = apvlvdir + "/apvlvrc.example";
 #endif
-    }
+
+  get_xdg_or_home_ini (dirpath.path());
+  get_xdg_or_cache_sessionpath (dirpath.path());
 }
 
 void
@@ -183,8 +135,7 @@ logv (const char *level, const char *file, int line, const char *func,
   char p[0x1000], temp[0x100];
   va_list vap;
 
-  g_snprintf (temp, sizeof temp, "[%s] %s: %d: %s(): ", level, file, line,
-              func);
+  snprintf (temp, sizeof temp, "[%s] %s: %d: %s(): ", level, file, line, func);
 
   va_start (vap, ms);
   vsnprintf (p, sizeof p, ms, vap);
@@ -193,107 +144,71 @@ logv (const char *level, const char *file, int line, const char *func,
   cerr << temp << p << endl;
 }
 
-int
-apvlv_system (const char *str)
+optional<unique_ptr<QXmlStreamReader> >
+xml_content_get_element (const char *content, size_t length,
+                         const vector<string> &names)
 {
-#ifndef WIN32
-  int ret;
-  pid_t pid;
-  int status;
-
-  pid = fork ();
-
-  ret = -1;
-  if (pid < 0)
+  auto bytes = QByteArray{ content, (qsizetype)length };
+  auto xml = make_unique<QXmlStreamReader> (bytes);
+  ptrdiff_t state = 0;
+  while (!xml->atEnd ())
     {
-      errp ("Can't fork\n");
-    }
-  else if (pid == 0)
-    {
-      gchar **argv;
-
-      while (!isalnum (*str))
-        str++;
-
-      argv = g_strsplit_set (str, " \t", 0);
-      if (argv == nullptr)
+      if (xml->isStartElement ())
         {
-          exit (1);
+          auto name = xml->name ().toString ().toStdString ();
+          // debug ("xml element name: %s", name.c_str ());
+          auto iter = find (names.begin (), names.end (), name);
+          if (iter == names.end ())
+            {
+              xml->readNextStartElement ();
+              continue;
+            }
+
+          auto pos = distance (names.begin (), iter);
+          if (state == pos)
+            {
+              state++;
+            }
+
+          if (state == static_cast<ptrdiff_t> (names.size ()))
+            {
+              return xml;
+            }
         }
 
-      debug ("Exec path: (%s) argument [%d]\n", argv[0], g_strv_length (argv));
-      ret = execvp (argv[0], argv);
-      g_strfreev (argv);
-      errp ("Exec error\n");
-    }
-  else
-    {
-      ret = wait4 (pid, &status, 0, nullptr);
+      xml->readNextStartElement ();
     }
 
-  return ret;
-#else
-  return WinExec (str, SW_NORMAL);
-#endif
+  return nullopt;
 }
 
-bool
-apvlv_text_to_pixbuf_buffer (GString *text, int width, int height,
-                             double zoomrate, unsigned char *buffer,
-                             size_t buffer_size, int *o_width, int *o_height)
+string
+xml_stream_get_attribute_value (QXmlStreamReader *xml, const string &key)
 {
-  int l_width = int (width * zoomrate);
-  int l_height = int (height * zoomrate);
-  int stride = cairo_format_stride_for_width (CAIRO_FORMAT_RGB24, l_width);
-  g_return_val_if_fail (size_t (stride * l_height) <= buffer_size, false);
-
-  auto surface = cairo_image_surface_create_for_data (
-      buffer, CAIRO_FORMAT_RGB24, l_width, l_height, stride);
-  if (surface == nullptr)
+  auto attrs = xml->attributes ();
+  for (auto &attr : attrs)
     {
-      return false;
+      if (attr.name ().toString ().toStdString () == key)
+        return attr.value ().toString ().toStdString ();
     }
 
-  auto cr = cairo_create (surface);
-  if (cr == nullptr)
-    {
-      cairo_surface_destroy (surface);
-      return false;
-    }
-
-  /* init the background */
-  cairo_set_source_rgb (cr, 0.95, 0.95, 0.95);
-  cairo_rectangle (cr, 0, 0, l_width, l_height);
-  cairo_fill (cr);
-
-  cairo_select_font_face (cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
-                          CAIRO_FONT_WEIGHT_NORMAL);
-  cairo_set_font_size (cr, 20 * zoomrate);
-  cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
-
-  auto layout = pango_cairo_create_layout (cr);
-
-  auto wunits = pango_units_from_double (l_width);
-  auto hunits = pango_units_from_double (l_height);
-  pango_layout_set_width (layout, wunits);
-  pango_layout_set_height (layout, hunits);
-  pango_layout_set_wrap (layout, PANGO_WRAP_WORD_CHAR);
-  pango_layout_set_spacing (layout, 10);
-  pango_layout_set_indent (layout, 40);
-
-  pango_layout_set_text (layout, text->str, int (text->len));
-
-  pango_cairo_update_layout (cr, layout);
-  pango_cairo_show_layout (cr, layout);
-
-  pango_layout_get_pixel_size (layout, o_width, o_height);
-  debug ("txt page size: %d:%d", *o_width, *o_height);
-
-  cairo_surface_destroy (surface);
-  cairo_destroy (cr);
-  return true;
+  return "";
 }
 
+string
+xml_content_get_attribute_value (const char *content, size_t length,
+                                 const vector<string> &names,
+                                 const string &key)
+{
+  auto optxml = xml_content_get_element (content, length, names);
+  if (!optxml)
+    return "";
+
+  auto xml = optxml->get ();
+  return xml_stream_get_attribute_value (xml, key);
+}
+
+#if 0
 xmlNodeSetPtr
 xmldoc_get_nodeset (xmlDocPtr doc, const char *xpath, const char *pre,
                     const char *ns)
@@ -362,22 +277,22 @@ xmlnode_attr_get (xmlNodePtr node, const char *attr)
       if (prop->type == XML_ATTRIBUTE_NODE
           && strcmp ((char *)prop->name, attr) == 0)
         {
-          value = (char *)prop->children->content;
+          value = (char *)prop->mChildrenIndex->content;
           break;
         }
     }
 
   return value;
 }
-
+#endif
 string
-filename_ext (const char *filename)
+filename_ext (const string &filename)
 {
-  auto pointp = strrchr (filename, '.');
-  if (pointp == nullptr)
+  auto pointp = filename.rfind ('.');
+  if (pointp == string::npos)
     return "";
 
-  string ext = pointp;
+  string ext = filename.substr (pointp);
   transform (ext.begin (), ext.end (), ext.begin (), ::tolower);
   return ext;
 }

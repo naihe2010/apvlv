@@ -26,100 +26,111 @@
  */
 /* @date Created: 2021/07/19 20:34:51 Alf*/
 
+#include <filesystem>
+
 #include "ApvlvContent.h"
 #include "ApvlvDoc.h"
 #include "ApvlvParams.h"
-
-#include <glib/gstdio.h>
-
-#include <iostream>
 
 namespace apvlv
 {
 ApvlvContent::ApvlvContent ()
 {
-  mDoc = nullptr;
-  memset (&mCurrentIter, 0, sizeof (mCurrentIter));
+  setHeaderHidden (true);
+  setColumnCount (1);
+  setVerticalScrollMode (QAbstractItemView::ScrollMode::ScrollPerItem);
+  setSelectionBehavior (QAbstractItemView::SelectionBehavior::SelectRows);
+  setSelectionMode (QAbstractItemView::SelectionMode::SingleSelection);
 
-  mStore = gtk_tree_store_new (2, G_TYPE_POINTER, G_TYPE_STRING);
-  mTreeView = gtk_tree_view_new_with_model (GTK_TREE_MODEL (mStore));
-  gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (mTreeView), FALSE);
+  setFocusPolicy (Qt::NoFocus);
 
-  apvlv_widget_set_background (mTreeView);
-  g_signal_connect (G_OBJECT (mTreeView), "row-activated",
-                    G_CALLBACK (apvlv_content_on_row_activated), this);
+  QObject::connect (this, SIGNAL (itemSelectionChanged ()), this,
+                    SLOT (on_changed ()));
+  QObject::connect (this, SIGNAL (itemActivated (QTreeWidgetItem *, int)),
+                    this, SLOT (on_row_activated (QTreeWidgetItem *, int)));
+  QObject::connect (this, SIGNAL (itemDoubleClicked (QTreeWidgetItem *, int)),
+                    this, SLOT (on_row_doubleclicked ()));
 
-  mSelection = gtk_tree_view_get_selection (GTK_TREE_VIEW (mTreeView));
-  g_signal_connect (G_OBJECT (mSelection), "changed",
-                    G_CALLBACK (apvlv_content_on_changed), this);
-
-  auto *renderer = gtk_cell_renderer_text_new ();
-  auto *column = gtk_tree_view_column_new ();
-  gtk_tree_view_column_pack_start (column, renderer, FALSE);
-  gtk_tree_view_column_add_attribute (column, renderer, "text", 1);
-  gtk_tree_view_append_column (GTK_TREE_VIEW (mTreeView), column);
-  gtk_tree_view_column_clicked (column);
+  mFirstTimer = make_unique<QTimer> ();
+  QObject::connect (mFirstTimer.get (), SIGNAL (timeout ()), this,
+                    SLOT (first_select_cb ()));
 }
 
-ApvlvContent::~ApvlvContent () = default;
-
-GtkWidget *
-ApvlvContent::widget ()
+bool
+ApvlvContent::isReady ()
 {
-  return mTreeView;
+  return (topLevelItemCount () > 0);
 }
 
 void
 ApvlvContent::setIndex (const ApvlvFileIndex &index)
 {
-  gtk_tree_store_clear (mStore);
-
   mIndex = index;
 
-  setIndex (mIndex, nullptr);
+  clear ();
+  mCurrentItem = nullptr;
 
-  g_timeout_add (50, (gboolean (*) (gpointer))apvlv_content_first_select_cb,
-                 this);
+  for (auto &child : index.mChildrenIndex)
+    {
+      setIndex (child, nullptr);
+    }
+
+  mFirstTimer->start (50);
 }
 
 void
-ApvlvContent::setIndex (const ApvlvFileIndex &index, GtkTreeIter *root_itr)
+ApvlvContent::setIndex (const ApvlvFileIndex &index, QTreeWidgetItem *root_itr)
 {
-  GtkTreeIter iter;
-
-  for (const auto &child : index.children)
+  auto itr = new QTreeWidgetItem ();
+  itr->setText (CONTENT_COL_TITLE, QString::fromStdString (index.title));
+  itr->setText (CONTENT_COL_PAGE, QString::number (index.page));
+  itr->setText (CONTENT_COL_ANCHOR, QString::fromStdString (index.anchor));
+  itr->setText (CONTENT_COL_PATH, QString::fromStdString (index.path));
+  if (root_itr == nullptr)
     {
-      gtk_tree_store_append (mStore, &iter, root_itr);
-      gtk_tree_store_set (mStore, &iter, 0, &child, 1, child.title.c_str (),
-                          -1);
-      setIndex (child, &iter);
+      addTopLevelItem (itr);
+    }
+  else
+    {
+      root_itr->addChild (itr);
+    }
+
+  for (const auto &child : index.mChildrenIndex)
+    {
+      setIndex (child, itr);
     }
 }
 
-gboolean
-ApvlvContent::apvlv_set_iter_by_index (GtkTreeModel *model, GtkTreePath *path,
-                                       GtkTreeIter *iter,
-                                       ApvlvContent *content)
+bool
+ApvlvContent::find_index_and_select (QTreeWidgetItem *itr, int pn,
+                                     const char *anchor)
 {
-  ApvlvFileIndex *index = nullptr;
+  auto ipn = itr->text (CONTENT_COL_PAGE).toInt ();
+  auto ianchor = itr->text (CONTENT_COL_ANCHOR);
+  if (ipn == pn && ianchor == anchor)
+    {
+      if (mCurrentItem)
+        mCurrentItem->setSelected (false);
 
-  debug ("find index: %d, %s", content->mTargetIndex.first,
-         content->mTargetIndex.second.c_str ());
-  gtk_tree_model_get (model, iter, 0, &index, -1);
-  if (index == nullptr)
-    return FALSE;
+      auto parent = itr->parent ();
+      while (parent)
+        {
+          expandItem (parent);
+          parent = parent->parent ();
+        }
 
-  debug ("test index: %d, %s", index->page, index->anchor.c_str ());
-  if (content->mTargetIndex.first != index->page
-      || content->mTargetIndex.second != index->anchor)
-    return FALSE;
+      itr->setSelected (true);
+      return true;
+    }
 
-  content->mCurrentIter = *iter;
-  gtk_tree_selection_select_iter (content->mSelection, &content->mCurrentIter);
-  gtk_tree_view_expand_to_path (GTK_TREE_VIEW (content->mTreeView), path);
-  gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (content->mTreeView), path,
-                                nullptr, TRUE, 0.5, 0.0);
-  return TRUE;
+  for (auto ind = 0; ind < itr->childCount (); ++ind)
+    {
+      auto child_itr = itr->child (ind);
+      if (find_index_and_select (child_itr, pn, anchor))
+        return true;
+    }
+
+  return false;
 }
 
 void
@@ -128,156 +139,162 @@ ApvlvContent::setCurrentIndex (int pn, const char *anchor)
   if (mIndex.type == FILE_INDEX_DIR)
     return;
 
-  mTargetIndex.first = pn;
-  mTargetIndex.second = anchor;
-  gtk_tree_model_foreach (GTK_TREE_MODEL (mStore),
-                          (GtkTreeModelForeachFunc)apvlv_set_iter_by_index,
-                          this);
+  for (auto ind = 0; ind < topLevelItemCount (); ++ind)
+    {
+      auto itr = topLevelItem (ind);
+      if (find_index_and_select (itr, pn, anchor))
+        return;
+    }
 }
 
 void
 ApvlvContent::scrollup (int times)
 {
-  GtkTreePath *path;
+  if (mCurrentItem == nullptr)
+    return;
 
-  if ((path = gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter))
-      == nullptr)
+  auto parent = mCurrentItem->parent ();
+  if (parent == nullptr)
     {
-      return;
+      auto index = indexOfTopLevelItem (mCurrentItem);
+      if (index > 0)
+        {
+          auto itr = topLevelItem (index - 1);
+          mCurrentItem->setSelected (false);
+          itr->setSelected (true);
+        }
     }
-
-  for (gboolean ret = TRUE; times > 0 && ret; times--)
+  else
     {
-      ret = gtk_tree_path_prev (path);
+      auto index = parent->indexOfChild (mCurrentItem);
+      if (index > 0)
+        {
+          auto itr = parent->child (index - 1);
+          mCurrentItem->setSelected (false);
+          itr->setSelected (true);
+        }
     }
-
-  gtk_tree_model_get_iter (GTK_TREE_MODEL (mStore), &mCurrentIter, path);
-  gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
-  gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mTreeView), path, nullptr, TRUE,
-                                0.5, 0.0);
-  gtk_tree_path_free (path);
 }
 
 void
 ApvlvContent::scrolldown (int times)
 {
-  GtkTreeIter itr;
-  gboolean ret;
+  if (mCurrentItem == nullptr)
+    return;
 
-  for (ret = TRUE, itr = mCurrentIter; times > 0 && ret; times--)
+  auto parent = mCurrentItem->parent ();
+  if (parent == nullptr)
     {
-      mCurrentIter = itr;
-      ret = gtk_tree_model_iter_next (GTK_TREE_MODEL (mStore), &itr);
-      if (ret)
+      auto index = indexOfTopLevelItem (mCurrentItem);
+      if (index + 1 < topLevelItemCount ())
         {
-          mCurrentIter = itr;
+          auto itr = topLevelItem (index + 1);
+          mCurrentItem->setSelected (false);
+          itr->setSelected (true);
         }
     }
-
-  gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
-
-  GtkTreePath *path
-      = gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
-  if (path)
+  else
     {
-      gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mTreeView), path, nullptr,
-                                    TRUE, 0.5, 0.0);
-      gtk_tree_path_free (path);
+      auto index = parent->indexOfChild (mCurrentItem);
+      if (index + 1 < parent->childCount ())
+        {
+          auto itr = parent->child (index + 1);
+          mCurrentItem->setSelected (false);
+          itr->setSelected (true);
+        }
     }
 }
 
 void
 ApvlvContent::scrollleft (int times)
 {
-  GtkTreeIter itr;
-  for (gboolean ret = TRUE; times > 0 && ret; times--)
-    {
-      ret = gtk_tree_model_iter_parent (GTK_TREE_MODEL (mStore), &itr,
-                                        &mCurrentIter);
-      if (ret)
-        {
-          mCurrentIter = itr;
-        }
-    }
+  if (mCurrentItem == nullptr)
+    return;
 
-  gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
+  auto parent = mCurrentItem->parent ();
+  if (parent == nullptr)
+    return;
 
-  GtkTreePath *path
-      = gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
-  if (path)
-    {
-      gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mTreeView), path, nullptr,
-                                    TRUE, 0.5, 0.0);
-      gtk_tree_view_collapse_row (GTK_TREE_VIEW (mTreeView), path);
-      gtk_tree_path_free (path);
-    }
+  mCurrentItem->setSelected (false);
+  parent->setSelected (true);
+  collapseItem (parent);
 }
 
 void
 ApvlvContent::scrollright (int times)
 {
-  GtkTreeIter itr;
-  for (gboolean ret = TRUE; times > 0 && ret; times--)
+  if (mCurrentItem == nullptr)
+    return;
+
+  if (mCurrentItem->childCount () > 0)
     {
-      ret = gtk_tree_model_iter_children (GTK_TREE_MODEL (mStore), &itr,
-                                          &mCurrentIter);
-      if (ret)
+      expandItem (mCurrentItem);
+      auto itr = mCurrentItem->child (0);
+      mCurrentItem->setSelected (false);
+      itr->setSelected (true);
+    }
+}
+
+void
+ApvlvContent::on_changed ()
+{
+  auto selects = selectedItems ();
+  if (!selects.isEmpty ())
+    {
+      mCurrentItem = selects[0];
+    }
+}
+
+void
+ApvlvContent::on_row_activated (QTreeWidgetItem *item, int column)
+{
+  mDoc->contentShowPage (currentIndex ().get (), true);
+}
+
+void
+ApvlvContent::on_row_doubleclicked ()
+{
+  setIsFocused (true);
+  parentWidget ()->setFocus ();
+}
+
+void
+ApvlvContent::first_select_cb ()
+{
+  if (mIndex.type == FILE_INDEX_DIR)
+    return;
+
+  if (topLevelItemCount () > 0)
+    {
+      if (mDoc->pagenumber () <= 1)
         {
-          mCurrentIter = itr;
+          auto itr = topLevelItem (0);
+          itr->setSelected (true);
+        }
+      else
+        {
+          setCurrentIndex (mDoc->pagenumber () - 1, "");
         }
     }
 
-  GtkTreePath *path
-      = gtk_tree_model_get_path (GTK_TREE_MODEL (mStore), &mCurrentIter);
-  if (path)
-    {
-      gtk_tree_view_expand_to_path (GTK_TREE_VIEW (mTreeView), path);
-      gtk_tree_selection_select_iter (mSelection, &mCurrentIter);
-      gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (mTreeView), path, nullptr,
-                                    TRUE, 0.5, 0.0);
-      gtk_tree_path_free (path);
-    }
+  mFirstTimer->stop ();
 }
 
-void
-ApvlvContent::apvlv_content_on_changed (GtkTreeSelection *selection,
-                                        ApvlvContent *content)
-{
-  GtkTreeModel *model;
-  gtk_tree_selection_get_selected (selection, &model, &content->mCurrentIter);
-}
-
-void
-ApvlvContent::apvlv_content_on_row_activated (GtkTreeView *tree_view,
-                                              GtkTreePath *path,
-                                              GtkTreeViewColumn *column,
-                                              ApvlvContent *content)
-{
-  if (content->mDoc)
-    content->mDoc->contentShowPage (content->currentIndex (), true);
-}
-
-gboolean
-ApvlvContent::apvlv_content_first_select_cb (ApvlvContent *content)
-{
-  GtkTreeIter tree_iter;
-
-  if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (content->mStore),
-                                     &tree_iter))
-    {
-      gtk_tree_selection_select_iter (content->mSelection, &tree_iter);
-      if (content->mDoc)
-        content->mDoc->contentShowPage (content->currentIndex (), true);
-    }
-  return FALSE;
-}
-
-const ApvlvFileIndex
+unique_ptr<ApvlvFileIndex>
 ApvlvContent::currentIndex ()
 {
-  ApvlvFileIndex *index;
-  gtk_tree_model_get (GTK_TREE_MODEL (mStore), &mCurrentIter, 0, &index, -1);
-  return *index;
+  if (mCurrentItem == nullptr)
+    return nullptr;
+
+  auto index = make_unique<ApvlvFileIndex> ();
+  index->type = mIndex.type;
+
+  index->title = mCurrentItem->text (CONTENT_COL_TITLE).toStdString ();
+  index->page = mCurrentItem->text (CONTENT_COL_PAGE).toInt ();
+  index->anchor = mCurrentItem->text (CONTENT_COL_ANCHOR).toStdString ();
+  index->path = mCurrentItem->text (CONTENT_COL_PATH).toStdString ();
+
+  return index;
 }
 }
 

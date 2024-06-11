@@ -29,7 +29,7 @@
 #define _APVLV_LAB_H_
 
 #include "ApvlvFile.h"
-#include <libxml/tree.h>
+#include <QWebEngineView>
 
 namespace apvlv
 {
@@ -40,9 +40,9 @@ public:
 
   ~ApvlvLab () override;
 
-  bool render (int, int, int, double, int, GdkPixbuf *, char *) override;
-  bool renderweb (int pn, int ix, int iy, double zm, int rot,
-                  GtkWidget *widget) override;
+  bool render (int, int, int, double, int, QImage *) override;
+  bool render (int pn, int ix, int iy, double zm, int rot,
+               QWebEngineView *webview) override;
 
 private:
 };

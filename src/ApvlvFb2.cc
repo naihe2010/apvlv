@@ -25,13 +25,13 @@
  */
 /* @date Created: 2024/03/07 11:06:35 Alf*/
 
+#include <QFile>
+#include <QXmlStreamReader>
+#include <cmath>
+#include <sstream>
+
 #include "ApvlvFb2.h"
 #include "ApvlvUtil.h"
-
-#include <cmath>
-#include <libxml/tree.h>
-#include <sstream>
-#include <webkit2/webkit2.h>
 
 namespace apvlv
 {
@@ -94,174 +94,153 @@ const string section_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
                                 "    %s\n"
                                 "  </body>\n"
                                 "</html>\n";
-ApvlvFB2::ApvlvFB2 (const char *filename, bool check)
+ApvlvFB2::ApvlvFB2 (const string &filename, bool check)
     : ApvlvFile (filename, check)
 {
-  gchar *content;
-  gsize length;
-  GError *error = nullptr;
-  if (g_file_get_contents (filename, &content, &length, &error) == FALSE)
+  QFile file (QString::fromStdString (filename));
+  if (!file.open (QFile::ReadOnly | QFile::Text))
     {
-      if (error != nullptr)
-        {
-          debug ("get file: %s centents error: %s", filename, error->message);
-          g_error_free (error);
-        }
-
       throw bad_alloc ();
     }
 
-  parse_fb2 (content, length);
-  g_free (content);
+  auto bytes = file.readAll ();
+  parse_fb2 (bytes.constData (), bytes.length ());
 }
 
-ApvlvFB2::~ApvlvFB2 () {}
-
 bool
-ApvlvFB2::parse_fb2 (const char *content, size_t len)
+ApvlvFB2::parse_fb2 (const char *content, size_t length)
 {
-  auto doc = xmlReadMemory (content, (int)len, nullptr, nullptr,
-                            XML_PARSE_NOBLANKS | XML_PARSE_NSCLEAN);
-  if (doc == nullptr)
-    {
-      return false;
-    }
-
-  auto fictionbook = doc->children;
-
-  // Parse description/binary first
-  for (auto node = xmlFirstElementChild (fictionbook); node != nullptr;
-       node = xmlNextElementSibling (node))
-    {
-      if (strcmp ((const char *)node->name, "description") == 0)
-        {
-          parse_description (node);
-        }
-      else if (strcmp ((const char *)node->name, "binary") == 0)
-        {
-          parse_binary (node);
-        }
-    }
-
-  // Then, parse body
-  for (auto node = xmlFirstElementChild (fictionbook); node != nullptr;
-       node = xmlNextElementSibling (node))
-    {
-      if (strcmp ((const char *)node->name, "body") == 0)
-        {
-          parse_body (node);
-        }
-    }
-
-  xmlFreeDoc (doc);
+  parse_description (content, length);
+  parse_binary (content, length);
+  parse_body (content, length);
 
   fb2_get_index ();
-  return true;
-}
-
-bool
-ApvlvFB2::parse_description (xmlNodePtr node)
-{
-  for (auto child = xmlFirstElementChild (node); child != nullptr;
-       child = xmlNextElementSibling (child))
-    {
-      if (strcmp ((const char *)child->name, "title-info") == 0)
-        {
-          for (auto c = xmlFirstElementChild (child); c != nullptr;
-               c = xmlNextElementSibling (c))
-            {
-              if (strcmp ((const char *)c->name, "coverpage") == 0)
-                {
-                  mCoverHref
-                      = xmlnode_attr_get (xmlFirstElementChild (c), "href");
-                  return true;
-                }
-            }
-        }
-    }
 
   return true;
 }
 
 bool
-ApvlvFB2::parse_body (xmlNodePtr node)
+ApvlvFB2::parse_description (const char *content, size_t length)
 {
-  for (auto child = xmlFirstElementChild (node); child != nullptr;
-       child = xmlNextElementSibling (child))
+  vector<string> keys{ "FictionBook", "description", "title-info", "coverpage",
+                       "image" };
+  auto value = xml_content_get_attribute_value (content, length, keys, "href");
+  mCoverHref = value;
+  return true;
+}
+
+bool
+ApvlvFB2::parse_body (const char *content, size_t length)
+{
+  vector<string> keys = { "FictionBook", "body" };
+  auto optxml = xml_content_get_element (content, length, keys);
+  if (!optxml)
+    return false;
+
+  auto xml = optxml->get ();
+  while (!xml->atEnd ()
+         && !(xml->isEndElement () && xml->name ().toString () == "body"))
     {
-      if (strcmp ((const char *)child->name, "title") == 0)
+      if (xml->isStartElement () && xml->name () == QString ("title"))
         {
-          stringstream content;
-          for (auto c = xmlFirstElementChild (child); c != nullptr;
-               c = xmlNextElementSibling (c))
+          stringstream ss;
+          while (!xml->atEnd ()
+                 && !(xml->isEndElement ()
+                      && xml->name ().toString () == "title"))
             {
-              if (strcmp ((const char *)c->name, "empty-line") == 0)
+              if (xml->isStartElement ())
                 {
-                  content << "<br />";
+                  if (xml->name () == QString ("empty-line"))
+                    {
+                      ss << "<br />";
+                    }
+                  else if (xml->name () == QString ("p"))
+                    {
+                      ss << "<h1 class=\"block_c\"><span>";
+                      auto xmltext = xml->readElementText ().trimmed ();
+                      ss << xmltext.toStdString ();
+                      ss << "</span></h1>";
+                      ss << "<br />";
+                    }
                 }
-              else if (strcmp ((const char *)c->name, "p") == 0)
-                {
-                  content << "<h1 class=\"block_c\"><span>";
-                  content << (const char *)c->children[0].content;
-                  content << "</span></h1>";
-                  content << "<br />";
-                }
+
+              xml->readNext ();
             }
 
-          auto htmlstr = g_strdup_printf (title_template.c_str (),
-                                          content.str ().c_str ());
+          char htmlstr[1024];
+          snprintf (htmlstr, sizeof htmlstr, title_template.c_str (),
+                    ss.str ().c_str ());
           appendTitle (htmlstr, "application/xhtml+xml");
-          g_free (htmlstr);
         }
-      else if (strcmp ((const char *)child->name, "section") == 0)
+      else if (xml->isStartElement () && xml->name ().toString () == "section")
         {
-          stringstream content;
+          stringstream ss;
           string title;
-          for (auto c = xmlFirstElementChild (child); c != nullptr;
-               c = xmlNextElementSibling (c))
+          while (!xml->atEnd ()
+                 && !(xml->isEndElement ()
+                      && xml->name ().toString () == "section"))
             {
-              if (strcmp ((const char *)c->name, "title") == 0)
+              if (xml->isStartElement ())
                 {
-                  auto titlenode = xmlLastElementChild (c);
-                  title = (const char *)titlenode->children[0].content;
-                  content << "<h1 class=\"block_\"><span>";
-                  content << title;
-                  content << "</span></h1>";
-                  content << "<br />";
+                  if (xml->name ().toString () == "title")
+                    {
+                      auto xmltext
+                          = xml->readElementText (
+                                   QXmlStreamReader::IncludeChildElements)
+                                .trimmed ();
+                      title = xmltext.toStdString ();
+                      ss << "<h1 class=\"block_\"><span>";
+                      ss << title;
+                      ss << "</span></h1>";
+                      ss << "<br />";
+                    }
+                  else if (xml->name ().toString () == "p")
+                    {
+                      ss << "<p class=\"block_1\"><span>";
+                      auto xmltext = xml->readElementText ().trimmed ();
+                      ss << xmltext.toStdString ();
+                      ss << "</span></p>";
+                    }
                 }
-              else if (strcmp ((const char *)c->name, "p") == 0)
-                {
-                  content << "<p class=\"block_1\"><span>";
-                  content << (const char *)c->children[0].content;
-                  content << "</span></p>";
-                  content << "<br />";
-                }
+
+              xml->readNext ();
             }
-          auto htmlstr = g_strdup_printf (section_template.c_str (),
-                                          content.str ().c_str ());
+
+          char htmlstr[102400];
+          snprintf (htmlstr, sizeof htmlstr, section_template.c_str (),
+                    ss.str ().c_str ());
           appendSection (title, htmlstr, "application/xhtml+xml");
-          g_free (htmlstr);
         }
+
+      xml->readNext ();
     }
 
   return true;
 }
 
 bool
-ApvlvFB2::parse_binary (xmlNodePtr node)
+ApvlvFB2::parse_binary (const char *content, size_t length)
 {
-  auto idstr = xmlnode_attr_get (node, "id");
+  string idstr;
+  vector<string> keys = { "FictionBook", "binary" };
+  auto optxml = xml_content_get_element (content, length, keys);
+  if (!optxml)
+    return false;
+
+  auto xml = optxml->get ();
+  idstr = xml_stream_get_attribute_value (xml, "id");
+
   if (mCoverHref.empty () || idstr == mCoverHref.substr (1))
     {
-      auto mimetype = xmlnode_attr_get (node, "content-type");
-      gsize len;
-      auto content
-          = g_base64_decode ((const char *)node->children[0].content, &len);
-      string section;
-      section.append ((char *)content, len);
+      string mimetype = xml_stream_get_attribute_value (xml, "content-type");
+      auto contents = xml->readElementText ().toStdString ();
+      QByteArray b64contents{ contents.c_str (),
+                              (qsizetype)contents.length () };
+      auto bytes = QByteArray::fromBase64 (b64contents);
+      auto section = bytes.toStdString ();
       appendCoverpage (section, mimetype);
-      g_free (content);
     }
+
   return true;
 }
 
@@ -310,7 +289,7 @@ ApvlvFB2::fb2_get_index ()
 
       auto title = titleSections[mPages[ind]].first;
       auto chap = ApvlvFileIndex (title, ind, pagenum, FILE_INDEX_PAGE);
-      mIndex.children.emplace_back (chap);
+      mIndex.mChildrenIndex.emplace_back (chap);
     }
 
   return true;
@@ -334,69 +313,58 @@ ApvlvFB2::pagesum ()
   return (int)mPages.size ();
 }
 
-bool
-ApvlvFB2::pageselectsearch (int pn, int ix, int iy, double zm, int rot,
-                            GdkPixbuf *pix, char *buffer, int sel,
-                            ApvlvPoses *poses)
-{
-  return false;
-}
-
-ApvlvPoses *
+unique_ptr<ApvlvPoses>
 ApvlvFB2::pagesearch (int pn, const char *str, bool reverse)
 {
   return nullptr;
 }
 
-ApvlvLinks *
+unique_ptr<ApvlvLinks>
 ApvlvFB2::getlinks (int pn)
 {
   return nullptr;
 }
 
 bool
-ApvlvFB2::pagetext (int pn, gdouble x1, gdouble y1, gdouble x2, gdouble y2,
+ApvlvFB2::pagetext (int pn, double x1, double y1, double x2, double y2,
                     char **out)
 {
   return false;
 }
 
 bool
-ApvlvFB2::render (int, int, int, double, int, GdkPixbuf *, char *)
+ApvlvFB2::render (int, int, int, double, int, QImage *)
 {
   return false;
 }
 
 bool
-ApvlvFB2::renderweb (int pn, int ix, int iy, double zm, int rot,
-                     GtkWidget *widget)
+ApvlvFB2::render (int pn, int ix, int iy, double zm, int rot,
+                  QWebEngineView *webview)
 {
-  char uri[0x100];
-  webkit_web_view_set_zoom_level (WEBKIT_WEB_VIEW (widget), zm);
-  snprintf (uri, sizeof uri, "apvlv:///%d", pn);
-  webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), uri);
+  webview->setZoomFactor (zm);
+  QUrl url = QString ("apvlv:///") + QString::number (pn);
+  webview->load (url);
   return true;
 }
 
 bool
-ApvlvFB2::pageprint (int pn, cairo_t *cr)
+ApvlvFB2::pageprint (int pn, QPrinter *cr)
 {
   return false;
 }
 
-gchar *
-ApvlvFB2::get_ocf_file (const gchar *uri, gssize *lenp)
+optional<QByteArray>
+ApvlvFB2::get_ocf_file (const string &uri)
 {
-  if (strcmp (uri, "stylesheet.css") == 0)
+  if (uri == "stylesheet.css")
     {
-      *lenp = (gssize)stylesheet_content.size ();
-      return g_strdup (stylesheet_content.c_str ());
+      auto byte_array = QByteArray::fromStdString (stylesheet_content);
+      return byte_array;
     }
 
-  *lenp = (gssize)titleSections[uri].second.size ();
-  auto content = g_malloc0 (*lenp);
-  memcpy (content, titleSections[uri].second.data (), *lenp);
-  return (gchar *)content;
+  auto byte_array = QByteArray::fromStdString (titleSections[uri].second);
+  return byte_array;
 }
 
 }

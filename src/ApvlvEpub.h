@@ -28,21 +28,19 @@
 #ifndef _APVLV_EPUB_H_
 #define _APVLV_EPUB_H_
 
-#include "ApvlvFile.h"
-
-#include <epub.h>
-#include <gtk/gtk.h>
-#include <libxml/parser.h>
-
+#include <QXmlStreamReader>
 #include <map>
 #include <memory>
+#include <quazip.h>
+
+#include "ApvlvFile.h"
 
 namespace apvlv
 {
 class ApvlvEPUB : public ApvlvFile
 {
 public:
-  explicit ApvlvEPUB (const char *, bool check = true);
+  explicit ApvlvEPUB (const string &filename, bool check = true);
   ~ApvlvEPUB () override;
 
   bool writefile (const char *filename) override;
@@ -51,36 +49,36 @@ public:
 
   int pagesum () override;
 
-  bool pagetext (int, gdouble, gdouble, gdouble, gdouble, char **) override;
+  bool pagetext (int, double, double, double, double, char **) override;
 
-  bool renderweb (int pn, int ix, int iy, double zm, int rot,
-                  GtkWidget *widget) override;
+  bool render (int pn, int ix, int iy, double zm, int rot,
+               QWebEngineView *widget) override;
 
-  ApvlvPoses *pagesearch (int pn, const char *str, bool reverse) override;
+  unique_ptr<ApvlvPoses> pagesearch (int pn, const char *str,
+                                     bool reverse) override;
 
-  bool pageselectsearch (int, int, int, double, int, GdkPixbuf *, char *, int,
-                         ApvlvPoses *) override;
+  unique_ptr<ApvlvLinks> getlinks (int pn) override;
 
-  ApvlvLinks *getlinks (int pn) override;
+  bool pageprint (int pn, QPrinter *cr) override;
 
-  bool pageprint (int pn, cairo_t *cr) override;
-
-  gchar *get_ocf_file (const char *path, gssize *) override;
+  optional<QByteArray> get_ocf_file (const string &path) override;
 
   DISPLAY_TYPE
   get_display_type () override { return DISPLAY_TYPE_HTML; }
 
 private:
+  optional<QByteArray> get_zip_file_contents (const QString &name);
+
   static string container_get_contentfile (const char *container, int len);
 
-  bool content_get_media (struct epub *epub, const string &contentfile);
+  bool content_get_media (const string &contentfile);
 
-  bool ncx_set_index (struct epub *epub, const string &ncxfile);
+  bool ncx_set_index (const string &ncxfile);
 
-  void ncx_node_set_index (xmlNodePtr node, const string &ncxfile,
-                           ApvlvFileIndex &index);
+  void ncx_node_set_index (QXmlStreamReader *xml, const string &element_name,
+                           const string &ncxfile, ApvlvFileIndex &index);
 
-  struct epub *mEpub;
+  unique_ptr<QuaZip> mQuaZip;
   std::map<string, string> idSrcs;
 };
 

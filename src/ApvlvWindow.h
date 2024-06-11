@@ -29,27 +29,28 @@
 #ifndef _APVLV_WINDOW_H_
 #define _APVLV_WINDOW_H_
 
+#include <iostream>
+
 #include "ApvlvCore.h"
 #include "ApvlvDoc.h"
 
-#include <gtk/gtk.h>
-
-#include <iostream>
 using namespace std;
 
 namespace apvlv
 {
 class ApvlvCore;
+class ApvlvWindowContext;
 
-class ApvlvWindow
+class ApvlvWindow : public QObject
 {
+  Q_OBJECT
 public:
-  explicit ApvlvWindow (ApvlvCore *core, ApvlvView *view);
-  ~ApvlvWindow ();
+  ApvlvWindow (ApvlvWindowContext *context, ApvlvCore *core);
+  ~ApvlvWindow () override;
 
   /* WE operate the AW_DOC window
    * Any AW_SP, AW_VSP are a virtual window, just for contain the AW_DOC window
-   * AW_NONE is a empty window, need free
+   * AW_NONE is an empty window, need free
    * So, ANY user interface function can only get the AW_DOC window
    * */
   enum WindowType
@@ -59,46 +60,105 @@ public:
     AW_CORE
   } mType;
 
-  ApvlvWindow *birth (WindowType type, ApvlvCore *core);
+  bool birth (WindowType type, ApvlvCore *doc);
 
-  ApvlvWindow *unbirth ();
+  void unbirth ();
 
-  GtkWidget *widget ();
+  void setActive (bool act);
+
+  QWidget *widget ();
+
+  void setCore (ApvlvCore *doc);
 
   ApvlvCore *getCore ();
 
-  ApvlvWindow *activeCoreWindow ();
-
-  ApvlvWindow *getAncestor ();
-
-  bool isAncestor () const;
-
-  void setCore (ApvlvCore *core);
+  bool isRoot ();
 
   void smaller (int times = 1);
   void bigger (int times = 1);
 
-  void setcurrentWindow (ApvlvWindow *win);
+  ApvlvWindow *getNeighbor (int count, uint key);
 
-  ApvlvWindow *getneighbor (int count, guint key);
+  ApvlvWindow *getNext ();
 
-  ApvlvWindow *getnext (int num);
-
-  returnType process (int times, guint keyval);
+  returnType process (int times, uint keyval);
 
   ApvlvWindow *m_parent, *m_child_1, *m_child_2;
 
 private:
-  inline ApvlvWindow *getkj (__attribute__ ((unused)) int num, bool next);
-  inline ApvlvWindow *gethl (__attribute__ ((unused)) int num, bool next);
+  ApvlvWindow *getLeft ();
+  ApvlvWindow *getRight ();
+  ApvlvWindow *getTop ();
+  ApvlvWindow *getBottom ();
 
-  GtkWidget *mPaned;
+  void splitWidget (WindowType type, QWidget *one, QWidget *other);
+
+  QSplitter *mPaned;
 
   ApvlvCore *mCore;
 
-  ApvlvView *mView;
+  ApvlvWindowContext *mContext;
+};
 
+class ApvlvWindowContext : public QSplitter
+{
+public:
+  explicit ApvlvWindowContext (ApvlvView *view, ApvlvWindow *root = nullptr,
+                               ApvlvWindow *active = nullptr, int count = 0);
+  ~ApvlvWindowContext () override = default;
+
+  void registerWindow (ApvlvWindow *);
+  void unregisterWindow (ApvlvWindow *);
+
+  ApvlvView *
+  getView () const
+  {
+    return mView;
+  }
+
+  ApvlvWindow *
+  getRootWindow ()
+  {
+    return mRootWindow;
+  }
+
+  void
+  setRootWindow (ApvlvWindow *win)
+  {
+    mRootWindow = win;
+  }
+
+  ApvlvWindow *
+  getActiveWindow ()
+  {
+    return mActiveWindow;
+  }
+
+  void
+  setActiveWindow (ApvlvWindow *win)
+  {
+    if (mActiveWindow == win)
+      return;
+
+    if (mActiveWindow)
+      mActiveWindow->setActive (false);
+    mActiveWindow = win;
+    mActiveWindow->setActive (true);
+  }
+
+  [[nodiscard]] int
+  getWindowCount () const
+  {
+    return mWindowCount;
+  }
+
+  ApvlvWindow *findWindowByWidget (QWidget *widget);
+
+private:
+  ApvlvView *mView;
+  ApvlvWindow *mRootWindow;
   ApvlvWindow *mActiveWindow;
+  int mWindowCount;
 };
 
 }

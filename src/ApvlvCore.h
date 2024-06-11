@@ -29,14 +29,17 @@
 #ifndef _APVLV_CORE_H_
 #define _APVLV_CORE_H_
 
+#include <QBoxLayout>
+#include <QFileSystemWatcher>
+#include <QScrollArea>
+#include <QScrollBar>
+#include <QSplitter>
+#include <iostream>
+#include <map>
+
 #include "ApvlvContent.h"
 #include "ApvlvFile.h"
 #include "ApvlvUtil.h"
-
-#include <gtk/gtk.h>
-
-#include <iostream>
-#include <map>
 
 using namespace std;
 
@@ -47,26 +50,23 @@ const int APVLV_WORD_WIDTH_DEFAULT = 40;
 const int APVLV_LINE_HEIGHT_DEFAULT = 15;
 
 class ApvlvCore;
-class ApvlvStatus
+class ApvlvStatus : public QFrame
 {
+  Q_OBJECT
 public:
   ApvlvStatus ();
 
-  ~ApvlvStatus ();
+  ~ApvlvStatus () override = default;
 
-  GtkWidget *widget ();
+  void setActive (bool act);
 
-  void active (bool act);
-
-  void show (const vector<string> &msgs);
-
-protected:
-  GtkWidget *mHbox;
+  void showMessages (const vector<string> &msgs);
 };
 
 class ApvlvView;
-class ApvlvCore
+class ApvlvCore : public QFrame
 {
+  Q_OBJECT
 public:
   explicit ApvlvCore (ApvlvView *);
 
@@ -78,44 +78,53 @@ public:
 
   virtual bool inuse ();
 
-  virtual GtkWidget *widget ();
-
   virtual ApvlvCore *copy ();
 
   virtual ApvlvFile *file ();
 
-  virtual void setDirIndex (const gchar *path);
+  virtual void setDirIndex (const string &path);
 
-  virtual bool loadfile (const char *file, bool check, bool show_content);
+  virtual bool loadfile (const string &file, bool check, bool show_content);
 
   virtual const char *filename ();
 
   virtual bool writefile (const char *);
 
-  virtual gint pagenumber ();
+  virtual int pagenumber ();
 
-  virtual void showpage (gint, gdouble s);
-  virtual void showpage (gint, const string &anchor);
+  virtual void showpage (int, double s);
+  virtual void showpage (int, const string &anchor);
   virtual void refresh ();
 
-  virtual gdouble zoomvalue ();
+  virtual double zoomvalue ();
 
-  virtual void setactive (bool act);
+  virtual void setActive (bool act);
 
-  virtual gdouble scrollrate ();
+  virtual double scrollrate ();
 
-  virtual gboolean scrollto (double s);
+  virtual bool scrollto (double s);
+
+  void scrollweb (int times, int w, int h);
+  void scrollwebto (double xrate, double yrate);
 
   virtual void scrollup (int times);
   virtual void scrolldown (int times);
   virtual void scrollleft (int times);
   virtual void scrollright (int times);
 
+  virtual void scrollupweb (int times);
+  virtual void scrolldownweb (int times);
+  virtual void scrollleftweb (int times);
+  virtual void scrollrightweb (int times);
+
+  bool webIsScrolledToTop ();
+  bool webIsScrolledToBottom ();
+
   virtual bool usecache ();
 
   virtual void usecache (bool use);
 
-  virtual void show ();
+  virtual void display ();
 
   virtual bool print (int ct);
 
@@ -158,9 +167,11 @@ public:
 
   virtual bool isControlledContent ();
 
-  virtual returnType process (int has, int times, guint keyval) = 0;
+  virtual returnType process (int has, int times, uint keyval) = 0;
 
   ApvlvView *mView;
+
+  static ApvlvCore *findByWidget (QWidget *widget);
 
 protected:
   ApvlvFile *mFile{};
@@ -175,20 +186,17 @@ protected:
 
   bool mInuse;
 
-  GFile *mGFile{};
-  GFileMonitor *mGMonitor{};
+  unique_ptr<QFileSystemWatcher> mWatcher;
 
   string mFilestr;
 
-  guint mProCmd;
-
-  double mScrollvalue{};
+  uint mProCmd;
 
   int mSearchPagenum{};
   char mSearchCmd{};
   bool mSearchReverse{};
-  guint mSearchSelect{};
-  ApvlvPoses *mSearchResults;
+  uint mSearchSelect{};
+  unique_ptr<ApvlvPoses> mSearchResults;
   string mSearchStr;
 
   enum
@@ -215,30 +223,52 @@ protected:
 
   double mPagex{}, mPagey{};
 
+  DISPLAY_TYPE mDisplayType;
+
   // the main menubar
-  GtkWidget *mVbox;
+  QBoxLayout *mVbox;
 
   // the main panel
-  GtkWidget *mPaned;
+  QSplitter *mPaned;
 
-  // the content paned
-  GtkWidget *mContentWidget;
-  GtkAdjustment *mContentVaj;
+  // content panel
+  ApvlvContent *mContent;
+  QScrollArea *mMainImageScrolView;
+
+  // the webview
+  QWebEngineView *mMainWebView;
+
+  QScrollBar *mMainVaj, *mMainHaj;
 
   // the document scrolled window
-  GtkWidget *mMainWidget;
-  GtkAdjustment *mMainVaj, *mMainHaj;
+  QFrame *mMainImageFrame;
+
+  unique_ptr<QWebEngineProfile> mWebProfile;
+
+  bool mWebScrollUp;
 
   // if active
   bool mActive{};
 
-  // content panel
-  ApvlvContent *mContent;
-
   // status bar
   ApvlvStatus *mStatus;
 
-private:
+protected:
+  void initImageUi ();
+
+  void initWebUi ();
+
+  void showImage ();
+
+  void showWeb ();
+
+signals:
+  void indexGenerited (const ApvlvFileIndex &);
+
+private slots:
+  void webview_update (const string &key);
+  void webview_load_finished (bool suc);
+  void webview_context_menu_cb (const QPoint &);
 };
 }
 
