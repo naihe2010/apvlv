@@ -261,7 +261,7 @@ ApvlvFB2::appendSection (const string &title, const string &section,
                          const string &mime)
 {
   char uri[10];
-  snprintf (uri, sizeof uri, "%zd", mPages.size ());
+  snprintf (uri, sizeof uri, "%zu", mPages.size ());
   appendPage (uri, title, section, mime);
 }
 
@@ -280,7 +280,7 @@ ApvlvFB2::fb2_get_index ()
 {
   char pagenum[16];
 
-  mIndex = { "", 0, "", FILE_INDEX_PAGE };
+  mIndex = { "", 0, getFilename (), FILE_INDEX_FILE };
   for (int ind = 0; ind < (int)mPages.size (); ++ind)
     {
       snprintf (pagenum, sizeof pagenum, "%d", ind);

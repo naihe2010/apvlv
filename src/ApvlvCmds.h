@@ -40,12 +40,12 @@ using namespace std;
 
 namespace apvlv
 {
-typedef enum
+enum CmdType
 {
   CT_CMD,
   CT_STRING,
   CT_STRING_RETURN
-} cmdType;
+};
 
 typedef map<const char *, int> StringKeyMap;
 
@@ -63,15 +63,15 @@ public:
 
   void process (ApvlvView *);
 
-  void push (const char *s, cmdType type = CT_CMD);
+  void push (const char *s, CmdType type = CT_CMD);
 
   bool append (QKeyEvent *key);
 
   const char *append (const char *s);
 
-  void type (cmdType type);
+  void type (CmdType type);
 
-  cmdType type ();
+  CmdType type ();
 
   const char *c_str ();
 
@@ -93,7 +93,7 @@ public:
 
 private:
   // command type
-  cmdType mType;
+  CmdType mType;
 
   // if it has count
   bool mHasPreCount;
@@ -131,7 +131,7 @@ public:
 private:
   ApvlvCmd *process (ApvlvCmd *cmd);
 
-  static returnType ismap (ApvlvCmdKeyv *ack);
+  static ReturnType ismap (ApvlvCmdKeyv *ack);
 
   static ApvlvCmd *getmap (ApvlvCmd *cmd);
 

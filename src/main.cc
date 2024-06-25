@@ -35,8 +35,10 @@
 #include <QLocale>
 #include <QMessageBox>
 #include <QTranslator>
+#include <QWebEngineUrlScheme>
 
 #include "ApvlvInfo.h"
+#include "ApvlvLog.h"
 #include "ApvlvParams.h"
 #include "ApvlvUtil.h"
 #include "ApvlvView.h"
@@ -47,6 +49,15 @@ using namespace apvlv;
 #pragma comment(linker, "/subsystem:windows")
 #pragma comment(linker, "/ENTRY:mainCRTStartup")
 #endif
+
+static void
+registerUrlScheme ()
+{
+  QWebEngineUrlScheme scheme ("apvlv");
+  scheme.setSyntax (QWebEngineUrlScheme::Syntax::Path);
+  // scheme.setFlags (QWebEngineUrlScheme::SecureScheme);
+  QWebEngineUrlScheme::registerScheme (scheme);
+}
 
 #ifndef WIN32
 static void
@@ -79,30 +90,29 @@ version_exit ()
 static int
 parse_options (int argc, char *argv[])
 {
-  string ini;
-
 #ifdef WIN32
-  ini = filesystem::absolute (filesystem::path (inifile)).string ();
-  if (!ini.empty ())
-    {
-      gParams->loadfile (ini);
-    }
+  gParams->loadfile (inifile);
   return 1;
 #else
   int c, index;
   static struct option long_options[]
       = { { "config", required_argument, nullptr, 'c' },
           { "help", no_argument, nullptr, 'h' },
+          { "log-file", required_argument, nullptr, 'l' },
           { "version", no_argument, nullptr, 'v' },
           { nullptr, 0, nullptr, 0 } };
 
   index = 0;
-  while ((c = getopt_long (argc, argv, "c:hv", long_options, &index)) != -1)
+  while ((c = getopt_long (argc, argv, "c:hl:v", long_options, &index)) != -1)
     {
       switch (c)
         {
         case 'c':
-          ini = filesystem::absolute (optarg).string ();
+          inifile = filesystem::absolute (optarg).string ();
+          break;
+
+        case 'l':
+          logfile = filesystem::absolute (optarg).string ();
           break;
 
         case 'h':
@@ -114,16 +124,12 @@ parse_options (int argc, char *argv[])
           return -1;
 
         default:
-          errp ("no command line options");
+          qCritical ("no command line options");
           return -1;
         }
     }
 
-  if (ini.empty ())
-    {
-      ini = inifile;
-    }
-  debug ("using config: %s", ini.c_str ());
+  qDebug ("using config: %s", inifile.c_str ());
 
   /*
    * load the global sys conf file
@@ -134,16 +140,15 @@ parse_options (int argc, char *argv[])
   /*
    * load the user conf file
    * */
-  gParams->loadfile (ini);
+  gParams->loadfile (inifile);
 
   return optind;
 #endif
 }
 
 static void
-loadTranslator ()
+loadTranslator (QTranslator &translator)
 {
-  QTranslator translator;
   map<string, string> lanuage_translator{ { "Chinese", "zh_CN" } };
   auto lan = QLocale::system ().language ();
   auto lanstr = QLocale::languageToString (lan).toStdString ();
@@ -153,11 +158,11 @@ loadTranslator ()
       if (!translator.load (QString::fromStdString (lantrans),
                             QString::fromStdString (translations)))
         {
-          errp ("Load i18n file failed, using English");
+          qCritical ("Load i18n file failed, using English");
         }
       else
         {
-          QApplication::installTranslator (&translator);
+          QCoreApplication::installTranslator (&translator);
         }
     }
 }
@@ -165,9 +170,14 @@ loadTranslator ()
 int
 main (int argc, char *argv[])
 {
+  registerUrlScheme ();
+
   QApplication app (argc, argv);
 
   getRuntimePaths ();
+
+  QTranslator translator;
+  loadTranslator (translator);
 
   ApvlvParams sParams;
   gParams = &sParams;
@@ -178,9 +188,11 @@ main (int argc, char *argv[])
   int opt = parse_options (argc, argv);
   if (opt < 0)
     {
-      errp ("Parse options failed.\n");
+      qCritical ("Parse options failed.\n");
       return 1;
     }
+
+  ApvlvLog sLog (QString::fromStdString (logfile));
 
   string path;
   if (opt > 0 && argc > opt)
@@ -195,13 +207,9 @@ main (int argc, char *argv[])
 
   if (!filesystem::is_regular_file (path))
     {
-      errp ("File '%s' is not readable.\n", path.c_str ());
+      qFatal ("File '%s' is not readable.\n", path.c_str ());
       return 1;
     }
-
-  ApvlvDoc::webEngineRegisterScheme ();
-
-  loadTranslator ();
 
   ApvlvView sView (nullptr);
   if (!sView.newtab (path))
@@ -214,7 +222,7 @@ main (int argc, char *argv[])
       auto apath = filesystem::absolute (argv[opt++]).string ();
       if (!sView.loadfile (apath))
         {
-          errp ("Can't open document: %s", apath.c_str ());
+          qCritical ("Can't open document: %s", apath.c_str ());
         }
     }
 

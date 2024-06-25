@@ -26,8 +26,9 @@
 /* @date Created: 2011/09/16 13:50:18 Alf*/
 
 #include <QInputDialog>
-#include <QMessageBox>
+#include <QPdfBookmarkModel>
 #include <QPdfDocument>
+#include <QPdfSearchModel>
 #include <filesystem>
 #include <fstream>
 
@@ -39,9 +40,8 @@ namespace apvlv
 using namespace std;
 
 ApvlvPDF::ApvlvPDF (const string &filename, bool check)
-    : ApvlvFile (filename, check)
+    : ApvlvFile (filename, check), mDoc (make_unique<QPdfDocument> ())
 {
-  mDoc = make_unique<QPdfDocument> ();
   auto res = mDoc->load (QString::fromStdString (filename));
   if (res == QPdfDocument::Error::IncorrectPassword)
     {
@@ -63,13 +63,13 @@ ApvlvPDF::ApvlvPDF (const string &filename, bool check)
 bool
 ApvlvPDF::writefile (const char *filename)
 {
-  debug ("write %p to %s", this, filename);
+  qDebug ("write %p to %s", this, filename);
   auto path = filesystem::absolute (filename);
   if (mDoc)
     {
       // need impl
       // auto ret = mDoc->write();
-      // debug ("write pdf: %p to %s, return %d", mDoc, uri, ret);
+      // qDebug ("write pdf: %p to %s, return %d", mDoc, uri, ret);
       return true;
     }
   return false;
@@ -107,17 +107,23 @@ ApvlvPDF::pagesearch (int pn, const char *str, bool is_reverse)
   if (mDoc == nullptr)
     return nullptr;
 
-  /* auto page = mDoc->search (pn);
-  auto results = page->search (str);
+  auto qsearch = make_unique<QPdfSearchModel> ();
+  qsearch->setDocument (mDoc.get ());
+  qsearch->setSearchString (str);
+  auto results = qsearch->resultsOnPage (pn);
+
   if (is_reverse)
     reverse (results.begin (), results.end ());
   auto poses = make_unique<ApvlvPoses> ();
-  for (auto res : results)
+  for (auto const &res : results)
     {
-      poses->push_back (
-          { res.left (), res.bottom (), res.right (), res.top () });
-    }*/
-  auto poses = make_unique<ApvlvPoses> ();
+      auto rects = res.rectangles ();
+      transform (rects.begin (), rects.end (), poses->begin (),
+                 [] (auto const &rect) {
+                   return ApvlvPos{ rect.left (), rect.bottom (),
+                                    rect.right (), rect.top () };
+                 });
+    }
   return poses;
 }
 
@@ -134,10 +140,6 @@ ApvlvPDF::render (int pn, int ix, int iy, double zm, int rot, QImage *pix)
 {
   if (mDoc == nullptr)
     return false;
-
-  auto xres = 72.0, yres = 72.0;
-  xres *= zm;
-  yres *= zm;
 
   QSize image_size{ int (ix * zm), int (iy * zm) };
   auto prot = QPdfDocumentRenderOptions::Rotation::None;
@@ -164,12 +166,38 @@ ApvlvPDF::getlinks (int pn)
 bool
 ApvlvPDF::pdf_get_index ()
 {
-  auto outlines = mDoc->pageModel ();
-  if (outlines == nullptr)
-    return false;
-
-  mIndex = { "", 0, "", FILE_INDEX_PAGE };
+  auto bookmark_model = make_unique<QPdfBookmarkModel> ();
+  bookmark_model->setDocument (mDoc.get ());
+  mIndex = { "", 0, getFilename (), FILE_INDEX_FILE };
+  pdf_get_index_iter (mIndex, bookmark_model.get (), QModelIndex ());
   return true;
+}
+
+void
+ApvlvPDF::pdf_get_index_iter (ApvlvFileIndex &file_index,
+                              const QPdfBookmarkModel *bookmark_model,
+                              const QModelIndex &parent)
+{
+  for (auto row = 0; row < bookmark_model->rowCount (parent); ++row)
+    {
+      auto index = bookmark_model->index (row, 0, parent);
+      auto title = bookmark_model->data (index, Qt::UserRole);
+      auto level = bookmark_model->data (index, 257);
+      auto page = bookmark_model->data (index, 258);
+      auto location = bookmark_model->data (index, 259);
+      qDebug ("%d:%fx%f %d %s", page.toInt (), location.toPointF ().x (),
+              location.toPointF ().y (), level.toInt (),
+              title.toString ().toStdString ().c_str ());
+
+      ApvlvFileIndex child_index (title.toString ().toStdString (),
+                                  page.toInt (), "", FILE_INDEX_PAGE);
+      if (bookmark_model->hasChildren (index))
+        {
+          pdf_get_index_iter (child_index, bookmark_model, index);
+        }
+
+      file_index.mChildrenIndex.emplace_back (child_index);
+    }
 }
 
 bool

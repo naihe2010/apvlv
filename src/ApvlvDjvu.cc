@@ -25,9 +25,10 @@
  */
 /* @date Created: 2011/09/16 13:49:38 Alf*/
 
+#include <QThread>
+
 #include "ApvlvDjvu.h"
 #include "ApvlvUtil.h"
-#include <cstdio>
 
 namespace apvlv
 {
@@ -39,7 +40,7 @@ handle_ddjvu_messages (ddjvu_context_t *ctx, int wait)
     ddjvu_message_wait (ctx);
   while ((msg = ddjvu_message_peek (ctx)))
     {
-      debug ("tag: %d", msg->m_any.tag);
+      qDebug ("tag: %d", msg->m_any.tag);
       switch (msg->m_any.tag)
         {
         case DDJVU_ERROR:
@@ -55,20 +56,21 @@ handle_ddjvu_messages (ddjvu_context_t *ctx, int wait)
     }
 }
 
-ApvlvDJVU::ApvlvDJVU (const char *filename, bool check)
+ApvlvDJVU::ApvlvDJVU (const string &filename, bool check)
     : ApvlvFile (filename, check)
 {
   mContext = ddjvu_context_create ("apvlv");
   if (mContext)
     {
-      mDoc = ddjvu_document_create_by_filename (mContext, filename, false);
+      mDoc = ddjvu_document_create_by_filename (mContext, filename.c_str (),
+                                                false);
     }
 
   if (mDoc != nullptr)
     {
       if (ddjvu_document_get_type (mDoc) == DDJVU_DOCTYPE_SINGLEPAGE)
         {
-          debug ("djvu type: %d", ddjvu_document_get_type (mDoc));
+          qDebug ("djvu type: %d", ddjvu_document_get_type (mDoc));
         }
       else
         {
@@ -132,7 +134,7 @@ ApvlvDJVU::pagesize (int pn, int rot, double *x, double *y)
     {
       *x = info->width;
       *y = info->height;
-      debug ("djvu page 1: %f-%f", *x, *y);
+      qDebug ("djvu page 1: %f-%f", *x, *y);
     }
   return true;
 }
@@ -144,16 +146,18 @@ ApvlvDJVU::pagesum ()
 }
 
 bool
-ApvlvDJVU::render (int pn, int ix, int iy, double zm, int rot, QImage *pix,
-                   char *buffer)
+ApvlvDJVU::render (int pn, int ix, int iy, double zm, int rot, QImage *pix)
 {
   ddjvu_page_t *tpage;
 
   if ((tpage = ddjvu_page_create_by_pageno (mDoc, pn)) == nullptr)
     {
-      debug ("no this page: %d", pn);
+      qDebug ("no this page: %d", pn);
       return false;
     }
+
+  ix *= zm;
+  iy *= zm;
 
   ddjvu_rect_t prect[1]
       = { { static_cast<unsigned int> (0), static_cast<unsigned int> (0),
@@ -165,27 +169,41 @@ ApvlvDJVU::render (int pn, int ix, int iy, double zm, int rot, QImage *pix,
       = ddjvu_format_create (DDJVU_FORMAT_RGB24, 0, nullptr);
   ddjvu_format_set_row_order (format, true);
 
+  auto psize = 3 * ix * iy;
+  auto buffer = make_unique<char[]> (psize);
+
   int retry = 0;
   while (retry <= 20
          && ddjvu_page_render (tpage, DDJVU_RENDER_COLOR, prect, rrect, format,
-                               3 * ix, (char *)buffer)
+                               3 * ix, buffer.get ())
                 == false)
     {
-      usleep (50 * 1000);
+      QThread::msleep (50);
       ++retry;
-      debug ("fender failed, retry %d", retry);
+      qDebug ("fender failed, retry %d", retry);
     }
+
+  auto image = QImage (ix, iy, QImage::Format_RGB888);
+  for (auto y = 0; y < iy; ++y)
+    {
+      for (auto x = 0; x < ix; ++x)
+        {
+          auto rgb = buffer.get () + 3 * (x + y * ix);
+          image.setPixel (x, y, qRgb (rgb[0], rgb[1], rgb[2]));
+        }
+    }
+  *pix = std::move (image);
 
   return true;
 }
 
-ApvlvPoses *
+unique_ptr<ApvlvPoses>
 ApvlvDJVU::pagesearch (int pn, const char *str, bool reverse)
 {
   return nullptr;
 }
 
-ApvlvLinks *
+unique_ptr<ApvlvLinks>
 ApvlvDJVU::getlinks (int pn)
 {
   return nullptr;

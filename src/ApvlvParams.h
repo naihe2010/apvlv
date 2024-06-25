@@ -27,7 +27,7 @@
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
 #ifndef _APVLV_PARAMS_H_
-#define _APVLV_PARAMS_H_
+#define _APVLV_PARAMS_H_ 1
 
 #include <iostream>
 #include <map>

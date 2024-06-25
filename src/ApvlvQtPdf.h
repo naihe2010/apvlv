@@ -26,8 +26,9 @@
 /* @date Created: 2011/09/16 13:50:04 Alf*/
 
 #ifndef _APVLV_QTPDF_H_
-#define _APVLV_QTPDF_H_
+#define _APVLV_QTPDF_H_ 1
 
+#include <QPdfBookmarkModel>
 #include <QPdfDocument>
 
 #include "ApvlvFile.h"
@@ -71,6 +72,8 @@ public:
 
 private:
   bool pdf_get_index ();
+  void pdf_get_index_iter (ApvlvFileIndex &, const QPdfBookmarkModel *,
+                           const QModelIndex &);
 
   unique_ptr<QPdfDocument> mDoc;
 };

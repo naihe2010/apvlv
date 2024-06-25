@@ -48,7 +48,7 @@ ApvlvWindowContext::ApvlvWindowContext (ApvlvView *view, ApvlvWindow *root,
 void
 ApvlvWindowContext::registerWindow (ApvlvWindow *win)
 {
-  debug ("context: %p register win: %p", this, win);
+  qDebug ("context: %p register win: %p", this, win);
   if (mRootWindow == nullptr)
     {
       mRootWindow = win;
@@ -61,7 +61,7 @@ ApvlvWindowContext::registerWindow (ApvlvWindow *win)
 void
 ApvlvWindowContext::unregisterWindow (ApvlvWindow *win)
 {
-  debug ("context: %p unregister win: %p", this, win);
+  qDebug ("context: %p unregister win: %p", this, win);
   mWindowCount--;
   if (mActiveWindow == win)
     {
@@ -107,7 +107,7 @@ ApvlvWindow::~ApvlvWindow ()
 
   if (mType == AW_CORE)
     {
-      debug ("release doc: %p", mCore);
+      qDebug ("release doc: %p", mCore);
       if (mCore)
         mCore->inuse (false);
     }
@@ -126,11 +126,11 @@ ApvlvWindow::widget ()
     }
 }
 
-returnType
+ReturnType
 ApvlvWindow::process (int ct, uint key)
 {
   ApvlvWindow *nwin;
-  debug ("input [%d]", key);
+  qDebug ("input [%d]", key);
 
   switch (key)
     {
@@ -407,8 +407,8 @@ ApvlvWindow::birth (WindowType type, ApvlvCore *doc)
   m_child_2 = new ApvlvWindow (mContext, doc);
   m_child_2->m_parent = this;
 
-  debug ("%p birth -> %p doc:%p <-> %p doc:%p", this, m_child_1, mCore,
-         m_child_2, doc);
+  qDebug ("%p birth -> %p doc:%p <-> %p doc:%p", this, m_child_1, mCore,
+          m_child_2, doc);
   mCore = nullptr;
 
   return true;
@@ -458,7 +458,7 @@ ApvlvWindow::unbirth ()
   m_parent = nullptr;
   deleteLater ();
 
-  debug ("%p unbirth %p -> %p", this, other, m_parent);
+  qDebug ("%p unbirth %p -> %p", this, other, m_parent);
 }
 
 void
@@ -476,13 +476,13 @@ ApvlvWindow::setActive (bool act)
 void
 ApvlvWindow::setCore (ApvlvCore *doc)
 {
-  debug ("widget (): %p, doc->widget (): %p", widget (), doc);
+  qDebug ("widget (): %p, doc->widget (): %p", widget (), doc);
   if (mType == AW_CORE)
     {
       mCore->inuse (false);
     }
   auto parent = widget ()->parentWidget ();
-  debug ("window parent: %s", parent->metaObject ()->className ());
+  qDebug ("window parent: %s", parent->metaObject ()->className ());
   Q_ASSERT (parent->inherits ("QSplitter"));
   auto splitter = dynamic_cast<QSplitter *> (parent);
   splitter->addWidget (doc);

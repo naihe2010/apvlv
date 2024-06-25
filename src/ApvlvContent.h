@@ -27,7 +27,7 @@
 /* @date Created: 2021/07/19 20:34:00 Alf */
 
 #ifndef _APVLV_CONTENT_H_
-#define _APVLV_CONTENT_H_
+#define _APVLV_CONTENT_H_ 1
 
 #include <QTimer>
 #include <QTreeWidget>
@@ -48,6 +48,7 @@ const int CONTENT_COL_TITLE = 0;
 const int CONTENT_COL_PAGE = 1;
 const int CONTENT_COL_ANCHOR = 2;
 const int CONTENT_COL_PATH = 3;
+const int CONTENT_COL_TYPE = 4;
 
 class ApvlvContent : public QTreeWidget
 {
@@ -59,12 +60,16 @@ public:
 
   bool isReady ();
 
-  unique_ptr<ApvlvFileIndex> currentIndex ();
+  const ApvlvFileIndex *currentIndex ();
 
-  bool find_index_and_select (QTreeWidgetItem *itr, int pn,
+  const ApvlvFileIndex *currentFileIndex ();
+
+  bool find_index_and_select (QTreeWidgetItem *itr, const string &path, int pn,
                               const char *anchor);
+  bool find_index_and_append (ApvlvFileIndex &root, const QString &path,
+                              const ApvlvFileIndex &index);
 
-  void setCurrentIndex (int pn, const char *anchor);
+  void setCurrentIndex (const string &path, int pn, const char *anchor);
 
   void
   setDoc (ApvlvDoc *doc)
@@ -80,8 +85,8 @@ public:
 
   void scrollright (int times);
 
-  bool
-  isFocused ()
+  [[nodiscard]] bool
+  isFocused () const
   {
     return mIsFocused;
   }
@@ -104,13 +109,18 @@ private:
   QTreeWidgetItem *mCurrentItem{ nullptr };
 
   void setIndex (const ApvlvFileIndex &index, QTreeWidgetItem *root_itr);
+  void refreshIndex (const ApvlvFileIndex &index);
+  void appendIndex (const ApvlvFileIndex &index);
+
+  const ApvlvFileIndex *treeItemToIndex (QTreeWidgetItem *item) const;
+  const ApvlvFileIndex *treeItemToFileIndex (QTreeWidgetItem *item) const;
 
 private slots:
   void on_changed ();
   void on_row_activated (QTreeWidgetItem *item, int column);
   void on_row_doubleclicked ();
   void first_select_cb ();
-  void setIndex (const ApvlvFileIndex &index);
+  void set_index (const ApvlvFileIndex &index);
 };
 }
 

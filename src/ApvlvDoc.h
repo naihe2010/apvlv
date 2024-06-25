@@ -32,8 +32,6 @@
 #include <QBoxLayout>
 #include <QLabel>
 #include <QUrl>
-#include <QWebEngineUrlRequestJob>
-#include <QWebEngineUrlSchemeHandler>
 #include <iostream>
 #include <list>
 #include <map>
@@ -47,22 +45,6 @@ namespace apvlv
 {
 
 class ApvlvDoc;
-class ApvlvSchemeHandler : public QWebEngineUrlSchemeHandler
-{
-  Q_OBJECT
-public:
-  explicit ApvlvSchemeHandler (ApvlvDoc *doc) { mDoc = doc; }
-  ~ApvlvSchemeHandler () = default;
-
-  void requestStarted (QWebEngineUrlRequestJob *job) override;
-
-private:
-  ApvlvDoc *mDoc;
-
-signals:
-  void webpageUpdated (const string &key);
-};
-
 struct PrintData
 {
   ApvlvFile *file;
@@ -221,7 +203,7 @@ public:
 
   void showpage (int p, const string &anchor) override;
 
-  void contentShowPage (ApvlvFileIndex *index, bool force);
+  void contentShowPage (const ApvlvFileIndex *index, bool force);
 
   void nextpage (int times) override;
 
@@ -240,17 +222,13 @@ public:
 
   bool find (const char *str) override;
 
-  returnType process (int hastimes, int times, uint keyval) override;
+  ReturnType process (int hastimes, int times, uint keyval) override;
 
   void gotolink (int ct) override;
 
   void returnlink (int ct) override;
 
   void srtranslate (int &rtimes, double &sr, bool single2continuous);
-
-  void updateUrlHandler (ApvlvFile *file);
-
-  static void webEngineRegisterScheme ();
 
 private:
   void blank (ApvlvImage *img);
@@ -270,7 +248,7 @@ private:
 
   void commentText (ApvlvImage *image);
 
-  returnType subprocess (int ct, uint key);
+  ReturnType subprocess (int ct, uint key);
 
   int convertindex (int p);
 
@@ -312,8 +290,6 @@ private:
 
   ApvlvImage *mCurrentImage;
   ApvlvAnnotText *mCurrentAnnotText;
-
-  shared_ptr<ApvlvSchemeHandler> mSchemeHanlder;
 
   friend class ApvlvDocCache;
   friend class ApvlvImage;

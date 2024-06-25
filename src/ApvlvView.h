@@ -38,18 +38,17 @@
 #include "ApvlvCmds.h"
 #include "ApvlvCompletion.h"
 #include "ApvlvDoc.h"
-#include "ApvlvMenuAndTool.h"
 #include "ApvlvWindow.h"
 
 namespace apvlv
 {
-typedef enum
+enum CmdModeType
 {
   SEARCH = '/',
   BACKSEARCH = '?',
   COMMANDMODE = ':',
   FIND = 'F'
-} cmd_mode_type;
+};
 
 class ApvlvDoc;
 class ApvlvWindow;
@@ -78,8 +77,8 @@ public:
 
   void infomessage (const char *str, ...);
 
-  static char *input (const char *str, int w = 400, int h = 150,
-                      string content = "");
+  static char *input (const char *str, int width = 400, int height = 150,
+                      const string &content = "");
 
   bool run (const char *str);
 
@@ -91,17 +90,9 @@ public:
 
   void regloaded (ApvlvCore *);
 
-  void open ();
+  ReturnType process (int hastimes, int times, uint keyval);
 
-  void opendir ();
-
-  void quit ();
-
-  void fullscreen ();
-
-  returnType process (int hastimes, int times, uint keyval);
-
-  returnType subprocess (int times, uint keyval);
+  ReturnType subprocess (int times, uint keyval);
 
   void cmd_show (int ct);
 
@@ -117,7 +108,38 @@ public:
 
   void erase_child (ApvlvView *);
 
+public slots:
+  void open ();
+
+  void opendir ();
+
+  void quit (bool only_tab = true);
+
+  void fullscreen ();
+
+  void nextPage ();
+
+  void previousPage ();
+
+  void toggleContent ();
+
+  void toggleToolBar ();
+
+  void newtab ();
+
+  void closetab ();
+
+  void hsplit ();
+
+  void vsplit ();
+
+  void unbirth ();
+
 private:
+  void setupMenuBar ();
+
+  void setupToolBar ();
+
   static ApvlvCompletion *filecompleteinit (const char *s);
 
   bool runcmd (const char *cmd);
@@ -139,12 +161,13 @@ private:
   uint mProCmd;
   int mProCmdCnt;
 
-  unique_ptr<ApvlvMenuAndTool> mMenu;
-
   QFrame *mCentral;
 
   QTabWidget *mTabContainer;
   QLineEdit *mCommandBar;
+
+  std::unique_ptr<QMenuBar> mMenuBar;
+  std::unique_ptr<QToolBar> mToolBar;
 
   std::vector<ApvlvWindowContext *> mTabList;
 

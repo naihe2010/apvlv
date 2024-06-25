@@ -38,9 +38,9 @@
 namespace apvlv
 {
 ApvlvEPUB::ApvlvEPUB (const string &filename, bool check)
-    : ApvlvFile (filename, check)
+    : ApvlvFile (filename, check),
+      mQuaZip (make_unique<QuaZip> (QString::fromStdString (filename)))
 {
-  mQuaZip = make_unique<QuaZip> (QString::fromStdString (filename));
   if (mQuaZip->open (QuaZip::mdUnzip) == false)
     {
       throw std::bad_alloc ();
@@ -277,7 +277,7 @@ ApvlvEPUB::ncx_set_index (const string &ncxfile)
       return false;
     }
 
-  mIndex = { "__cover__", 0, "", FILE_INDEX_PAGE };
+  mIndex = { "__cover__", 0, getFilename (), FILE_INDEX_FILE };
 
   auto xml = optxml->get ();
   ncx_node_set_index (xml, "navMap", ncxfile, mIndex);

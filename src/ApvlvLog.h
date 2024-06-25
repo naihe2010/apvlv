@@ -1,6 +1,6 @@
 /*
  * This file is part of the apvlv package
- * Copyright (C) <2008>  <Alf>
+ * Copyright (C) <2024> Alf
  *
  * Contact: Alf <naihe2010@126.com>
  *
@@ -19,45 +19,43 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/* @CPPFILE ApvlvMenuAndTool.h
+/* @CPPFILE ApvlvLog.h
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2010/01/21 15:09:25 Alf*/
+#ifndef _APVLV_LOG_H_
+#define _APVLV_LOG_H_ 1
 
-#ifndef _APVLV_MENU_H_
-#define _APVLV_MENU_H_
-
-#include <QMenuBar>
-#include <QToolBar>
+#include <QFile>
+#include <QString>
+#include <QTextStream>
+#include <QtMessageHandler>
+#include <memory>
 
 namespace apvlv
 {
-
 using namespace std;
 
-class ApvlvView;
-class ApvlvMenuAndTool
+class ApvlvLog
 {
 public:
-  explicit ApvlvMenuAndTool (ApvlvView *);
-  ~ApvlvMenuAndTool ();
+  explicit ApvlvLog (const QString &path = "");
+  ApvlvLog (const ApvlvLog &) = delete;
+  ~ApvlvLog ();
 
-  QMenuBar *
-  menubar ()
-  {
-    return mMenuBar.get ();
-  }
-  QToolBar *
-  toolbar ()
-  {
-    return mToolBar.get ();
-  }
+  static ApvlvLog *instance ();
+  static void logMessage (QtMsgType, const QMessageLogContext &,
+                          const QString &);
 
 private:
-  unique_ptr<QMenuBar> mMenuBar;
-  unique_ptr<QToolBar> mToolBar;
+  void writeMessage (const QString &log);
+
+  QFile mFile;
+  QTextStream mTextStream;
+
+  static ApvlvLog *mInstance;
 };
+
 };
 
 #endif

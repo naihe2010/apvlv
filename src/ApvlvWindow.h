@@ -32,7 +32,6 @@
 #include <iostream>
 
 #include "ApvlvCore.h"
-#include "ApvlvDoc.h"
 
 using namespace std;
 
@@ -81,7 +80,7 @@ public:
 
   ApvlvWindow *getNext ();
 
-  returnType process (int times, uint keyval);
+  ReturnType process (int times, uint keyval);
 
   ApvlvWindow *m_parent, *m_child_1, *m_child_2;
 

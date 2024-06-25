@@ -101,12 +101,18 @@ enum ApvlvFileIndexType
 class ApvlvFileIndex
 {
 public:
-  ApvlvFileIndex () = default;
-  ApvlvFileIndex (string title, int page, string path,
+  ApvlvFileIndex () : page (0), type (FILE_INDEX_PAGE){};
+  ApvlvFileIndex (const string &title, int page, const string &path,
+                  ApvlvFileIndexType type);
+  ApvlvFileIndex (string &&title, int page, string &&path,
                   ApvlvFileIndexType type);
   ~ApvlvFileIndex ();
 
-  void load_dir (const string &path1);
+  void loadDirectory (const string &path1);
+  void appendChild (const ApvlvFileIndex &child);
+  const ApvlvFileIndex *findIndex (const ApvlvFileIndex &tmp_index) const;
+
+  bool operator== (const ApvlvFileIndex &) const;
 
   string title;
   int page;
@@ -168,6 +174,12 @@ public:
 
   virtual DISPLAY_TYPE get_display_type ();
 
+  const string &
+  getFilename ()
+  {
+    return mFilename;
+  }
+
   const ApvlvCover &
   get_cover ()
   {
@@ -185,6 +197,7 @@ public:
   void cacheByteArray (const string &key, const QByteArray &array);
 
 protected:
+  string mFilename;
   ApvlvFileIndex mIndex;
   std::vector<string> mPages;
   std::map<string, int> srcPages;

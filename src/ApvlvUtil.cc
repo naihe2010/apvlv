@@ -53,6 +53,7 @@ string translations;
 
 string inifile;
 string sessionfile;
+string logfile;
 
 static void
 get_xdg_or_home_ini (const QString &appdir)
@@ -128,22 +129,6 @@ getRuntimePaths ()
   get_xdg_or_cache_sessionpath (dirpath.path());
 }
 
-void
-logv (const char *level, const char *file, int line, const char *func,
-      const char *ms, ...)
-{
-  char p[0x1000], temp[0x100];
-  va_list vap;
-
-  snprintf (temp, sizeof temp, "[%s] %s: %d: %s(): ", level, file, line, func);
-
-  va_start (vap, ms);
-  vsnprintf (p, sizeof p, ms, vap);
-  va_end (vap);
-
-  cerr << temp << p << endl;
-}
-
 optional<unique_ptr<QXmlStreamReader> >
 xml_content_get_element (const char *content, size_t length,
                          const vector<string> &names)
@@ -156,7 +141,7 @@ xml_content_get_element (const char *content, size_t length,
       if (xml->isStartElement ())
         {
           auto name = xml->name ().toString ().toStdString ();
-          // debug ("xml element name: %s", name.c_str ());
+          // qDebug ("xml element name: %s", name.c_str ());
           auto iter = find (names.begin (), names.end (), name);
           if (iter == names.end ())
             {
@@ -220,7 +205,7 @@ xmldoc_get_nodeset (xmlDocPtr doc, const char *xpath, const char *pre,
   xpathctx = xmlXPathNewContext (doc);
   if (xpathctx == nullptr)
     {
-      debug ("unable to create new XPath context\n");
+      qDebug ("unable to create new XPath context\n");
       return nullptr;
     }
 
@@ -233,13 +218,13 @@ xmldoc_get_nodeset (xmlDocPtr doc, const char *xpath, const char *pre,
   xmlXPathFreeContext (xpathctx);
   if (xpathobj == nullptr)
     {
-      debug ("unable to evaluate xpath expression \"%s\"\n", xpath);
+      qDebug ("unable to evaluate xpath expression \"%s\"\n", xpath);
       return nullptr;
     }
 
   if (xmlXPathNodeSetIsEmpty (xpathobj->nodesetval))
     {
-      debug ("unable to get \"%s\"\n", xpath);
+      qDebug ("unable to get \"%s\"\n", xpath);
       xmlXPathFreeObject (xpathobj);
       return nullptr;
     }

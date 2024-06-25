@@ -24,7 +24,7 @@
  *  Author: Alf <naihe2010@126.com>
  */
 #ifndef _APVLV_COMPLETION_H_
-#define _APVLV_COMPLETION_H_
+#define _APVLV_COMPLETION_H_ 1
 
 #include <QCompleter>
 #include <memory>
@@ -39,7 +39,7 @@ public:
   ApvlvCompletion () : mCompleter (make_unique<QCompleter> ()) {}
   ~ApvlvCompletion () = default;
 
-  void add_items (vector<string> &items);
+  void add_items (const vector<string> &items);
 
   const string &complete (const string &np);
 

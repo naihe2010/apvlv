@@ -57,13 +57,14 @@ SET(APVLV_REQ_LIBRARIES
         ${QUAZIP_LIBRARIES}
         ${Qt_LIBRARIES})
 
+ADD_DEFINITIONS(-DQT_MESSAGELOGCONTEXT)
+
 SET(HEADERS
         ApvlvCmds.h
         ApvlvCore.h
         ApvlvDoc.h
         ApvlvFile.h
         ApvlvInfo.h
-        ApvlvMenuAndTool.h
         ApvlvParams.h
         ApvlvUtil.h
         ApvlvView.h
@@ -75,6 +76,7 @@ SET(HEADERS
         ApvlvFb2.h
         ApvlvContent.h
         ApvlvLab.h
+        ApvlvLog.h
 )
 
 SET(SOURCES
@@ -83,7 +85,6 @@ SET(SOURCES
         ApvlvDoc.cc
         ApvlvFile.cc
         ApvlvInfo.cc
-        ApvlvMenuAndTool.cc
         ApvlvParams.cc
         ApvlvUtil.cc
         ApvlvView.cc
@@ -95,6 +96,7 @@ SET(SOURCES
         ApvlvFb2.cc
         ApvlvContent.cc
         ApvlvLab.cc
+        ApvlvLog.cc
         main.cc
 )
 
@@ -131,10 +133,6 @@ MESSAGE("-- link libraries: ${APVLV_REQ_LIBRARIES}")
 ADD_EXECUTABLE(apvlv ${HEADERS} ${SOURCES})
 SET_PROPERTY(TARGET apvlv PROPERTY AUTOMOC ON)
 TARGET_LINK_LIBRARIES(apvlv ${APVLV_REQ_LIBRARIES})
-
-ADD_EXECUTABLE(testwebengine TestWebEngine.h TestWebEngine.cpp)
-SET_PROPERTY(TARGET testwebengine PROPERTY AUTOMOC ON)
-TARGET_LINK_LIBRARIES(testwebengine ${APVLV_REQ_LIBRARIES})
 
 # for debug
 IF (WIN32)
@@ -173,7 +171,7 @@ ADD_CUSTOM_TARGET(apvlv_lupdate
         ${cppfiles} -ts ${CMAKE_SOURCE_DIR}/zh_CN.ts)
 ADD_CUSTOM_TARGET(apvlv_lrelease
         COMMAND ${LRELEASE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/zh_CN.ts
+        ${CMAKE_SOURCE_DIR}/zh_CN.ts
         -qm ${CMAKE_SOURCE_DIR}/share/doc/apvlv/translations/zh_CN.qm)
 ADD_DEPENDENCIES(apvlv_lrelease apvlv_lupdate)
 ADD_DEPENDENCIES(apvlv apvlv_lrelease)

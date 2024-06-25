@@ -26,14 +26,11 @@
  */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
-#include <QBuffer>
 #include <QClipboard>
 #include <QCursor>
 #include <QGuiApplication>
 #include <QMenu>
 #include <QMouseEvent>
-#include <QWebEngineProfile>
-#include <QWebEngineUrlScheme>
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -54,41 +51,6 @@ using namespace Qt;
 
 const int APVLV_CURSOR_WIDTH_DEFAULT = 2;
 const int APVLV_ANNOT_UNDERLINE_HEIGHT = 10;
-
-void
-ApvlvSchemeHandler::requestStarted (QWebEngineUrlRequestJob *job)
-{
-  auto url = job->requestUrl ();
-  auto path = url.path ().toStdString ();
-  auto key = path.substr (1);
-  auto mime = mDoc->file ()->get_ocf_mime_type (key);
-  if (!mDoc->file ()->hasByteArray (key))
-    {
-      auto roptcont = mDoc->file ()->get_ocf_file (key);
-      if (!roptcont)
-        {
-          job->fail (QWebEngineUrlRequestJob::UrlNotFound);
-          return;
-        }
-
-      mDoc->file ()->cacheByteArray (key, roptcont.value ());
-    }
-
-  auto optcont = mDoc->file ()->getByteArray (key);
-  if (!optcont)
-    {
-      job->fail (QWebEngineUrlRequestJob::RequestFailed);
-      return;
-    }
-
-  auto buffer = new QBuffer ();
-  buffer->setData (optcont.value ());
-  QObject::connect (job, SIGNAL (destroyed (QObject *)), buffer,
-                    SLOT (deleteLater ()));
-  job->reply (QByteArray (mime.c_str ()), buffer);
-
-  emit webpageUpdated (key);
-}
 
 ApvlvDoc::ApvlvDoc (ApvlvView *view, const char *zm, bool cache)
     : ApvlvCore (view)
@@ -152,7 +114,7 @@ ApvlvDoc::ApvlvDoc (ApvlvView *view, const char *zm, bool cache)
 
 ApvlvDoc::~ApvlvDoc ()
 {
-  savelastposition (filename ());
+  savelastposition (mFilestr.c_str ());
   mPositions.clear ();
 }
 
@@ -196,9 +158,9 @@ ApvlvDoc::doubleClickBlank (ApvlvImage *img, double x, double y)
       word = cache->getword (x, y);
       if (word != nullptr)
         {
-          debug ("find word: %s, [%.0f, %.0f, %.0f, %.0f]\n",
-                 word->word.c_str (), word->pos.p1x, word->pos.p1y,
-                 word->pos.p2x, word->pos.p2y);
+          qDebug ("find word: %s, [%.0f, %.0f, %.0f, %.0f]\n",
+                  word->word.c_str (), word->pos.p1x, word->pos.p1y,
+                  word->pos.p2x, word->pos.p2y);
           pos = word->pos;
         }
     }
@@ -289,7 +251,7 @@ ApvlvDoc::yank (ApvlvImage *image, int times)
         }
     }
 
-  debug ("selected \n[%s]\n", content.c_str ());
+  qDebug ("selected \n[%s]\n", content.c_str ());
 
   auto cb = QGuiApplication::clipboard ();
   cb->setText (QString::fromStdString (content));
@@ -347,7 +309,7 @@ ApvlvDoc::commentText (ApvlvImage *image)
   ApvlvPos cpos{};
   if (cache->getAvailableSpace (apos, &cpos) == false)
     {
-      debug ("not find space");
+      qDebug ("not find space");
       return;
     }
 
@@ -370,7 +332,7 @@ ApvlvDoc::commentText (ApvlvImage *image)
   refresh ();
 }
 
-returnType
+ReturnType
 ApvlvDoc::subprocess (int ct, uint key)
 {
   uint procmd = mProCmd;
@@ -416,7 +378,7 @@ ApvlvDoc::subprocess (int ct, uint key)
   return MATCH;
 }
 
-returnType
+ReturnType
 ApvlvDoc::process (int has, int ct, uint key)
 {
   if (mProCmd != 0)
@@ -504,7 +466,7 @@ ApvlvDoc::process (int has, int ct, uint key)
       if (isControlledContent ())
         {
           mContent->scrollup (ct);
-          contentShowPage (mContent->currentIndex ().get (), false);
+          contentShowPage (mContent->currentIndex (), false);
         }
       else
         {
@@ -521,7 +483,7 @@ ApvlvDoc::process (int has, int ct, uint key)
       if (isControlledContent ())
         {
           mContent->scrolldown (ct);
-          contentShowPage (mContent->currentIndex ().get (), false);
+          contentShowPage (mContent->currentIndex (), false);
         }
       else
         {
@@ -538,7 +500,7 @@ ApvlvDoc::process (int has, int ct, uint key)
       if (isControlledContent ())
         {
           mContent->scrollleft (ct);
-          contentShowPage (mContent->currentIndex ().get (), false);
+          contentShowPage (mContent->currentIndex (), false);
         }
       else
         {
@@ -555,7 +517,7 @@ ApvlvDoc::process (int has, int ct, uint key)
       if (isControlledContent ())
         {
           mContent->scrollright (ct);
-          contentShowPage (mContent->currentIndex ().get (), false);
+          contentShowPage (mContent->currentIndex (), false);
         }
       else
         {
@@ -566,7 +528,7 @@ ApvlvDoc::process (int has, int ct, uint key)
         }
       break;
     case Key_Return:
-      contentShowPage (mContent->currentIndex ().get (), true);
+      contentShowPage (mContent->currentIndex (), true);
       break;
     case 'R':
       reload ();
@@ -837,7 +799,7 @@ ApvlvDoc::loadfile (const string &filename, bool check, bool show_content)
 
   mFile = ApvlvFile::newFile (filename, false);
 
-  // debug ("mFile = %p", mFile);
+  // qDebug ("mFile = %p", mFile);
   if (mFile != nullptr)
     {
       emit indexGenerited (mFile->get_index ());
@@ -846,13 +808,13 @@ ApvlvDoc::loadfile (const string &filename, bool check, bool show_content)
 
       if (mFile->pagesum () <= 1)
         {
-          debug ("pagesum () = %d", mFile->pagesum ());
+          qDebug ("pagesum () = %d", mFile->pagesum ());
           mContinuous = false;
           mAutoScrollDoc = false;
           mAutoScrollPage = false;
         }
 
-      // debug ("pagesum () = %d", mFile->pagesum ());
+      // qDebug ("pagesum () = %d", mFile->pagesum ());
 
       mCurrentCache[0] = make_unique<ApvlvDocCache> (mFile);
       if (mContinuous)
@@ -965,7 +927,7 @@ ApvlvDoc::showpage (int p, double s)
   if (rp < 0)
     return;
 
-  // debug ("display page: %d | %lf", rp,s);
+  // qDebug ("display page: %d | %lf", rp,s);
   mAdjInchg = true;
 
   if (mAutoScrollPage && mContinuous && !mAutoScrollDoc)
@@ -991,7 +953,7 @@ ApvlvDoc::showpage (int p, double s)
     {
       mZoominit = true;
       setzoom (nullptr);
-      debug ("zoom rate: %f", mZoomrate);
+      qDebug ("zoom rate: %f", mZoomrate);
     }
 
   refresh ();
@@ -1102,26 +1064,6 @@ ApvlvDoc::srtranslate (int &rtimes, double &sr, bool single2continuous)
 }
 
 void
-ApvlvDoc::updateUrlHandler (ApvlvFile *file)
-{
-  mSchemeHanlder = make_unique<ApvlvSchemeHandler> (this);
-  mWebProfile->installUrlSchemeHandler (QByteArray ("apvlv"),
-                                        mSchemeHanlder.get ());
-  QObject::connect (mSchemeHanlder.get (),
-                    SIGNAL (webpageUpdated (const string &)), this,
-                    SLOT (webview_update (const string &)));
-}
-
-void
-ApvlvDoc::webEngineRegisterScheme ()
-{
-  QWebEngineUrlScheme scheme ("apvlv");
-  scheme.setSyntax (QWebEngineUrlScheme::Syntax::Path);
-  // scheme.setFlags (QWebEngineUrlScheme::SecureScheme);
-  QWebEngineUrlScheme::registerScheme (scheme);
-}
-
-void
 ApvlvDoc::halfnextpage (int times)
 {
   double sr = scrollrate ();
@@ -1180,8 +1122,8 @@ ApvlvDoc::halfprepage (int times)
 void
 ApvlvDoc::markselection ()
 {
-  debug ("mSelect: %d.", mSearchSelect);
-  debug ("zoomrate: %f", mZoomrate);
+  qDebug ("mSelect: %d.", mSearchSelect);
+  qDebug ("zoomrate: %f", mZoomrate);
 
   if (mSearchResults->size () <= mSearchSelect)
     return;
@@ -1189,33 +1131,33 @@ ApvlvDoc::markselection ()
   auto rect = (*mSearchResults)[mSearchSelect];
 
   // Caculate the correct position
-  // debug ("pagex: %f, pagey: %f, p1x: %f, p1y: %f, p2x: %f, p2y: %f", mPagex,
-  // mPagey, rect->p1x, rect->p1y, rect->p2x, rect->p2y);
+  // qDebug ("pagex: %f, pagey: %f, p1x: %f, p1y: %f, p2x: %f, p2y: %f",
+  // mPagex, mPagey, rect->p1x, rect->p1y, rect->p2x, rect->p2y);
   int x1 = (int)(rect.p1x * mZoomrate);
   int x2 = (int)(rect.p2x * mZoomrate);
   int y1 = (int)(rect.p2y * mZoomrate);
   int y2 = (int)(rect.p1y * mZoomrate);
-  debug ("p1x: %d, p1y: %d, p2x: %d, p2y: %d", x1, y1, x2, y2);
+  qDebug ("p1x: %d, p1y: %d, p2x: %d, p2y: %d", x1, y1, x2, y2);
 
   // make the selection at the page center
   double val = ((y1 + y2) - mMainVaj->minimum ()) / 2;
   if (val + mMainVaj->pageStep ()
       > mMainVaj->maximum () - mMainVaj->minimum () - 5)
     {
-      debug ("set value: %f", mMainVaj->maximum () - mMainVaj->minimum ()
-                                  - mMainVaj->pageStep () - 5);
+      qDebug ("set value: %d", mMainVaj->maximum () - mMainVaj->minimum ()
+                                   - mMainVaj->pageStep () - 5);
       mMainVaj->setValue (mMainVaj->maximum () - mMainVaj->minimum ()
                           - mMainVaj->pageStep ()
                           - 5); /* just for avoid the auto scroll page */
     }
   else if (val > 5)
     {
-      debug ("set value: %f", val);
+      qDebug ("set value: %f", val);
       mMainVaj->setValue (val);
     }
   else
     {
-      // debug ("set value: %f", gtk_adjustment_get_lower (mMainVaj) + 5);
+      // qDebug ("set value: %f", gtk_adjustment_get_lower (mMainVaj) + 5);
       mMainVaj->setValue (mMainVaj->minimum ()
                           + 5); /* avoid auto scroll page */
     }
@@ -1241,7 +1183,7 @@ ApvlvDoc::markselection ()
                            mCurrentCache[0]->getheight (), mZoomrate,
                            mRotatevalue, &p, mSearchResults.get ());
   mImg[0]->setImage (p);
-  debug ("helight num: %d", mPagenum);
+  qDebug ("helight num: %d", mPagenum);
 }
 
 void
@@ -1271,7 +1213,7 @@ ApvlvDoc::scrollup (int times)
     height += mImg[1]->height ();
 
   /*
-  debug ("mCurrentImage->mId: %d, mCurpoint.y: %f, cursor height: %d, image "
+  qDebug ("mCurrentImage->mId: %d, mCurpoint.y: %f, cursor height: %d, image "
          "height: %d, page "
          "size: %f, adj: %f, max: %f",
          mCurrentImage->mId, mCurPoint.y, height,
@@ -1315,7 +1257,7 @@ ApvlvDoc::scrolldown (int times)
   auto cache = mCurrentCache[mCurrentImage->mId].get ();
 
   /*
-  debug ("mCurrentImage->mId: %d, mCurpoint.y: %f, image height: %d, page "
+  qDebug ("mCurrentImage->mId: %d, mCurpoint.y: %f, image height: %d, page "
          "size: %f, adj: %f, max: %f",
          mCurrentImage->mId, mCurPoint.y,
          gtk_widget_get_allocated_height (mCurrentImage->widget ()),
@@ -1417,7 +1359,7 @@ ApvlvDoc::needsearch (const char *str, bool reverse)
   // search a different string
   if (strlen (str) > 0 && strcmp (str, mSearchStr.c_str ()) != 0)
     {
-      debug ("different string.");
+      qDebug ("different string.");
       mSearchSelect = 0;
       mSearchStr = str;
       return true;
@@ -1425,7 +1367,7 @@ ApvlvDoc::needsearch (const char *str, bool reverse)
 
   else if (mSearchResults == nullptr)
     {
-      debug ("no result.");
+      qDebug ("no result.");
       mSearchSelect = 0;
       return true;
     }
@@ -1436,8 +1378,8 @@ ApvlvDoc::needsearch (const char *str, bool reverse)
                && mSearchSelect == mSearchResults->size () - 1)
            || ((mSearchReverse != reverse) && mSearchSelect == 0))
     {
-      debug ("same, but need next string: S: %d, s: %d, sel: %d, max: %d.",
-             mSearchReverse, reverse, mSearchSelect, mSearchResults->size ());
+      qDebug ("same, but need next string: S: %d, s: %d, sel: %d, max: %lu.",
+              mSearchReverse, reverse, mSearchSelect, mSearchResults->size ());
       mSearchSelect = 0;
       return true;
     }
@@ -1445,8 +1387,8 @@ ApvlvDoc::needsearch (const char *str, bool reverse)
   // same string, not need search, but has zoomed
   else
     {
-      debug ("same, not need next string. sel: %d, max: %u", mSearchSelect,
-             mSearchResults->size ());
+      qDebug ("same, not need next string. sel: %d, max: %ld", mSearchSelect,
+              mSearchResults->size ());
       if (mSearchReverse == reverse)
         {
           mSearchSelect++;
@@ -1506,12 +1448,12 @@ ApvlvDoc::search (const char *str, bool reverse)
 
       if (!reverse && i < (wrap ? (from + sum) : (sum - 1)))
         {
-          //          debug ("wrap: %d, i++:", wrap, i, i + 1);
+          //          qDebug ("wrap: %d, i++:", wrap, i, i + 1);
           i++;
         }
       else if (reverse && i > (wrap ? (from - sum) : 0))
         {
-          debug ("wrap: %d, i--:", wrap, i, i - 1);
+          qDebug ("wrap: %d, i--: %d", wrap, i - 1);
           i--;
         }
       else
@@ -1604,7 +1546,7 @@ ApvlvDoc::gotolink (int ct)
 void
 ApvlvDoc::returnlink (int ct)
 {
-  debug ("Ctrl-t %d", ct);
+  qDebug ("Ctrl-t %d", ct);
   if (ct <= (int)mLinkPositions.size () && ct > 0)
     {
       markposition ('\'');
@@ -1655,7 +1597,7 @@ ApvlvDoc::monitor_callback ()
       return;
     }
 
-  debug ("Contents is modified, apvlv reload it automatically");
+  qDebug ("Contents is modified, apvlv reload it automatically");
   reload ();
 }
 
@@ -1686,13 +1628,20 @@ ApvlvDoc::delete_annotation_cb ()
 }
 
 void
-ApvlvDoc::contentShowPage (ApvlvFileIndex *index, bool force)
+ApvlvDoc::contentShowPage (const ApvlvFileIndex *index, bool force)
 {
   if (index == nullptr)
     return;
 
-  if (index->type == ApvlvFileIndexType::FILE_INDEX_DIR)
-    return;
+  if (index->type == ApvlvFileIndexType::FILE_INDEX_FILE)
+    {
+      loadfile (index->path, true, true);
+      return;
+    }
+
+  auto file = mContent->currentFileIndex ();
+  if (file && file->path != mFilestr)
+    loadfile (file->path, true, true);
 
   auto follow_mode = std::string ("always");
   if (!force)
@@ -1741,7 +1690,6 @@ ApvlvDoc::setDisplayType (DISPLAY_TYPE type)
     }
   else
     {
-      updateUrlHandler (mFile);
       showWeb ();
     }
 
@@ -1798,20 +1746,20 @@ ApvlvDocCache::load ()
 
   if (mPagenum < 0 || mPagenum >= c)
     {
-      debug ("no this page: %d", mPagenum);
+      qDebug ("no this page: %d", mPagenum);
       return;
     }
 
   double tpagex, tpagey;
   if (!mFile->pagesize (mPagenum, int (mRotate), &tpagex, &tpagey))
     {
-      errp ("error getting pagesize for pagenum: %d", mPagenum);
+      qCritical ("error getting pagesize for pagenum: %d", mPagenum);
       return;
     };
 
   mWidth = static_cast<int> (tpagex);
   mHeight = static_cast<int> (tpagey);
-  // debug ("ac->mFile: %p", ac->mFile);
+  // qDebug ("ac->mFile: %p", ac->mFile);
   mFile->render (mPagenum, mWidth, mHeight, mZoom, int (mRotate), &mBuf);
   if (mInverted)
     {
@@ -1827,7 +1775,7 @@ ApvlvDocCache::load ()
     }
 
   mLinks = mFile->getlinks (mPagenum);
-  // debug ("has mLinkMappings: %p", ac->mLinks);
+  // qDebug ("has mLinkMappings: %p", ac->mLinks);
 
   preGetLines (0, 0, int (tpagex), int (tpagey));
   sortLines ();
@@ -2057,7 +2005,7 @@ ApvlvDocCache::preGetLines (int x1, int y1, int x2, int y2)
 
                   processed.insert (word);
 
-                  debug ("search [%s]", p);
+                  qDebug ("search [%s]", p);
                   auto results = mFile->pagesearch (mPagenum, p, false);
                   if (results != nullptr)
                     {
@@ -2303,7 +2251,7 @@ ApvlvDoc::display ()
 
       mStatus->showMessages (labels);
 
-      mContent->setCurrentIndex (mPagenum, mAnchor.c_str ());
+      mContent->setCurrentIndex (mFilestr, mPagenum, mAnchor.c_str ());
     }
 }
 

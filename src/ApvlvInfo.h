@@ -26,7 +26,7 @@
 /* @date Created: 2010/02/23 14:56:21 Alf*/
 
 #ifndef _APVLV_INFO_H_
-#define _APVLV_INFO_H_
+#define _APVLV_INFO_H_ 1
 
 #include <optional>
 #include <string>
@@ -47,7 +47,7 @@ struct InfoFile
 class ApvlvInfo
 {
 public:
-  ApvlvInfo (const string &file);
+  explicit ApvlvInfo (const string &file);
   ~ApvlvInfo () = default;
 
   bool update ();

@@ -37,7 +37,7 @@ class ApvlvTXT : public ApvlvFile
 public:
   explicit ApvlvTXT (const string &filename, bool check = true);
 
-  ~ApvlvTXT () = default;
+  ~ApvlvTXT () override = default;
 
   bool writefile (const char *filename) override;
 
@@ -67,8 +67,7 @@ public:
   get_display_type () override { return DISPLAY_TYPE_HTML; }
 
 private:
-  unique_ptr<char> mContent;
-  int mLength;
+  QByteArray mContent;
 };
 
 }

@@ -61,13 +61,13 @@ ApvlvPDF::ApvlvPDF (const string &filename, bool check)
 bool
 ApvlvPDF::writefile (const char *filename)
 {
-  debug ("write %p to %s", this, filename);
+  qDebug ("write %p to %s", this, filename);
   auto path = filesystem::absolute (filename);
   if (mDoc)
     {
       // need impl
       // auto ret = mDoc->write();
-      // debug ("write pdf: %p to %s, return %d", mDoc, uri, ret);
+      // qDebug ("write pdf: %p to %s, return %d", mDoc, uri, ret);
       return true;
     }
   return false;
@@ -147,7 +147,7 @@ ApvlvPDF::render (int pn, int ix, int iy, double zm, int rot, QImage *pix)
 
   auto page = mDoc->page (pn);
   auto image = page->renderToImage (xres, yres, 0, 0, ix * zm, iy * zm, prot);
-  *pix = image;
+  *pix = std::move (image);
   return true;
 }
 

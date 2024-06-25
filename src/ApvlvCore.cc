@@ -26,7 +26,9 @@
  */
 /* @date Created: 2009/01/04 09:34:51 Alf*/
 
+#include <QBuffer>
 #include <QLineEdit>
+#include <QMessageBox>
 #include <QScrollArea>
 #include <QSplitter>
 #include <QWebEngineProfile>
@@ -41,6 +43,42 @@
 
 namespace apvlv
 {
+
+void
+ApvlvSchemeHandler::requestStarted (QWebEngineUrlRequestJob *job)
+{
+  auto url = job->requestUrl ();
+  auto path = url.path ().toStdString ();
+  auto key = path.substr (1);
+  auto mime = mDoc->file ()->get_ocf_mime_type (key);
+  if (!mDoc->file ()->hasByteArray (key))
+    {
+      auto roptcont = mDoc->file ()->get_ocf_file (key);
+      if (!roptcont)
+        {
+          job->fail (QWebEngineUrlRequestJob::UrlNotFound);
+          return;
+        }
+
+      mDoc->file ()->cacheByteArray (key, roptcont.value ());
+    }
+
+  auto optcont = mDoc->file ()->getByteArray (key);
+  if (!optcont)
+    {
+      job->fail (QWebEngineUrlRequestJob::RequestFailed);
+      return;
+    }
+
+  auto buffer = new QBuffer ();
+  buffer->setData (optcont.value ());
+  QObject::connect (job, SIGNAL (destroyed (QObject *)), buffer,
+                    SLOT (deleteLater ()));
+  job->reply (QByteArray (mime.c_str ()), buffer);
+
+  emit webpageUpdated (key);
+}
+
 ApvlvCore::ApvlvCore (ApvlvView *view)
 {
   mInuse = true;
@@ -84,7 +122,7 @@ ApvlvCore::ApvlvCore (ApvlvView *view)
 
   mContent = new ApvlvContent ();
   QObject::connect (this, SIGNAL (indexGenerited (const ApvlvFileIndex &)),
-                    mContent, SLOT (setIndex (const ApvlvFileIndex &)));
+                    mContent, SLOT (set_index (const ApvlvFileIndex &)));
 
   mPaned->addWidget (mContent);
 
@@ -96,12 +134,12 @@ ApvlvCore::ApvlvCore (ApvlvView *view)
 
   mStatus = new ApvlvStatus ();
   mVbox->addWidget (mStatus, 0);
-  debug ("ApvlvCore: %p be created", this);
+  qDebug ("ApvlvCore: %p be created", this);
 }
 
 ApvlvCore::~ApvlvCore ()
 {
-  debug ("ApvlvCore: %p be freed", this);
+  qDebug ("ApvlvCore: %p be freed", this);
   if (mMainImageScrolView->parent () == nullptr)
     mMainImageScrolView->deleteLater ();
   if (mMainWebView->parent () == nullptr)
@@ -161,7 +199,7 @@ ApvlvCore::writefile (const char *name)
 {
   if (mFile != nullptr)
     {
-      debug ("write %p to %s", mFile, name);
+      qDebug ("write %p to %s", mFile, name);
       return mFile->writefile (name ? name : filename ());
     }
   return false;
@@ -520,7 +558,19 @@ ApvlvCore::toggleContent (bool show)
 {
   if (show)
     {
-      if (mContent->isReady ())
+      if (!mContent->isReady ())
+        {
+          auto ans = QMessageBox::question (
+              this, tr ("no content"),
+              tr ("the file has no content, if still display content?"),
+              QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+          if (ans == QMessageBox::No)
+            {
+              show = false;
+            }
+        }
+
+      if (show)
         {
           mDirIndex = {};
           auto psize = mPaned->size ();
@@ -528,17 +578,15 @@ ApvlvCore::toggleContent (bool show)
                             psize.width () - mPaned->handleWidth ()
                                 - APVLV_DEFAULT_CONTENT_WIDTH };
           mPaned->setSizes (sizes);
-          return;
-        }
-      else
-        {
-          errp ("no content, disable content !");
         }
     }
 
-  auto psize = mPaned->size ();
-  QList<int> sizes{ 0, psize.width () - mPaned->handleWidth () };
-  mPaned->setSizes (sizes);
+  if (!show)
+    {
+      auto psize = mPaned->size ();
+      QList<int> sizes{ 0, psize.width () - mPaned->handleWidth () };
+      mPaned->setSizes (sizes);
+    }
 }
 
 void
@@ -577,8 +625,8 @@ ApvlvCore::setActive (bool act)
 void
 ApvlvCore::setDirIndex (const string &path)
 {
-  mDirIndex = { "", 0, "", FILE_INDEX_DIR };
-  mDirIndex.load_dir (path);
+  mDirIndex = { "", 0, path, FILE_INDEX_DIR };
+  mDirIndex.loadDirectory (path);
   emit indexGenerited (mDirIndex);
 }
 
@@ -634,8 +682,6 @@ ApvlvCore::findByWidget (QWidget *widget)
     {
       if (doc->inherits ("apvlv::ApvlvDoc"))
         return dynamic_cast<ApvlvCore *> (doc);
-
-      debug ("doc is a %s", doc->metaObject ()->className ());
     }
 
   return nullptr;
@@ -668,6 +714,12 @@ ApvlvCore::initWebUi ()
   mMainWebView = new QWebEngineView (mWebProfile.get ());
   QObject::connect (mMainWebView, SIGNAL (loadFinished (bool)), this,
                     SLOT (webview_load_finished (bool)));
+  mSchemeHandler = make_unique<ApvlvSchemeHandler> (this);
+  mWebProfile->installUrlSchemeHandler (QByteArray ("apvlv"),
+                                        mSchemeHandler.get ());
+  QObject::connect (mSchemeHandler.get (),
+                    SIGNAL (webpageUpdated (const string &)), this,
+                    SLOT (webview_update (const string &)));
   // QObject::connect (mWeb[0].get (),
   //                  SIGNAL (customContextMenuRequested (const QPoint &)),
   //                  this, SLOT (webview_context_menu_cb (const QPoint &)));
@@ -747,7 +799,7 @@ ApvlvStatus::ApvlvStatus ()
 {
   setFrameShape (QFrame::NoFrame);
   auto layout = new QHBoxLayout ();
-  debug ("status layout: %p", layout);
+  qDebug ("status layout: %p", layout);
   setLayout (layout);
 }
 

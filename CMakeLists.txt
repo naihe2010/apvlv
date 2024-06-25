@@ -64,7 +64,7 @@ IF (UNIX)
             "qt6 poppler-qt6 quazip")
     IF (EXISTS "/etc/redhat-release")
         SET(CPACK_GENERATOR RPM)
-        SET(CPACK_RPM_PACKAGE_REQUIRES "qt6 poppler-qt6 quazip")
+        SET(CPACK_RPM_PACKAGE_REQUIRES "qt6-qtwebengine poppler-qt6 quazip-qt6")
     ENDIF ()
     SET(CPACK_SOURCE_GENERATOR TGZ)
     SET(CPACK_SOURCE_IGNORE_FILES

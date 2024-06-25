@@ -27,30 +27,29 @@
 
 #include "ApvlvInfo.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <sstream>
+#include <utility>
 
 namespace apvlv
 {
 ApvlvInfo *gInfo = nullptr;
 
-ApvlvInfo::ApvlvInfo (const string &filename)
+ApvlvInfo::ApvlvInfo (const string &filename) : mFileName (filename)
 {
-  mFileName = filename;
-
   mFileMax = 10;
 
   ifstream is (mFileName.c_str (), ios::in);
   if (is.is_open ())
     {
       string line;
-      const char *p;
 
       while (getline (is, line))
         {
-          p = line.c_str ();
+          auto p = line.c_str ();
 
           if (*p != '\''              /* the ' */
               || !isdigit (*(p + 1))) /* the digit */
@@ -75,7 +74,7 @@ ApvlvInfo::update ()
     }
 
   int i = 0;
-  for (auto &infofile : mInfoFiles)
+  for (const auto &infofile : mInfoFiles)
     {
       os << "'" << i++ << "\t";
       os << infofile.page << ':' << infofile.skip << "\t";
@@ -104,12 +103,12 @@ ApvlvInfo::file (int id)
 optional<InfoFile *>
 ApvlvInfo::file (const string &filename)
 {
-  for (auto &infofile : mInfoFiles)
+  auto itr = find_if (
+      mInfoFiles.begin (), mInfoFiles.end (),
+      [filename] (auto const &infofile) { return infofile.file == filename; });
+  if (itr != mInfoFiles.end ())
     {
-      if (infofile.file == filename)
-        {
-          return &infofile;
-        }
+      return &(*itr);
     }
 
   return nullopt;

@@ -27,7 +27,7 @@
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
 #ifndef _APVLV_UTIL_H_
-#define _APVLV_UTIL_H_
+#define _APVLV_UTIL_H_ 1
 
 #include <QXmlStreamReader>
 
@@ -45,6 +45,7 @@ extern string translations;
 
 extern string inifile;
 extern string sessionfile;
+extern string logfile;
 
 void getRuntimePaths ();
 
@@ -82,36 +83,18 @@ enum
 };
 
 // function return type
-typedef enum
+enum ReturnType
 {
   MATCH,
   NEED_MORE,
   NO_MATCH,
-} returnType;
+};
 
 // some windows macro
 #ifdef WIN32
-// #include <winbase.h>
-// #include <wtypes.h>
-#define usleep(x) Sleep ((x) / 1000)
 #define __func__ __FUNCTION__
 #define strcasecmp _strcmpi
-
-#ifndef S_ISDIR
-#define S_ISDIR(mode) (((mode) & 0170000) == (0040000))
-#endif /*                                                                     \
-        */
-
 #endif
-
-// log system
-#if defined DEBUG || defined _DEBUG
-#define debug(...) logv ("DEBUG", __FILE__, __LINE__, __func__, __VA_ARGS__)
-#else
-#define debug(...)
-#endif
-#define errp(...) logv ("ERROR", __FILE__, __LINE__, __func__, __VA_ARGS__)
-void logv (const char *, const char *, int, const char *, const char *, ...);
 
 // char macro
 // because every unsigned char is < 256, so use this marco to stand for

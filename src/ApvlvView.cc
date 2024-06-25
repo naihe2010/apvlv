@@ -26,17 +26,21 @@
  */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
+#include <QAction>
 #include <QApplication>
 #include <QFileDialog>
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QMainWindow>
+#include <QMenu>
+#include <QMenuBar>
+#include <QToolBar>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <filesystem>
 #include <sstream>
 
 #include "ApvlvInfo.h"
-#include "ApvlvMenuAndTool.h"
 #include "ApvlvParams.h"
 #include "ApvlvView.h"
 
@@ -79,15 +83,21 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
   mCentral = new QFrame ();
   setCentralWidget (mCentral);
 
-  mMenu = make_unique<ApvlvMenuAndTool> (this);
+  mMenuBar = unique_ptr<QMenuBar> (menuBar ());
+  setupMenuBar ();
+  setMenuBar (mMenuBar.get ());
 
-  if (strchr (gParams->values ("guioptions"), 'm') != nullptr)
+  mToolBar = make_unique<QToolBar> ();
+  setupToolBar ();
+  addToolBar (Qt::TopToolBarArea, mToolBar.get ());
+
+  if (strchr (gParams->values ("guioptions"), 'm') == nullptr)
     {
-      setMenuBar (mMenu->menubar ());
+      mMenuBar->setParent (nullptr);
     }
-  if (strchr (gParams->values ("guioptions"), 'T') != nullptr)
+  if (strchr (gParams->values ("guioptions"), 'T') == nullptr)
     {
-      addToolBar (mMenu->toolbar ());
+      mToolBar->setParent (nullptr);
     }
 
   auto box = new QVBoxLayout ();
@@ -177,7 +187,7 @@ ApvlvView::open ()
       dirname = QDir::homePath ();
     }
 
-  // debug ("lastfile: [%s], dirname: [%s]", fp ? fp->file.c_str () : "",
+  // qDebug ("lastfile: [%s], dirname: [%s]", fp ? fp->file.c_str () : "",
   // dirname);
   auto mimes = ApvlvFile::supportMimeTypes ();
   QString filters;
@@ -229,9 +239,9 @@ ApvlvView::loaddir (const string &path)
 }
 
 void
-ApvlvView::quit ()
+ApvlvView::quit (bool only_tab)
 {
-  if (int (mTabList.size ()) <= 1)
+  if (int (mTabList.size ()) <= 1 || only_tab == false)
     {
       mTabList.clear ();
       closeEvent (nullptr);
@@ -389,6 +399,104 @@ ApvlvView::regloaded (ApvlvCore *core)
   mDocs.push_back (unique_ptr<ApvlvCore> (core));
 }
 
+void
+ApvlvView::setupMenuBar ()
+{
+  // File -> open, opendir
+  auto mfile = new QMenu (tr ("File"));
+  mMenuBar->addMenu (mfile);
+
+  auto action = mfile->addAction (tr ("Open"));
+  QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (open ()));
+  action = mfile->addAction (tr ("OpenDir"));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (opendir ()));
+  action = mfile->addAction (tr ("New Tab"));
+  QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (newtab ()));
+  action = mfile->addAction (tr ("Close Tab"));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (closetab ()));
+  action = mfile->addAction (tr ("Quit"));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (quit (bool)));
+
+  // Edit ->
+  auto mview = new QMenu (tr ("View"));
+  mMenuBar->addMenu (mview);
+  action = mview->addAction (tr ("ToolBar"));
+  action->setCheckable (true);
+  if (strchr (gParams->values ("guioptions"), 'T') == nullptr)
+    {
+      action->setChecked (false);
+    }
+  else
+    {
+      action->setChecked (true);
+    }
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (toggleToolBar ()));
+  action = mview->addAction (tr ("Horizontal Split"));
+  QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (hsplit ()));
+  action = mview->addAction (tr ("Vertical Split"));
+  QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (vsplit ()));
+  action = mview->addAction (tr ("Close Split"));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (unbirth ()));
+
+  // Navigate ->
+  auto mnavigate = new QMenu (tr ("Navigate"));
+  mMenuBar->addMenu (mnavigate);
+  action = mnavigate->addAction (tr ("Previous Page"));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (previousPage ()));
+  action = mnavigate->addAction (tr ("Next Page"));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (nextPage ()));
+
+  // Tools
+  auto mtools = new QMenu (tr ("Tools"));
+  mMenuBar->addMenu (mtools);
+
+  // Help -> about
+  auto mhelp = new QMenu (tr ("Help"));
+  mMenuBar->addMenu (mhelp);
+}
+
+void
+ApvlvView::setupToolBar ()
+{
+  auto action = mToolBar->addAction (tr ("Open"));
+  action->setIcon (
+      QApplication::style ()->standardIcon (QStyle::SP_DialogOpenButton));
+  QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (open ()));
+
+  action = mToolBar->addAction (tr ("OpenDir"));
+  action->setIcon (
+      QApplication::style ()->standardIcon (QStyle::SP_DirOpenIcon));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (opendir ()));
+
+  action = mToolBar->addAction (tr ("Previous Page"));
+  action->setIcon (
+      QApplication::style ()->standardIcon (QStyle::SP_ArrowLeft));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (previousPage ()));
+
+  action = mToolBar->addAction (tr ("Next Page"));
+  action->setIcon (
+      QApplication::style ()->standardIcon (QStyle::SP_ArrowRight));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (nextPage ()));
+
+  action = mToolBar->addAction (tr ("Toggle Content"));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (toggleContent ()));
+
+  action = mToolBar->addAction (tr ("Quit"));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (quit (bool)));
+}
+
 ApvlvCompletion *
 ApvlvView::filecompleteinit (const char *path)
 {
@@ -405,7 +513,7 @@ ApvlvView::filecompleteinit (const char *path)
         {
           auto item = entry.path ().string ()
                       + (entry.is_directory () ? PATH_SEP_S : "");
-          debug ("add a item: %s", item);
+          qDebug ("add a item: %s", item.c_str ());
           items.emplace_back (item);
         }
     }
@@ -455,7 +563,8 @@ ApvlvView::infomessage (const char *str, ...)
 }
 
 char *
-ApvlvView::input (const char *str, int width, int height, string content)
+ApvlvView::input (const char *str, int width, int height,
+                  const string &content)
 {
   // need impl
   return nullptr;
@@ -524,13 +633,13 @@ ApvlvView::cmd_auto (const char *ps)
 
   if (comp != nullptr)
     {
-      debug ("find match: %s", np.c_str ());
+      qDebug ("find match: %s", np.c_str ());
       auto comtext = comp->complete (np);
       if (!comtext.empty ())
         {
           char text[PATH_MAX];
 
-          debug ("get a match: %s", comtext);
+          qDebug ("get a match: %s", comtext.c_str ());
           char **v;
 
           // need impl
@@ -550,7 +659,7 @@ ApvlvView::cmd_auto (const char *ps)
         }
       else
         {
-          debug ("no get match");
+          qDebug ("no get match");
         }
 
       delete comp;
@@ -576,6 +685,68 @@ ApvlvView::fullscreen ()
     }
 }
 
+void
+ApvlvView::nextPage ()
+{
+  crtadoc ()->nextpage (1);
+}
+
+void
+ApvlvView::previousPage ()
+{
+  crtadoc ()->prepage (1);
+}
+
+void
+ApvlvView::toggleContent ()
+{
+  crtadoc ()->toggleContent ();
+}
+
+void
+ApvlvView::toggleToolBar ()
+{
+  if (mToolBar->parent () == nullptr)
+    {
+      addToolBar (Qt::TopToolBarArea, mToolBar.get ());
+    }
+  else
+    {
+      mToolBar->setParent (nullptr);
+    }
+}
+
+void
+ApvlvView::newtab ()
+{
+  auto doc = crtadoc ()->copy ();
+  newtab (doc);
+}
+
+void
+ApvlvView::closetab ()
+{
+  quit (true);
+}
+
+void
+ApvlvView::hsplit ()
+{
+  currentWindow ()->birth (ApvlvWindow::AW_SP, nullptr);
+}
+
+void
+ApvlvView::vsplit ()
+{
+  currentWindow ()->birth (ApvlvWindow::AW_VSP, nullptr);
+}
+
+void
+ApvlvView::unbirth ()
+{
+  currentWindow ()->unbirth ();
+}
+
 ApvlvCore *
 ApvlvView::crtadoc ()
 {
@@ -583,7 +754,7 @@ ApvlvView::crtadoc ()
   if (widget)
     {
       auto meta = widget->metaObject ();
-      debug ("now focus in a %s widget", meta->className ());
+      qDebug ("now focus in a %s widget", meta->className ());
       auto doc = ApvlvCore::findByWidget (widget);
       if (doc)
         return doc;
@@ -594,7 +765,7 @@ ApvlvView::crtadoc ()
   return curwin->getCore ();
 }
 
-returnType
+ReturnType
 ApvlvView::subprocess (int ct, uint key)
 {
   uint procmd = mProCmd;
@@ -604,14 +775,14 @@ ApvlvView::subprocess (int ct, uint key)
     {
     case 'Z':
       if (key == 'Z')
-        quit ();
+        quit (true);
 
     case CTRL ('w'):
       if (key == 'q' || key == CTRL ('Q'))
         {
           if (currentWindow ()->isRoot ())
             {
-              quit ();
+              quit (true);
             }
           else
             {
@@ -620,7 +791,7 @@ ApvlvView::subprocess (int ct, uint key)
         }
       else
         {
-          returnType rv = currentWindow ()->process (ct, key);
+          ReturnType rv = currentWindow ()->process (ct, key);
           updatetabname ();
           return rv;
         }
@@ -656,12 +827,12 @@ ApvlvView::subprocess (int ct, uint key)
   return MATCH;
 }
 
-returnType
+ReturnType
 ApvlvView::process (int has, int ct, uint key)
 {
   if (mProCmd != 0)
     {
-      returnType ret = subprocess (mProCmdCnt, key);
+      ReturnType ret = subprocess (mProCmdCnt, key);
       if (ret == MATCH)
         {
           saveKey (has, ct, key, true);
@@ -681,7 +852,7 @@ ApvlvView::process (int has, int ct, uint key)
       saveKey (has, ct, key, false);
       return NEED_MORE;
     case 'q':
-      quit ();
+      quit (true);
       break;
     case 'f':
       fullscreen ();
@@ -695,7 +866,7 @@ ApvlvView::process (int has, int ct, uint key)
       saveKey (has, ct, key, false);
       return NEED_MORE;
     default:
-      returnType ret = crtadoc ()->process (has, ct, key);
+      ReturnType ret = crtadoc ()->process (has, ct, key);
       if (ret == NEED_MORE)
         {
           saveKey (has, ct, key, false);
@@ -885,7 +1056,7 @@ ApvlvView::runcmd (const char *str)
         {
           if (currentWindow ()->isRoot ())
             {
-              quit ();
+              quit (true);
             }
           else
             {
@@ -894,7 +1065,7 @@ ApvlvView::runcmd (const char *str)
         }
       else if (cmd == "qall")
         {
-          quit ();
+          quit (false);
         }
       else if (cmd == "tabnew")
         {
@@ -999,7 +1170,6 @@ ApvlvView::commandbar_return_cb ()
             }
           else
             {
-              debug ("");
             }
         }
       else
@@ -1052,7 +1222,6 @@ ApvlvView::commandbar_return_cb ()
     } */
   else if (mCmdType == CMD_MESSAGE)
     {
-      debug ("");
       cmd_hide ();
     }
 }
@@ -1069,7 +1238,7 @@ ApvlvView::closeEvent (QCloseEvent *evt)
 void
 ApvlvView::notebook_switch_cb (int pnum)
 {
-  debug ("tabwidget switch to: %d", pnum);
+  qDebug ("tabwidget switch to: %d", pnum);
   if (pnum == -1)
     return;
 
@@ -1084,7 +1253,7 @@ ApvlvView::notebook_switch_cb (int pnum)
 void
 ApvlvView::notebook_close_cb (int ind)
 {
-  debug ("tabwidget will close %d", ind);
+  qDebug ("tabwidget will close %d", ind);
   if (mTabContainer->currentIndex () == -1)
     {
       if (mTabContainer->count () > 0)

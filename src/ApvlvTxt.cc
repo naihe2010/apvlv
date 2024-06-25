@@ -25,32 +25,26 @@
  */
 /* @date Created: 2012/01/16 11:06:35 Alf*/
 
-#include "ApvlvTxt.h"
-#include "ApvlvUtil.h"
+#include <QFile>
+#include <QWebEngineSettings>
+#include <QWebEngineView>
 #include <filesystem>
 #include <fstream>
 
-#include <QWebEngineView>
+#include "ApvlvTxt.h"
+#include "ApvlvUtil.h"
 
 namespace apvlv
 {
 ApvlvTXT::ApvlvTXT (const string &filename, bool check)
     : ApvlvFile (filename, check)
 {
-  auto path = filesystem::path (filename);
-  auto size = filesystem::file_size (path);
-  ifstream ifs (filename, ifstream::binary);
-  if (ifs.is_open ())
-    {
-      mContent = make_unique<char> (size);
-      ifs.read (mContent.get (), streamsize (size));
-      ifs.close ();
-    }
-  else
-    {
-      throw bad_alloc ();
-    }
-  mLength = size;
+  QFile file (QString::fromStdString (filename));
+  if (file.open (QIODevice::ReadOnly | QIODevice::Text) == false)
+    throw bad_alloc ();
+
+  mContent = file.readAll ();
+  file.close ();
 }
 
 bool
@@ -100,8 +94,11 @@ bool
 ApvlvTXT::render (int pn, int ix, int iy, double zm, int rot,
                   QWebEngineView *webview)
 {
+  auto settings = webview->settings ();
+  settings->setDefaultTextEncoding ("UTF-8");
   webview->setZoomFactor (zm);
-  // need impl
+  QUrl url{ "apvlv:///1" };
+  webview->load (url);
   return true;
 }
 
@@ -114,8 +111,7 @@ ApvlvTXT::pageprint (int pn, QPrinter *cr)
 optional<QByteArray>
 ApvlvTXT::get_ocf_file (const string &path)
 {
-  QByteArray byte_array{ mContent.get () };
-  return byte_array;
+  return mContent;
 }
 
 string

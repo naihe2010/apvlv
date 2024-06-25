@@ -37,7 +37,7 @@ ApvlvCompletion::complete (const string &prefix)
 }
 
 void
-ApvlvCompletion::add_items (vector<string> &items)
+ApvlvCompletion::add_items (const vector<string> &items)
 {
 }
 }

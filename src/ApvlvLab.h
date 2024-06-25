@@ -26,7 +26,7 @@
 /* @date Created: 2024/03/24 12:02:34 Alf*/
 
 #ifndef _APVLV_LAB_H_
-#define _APVLV_LAB_H_
+#define _APVLV_LAB_H_ 1
 
 #include "ApvlvFile.h"
 #include <QWebEngineView>

@@ -82,7 +82,7 @@ ApvlvParams::loadfile (const string &filename)
 
   if (!os.is_open ())
     {
-      errp ("Open configure file %s error", filename.c_str ());
+      qCritical ("Open configure file %s error", filename.c_str ());
       return false;
     }
 
@@ -135,7 +135,7 @@ ApvlvParams::loadfile (const string &filename)
               continue;
             }
 
-          errp ("Syntax error: set: %s", str.c_str ());
+          qCritical ("Syntax error: set: %s", str.c_str ());
         }
       // like "map n next-page"
       else if (crap == "map")
@@ -144,7 +144,7 @@ ApvlvParams::loadfile (const string &filename)
 
           if (argu.length () == 0)
             {
-              errp ("map command not complete");
+              qCritical ("map command not complete");
               continue;
             }
 
@@ -159,12 +159,12 @@ ApvlvParams::loadfile (const string &filename)
             }
           else
             {
-              errp ("Syntax error: map: %s", str.c_str ());
+              qCritical ("Syntax error: map: %s", str.c_str ());
             }
         }
       else
         {
-          errp ("Unknown rc command: %s: %s", crap.c_str (), str.c_str ());
+          qCritical ("Unknown rc command: %s: %s", crap.c_str (), str.c_str ());
         }
     }
 

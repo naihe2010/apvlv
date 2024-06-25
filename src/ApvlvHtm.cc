@@ -32,9 +32,8 @@
 namespace apvlv
 {
 ApvlvHTML::ApvlvHTML (const string &filename, bool check)
-    : ApvlvFile (filename, check)
+    : ApvlvFile (filename, check), mUri (filename)
 {
-  mUri = filename;
 }
 
 ApvlvHTML::~ApvlvHTML () = default;

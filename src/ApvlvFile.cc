@@ -30,6 +30,7 @@
 #include <functional>
 #include <iostream>
 #include <optional>
+#include <stack>
 #include <utility>
 
 #ifdef APVLV_WITH_POPPLER
@@ -88,7 +89,10 @@ const vector<string> ApvlvFile::mSupportFileExts = {
   ".html", ".htm", ".epub", ".djv", ".djvu", ".txt", ".fb2"
 };
 
-ApvlvFile::ApvlvFile (const string &filename, bool check) {}
+ApvlvFile::ApvlvFile (const string &filename, bool check)
+    : mFilename (filename)
+{
+}
 
 ApvlvFile::~ApvlvFile ()
 {
@@ -248,7 +252,7 @@ ApvlvFile::annot_update (int, ApvlvAnnotText *text)
 }
 
 void
-ApvlvFileIndex::load_dir (const string &path1)
+ApvlvFileIndex::loadDirectory (const string &path1)
 {
   for (auto &entry :
        directory_iterator (path1, directory_options::follow_directory_symlink))
@@ -256,9 +260,9 @@ ApvlvFileIndex::load_dir (const string &path1)
       if (entry.is_directory ())
         {
           auto index
-              = ApvlvFileIndex (entry.path ().string (), 0,
+              = ApvlvFileIndex (entry.path ().filename ().string (), 0,
                                 entry.path ().string (), FILE_INDEX_DIR);
-          index.load_dir (entry.path ().string ());
+          index.loadDirectory (entry.path ().string ());
           mChildrenIndex.emplace_back (index);
         }
       else if (entry.file_size () > 0)
@@ -268,15 +272,65 @@ ApvlvFileIndex::load_dir (const string &path1)
           if (count (exts.rbegin (), exts.rend (), file_ext) > 0)
             {
               auto index
-                  = ApvlvFileIndex (entry.path ().string (), 0,
+                  = ApvlvFileIndex (entry.path ().filename ().string (), 0,
                                     entry.path ().string (), FILE_INDEX_FILE);
               mChildrenIndex.emplace_back (index);
             }
         }
     }
+
+  sort (mChildrenIndex.begin (), mChildrenIndex.end (),
+        [] (const ApvlvFileIndex &a, const ApvlvFileIndex &b) {
+          return a.title < b.title;
+        });
 }
 
-ApvlvFileIndex::ApvlvFileIndex (string title, int page, string path,
+void
+ApvlvFileIndex::appendChild (const ApvlvFileIndex &child_index)
+{
+  Q_ASSERT (type == FILE_INDEX_FILE);
+  Q_ASSERT (child_index.type == FILE_INDEX_FILE);
+  // Q_ASSERT (path == child_index.path);
+  mChildrenIndex = child_index.mChildrenIndex;
+}
+
+const ApvlvFileIndex *
+ApvlvFileIndex::findIndex (const ApvlvFileIndex &tmp_index) const
+{
+  stack<const ApvlvFileIndex *> indexes;
+  indexes.push (this);
+  while (!indexes.empty ())
+    {
+      auto top_index = indexes.top ();
+      indexes.pop ();
+      if (*top_index == tmp_index)
+        return top_index;
+      for (auto &child : top_index->mChildrenIndex)
+        {
+          indexes.push (&child);
+        }
+    }
+  return nullptr;
+}
+
+bool
+ApvlvFileIndex::operator== (const ApvlvFileIndex &tmp_index) const
+{
+  return title == tmp_index.title && page == tmp_index.page
+         && path == tmp_index.path && anchor == tmp_index.anchor
+         && type == tmp_index.type;
+}
+
+ApvlvFileIndex::ApvlvFileIndex (const string &title, int page,
+                                const string &path, ApvlvFileIndexType type)
+{
+  this->title = title;
+  this->page = page;
+  this->path = path;
+  this->type = type;
+}
+
+ApvlvFileIndex::ApvlvFileIndex (string &&title, int page, string &&path,
                                 ApvlvFileIndexType type)
 {
   this->title = std::move (title);

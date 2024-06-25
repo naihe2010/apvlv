@@ -37,7 +37,7 @@ namespace apvlv
 class ApvlvDJVU : public ApvlvFile
 {
 public:
-  explicit ApvlvDJVU (const char *filename, bool check = true);
+  explicit ApvlvDJVU (const string &filename, bool check = true);
 
   ~ApvlvDJVU () override;
 
@@ -49,11 +49,12 @@ public:
 
   bool pagetext (int, double, double, double, double, char **) override;
 
-  bool render (int, int, int, double, int, QImage *, char *) override;
+  bool render (int, int, int, double, int, QImage *) override;
 
-  ApvlvPoses *pagesearch (int pn, const char *s, bool reverse) override;
+  unique_ptr<ApvlvPoses> pagesearch (int pn, const char *s,
+                                     bool reverse) override;
 
-  ApvlvLinks *getlinks (int pn) override;
+  unique_ptr<ApvlvLinks> getlinks (int pn) override;
 
   bool pageprint (int pn, QPrinter *cr) override;
 

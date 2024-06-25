@@ -96,19 +96,19 @@ ApvlvCmd::ApvlvCmd ()
 }
 
 void
-ApvlvCmd::type (cmdType type)
+ApvlvCmd::type (CmdType type)
 {
   mType = type;
 }
 
-cmdType
+CmdType
 ApvlvCmd::type ()
 {
   return mType;
 }
 
 void
-ApvlvCmd::push (const char *s, cmdType type)
+ApvlvCmd::push (const char *s, CmdType type)
 {
   mType = type;
 
@@ -141,7 +141,7 @@ ApvlvCmd::push (const char *s, cmdType type)
           mNext = new ApvlvCmd ();
           mNext->push (s + off + 4);
         }
-      debug ("set string type command: [%s]", mStrCommand.c_str ());
+      qDebug ("set string type command: [%s]", mStrCommand.c_str ());
       return;
     }
 
@@ -227,7 +227,7 @@ ApvlvCmd::append (const char *s)
         {
           char ts[6];
           snprintf (ts, 6, "%s", s);
-          errp ("Can't recognize the symbol: %s", ts);
+          qCritical ("Can't recognize the symbol: %s", ts);
         }
       return s + 5;
     }
@@ -379,7 +379,7 @@ ApvlvCmds::append (QKeyEvent *gev)
     {
       ApvlvCmdKeyv v = mCmdHead->keyvalv ();
       v.push_back (keyToControlChar (gev));
-      returnType r = ismap (&v);
+      ReturnType r = ismap (&v);
       if (r == NO_MATCH)
         {
           process (mCmdHead);
@@ -434,7 +434,7 @@ ApvlvCmds::append (QKeyEvent *gev)
     }
 
   mState = GETTING_CMD;
-  returnType ret = ismap (mCmdHead->keyvalv_p ());
+  ReturnType ret = ismap (mCmdHead->keyvalv_p ());
   if (ret == NEED_MORE)
     {
       mTimeoutTimer->start (3000);
@@ -477,7 +477,7 @@ ApvlvCmds::process (ApvlvCmd *cmd)
   return orig;
 }
 
-returnType
+ReturnType
 ApvlvCmds::ismap (ApvlvCmdKeyv *cvp)
 {
   for (auto &mMap : mMaps)
