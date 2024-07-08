@@ -47,8 +47,8 @@ namespace apvlv
 string helppdf;
 string iniexam;
 string icondir;
-string iconreg;
-string iconpdf;
+string iconfile;
+string iconpage;
 string translations;
 
 string inifile;
@@ -67,7 +67,7 @@ get_xdg_or_home_ini (const QString &appdir)
       homedir = QDir::homePath ().toStdString ();
     }
 
-  inifile = appdir.toStdString() + "/.apvlvrc";
+  inifile = appdir.toStdString () + "/.apvlvrc";
 
   if (!xdgdir.empty ())
     {
@@ -109,24 +109,24 @@ void
 getRuntimePaths ()
 {
   auto dirpath = QDir (QCoreApplication::applicationDirPath ());
-  dirpath.cdUp();
-  auto prefix = dirpath.path().toStdString();
+  dirpath.cdUp ();
+  auto prefix = dirpath.path ().toStdString ();
   auto apvlvdir = prefix + "/share/doc/apvlv";
 
   helppdf = apvlvdir + "/Startup.pdf";
-  iconreg = apvlvdir + "/icons/reg.png";
   icondir = apvlvdir + "/icons/dir.png";
-  iconpdf = apvlvdir + "/icons/pdf.png";
+  iconfile = apvlvdir + "/icons/pdf.png";
+  iconpage = apvlvdir + "/icons/reg.png";
   translations = apvlvdir + "/translations";
 
 #ifndef WIN32
-  iniexam = string(SYSCONFDIR) + "/apvlvrc.example";
+  iniexam = string (SYSCONFDIR) + "/apvlvrc.example";
 #else
   iniexam = apvlvdir + "/apvlvrc.example";
 #endif
 
-  get_xdg_or_home_ini (dirpath.path());
-  get_xdg_or_cache_sessionpath (dirpath.path());
+  get_xdg_or_home_ini (dirpath.path ());
+  get_xdg_or_cache_sessionpath (dirpath.path ());
 }
 
 optional<unique_ptr<QXmlStreamReader> >

@@ -67,7 +67,7 @@ ApvlvParams::ApvlvParams ()
 #else
   push ("defaultdir", "/tmp");
 #endif
-  push ("guioptions", "");
+  push ("guioptions", "mT");
   push ("autoreload", "3");
 }
 
@@ -164,7 +164,8 @@ ApvlvParams::loadfile (const string &filename)
         }
       else
         {
-          qCritical ("Unknown rc command: %s: %s", crap.c_str (), str.c_str ());
+          qCritical ("Unknown rc command: %s: %s", crap.c_str (),
+                     str.c_str ());
         }
     }
 

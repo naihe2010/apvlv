@@ -39,8 +39,8 @@ namespace apvlv
 extern string helppdf;
 extern string iniexam;
 extern string icondir;
-extern string iconreg;
-extern string iconpdf;
+extern string iconfile;
+extern string iconpage;
 extern string translations;
 
 extern string inifile;

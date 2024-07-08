@@ -164,7 +164,7 @@ ApvlvPDF::pdf_get_index ()
   if (outlines.empty ())
     return false;
 
-  mIndex = { "", 0, "", FILE_INDEX_PAGE };
+  mIndex = { "", 0, getFilename (), FILE_INDEX_FILE };
   pdf_get_children_index (mIndex, outlines);
   return true;
 }

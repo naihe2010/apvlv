@@ -98,6 +98,8 @@ public:
   }
 
 private:
+  map<ApvlvFileIndexType, QIcon> mTypeIcons;
+
   bool mIsFocused;
 
   ApvlvFileIndex mIndex;

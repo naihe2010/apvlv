@@ -30,6 +30,7 @@
 #define _APVLV_VIEW_H_
 
 #include <QBoxLayout>
+#include <QLineEdit>
 #include <QMainWindow>
 #include <QTabWidget>
 #include <iostream>
@@ -52,6 +53,20 @@ enum CmdModeType
 
 class ApvlvDoc;
 class ApvlvWindow;
+
+class ApvlvCommandBar : public QLineEdit
+{
+  Q_OBJECT
+public:
+  ApvlvCommandBar () { installEventFilter (this); };
+
+protected:
+  void keyPressEvent (QKeyEvent *evt) override;
+  bool eventFilter (QObject *obj, QEvent *event) override;
+
+signals:
+  void keyPressed (QKeyEvent *evt);
+};
 
 class ApvlvView : public QMainWindow
 {
@@ -140,7 +155,7 @@ private:
 
   void setupToolBar ();
 
-  static ApvlvCompletion *filecompleteinit (const char *s);
+  static ApvlvCompletion *getFileCompleteItems (const char *s);
 
   bool runcmd (const char *cmd);
 
@@ -164,7 +179,7 @@ private:
   QFrame *mCentral;
 
   QTabWidget *mTabContainer;
-  QLineEdit *mCommandBar;
+  ApvlvCommandBar *mCommandBar;
 
   std::unique_ptr<QMenuBar> mMenuBar;
   std::unique_ptr<QToolBar> mToolBar;
@@ -205,6 +220,7 @@ private:
 private slots:
   void commandbar_edit_cb (const QString &str);
   void commandbar_return_cb ();
+  void commandbar_keypress_cb (QKeyEvent *gek);
   void notebook_switch_cb (int ind);
   void notebook_close_cb (int ind);
 };

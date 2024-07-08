@@ -26,7 +26,6 @@
  */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
-#include <QAction>
 #include <QApplication>
 #include <QFileDialog>
 #include <QKeyEvent>
@@ -46,6 +45,51 @@
 
 namespace apvlv
 {
+static bool
+isalt_escape (QKeyEvent *event)
+{
+  if (event->key () == Qt::Key_BracketLeft &&
+      /* ...so we can ignore mod keys like numlock and capslock. */
+      (event->modifiers () & Qt::ControlModifier))
+    {
+      return true;
+    }
+
+  return false;
+}
+
+void
+ApvlvCommandBar::keyPressEvent (QKeyEvent *evt)
+{
+  qDebug ("command bar key press: %d, modifiers: %d", evt->key (),
+          evt->modifiers ().toInt ());
+  if (evt->key () == Qt::Key_Escape || isalt_escape (evt)
+      || evt->key () == Qt::Key_Tab || evt->key () == Qt::Key_Up
+      || evt->key () == Qt::Key_Down)
+    {
+      emit keyPressed (evt);
+      return;
+    }
+
+  QLineEdit::keyPressEvent (evt);
+}
+
+bool
+ApvlvCommandBar::eventFilter (QObject *obj, QEvent *event)
+{
+  if (event->type () == QEvent::KeyPress
+      && static_cast<QKeyEvent *> (event)->key () == Qt::Key_Tab)
+    {
+      qDebug ("Ate key press tab");
+      emit keyPressed (static_cast<QKeyEvent *> (event));
+      return true;
+    }
+  else
+    {
+      return QObject::eventFilter (obj, event);
+    }
+}
+
 ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
 {
   mParent = parent;
@@ -112,13 +156,15 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
   QObject::connect (mTabContainer, SIGNAL (tabCloseRequested (int)), this,
                     SLOT (notebook_close_cb (int)));
 
-  mCommandBar = new QLineEdit ();
+  mCommandBar = new ApvlvCommandBar ();
   box->addWidget (mCommandBar, 0);
 
   QObject::connect (mCommandBar, SIGNAL (textEdited (const QString &)), this,
                     SLOT (commandbar_edit_cb (const QString &)));
   QObject::connect (mCommandBar, SIGNAL (returnPressed ()), this,
                     SLOT (commandbar_return_cb ()));
+  QObject::connect (mCommandBar, SIGNAL (keyPressed (QKeyEvent *)), this,
+                    SLOT (commandbar_keypress_cb (QKeyEvent *)));
 
   cmd_hide ();
 }
@@ -497,31 +543,6 @@ ApvlvView::setupToolBar ()
                     SLOT (quit (bool)));
 }
 
-ApvlvCompletion *
-ApvlvView::filecompleteinit (const char *path)
-{
-  auto *comp = new ApvlvCompletion;
-  vector<string> items;
-
-  auto fspath = filesystem::path{ path };
-  auto filename = fspath.filename ();
-  auto dirname = fspath.parent_path ();
-  for (auto &entry : filesystem::directory_iterator (dirname))
-    {
-      auto entry_filename = entry.path ().filename ().string ();
-      if (filename.empty () || entry_filename.find (filename.string ()) == 0)
-        {
-          auto item = entry.path ().string ()
-                      + (entry.is_directory () ? PATH_SEP_S : "");
-          qDebug ("add a item: %s", item.c_str ());
-          items.emplace_back (item);
-        }
-    }
-  comp->add_items (items);
-
-  return comp;
-}
-
 void
 ApvlvView::promptcommand (char ch)
 {
@@ -593,8 +614,6 @@ ApvlvView::cmd_hide ()
 void
 ApvlvView::cmd_auto (const char *ps)
 {
-  ApvlvCompletion *comp = nullptr;
-
   stringstream ss (ps);
   string cmd, np, argu;
   ss >> cmd >> np >> argu;
@@ -616,53 +635,35 @@ ApvlvView::cmd_auto (const char *ps)
       return;
     }
 
+  auto comp = ApvlvCompletion{};
   if (cmd == "o" || cmd == "open" || cmd == "TOtext")
     {
-      comp = filecompleteinit (np.c_str ());
+      comp.addPath (np);
     }
   else if (cmd == "doc")
     {
-      comp = new ApvlvCompletion;
       vector<string> items;
       for (auto &doc : mDocs)
         {
           items.emplace_back (doc->filename ());
         }
-      comp->add_items (items);
+      comp.addItems (items);
     }
 
-  if (comp != nullptr)
+  qDebug ("find match: %s", np.c_str ());
+  auto comtext = comp.complete (np);
+  if (!comtext.empty ())
     {
-      qDebug ("find match: %s", np.c_str ());
-      auto comtext = comp->complete (np);
-      if (!comtext.empty ())
-        {
-          char text[PATH_MAX];
-
-          qDebug ("get a match: %s", comtext.c_str ());
-          char **v;
-
-          // need impl
-          // v = g_strsplit (comtext, " ", -1);
-          if (v != nullptr)
-            {
-              // char *comstr = g_strjoinv ("\\ ", v);
-              // snprintf (text, sizeof text, ":%s %s", cmd.c_str (), comstr);
-              // g_free (comstr);
-              // g_strfreev (v);
-            }
-          else
-            {
-              // snprintf (text, sizeof text, ":%s %s", cmd.c_str (), comtext);
-            }
-          mCommandBar->setText (text);
-        }
-      else
-        {
-          qDebug ("no get match");
-        }
-
-      delete comp;
+      qDebug ("get a match: %s", comtext.c_str ());
+      QString s = QString::fromStdString (comtext);
+      s.replace (" ", "\\ ");
+      QString linetext = QString::asprintf (":%s %s", cmd.c_str (),
+                                            s.toStdString ().c_str ());
+      mCommandBar->setText (linetext);
+    }
+  else
+    {
+      qDebug ("no get match");
     }
 }
 
@@ -1136,19 +1137,6 @@ ApvlvView::keyPressEvent (QKeyEvent *evt)
   mCmds.append (evt);
 }
 
-bool
-isalt_escape (QKeyEvent *event)
-{
-  if (event->key () == Qt::Key_BracketLeft &&
-      /* ...so we can ignore mod keys like numlock and capslock. */
-      (event->modifiers () & Qt::ControlModifier))
-    {
-      return true;
-    }
-
-  return false;
-}
-
 void
 ApvlvView::commandbar_edit_cb (const QString &str)
 {
@@ -1177,52 +1165,55 @@ ApvlvView::commandbar_return_cb ()
           cmd_hide ();
         }
     }
-  /*
-      else if (gek->key () == Qt::Key_Tab)
+  else if (mCmdType == CMD_MESSAGE)
+    {
+      cmd_hide ();
+    }
+}
+
+void
+ApvlvView::commandbar_keypress_cb (QKeyEvent *gek)
+{
+  if (gek->key () == Qt::Key_Tab)
+    {
+      auto str = mCommandBar->text ();
+      if (!str.isEmpty ())
         {
-          auto str = mCommandBar->text ();
-          if (!str.isEmpty ())
-            {
-              cmd_auto (str.toStdString ().c_str () + 1);
-            }
+          cmd_auto (str.toStdString ().c_str () + 1);
         }
-      else if (gek->key () == Qt::Key_Backspace)
-        {
-          auto str = mCommandBar->text ();
-          if (str.length () == 1)
-            {
-              cmd_hide ();
-              mCurrHistroy = mCmdHistroy.size () - 1;
-            }
-        }
-      else if (gek->key () == Qt::Key_Escape || isalt_escape (gek))
+    }
+  else if (gek->key () == Qt::Key_Backspace)
+    {
+      auto str = mCommandBar->text ();
+      if (str.length () == 1)
         {
           cmd_hide ();
           mCurrHistroy = mCmdHistroy.size () - 1;
         }
-      else if (gek->key () == Qt::Key_Up)
-        {
-          if (!mCmdHistroy.empty ())
-            {
-              mCommandBar->setText (QString::fromStdString (
-                  mCurrHistroy > 0 ? mCmdHistroy[mCurrHistroy--]
-                                   : mCmdHistroy[0]));
-            }
-        }
-      else if (gek->key () == Qt::Key_Down)
-        {
-          if (!mCmdHistroy.empty ())
-            {
-              mCommandBar->setText (QString::fromStdString (
-                  (size_t)mCurrHistroy < mCmdHistroy.size () - 1
-                      ? mCmdHistroy[++mCurrHistroy]
-                      : mCmdHistroy[mCmdHistroy.size () - 1]));
-            }
-        }
-    } */
-  else if (mCmdType == CMD_MESSAGE)
+    }
+  else if (gek->key () == Qt::Key_Escape || isalt_escape (gek))
     {
       cmd_hide ();
+      mCurrHistroy = mCmdHistroy.size () - 1;
+    }
+  else if (gek->key () == Qt::Key_Up)
+    {
+      if (!mCmdHistroy.empty ())
+        {
+          mCommandBar->setText (QString::fromStdString (
+              mCurrHistroy > 0 ? mCmdHistroy[mCurrHistroy--]
+                               : mCmdHistroy[0]));
+        }
+    }
+  else if (gek->key () == Qt::Key_Down)
+    {
+      if (!mCmdHistroy.empty ())
+        {
+          mCommandBar->setText (QString::fromStdString (
+              (size_t)mCurrHistroy < mCmdHistroy.size () - 1
+                  ? mCmdHistroy[++mCurrHistroy]
+                  : mCmdHistroy[mCmdHistroy.size () - 1]));
+        }
     }
 }
 

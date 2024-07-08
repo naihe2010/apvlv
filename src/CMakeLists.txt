@@ -168,6 +168,7 @@ ENDIF ()
 FILE(GLOB cppfiles *.cc)
 ADD_CUSTOM_TARGET(apvlv_lupdate
         COMMAND ${LUPDATE}
+        -locations none -target-language zh_CN
         ${cppfiles} -ts ${CMAKE_SOURCE_DIR}/zh_CN.ts)
 ADD_CUSTOM_TARGET(apvlv_lrelease
         COMMAND ${LRELEASE}

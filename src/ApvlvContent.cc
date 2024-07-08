@@ -31,6 +31,7 @@
 #include "ApvlvContent.h"
 #include "ApvlvDoc.h"
 #include "ApvlvParams.h"
+#include "ApvlvUtil.h"
 
 namespace apvlv
 {
@@ -43,6 +44,10 @@ ApvlvContent::ApvlvContent ()
   setSelectionMode (QAbstractItemView::SelectionMode::SingleSelection);
 
   setFocusPolicy (Qt::NoFocus);
+
+  mTypeIcons[FILE_INDEX_DIR] = QIcon (icondir.c_str ());
+  mTypeIcons[FILE_INDEX_FILE] = QIcon (iconfile.c_str ());
+  mTypeIcons[FILE_INDEX_PAGE] = QIcon (iconpage.c_str ());
 
   QObject::connect (this, SIGNAL (itemSelectionChanged ()), this,
                     SLOT (on_changed ()));
@@ -86,6 +91,7 @@ ApvlvContent::setIndex (const ApvlvFileIndex &index, QTreeWidgetItem *root_itr)
 {
   auto itr = new QTreeWidgetItem ();
   itr->setText (CONTENT_COL_TITLE, QString::fromStdString (index.title));
+  itr->setIcon (CONTENT_COL_TITLE, mTypeIcons[index.type]);
   itr->setText (CONTENT_COL_PAGE, QString::number (index.page));
   itr->setText (CONTENT_COL_ANCHOR, QString::fromStdString (index.anchor));
   itr->setText (CONTENT_COL_PATH, QString::fromStdString (index.path));
@@ -178,7 +184,8 @@ ApvlvContent::find_index_and_select (QTreeWidgetItem *itr, const string &path,
 {
   auto index = treeItemToIndex (itr);
   auto file_index = treeItemToFileIndex (itr);
-  if (file_index->path == path && index->page == pn && index->anchor == anchor)
+  if ((!file_index || file_index->path == path) && index->page == pn
+      && index->anchor == anchor)
     {
       if (mCurrentItem)
         mCurrentItem->setSelected (false);

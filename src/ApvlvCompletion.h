@@ -26,8 +26,8 @@
 #ifndef _APVLV_COMPLETION_H_
 #define _APVLV_COMPLETION_H_ 1
 
-#include <QCompleter>
-#include <memory>
+#include <string>
+#include <vector>
 
 namespace apvlv
 {
@@ -36,15 +36,17 @@ using namespace std;
 class ApvlvCompletion
 {
 public:
-  ApvlvCompletion () : mCompleter (make_unique<QCompleter> ()) {}
+  explicit ApvlvCompletion (const vector<string> &items) : mItems (items) {}
+  ApvlvCompletion () = default;
   ~ApvlvCompletion () = default;
 
-  void add_items (const vector<string> &items);
+  void addItems (const vector<string> &items);
+  void addPath (const string &path);
 
-  const string &complete (const string &np);
+  string complete (const string &np);
 
 private:
-  unique_ptr<QCompleter> mCompleter;
+  vector<string> mItems;
 };
 
 };

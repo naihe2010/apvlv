@@ -24,22 +24,56 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
-#include "ApvlvCompletion.h"
-
+#include <algorithm>
+#include <filesystem>
 #include <string>
+
+#include "ApvlvCompletion.h"
+#include "ApvlvUtil.h"
 
 namespace apvlv
 {
-const string &
+string
 ApvlvCompletion::complete (const string &prefix)
 {
-  return prefix;
+  auto iter = find_if (
+      mItems.cbegin (), mItems.cend (),
+      [prefix] (const string &item) { return item.find (prefix) == 0; });
+  if (iter != mItems.cend ())
+    return *iter;
+  else
+    return "";
 }
 
 void
-ApvlvCompletion::add_items (const vector<string> &items)
+ApvlvCompletion::addItems (const vector<string> &items)
 {
+  mItems.insert (mItems.end (), items.begin (), items.end ());
 }
+
+void
+ApvlvCompletion::addPath (const string &path)
+{
+  vector<string> items;
+
+  auto fspath = filesystem::path{ path };
+  auto filename = fspath.filename ();
+  auto dirname = fspath.parent_path ();
+  for (auto &entry : filesystem::directory_iterator (dirname))
+    {
+      auto entry_filename = entry.path ().filename ().string ();
+      if (filename.empty () || entry_filename.find (filename.string ()) == 0)
+        {
+          auto item = entry.path ().string ()
+                      + (entry.is_directory () ? PATH_SEP_S : "");
+          qDebug ("add a item: %s", item.c_str ());
+          items.emplace_back (item);
+        }
+    }
+
+  addItems (items);
+}
+
 }
 
 // Local Variables:
