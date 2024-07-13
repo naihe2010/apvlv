@@ -41,6 +41,7 @@
 
 #include "ApvlvInfo.h"
 #include "ApvlvParams.h"
+#include "ApvlvSearchDialog.h"
 #include "ApvlvView.h"
 
 namespace apvlv
@@ -237,11 +238,14 @@ ApvlvView::open ()
   // dirname);
   auto mimes = ApvlvFile::supportMimeTypes ();
   QString filters;
-  for (auto &m : mimes)
+  for (const auto &m : mimes)
     {
       filters += m.first.c_str ();
       filters += "(";
-      filters += m.second[0];
+      filters += ('*' + m.second[0]);
+      for (decltype (m.second.size ()) index = 1; index < m.second.size ();
+           ++index)
+        filters += (" *" + m.second[index]);
       filters += ");;";
     }
 
@@ -298,6 +302,27 @@ ApvlvView::quit (bool only_tab)
   Q_ASSERT (index != -1);
   delete_tabcontext (index);
   mTabContainer->removeTab (index);
+}
+
+void
+ApvlvView::search ()
+{
+  promptcommand ('/');
+}
+
+void
+ApvlvView::backSearch ()
+{
+  promptcommand ('?');
+}
+
+void
+ApvlvView::advancedSearch ()
+{
+  auto diag = ApvlvSearchDialog (this);
+  QObject::connect (&diag, SIGNAL (loadFile (const string &)), this,
+                    SLOT (loadfile (string)));
+  diag.exec ();
 }
 
 bool
@@ -467,6 +492,18 @@ ApvlvView::setupMenuBar ()
                     SLOT (quit (bool)));
 
   // Edit ->
+  auto medit = new QMenu (tr ("Edit"));
+  mMenuBar->addMenu (medit);
+  action = medit->addAction (tr ("Search"));
+  QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (search ()));
+  action = medit->addAction (tr ("Back Search"));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (backSearch ()));
+  action = medit->addAction (tr ("Advanced Search"));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (advancedSearch ()));
+
+  // View ->
   auto mview = new QMenu (tr ("View"));
   mMenuBar->addMenu (mview);
   action = mview->addAction (tr ("ToolBar"));

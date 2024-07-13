@@ -77,6 +77,7 @@ SET(HEADERS
         ApvlvContent.h
         ApvlvLab.h
         ApvlvLog.h
+        ApvlvSearchDialog.h
 )
 
 SET(SOURCES
@@ -97,6 +98,7 @@ SET(SOURCES
         ApvlvContent.cc
         ApvlvLab.cc
         ApvlvLog.cc
+        ApvlvSearchDialog.cc
         main.cc
 )
 

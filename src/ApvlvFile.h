@@ -126,7 +126,7 @@ class ApvlvFile
 {
 public:
   const static map<string, vector<string> > &supportMimeTypes ();
-  const static vector<string> &supportFileExts ();
+  static vector<string> supportFileExts ();
 
   ApvlvFile (const string &filename, bool check);
 

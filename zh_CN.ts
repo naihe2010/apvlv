@@ -2,6 +2,17 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN">
 <context>
+    <name>ApvlvSearchDialog</name>
+    <message>
+        <source>Case sensitive</source>
+        <translation type="vanished">大小写</translation>
+    </message>
+    <message>
+        <source>Regular expression</source>
+        <translation type="vanished">正则表达式</translation>
+    </message>
+</context>
+<context>
     <name>ApvlvView</name>
     <message>
         <source>File</source>
@@ -85,6 +96,17 @@
     </message>
 </context>
 <context>
+    <name>apvlv::ApvlvSearchDialog</name>
+    <message>
+        <source>Case sensitive</source>
+        <translation>大小写</translation>
+    </message>
+    <message>
+        <source>Regular expression</source>
+        <translation>正则表达式</translation>
+    </message>
+</context>
+<context>
     <name>apvlv::ApvlvView</name>
     <message>
         <source>File</source>
@@ -104,7 +126,7 @@
     <message>
         <source>Edit</source>
         <translatorcomment>编辑</translatorcomment>
-        <translation type="vanished">编辑</translation>
+        <translation>编辑</translation>
     </message>
     <message>
         <source>Navigate</source>
@@ -168,6 +190,18 @@
         <source>OpenDir</source>
         <translatorcomment>打开文件夹</translatorcomment>
         <translation>打开文件夹</translation>
+    </message>
+    <message>
+        <source>Search</source>
+        <translation>查找</translation>
+    </message>
+    <message>
+        <source>Advanced Search</source>
+        <translation>高级查找</translation>
+    </message>
+    <message>
+        <source>Back Search</source>
+        <translation>反向查找</translation>
     </message>
 </context>
 </TS>

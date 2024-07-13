@@ -63,30 +63,24 @@ ApvlvFile::supportMimeTypes ()
   return mSupportMimeTypes;
 }
 
-const map<string, vector<string> > ApvlvFile::mSupportMimeTypes = {
-#ifdef APVLV_WITH_POPPLER
-  { "PDF File", { "*.pdf", "*.PDF" } },
-#endif
-  { "HTML File", { ".HTM", ".htm", "*.HTML", ".html" } },
-  { "ePub File", { "*.EPUB", "*.epub" } },
-#ifdef APVLV_WITH_DJVU
-  { "DJVU File", { "*.DJV", "*.djv", "*.DJVU", "*.djvu" } },
-#endif
-  { "TXT File", { "*.TXT", "*.txt" } },
-  { "FB2 File", { "*.FB2", "*.fb2" } },
-};
-
-const vector<string> &
+vector<string>
 ApvlvFile::supportFileExts ()
 {
-  return mSupportFileExts;
+  vector<string> exts;
+  for (const auto &pair : mSupportMimeTypes)
+    {
+      exts.insert (exts.end (), pair.second.begin (), pair.second.end ());
+    }
+  return exts;
 }
 
-const vector<string> ApvlvFile::mSupportFileExts = {
-#ifdef APVLV_WITH_POPPLER
-  ".pdf",
+const map<string, vector<string> > ApvlvFile::mSupportMimeTypes = {
+  { "PDF File", { ".pdf" } },           { "HTML File", { ".htm", ".html" } },
+  { "ePub File", { ".epub" } },
+#ifdef APVLV_WITH_DJVU
+  { "DJVU File", { ".djv", ".djvu" } },
 #endif
-  ".html", ".htm", ".epub", ".djv", ".djvu", ".txt", ".fb2"
+  { "TXT File", { ".txt" } },           { "FB2 File", { ".fb2" } },
 };
 
 ApvlvFile::ApvlvFile (const string &filename, bool check)
@@ -254,6 +248,8 @@ ApvlvFile::annot_update (int, ApvlvAnnotText *text)
 void
 ApvlvFileIndex::loadDirectory (const string &path1)
 {
+  auto exts = ApvlvFile::supportFileExts ();
+
   for (auto &entry :
        directory_iterator (path1, directory_options::follow_directory_symlink))
     {
@@ -268,8 +264,7 @@ ApvlvFileIndex::loadDirectory (const string &path1)
       else if (entry.file_size () > 0)
         {
           auto file_ext = filename_ext (entry.path ().string ());
-          auto exts = ApvlvFile::supportFileExts ();
-          if (count (exts.rbegin (), exts.rend (), file_ext) > 0)
+          if (find (exts.cbegin (), exts.cend (), file_ext) != exts.cend ())
             {
               auto index
                   = ApvlvFileIndex (entry.path ().filename ().string (), 0,

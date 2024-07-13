@@ -130,6 +130,12 @@ public slots:
 
   void quit (bool only_tab = true);
 
+  void search ();
+
+  void backSearch ();
+
+  void advancedSearch ();
+
   void fullscreen ();
 
   void nextPage ();
