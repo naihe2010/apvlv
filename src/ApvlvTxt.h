@@ -34,6 +34,8 @@ namespace apvlv
 {
 class ApvlvTXT : public ApvlvFile
 {
+  FILE_TYPE_DECLARATION (ApvlvTXT);
+
 public:
   explicit ApvlvTXT (const string &filename, bool check = true);
 

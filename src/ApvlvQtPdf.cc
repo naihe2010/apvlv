@@ -39,6 +39,8 @@ namespace apvlv
 {
 using namespace std;
 
+FILE_TYPE_DEFINITION (ApvlvPDF, { ".pdf" });
+
 ApvlvPDF::ApvlvPDF (const string &filename, bool check)
     : ApvlvFile (filename, check), mDoc (make_unique<QPdfDocument> ())
 {

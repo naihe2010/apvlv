@@ -36,6 +36,8 @@ namespace apvlv
 {
 class ApvlvFB2 : public ApvlvFile
 {
+  FILE_TYPE_DECLARATION (ApvlvFB2);
+
 public:
   explicit ApvlvFB2 (const string &filename, bool check = true);
 

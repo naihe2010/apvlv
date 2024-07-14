@@ -36,6 +36,8 @@
 
 namespace apvlv
 {
+FILE_TYPE_DEFINITION (ApvlvTXT, { ".txt", ".text" });
+
 ApvlvTXT::ApvlvTXT (const string &filename, bool check)
     : ApvlvFile (filename, check)
 {

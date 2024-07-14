@@ -197,6 +197,10 @@ public:
   void cacheByteArray (const string &key, const QByteArray &array);
 
 protected:
+  static int registerClass (const string &mime,
+                            function<ApvlvFile *(const string &)> fun,
+                            initializer_list<string> exts);
+
   string mFilename;
   ApvlvFileIndex mIndex;
   std::vector<string> mPages;
@@ -207,9 +211,20 @@ protected:
 private:
   QMap<string, QByteArray> mCacheByteArray;
 
-  const static std::map<string, std::vector<string> > mSupportMimeTypes;
-  const static std::vector<string> mSupportFileExts;
+  static map<string, std::vector<string> > mSupportMimeTypes;
+  static map<string, function<ApvlvFile *(const string &)> > mSupportClass;
 };
+
+#define FILE_TYPE_DECLARATION(cls)                                            \
+private:                                                                      \
+  static int class_id_of_##cls
+#define FILE_TYPE_DEFINITION(cls, ...)                                        \
+  int cls::class_id_of_##cls = registerClass (                                \
+      #cls,                                                                   \
+      [] (const string &filename) -> ApvlvFile * {                            \
+        return new cls (filename);                                            \
+      },                                                                      \
+      __VA_ARGS__)
 
 };
 

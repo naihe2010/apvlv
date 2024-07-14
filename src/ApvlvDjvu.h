@@ -36,6 +36,8 @@ namespace apvlv
 {
 class ApvlvDJVU : public ApvlvFile
 {
+  FILE_TYPE_DECLARATION (ApvlvDJVU);
+
 public:
   explicit ApvlvDJVU (const string &filename, bool check = true);
 

@@ -39,6 +39,8 @@ namespace apvlv
 {
 class ApvlvEPUB : public ApvlvFile
 {
+  FILE_TYPE_DECLARATION (ApvlvEPUB);
+
 public:
   explicit ApvlvEPUB (const string &filename, bool check = true);
   ~ApvlvEPUB () override;

@@ -25,12 +25,15 @@
  */
 /* @date Created: 2011/09/16 13:51:04 Alf*/
 
+#include <QWebEngineView>
+
 #include "ApvlvHtm.h"
 #include "ApvlvUtil.h"
-#include <QWebEngineView>
 
 namespace apvlv
 {
+FILE_TYPE_DEFINITION (ApvlvHTML, { ".htm", ".html" });
+
 ApvlvHTML::ApvlvHTML (const string &filename, bool check)
     : ApvlvFile (filename, check), mUri (filename)
 {

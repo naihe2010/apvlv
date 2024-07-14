@@ -37,6 +37,8 @@ const double HTML_DEFAULT_HEIGHT = 800;
 
 class ApvlvHTML : public ApvlvFile
 {
+  FILE_TYPE_DECLARATION (ApvlvHTML);
+
 public:
   explicit ApvlvHTML (const string &filename, bool check = true);
 

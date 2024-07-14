@@ -94,6 +94,9 @@ const string section_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
                                 "    %s\n"
                                 "  </body>\n"
                                 "</html>\n";
+
+FILE_TYPE_DEFINITION (ApvlvFB2, { ".fb2" });
+
 ApvlvFB2::ApvlvFB2 (const string &filename, bool check)
     : ApvlvFile (filename, check)
 {

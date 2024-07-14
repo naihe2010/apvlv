@@ -74,14 +74,8 @@ ApvlvFile::supportFileExts ()
   return exts;
 }
 
-const map<string, vector<string> > ApvlvFile::mSupportMimeTypes = {
-  { "PDF File", { ".pdf" } },           { "HTML File", { ".htm", ".html" } },
-  { "ePub File", { ".epub" } },
-#ifdef APVLV_WITH_DJVU
-  { "DJVU File", { ".djv", ".djvu" } },
-#endif
-  { "TXT File", { ".txt" } },           { "FB2 File", { ".fb2" } },
-};
+map<string, vector<string> > ApvlvFile::mSupportMimeTypes{};
+map<string, function<ApvlvFile *(const string &)> > ApvlvFile::mSupportClass{};
 
 ApvlvFile::ApvlvFile (const string &filename, bool check)
     : mFilename (filename)
@@ -95,42 +89,31 @@ ApvlvFile::~ApvlvFile ()
   srcMimeTypes.clear ();
 }
 
+int
+ApvlvFile::registerClass (const string &mime,
+                          function<ApvlvFile *(const string &)> fun,
+                          initializer_list<string> exts)
+{
+  mSupportMimeTypes.insert ({ mime, exts });
+  for_each (exts.begin (), exts.end (),
+            [fun] (const string &t) { mSupportClass.insert ({ t, fun }); });
+  return static_cast<int> (mSupportMimeTypes.size ());
+}
+
 ApvlvFile *
 ApvlvFile::newFile (const string &filename, bool check)
 {
   ApvlvFile *file;
-  map<string, function<ApvlvFile *()> > type_class;
-
-  type_class[".pdf"]
-      = [filename] () -> ApvlvFile * { return new ApvlvPDF (filename); };
-  type_class[".html"]
-      = [filename] () -> ApvlvFile * { return new ApvlvHTML (filename); };
-  type_class[".htm"]
-      = [filename] () -> ApvlvFile * { return new ApvlvHTML (filename); };
-  type_class[".epub"]
-      = [filename] () -> ApvlvFile * { return new ApvlvEPUB (filename); };
-#ifdef APVLV_WITH_DJVU
-  type_class[".djv"]
-      = [filename] () -> ApvlvFile * { return new ApvlvDJVU (filename); };
-  type_class[".djvu"]
-      = [filename] () -> ApvlvFile * { return new ApvlvDJVU (filename); };
-#endif
-  type_class[".txt"]
-      = [filename] () -> ApvlvFile * { return new ApvlvTXT (filename); };
-  type_class[".fb2"]
-      = [filename] () -> ApvlvFile * { return new ApvlvFB2 (filename); };
 
   auto ext = filename_ext (filename);
   if (ext.empty ())
     return nullptr;
 
-  if (type_class.find (ext) == type_class.end ())
-    return nullptr;
-
   file = nullptr;
   try
     {
-      file = type_class[ext]();
+      if (mSupportClass.find (ext) != mSupportClass.end ())
+        file = mSupportClass[ext](filename);
     }
 
   catch (const bad_alloc &e)

@@ -38,6 +38,8 @@ namespace apvlv
 using namespace Poppler;
 class ApvlvPDF : public ApvlvFile
 {
+  FILE_TYPE_DECLARATION (ApvlvPDF);
+
 public:
   explicit ApvlvPDF (const string &filename, bool check = true);
 
