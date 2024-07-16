@@ -1,6 +1,6 @@
 # Import Information
 
-*** The next version of apvlv will use C++17 and Qt to support more OS (like Windows ...) !!! ***
+## The next version of apvlv will use C++17 and Qt to support more OS (like Windows ...)
 
 # apvlv
 
