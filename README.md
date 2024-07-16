@@ -1,3 +1,7 @@
+# Import Information
+
+*** The next version of apvlv will use C++17 and Qt to support more OS (like Windows ...) !!! ***
+
 # apvlv
 
 apvlv is a PDF/EPUB/TXT/FB2 Viewer Under Linux/WIN32 and its behaviour like Vim.
