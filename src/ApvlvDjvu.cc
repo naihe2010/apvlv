@@ -223,6 +223,11 @@ ApvlvDJVU::pageprint (int pn, QPrinter *cr)
 {
   return false;
 }
+ApvlvSearchMatches
+ApvlvDJVU::searchPage (int pn, const string &text, bool is_case, bool is_reg)
+{
+  return ApvlvSearchMatches ();
+}
 }
 
 // Local Variables:

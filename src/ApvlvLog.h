@@ -31,6 +31,7 @@
 #include <QTextStream>
 #include <QtMessageHandler>
 #include <memory>
+#include <mutex>
 
 namespace apvlv
 {
@@ -52,6 +53,7 @@ private:
 
   QFile mFile;
   QTextStream mTextStream;
+  mutex mMutex;
 
   static ApvlvLog *mInstance;
 };

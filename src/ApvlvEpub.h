@@ -59,6 +59,9 @@ public:
   unique_ptr<ApvlvPoses> pagesearch (int pn, const char *str,
                                      bool reverse) override;
 
+  ApvlvSearchMatches searchPage (int pn, const string &text, bool is_case,
+                                 bool is_reg) override;
+
   unique_ptr<ApvlvLinks> getlinks (int pn) override;
 
   bool pageprint (int pn, QPrinter *cr) override;

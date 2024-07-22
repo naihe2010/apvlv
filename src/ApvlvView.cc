@@ -41,7 +41,7 @@
 
 #include "ApvlvInfo.h"
 #include "ApvlvParams.h"
-#include "ApvlvSearchDialog.h"
+#include "ApvlvSearch.h"
 #include "ApvlvView.h"
 
 namespace apvlv
@@ -320,8 +320,8 @@ void
 ApvlvView::advancedSearch ()
 {
   auto diag = ApvlvSearchDialog (this);
-  QObject::connect (&diag, SIGNAL (loadFile (const string &)), this,
-                    SLOT (loadfile (string)));
+  QObject::connect (&diag, SIGNAL (loadFile (const string &, int)), this,
+                    SLOT (loadFileOnPage (const string &, int)));
   diag.exec ();
 }
 
@@ -425,6 +425,19 @@ ApvlvView::loadfile (const string &filename)
     }
 
   return ndoc != nullptr;
+}
+
+void
+ApvlvView::loadFileOnPage (const string &filename, int pn)
+{
+  auto cdoc = crtadoc ();
+  if (cdoc)
+    {
+      if (loadfile (filename))
+        {
+          cdoc->showpage (pn, 0.0);
+        }
+    }
 }
 
 optional<ApvlvCore *>

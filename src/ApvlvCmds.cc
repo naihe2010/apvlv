@@ -26,14 +26,9 @@
  */
 /* @date Created: 2008/09/30 00:00:00 Alf */
 
-// #include <QKeyEvent>
 #include <Qt>
-// #include <cctype>
-// #include <cstdlib>
-// #include <sstream>
 
 #include "ApvlvCmds.h"
-// #include "ApvlvUtil.h"
 #include "ApvlvView.h"
 
 namespace apvlv

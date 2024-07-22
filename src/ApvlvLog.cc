@@ -66,6 +66,7 @@ ApvlvLog::ApvlvLog (const QString &path)
 void
 ApvlvLog::writeMessage (const QString &msg)
 {
+  lock_guard<mutex> lock (mMutex);
 #ifdef _DEBUG
   std::cout << msg.toStdString () << endl;
 #endif

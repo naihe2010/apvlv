@@ -216,6 +216,13 @@ ApvlvPDF::annot_update (int pn, ApvlvAnnotText *text)
 {
   return false;
 }
+
+ApvlvSearchMatches
+ApvlvPDF::searchPage (int pn, const string &text, bool is_case, bool is_reg)
+{
+  return ApvlvSearchMatches ();
+}
+
 }
 
 // Local Variables:

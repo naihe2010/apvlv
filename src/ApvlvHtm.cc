@@ -93,6 +93,11 @@ ApvlvHTML::pageprint (int pn, QPrinter *cr)
 {
   return false;
 }
+ApvlvSearchMatches
+ApvlvHTML::searchPage (int pn, const string &text, bool is_case, bool is_reg)
+{
+  return ApvlvSearchMatches ();
+}
 }
 
 // Local Variables:

@@ -1021,7 +1021,7 @@ ApvlvDoc::refresh ()
     }
   else if (mDisplayType == DISPLAY_TYPE_HTML)
     {
-      mFile->render (mPagenum, 0, 0, mZoomrate, mRotatevalue, mMainWebView);
+      mFile->render (mPagenum, px, py, mZoomrate, mRotatevalue, mMainWebView);
     }
 
   display ();

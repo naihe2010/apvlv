@@ -364,6 +364,11 @@ ApvlvEPUB::ncx_node_set_index (QXmlStreamReader *xml,
       xml->readNextStartElement ();
     }
 }
+ApvlvSearchMatches
+ApvlvEPUB::searchPage (int pn, const string &text, bool is_case, bool is_reg)
+{
+  return ApvlvSearchMatches ();
+}
 }
 
 // Local Variables:

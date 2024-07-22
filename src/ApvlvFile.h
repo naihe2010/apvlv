@@ -74,7 +74,27 @@ struct ApvlvPos
   double p1x, p1y, p2x, p2y;
 };
 
-typedef vector<ApvlvPos> ApvlvPoses;
+using ApvlvPoses = vector<ApvlvPos>;
+
+struct ApvlvSearchMatch
+{
+  string keyword;
+  string line;
+};
+
+using ApvlvSearchMatches = vector<ApvlvSearchMatch>;
+
+struct ApvlvSearchResult
+{
+  int page;
+  ApvlvSearchMatches matches;
+};
+
+struct ApvlvSearchResults
+{
+  string filename;
+  vector<ApvlvSearchResult> result_list;
+};
 
 enum ApvlvAnnotType
 {
@@ -89,7 +109,7 @@ struct ApvlvAnnotText
   string text;
 };
 
-typedef vector<ApvlvAnnotText> ApvlvAnnotTexts;
+using ApvlvAnnotTexts = vector<ApvlvAnnotText>;
 
 enum ApvlvFileIndexType
 {
@@ -110,7 +130,8 @@ public:
 
   void loadDirectory (const string &path1);
   void appendChild (const ApvlvFileIndex &child);
-  const ApvlvFileIndex *findIndex (const ApvlvFileIndex &tmp_index) const;
+  [[nodiscard]] const ApvlvFileIndex *
+  findIndex (const ApvlvFileIndex &tmp_index) const;
 
   bool operator== (const ApvlvFileIndex &) const;
 
@@ -148,6 +169,10 @@ public:
 
   virtual unique_ptr<ApvlvPoses> pagesearch (int pn, const char *str,
                                              bool reverse)
+      = 0;
+
+  virtual ApvlvSearchMatches searchPage (int pn, const string &text,
+                                         bool is_case, bool is_reg)
       = 0;
 
   virtual bool pageselectsearch (int, int, int, double, int, QImage *,
@@ -191,6 +216,9 @@ public:
   {
     return mIndex;
   }
+
+  vector<ApvlvSearchResult> search (const string &text, bool is_case,
+                                    bool is_reg);
 
   bool hasByteArray (const string &key);
   optional<const QByteArray> getByteArray (const string &key);

@@ -87,12 +87,12 @@
     <name>apvlv::ApvlvCore</name>
     <message>
         <source>no content</source>
-        <translation>没有目录</translation>
+        <translation type="vanished">没有目录</translation>
     </message>
     <message>
         <source>the file has no content, if still display content?</source>
         <oldsource>this file has no content, if close the content?</oldsource>
-        <translation>此文件没有目录，是否仍然显示目录？</translation>
+        <translation type="vanished">此文件没有目录，是否仍然显示目录？</translation>
     </message>
 </context>
 <context>
@@ -104,6 +104,14 @@
     <message>
         <source>Regular expression</source>
         <translation>正则表达式</translation>
+    </message>
+    <message>
+        <source>...</source>
+        <translation>……</translation>
+    </message>
+    <message>
+        <source>Find Directory: </source>
+        <translation>查找目录：</translation>
     </message>
 </context>
 <context>

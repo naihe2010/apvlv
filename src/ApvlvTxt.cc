@@ -121,6 +121,11 @@ ApvlvTXT::get_ocf_mime_type (const string &path)
 {
   return "text/plain";
 }
+ApvlvSearchMatches
+ApvlvTXT::searchPage (int pn, const string &text, bool is_case, bool is_reg)
+{
+  return ApvlvSearchMatches ();
+}
 
 }
 

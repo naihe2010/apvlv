@@ -13,7 +13,7 @@ ENDIF ()
 MESSAGE("-- BUILD TYPE: ${CMAKE_BUILD_TYPE}")
 MESSAGE("-- CXX FLAGS: ${CMAKE_CXX_FLAGS}")
 
-SET(APVLV_WITH_POPPLER ON CACHE BOOL "if has poppler-qt6 library")
+SET(APVLV_WITH_POPPLER OFF CACHE BOOL "if has poppler-qt6 library")
 
 IF (WIN32)
     SET(Qt6_DIR "C:/Qt/6.7.2/msvc2019_64/lib/cmake/Qt6" CACHE STRING "Qt6config.cmake directory")
@@ -77,7 +77,8 @@ SET(HEADERS
         ApvlvContent.h
         ApvlvLab.h
         ApvlvLog.h
-        ApvlvSearchDialog.h
+        ApvlvSearch.h
+        ApvlvQueue.h
 )
 
 SET(SOURCES
@@ -98,7 +99,7 @@ SET(SOURCES
         ApvlvContent.cc
         ApvlvLab.cc
         ApvlvLog.cc
-        ApvlvSearchDialog.cc
+        ApvlvSearch.cc
         main.cc
 )
 

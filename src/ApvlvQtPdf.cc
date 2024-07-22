@@ -25,10 +25,12 @@
  */
 /* @date Created: 2011/09/16 13:50:18 Alf*/
 
+#include <QApplication>
 #include <QInputDialog>
 #include <QPdfBookmarkModel>
 #include <QPdfDocument>
 #include <QPdfSearchModel>
+#include <QThread>
 #include <filesystem>
 #include <fstream>
 
@@ -47,11 +49,21 @@ ApvlvPDF::ApvlvPDF (const string &filename, bool check)
   auto res = mDoc->load (QString::fromStdString (filename));
   if (res == QPdfDocument::Error::IncorrectPassword)
     {
-      auto text
-          = QInputDialog::getText (nullptr, "password", "input password");
-      auto pass = QByteArray::fromStdString (text.toStdString ());
-      mDoc->setPassword (pass);
-      res = mDoc->load (QString::fromStdString (filename));
+      if (QThread::currentThread () == QApplication::instance ()->thread ())
+        {
+          auto text
+              = QInputDialog::getText (nullptr, "password", "input password");
+          if (text.isEmpty ())
+            throw bad_alloc ();
+
+          auto pass = QByteArray::fromStdString (text.toStdString ());
+          mDoc->setPassword (pass);
+          res = mDoc->load (QString::fromStdString (filename));
+        }
+      else
+        {
+          qWarning ("file: %s has password, skip !!!", filename.c_str ());
+        }
     }
 
   if (res != QPdfDocument::Error::None)
@@ -187,9 +199,6 @@ ApvlvPDF::pdf_get_index_iter (ApvlvFileIndex &file_index,
       auto level = bookmark_model->data (index, 257);
       auto page = bookmark_model->data (index, 258);
       auto location = bookmark_model->data (index, 259);
-      qDebug ("%d:%fx%f %d %s", page.toInt (), location.toPointF ().x (),
-              location.toPointF ().y (), level.toInt (),
-              title.toString ().toStdString ().c_str ());
 
       ApvlvFileIndex child_index (title.toString ().toStdString (),
                                   page.toInt (), "", FILE_INDEX_PAGE);
@@ -231,6 +240,24 @@ bool
 ApvlvPDF::annot_update (int pn, ApvlvAnnotText *text)
 {
   return false;
+}
+
+ApvlvSearchMatches
+ApvlvPDF::searchPage (int pn, const string &text, bool is_case, bool is_reg)
+{
+  auto selection = mDoc->getAllText (pn);
+  auto page_text = selection.text ();
+  auto qlines = page_text.split ("\r\n");
+  auto matches = ApvlvSearchMatches{};
+  for (auto const &qline : qlines)
+    {
+      auto line = qline.toStdString ();
+      if (line.find (text) != string::npos)
+        {
+          matches.emplace_back (ApvlvSearchMatch{ text, line });
+        }
+    }
+  return matches;
 }
 }
 

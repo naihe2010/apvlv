@@ -35,41 +35,81 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QTreeView>
+#include <QTimer>
+#include <string>
+#include <thread>
+#include <vector>
+
+#include "ApvlvFile.h"
+#include "ApvlvQueue.h"
 
 namespace apvlv
 {
-class ASFileModel : public QFileSystemModel
+class ApvlvSearchOptions
 {
-  Q_OBJECT
 public:
-  ASFileModel ();
-  int
-  columnCount (const QModelIndex &parent = QModelIndex ()) const override
-  {
-    return 1;
-  };
+  bool operator== (const ApvlvSearchOptions &other) const;
+
+  string mText;
+  bool mCaseSensitive;
+  bool mRegex;
+  string mFromDir;
+  vector<string> mTypes;
 };
+
+class Searcher
+{
+public:
+  Searcher ();
+  ~Searcher ();
+
+  void submit (const ApvlvSearchOptions &options);
+  bool get (ApvlvSearchResults &results);
+
+private:
+  void dispatch ();
+  void dirFunc ();
+  void fileLoopFunc ();
+  void fileFunc (const string &path);
+
+  vector<thread> mTasks;
+
+  ApvlvSearchOptions mOptions;
+  LockQueue<string> mFilenameQueue;
+  LockQueue<ApvlvSearchResults> mResults;
+  atomic<bool> mRestart;
+  atomic<bool> mQuit;
+};
+
 class ApvlvSearchDialog : public QDialog
 {
   Q_OBJECT
 public:
-  explicit ApvlvSearchDialog (QWidget *parent = 0);
+  explicit ApvlvSearchDialog (QWidget *parent = nullptr);
   ~ApvlvSearchDialog () {}
 
 signals:
-  void loadFile (const QString &path);
+  void loadFile (const string &path, int pn);
 
 private slots:
   void search ();
+  void getResults ();
+  void previewItem (QListWidgetItem *item);
+  void activateItem (QListWidgetItem *item);
+  void displayResults (const ApvlvSearchResults &results);
 
 private:
+  ApvlvSearchOptions mOptions;
+
+  Searcher mSearcher;
+
+  QTimer mGetTimer;
+
   QLineEdit mSearchEdit;
   QCheckBox mCaseSensitive;
   QCheckBox mRegex;
   vector<QCheckBox *> mTypes;
-  ASFileModel mDirModel;
-  QTreeView mDirView;
+  QLineEdit mFromDir;
   QListWidget mResults;
   QLabel mPreview;
 };

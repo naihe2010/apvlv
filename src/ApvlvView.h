@@ -124,6 +124,8 @@ public:
   void erase_child (ApvlvView *);
 
 public slots:
+  void loadFileOnPage (const string &filename, int pn);
+
   void open ();
 
   void opendir ();

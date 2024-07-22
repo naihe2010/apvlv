@@ -162,6 +162,21 @@ ApvlvFile::get_ocf_page (const string &path)
 DISPLAY_TYPE
 ApvlvFile::get_display_type () { return DISPLAY_TYPE_IMAGE; }
 
+vector<ApvlvSearchResult>
+ApvlvFile::search (const string &text, bool is_case, bool is_reg)
+{
+  vector<ApvlvSearchResult> results;
+  for (auto pn = 0; pn < pagesum (); ++pn)
+    {
+      auto matches = searchPage (pn, text, is_case, is_reg);
+      if (!matches.empty ())
+        {
+          results.emplace_back (ApvlvSearchResult{ pn, matches });
+        }
+    }
+  return results;
+}
+
 bool
 ApvlvFile::hasByteArray (const string &key)
 {

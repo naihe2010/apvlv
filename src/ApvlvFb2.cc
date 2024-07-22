@@ -370,6 +370,12 @@ ApvlvFB2::get_ocf_file (const string &uri)
   return byte_array;
 }
 
+ApvlvSearchMatches
+ApvlvFB2::searchPage (int pn, const string &text, bool is_case, bool is_reg)
+{
+  return ApvlvSearchMatches ();
+}
+
 }
 
 // Local Variables:

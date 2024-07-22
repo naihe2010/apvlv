@@ -560,14 +560,8 @@ ApvlvCore::toggleContent (bool show)
     {
       if (!mContent->isReady ())
         {
-          auto ans = QMessageBox::question (
-              this, tr ("no content"),
-              tr ("the file has no content, if still display content?"),
-              QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-          if (ans == QMessageBox::No)
-            {
-              show = false;
-            }
+          qWarning ("file %s has no content", mFilestr.c_str ());
+          show = false;
         }
 
       if (show)
