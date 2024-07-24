@@ -34,14 +34,13 @@
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QSplitter>
-#include <QWebEngineUrlRequestJob>
-#include <QWebEngineUrlSchemeHandler>
 #include <iostream>
 #include <map>
 
 #include "ApvlvContent.h"
 #include "ApvlvFile.h"
 #include "ApvlvUtil.h"
+#include "ApvlvWebView.h"
 
 using namespace std;
 
@@ -63,22 +62,6 @@ public:
   void setActive (bool act);
 
   void showMessages (const vector<string> &msgs);
-};
-
-class ApvlvSchemeHandler : public QWebEngineUrlSchemeHandler
-{
-  Q_OBJECT
-public:
-  explicit ApvlvSchemeHandler (ApvlvCore *doc) { mDoc = doc; }
-  ~ApvlvSchemeHandler () = default;
-
-  void requestStarted (QWebEngineUrlRequestJob *job) override;
-
-private:
-  ApvlvCore *mDoc;
-
-signals:
-  void webpageUpdated (const string &key);
 };
 
 class ApvlvView;
@@ -254,16 +237,12 @@ protected:
   QScrollArea *mMainImageScrolView;
 
   // the webview
-  QWebEngineView *mMainWebView;
+  ApvlvWebview *mMainWebView;
 
   QScrollBar *mMainVaj, *mMainHaj;
 
   // the document scrolled window
   QFrame *mMainImageFrame;
-
-  unique_ptr<QWebEngineProfile> mWebProfile;
-
-  shared_ptr<ApvlvSchemeHandler> mSchemeHandler;
 
   bool mWebScrollUp;
 

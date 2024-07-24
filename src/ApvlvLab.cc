@@ -106,7 +106,7 @@ ApvlvLab::render (int, int, int, double, int, QImage *)
 
 bool
 ApvlvLab::render (int pn, int ix, int iy, double zm, int rot,
-                  QWebEngineView *webview)
+                  ApvlvWebview *webview)
 {
   webview->setZoomFactor (zm);
   QUrl url = QString ("apvlv:///") + QString::number (pn);

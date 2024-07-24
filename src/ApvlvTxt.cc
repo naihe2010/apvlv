@@ -27,7 +27,6 @@
 
 #include <QFile>
 #include <QWebEngineSettings>
-#include <QWebEngineView>
 #include <filesystem>
 #include <fstream>
 
@@ -94,7 +93,7 @@ ApvlvTXT::render (int, int, int, double, int, QImage *)
 
 bool
 ApvlvTXT::render (int pn, int ix, int iy, double zm, int rot,
-                  QWebEngineView *webview)
+                  ApvlvWebview *webview)
 {
   auto settings = webview->settings ();
   settings->setDefaultTextEncoding ("UTF-8");

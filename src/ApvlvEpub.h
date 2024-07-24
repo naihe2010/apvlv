@@ -54,7 +54,7 @@ public:
   bool pagetext (int, double, double, double, double, char **) override;
 
   bool render (int pn, int ix, int iy, double zm, int rot,
-               QWebEngineView *widget) override;
+               ApvlvWebview *widget) override;
 
   unique_ptr<ApvlvPoses> pagesearch (int pn, const char *str,
                                      bool reverse) override;
@@ -67,9 +67,6 @@ public:
   bool pageprint (int pn, QPrinter *cr) override;
 
   optional<QByteArray> get_ocf_file (const string &path) override;
-
-  DISPLAY_TYPE
-  get_display_type () override { return DISPLAY_TYPE_HTML; }
 
 private:
   optional<QByteArray> get_zip_file_contents (const QString &name);

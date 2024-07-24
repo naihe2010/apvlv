@@ -259,16 +259,16 @@ ApvlvSearchDialog::ApvlvSearchDialog (QWidget *parent)
   spliter->setOrientation (Qt::Vertical);
 
   spliter->addWidget (&mResults);
-  auto scrollarea = new QScrollArea;
-  spliter->addWidget (scrollarea);
-  scrollarea->setWidget (&mPreview);
-  scrollarea->resize (400, 300);
+  spliter->addWidget (&mPreview);
+  mPreview.resize (400, 300);
   QObject::connect (
       &mResults,
       SIGNAL (currentItemChanged (QListWidgetItem *, QListWidgetItem *)), this,
       SLOT (previewItem (QListWidgetItem *)));
   QObject::connect (&mResults, SIGNAL (itemActivated (QListWidgetItem *)),
                     this, SLOT (activateItem (QListWidgetItem *)));
+  QObject::connect (&mPreview, SIGNAL (loadFinished (bool)), this,
+                    SLOT (loadFinish (bool)));
 
   QObject::connect (&mGetTimer, SIGNAL (timeout ()), this,
                     SLOT (getResults ()));
@@ -309,22 +309,25 @@ ApvlvSearchDialog::getResults ()
 void
 ApvlvSearchDialog::previewItem (QListWidgetItem *item)
 {
+  if (mPreviewIsFinished == false)
+    return;
+
   auto words = item->data (Qt::UserRole).toStringList ();
-  auto path = words[0];
+  auto path = words[0].toStdString ();
   auto pn = words[1].toInt ();
-  unique_ptr<ApvlvFile> file{ ApvlvFile::newFile (path.toStdString (),
-                                                  false) };
-  if (file)
+  if (mPreviewFile && mPreviewFile->getFilename () != path)
+    mPreviewFile = nullptr;
+
+  if (mPreviewFile == nullptr)
+    mPreviewFile = unique_ptr<ApvlvFile>{ ApvlvFile::newFile (path, false) };
+
+  if (mPreviewFile)
     {
       double x, y;
-      QImage image;
-      file->pagesize (pn, 0, &x, &y);
-      if (file->render (pn, int (x), int (y), 1.0, 0, &image))
-        {
-          auto pixmap = QPixmap::fromImage (image);
-          mPreview.setPixmap (pixmap);
-          mPreview.resize (int (x), int (y));
-        }
+      mPreview.setFile (mPreviewFile.get ());
+      mPreviewFile->pagesize (pn, 0, &x, &y);
+      mPreviewIsFinished = false;
+      mPreviewFile->render (pn, int (x), int (y), 1.0, 0, &mPreview);
     }
 }
 
@@ -355,6 +358,12 @@ ApvlvSearchDialog::displayResults (const ApvlvSearchResults &results)
                   mResults.addItem (matchitem);
                 });
     }
+}
+
+void
+ApvlvSearchDialog::loadFinish (bool ret)
+{
+  mPreviewIsFinished = true;
 }
 
 }

@@ -42,6 +42,7 @@
 
 #include "ApvlvFile.h"
 #include "ApvlvQueue.h"
+#include "ApvlvWebView.h"
 
 namespace apvlv
 {
@@ -97,6 +98,7 @@ private slots:
   void previewItem (QListWidgetItem *item);
   void activateItem (QListWidgetItem *item);
   void displayResults (const ApvlvSearchResults &results);
+  void loadFinish (bool ret);
 
 private:
   ApvlvSearchOptions mOptions;
@@ -111,7 +113,10 @@ private:
   vector<QCheckBox *> mTypes;
   QLineEdit mFromDir;
   QListWidget mResults;
-  QLabel mPreview;
+  ApvlvWebview mPreview;
+
+  unique_ptr<ApvlvFile> mPreviewFile;
+  bool mPreviewIsFinished;
 };
 
 }

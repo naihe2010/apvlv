@@ -27,12 +27,9 @@
 /* @date Created: 2009/01/04 09:34:51 Alf*/
 
 #include <QBuffer>
-#include <QLineEdit>
 #include <QMessageBox>
 #include <QScrollArea>
 #include <QSplitter>
-#include <QWebEngineProfile>
-#include <QWebEngineView>
 #include <filesystem>
 #include <iostream>
 #include <sstream>
@@ -43,41 +40,6 @@
 
 namespace apvlv
 {
-
-void
-ApvlvSchemeHandler::requestStarted (QWebEngineUrlRequestJob *job)
-{
-  auto url = job->requestUrl ();
-  auto path = url.path ().toStdString ();
-  auto key = path.substr (1);
-  auto mime = mDoc->file ()->get_ocf_mime_type (key);
-  if (!mDoc->file ()->hasByteArray (key))
-    {
-      auto roptcont = mDoc->file ()->get_ocf_file (key);
-      if (!roptcont)
-        {
-          job->fail (QWebEngineUrlRequestJob::UrlNotFound);
-          return;
-        }
-
-      mDoc->file ()->cacheByteArray (key, roptcont.value ());
-    }
-
-  auto optcont = mDoc->file ()->getByteArray (key);
-  if (!optcont)
-    {
-      job->fail (QWebEngineUrlRequestJob::RequestFailed);
-      return;
-    }
-
-  auto buffer = new QBuffer ();
-  buffer->setData (optcont.value ());
-  QObject::connect (job, SIGNAL (destroyed (QObject *)), buffer,
-                    SLOT (deleteLater ()));
-  job->reply (QByteArray (mime.c_str ()), buffer);
-
-  emit webpageUpdated (key);
-}
 
 ApvlvCore::ApvlvCore (ApvlvView *view)
 {
@@ -130,7 +92,7 @@ ApvlvCore::ApvlvCore (ApvlvView *view)
 
   initWebUi ();
 
-  showImage ();
+  showWeb ();
 
   mStatus = new ApvlvStatus ();
   mVbox->addWidget (mStatus, 0);
@@ -704,21 +666,11 @@ ApvlvCore::initImageUi ()
 void
 ApvlvCore::initWebUi ()
 {
-  mWebProfile = make_unique<QWebEngineProfile> ();
-  mMainWebView = new QWebEngineView (mWebProfile.get ());
+  mMainWebView = new ApvlvWebview ();
   QObject::connect (mMainWebView, SIGNAL (loadFinished (bool)), this,
                     SLOT (webview_load_finished (bool)));
-  mSchemeHandler = make_unique<ApvlvSchemeHandler> (this);
-  mWebProfile->installUrlSchemeHandler (QByteArray ("apvlv"),
-                                        mSchemeHandler.get ());
-  QObject::connect (mSchemeHandler.get (),
-                    SIGNAL (webpageUpdated (const string &)), this,
-                    SLOT (webview_update (const string &)));
-  // QObject::connect (mWeb[0].get (),
-  //                  SIGNAL (customContextMenuRequested (const QPoint &)),
-  //                  this, SLOT (webview_context_menu_cb (const QPoint &)));
-  // g_signal_connect (G_OBJECT (mMainVaj), "value-changed",
-  //                  G_CALLBACK (apvlv_doc_on_mouse), this);
+  QObject::connect (mMainWebView, SIGNAL (webpageUpdated (const string &)),
+                    this, SLOT (webview_update (const string &)));
 }
 
 void

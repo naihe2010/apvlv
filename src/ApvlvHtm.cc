@@ -25,7 +25,7 @@
  */
 /* @date Created: 2011/09/16 13:51:04 Alf*/
 
-#include <QWebEngineView>
+#include <QUrl>
 
 #include "ApvlvHtm.h"
 #include "ApvlvUtil.h"
@@ -69,7 +69,7 @@ ApvlvHTML::pagetext (int, double, double, double, double, char **)
 
 bool
 ApvlvHTML::render (int pn, int ix, int iy, double zm, int rot,
-                   QWebEngineView *webview)
+                   ApvlvWebview *webview)
 {
   auto url = QUrl (QString::fromStdString (mUri));
   webview->load (url);

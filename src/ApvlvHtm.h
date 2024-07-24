@@ -53,7 +53,7 @@ public:
   bool pagetext (int, double, double, double, double, char **) override;
 
   bool render (int pn, int ix, int iy, double zm, int rot,
-               QWebEngineView *webview) override;
+               ApvlvWebview *webview) override;
 
   unique_ptr<ApvlvPoses> pagesearch (int pn, const char *str,
                                      bool reverse) override;
@@ -64,9 +64,6 @@ public:
   unique_ptr<ApvlvLinks> getlinks (int pn) override;
 
   bool pageprint (int pn, QPrinter *cr) override;
-
-  DISPLAY_TYPE
-  get_display_type () override { return DISPLAY_TYPE_HTML; }
 
 private:
   string mUri;

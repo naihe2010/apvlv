@@ -25,6 +25,7 @@
  */
 /* @date Created: 2009/11/20 19:38:30 Alf*/
 
+#include <QBuffer>
 #include <algorithm>
 #include <filesystem>
 #include <functional>
@@ -33,26 +34,26 @@
 #include <stack>
 #include <utility>
 
-#ifdef APVLV_WITH_POPPLER
-#include "ApvlvPopplerPdf.h"
-#else
-#include "ApvlvQtPdf.h"
-#endif
-#include "ApvlvEpub.h"
 #include "ApvlvFile.h"
-#include "ApvlvHtm.h"
 #include "ApvlvUtil.h"
-#ifdef APVLV_WITH_DJVU
-#include "ApvlvDjvu.h"
-#endif
-#include "ApvlvFb2.h"
-#include "ApvlvTxt.h"
+#include "ApvlvWebView.h"
 
 namespace apvlv
 {
-#ifndef MAX
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#endif
+const string html_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
+                             "<html xmlns=\"http://www.w3.org/1999/xhtml\" "
+                             "lang=\"en\" xml:lang=\"en\">\n"
+                             "  <head>\n"
+                             "    <title></title>\n"
+                             "    <meta http-equiv=\"Content-Type\" "
+                             "content=\"text/html; charset=utf-8\"/>\n"
+                             "  </head>\n"
+                             "  <body>\n"
+                             "    <div content>"
+                             "      <image src=%s />"
+                             "    </div>"
+                             "  </body>\n"
+                             "</html>\n";
 
 using namespace std;
 using namespace std::filesystem;
@@ -132,15 +133,18 @@ ApvlvFile::render (int pn, int ix, int iy, double zm, int rot, QImage *pix)
 }
 
 bool
-ApvlvFile::render (int pn, int, int, double, int, QWebEngineView *)
+ApvlvFile::render (int pn, int ix, int iy, double zm, int rot,
+                   ApvlvWebview *webview)
 {
-  return false;
-}
-
-optional<QByteArray>
-ApvlvFile::get_ocf_file (const string &path)
-{
-  return nullopt;
+  webview->setZoomFactor (zm);
+  QUrl pdfuri = QString ("apvlv:///%1-%2-%3-%4-%5.html")
+                    .arg (pn)
+                    .arg (ix)
+                    .arg (iy)
+                    .arg (zm)
+                    .arg (rot);
+  webview->load (pdfuri);
+  return true;
 }
 
 string
@@ -148,7 +152,10 @@ ApvlvFile::get_ocf_mime_type (const string &path)
 {
   if (srcMimeTypes.find (path) != srcMimeTypes.end ())
     return srcMimeTypes[path];
-  return "text/html";
+  else if (QString::fromStdString (path).endsWith (".png"))
+    return "image/png";
+  else
+    return "text/html";
 }
 
 int
@@ -158,9 +165,6 @@ ApvlvFile::get_ocf_page (const string &path)
     return srcPages[path];
   return -1;
 }
-
-DISPLAY_TYPE
-ApvlvFile::get_display_type () { return DISPLAY_TYPE_IMAGE; }
 
 vector<ApvlvSearchResult>
 ApvlvFile::search (const string &text, bool is_case, bool is_reg)
@@ -241,6 +245,51 @@ bool
 ApvlvFile::annot_update (int, ApvlvAnnotText *text)
 {
   return false;
+}
+
+optional<QByteArray>
+ApvlvFile::get_ocf_file (const string &path)
+{
+  auto words = QString::fromStdString (path).split ("-");
+  int pn = words[0].toInt ();
+  int ix = words[1].toInt ();
+  int iy = words[2].toInt ();
+  double zm = words[3].toDouble ();
+  int rot = words[4].toInt ();
+
+  if (QString::fromStdString (path).endsWith (".html"))
+    return get_ocf_html (pn, ix, iy, zm, rot);
+  else
+    return get_ocf_image (pn, ix, iy, zm, rot);
+}
+
+optional<QByteArray>
+ApvlvFile::get_ocf_html (int pn, int ix, int iy, double zm, int rot)
+{
+  auto src = QString ("apvlv:///%1-%2-%3-%4-%5.png")
+                 .arg (pn)
+                 .arg (ix)
+                 .arg (iy)
+                 .arg (zm)
+                 .arg (rot);
+  auto html = QString::asprintf (html_template.c_str (),
+                                 src.toStdString ().c_str ());
+  return QByteArray::fromStdString (html.toStdString ());
+}
+
+optional<QByteArray>
+ApvlvFile::get_ocf_image (int pn, int ix, int iy, double zm, int rot)
+{
+  QImage image;
+  if (render (pn, ix, iy, zm, rot, &image) == false)
+    return nullopt;
+
+  QByteArray array;
+  QBuffer buffer (&array);
+  buffer.open (QIODevice::WriteOnly);
+  image.save (&buffer, "PNG");
+  buffer.close ();
+  return array;
 }
 
 void

@@ -42,7 +42,7 @@ public:
 
   bool render (int, int, int, double, int, QImage *) override;
   bool render (int pn, int ix, int iy, double zm, int rot,
-               QWebEngineView *webview) override;
+               ApvlvWebview *webview) override;
 
 private:
 };

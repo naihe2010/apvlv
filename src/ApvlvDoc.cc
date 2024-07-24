@@ -1690,6 +1690,7 @@ ApvlvDoc::setDisplayType (DISPLAY_TYPE type)
     }
   else
     {
+      mMainWebView->setFile (mFile);
       showWeb ();
     }
 

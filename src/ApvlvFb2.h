@@ -54,7 +54,7 @@ public:
   bool render (int, int, int, double, int, QImage *) override;
 
   bool render (int pn, int ix, int iy, double zm, int rot,
-               QWebEngineView *webview) override;
+               ApvlvWebview *webview) override;
 
   unique_ptr<ApvlvPoses> pagesearch (int pn, const char *s,
                                      bool reverse) override;
@@ -67,9 +67,6 @@ public:
   bool pageprint (int pn, QPrinter *cr) override;
 
   optional<QByteArray> get_ocf_file (const string &path) override;
-
-  DISPLAY_TYPE
-  get_display_type () override { return DISPLAY_TYPE_HTML; }
 
 private:
   map<string, pair<string, string> > titleSections;

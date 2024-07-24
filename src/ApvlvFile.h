@@ -29,11 +29,12 @@
 #define _APVLV_FILE_H_
 
 #include <QPrinter>
-#include <QWebEngineView>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <vector>
+
+#include "ApvlvWebView.h"
 
 namespace apvlv
 {
@@ -165,7 +166,7 @@ public:
 
   virtual bool render (int, int, int, double, int, QImage *);
 
-  virtual bool render (int pn, int, int, double, int, QWebEngineView *);
+  virtual bool render (int pn, int, int, double, int, ApvlvWebview *);
 
   virtual unique_ptr<ApvlvPoses> pagesearch (int pn, const char *str,
                                              bool reverse)
@@ -197,7 +198,11 @@ public:
 
   virtual int get_ocf_page (const string &path);
 
-  virtual DISPLAY_TYPE get_display_type ();
+  virtual DISPLAY_TYPE
+  get_display_type () const
+  {
+    return DISPLAY_TYPE_HTML;
+  }
 
   const string &
   getFilename ()
@@ -241,6 +246,9 @@ private:
 
   static map<string, std::vector<string> > mSupportMimeTypes;
   static map<string, function<ApvlvFile *(const string &)> > mSupportClass;
+
+  optional<QByteArray> get_ocf_html (int, int, int, double, int);
+  optional<QByteArray> get_ocf_image (int, int, int, double, int);
 };
 
 #define FILE_TYPE_DECLARATION(cls)                                            \
