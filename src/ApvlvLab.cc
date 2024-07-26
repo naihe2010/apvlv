@@ -23,7 +23,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2024/03/24 12:06:27 Alf*/
 
 #include "ApvlvLab.h"
 #include "ApvlvUtil.h"
@@ -91,22 +90,15 @@ const string section_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
                                 "    %s\n"
                                 "  </body>\n"
                                 "</html>\n";
-ApvlvLab::ApvlvLab (const char *filename, bool check)
-    : ApvlvFile (filename, check)
+ApvlvLab::ApvlvLab (const char *filename, bool check) : File (filename, check)
 {
 }
 
 ApvlvLab::~ApvlvLab () {}
 
 bool
-ApvlvLab::render (int, int, int, double, int, QImage *)
-{
-  return false;
-}
-
-bool
-ApvlvLab::render (int pn, int ix, int iy, double zm, int rot,
-                  ApvlvWebview *webview)
+ApvlvLab::pageRender (int pn, int ix, int iy, double zm, int rot,
+                      ApvlvWebview *webview)
 {
   webview->setZoomFactor (zm);
   QUrl url = QString ("apvlv:///") + QString::number (pn);

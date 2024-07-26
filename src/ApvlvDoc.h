@@ -24,7 +24,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2008/09/30 00:00:00 Alf */
 
 #ifndef _APVLV_DOC_H_
 #define _APVLV_DOC_H_
@@ -47,7 +46,7 @@ namespace apvlv
 class ApvlvDoc;
 struct PrintData
 {
-  ApvlvFile *file;
+  File *file;
   uint frmpn, endpn;
 };
 
@@ -82,7 +81,7 @@ class ApvlvDoc;
 class ApvlvDocCache
 {
 public:
-  explicit ApvlvDocCache (ApvlvFile *);
+  explicit ApvlvDocCache (File *);
 
   ~ApvlvDocCache ();
 
@@ -122,7 +121,7 @@ public:
   ApvlvAnnotText *annotAtPos (ApvlvPos vpos);
 
 private:
-  ApvlvFile *mFile;
+  File *mFile;
   double mZoom;
   uint mRotate;
   int mPagenum;
@@ -203,7 +202,7 @@ public:
 
   void showpage (int p, const string &anchor) override;
 
-  void contentShowPage (const ApvlvFileIndex *index, bool force);
+  void contentShowPage (const FileIndex *index, bool force);
 
   void nextpage (int times) override;
 
@@ -253,6 +252,8 @@ private:
   int convertindex (int p);
 
   void markselection ();
+
+  void markselectionweb ();
 
   bool needsearch (const char *str, bool reverse = false);
 

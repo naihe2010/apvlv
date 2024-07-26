@@ -23,81 +23,31 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2011/09/16 13:51:04 Alf*/
 
 #include <QUrl>
 
 #include "ApvlvHtm.h"
-#include "ApvlvUtil.h"
 
 namespace apvlv
 {
 FILE_TYPE_DEFINITION (ApvlvHTML, { ".htm", ".html" });
 
 ApvlvHTML::ApvlvHTML (const string &filename, bool check)
-    : ApvlvFile (filename, check), mUri (filename)
+    : File (filename, check)
 {
-}
-
-ApvlvHTML::~ApvlvHTML () = default;
-
-bool
-ApvlvHTML::writefile (const char *filename)
-{
-  return false;
+  mUrl.setScheme ("file");
+  mUrl.setPath (QString::fromStdString (filename));
 }
 
 bool
-ApvlvHTML::pagesize (int page, int rot, double *x, double *y)
+ApvlvHTML::pageRender (int pn, int ix, int iy, double zm, int rot,
+                       ApvlvWebview *webview)
 {
-  *x = HTML_DEFAULT_WIDTH;
-  *y = HTML_DEFAULT_HEIGHT;
+  webview->setZoomFactor (zm);
+  webview->load (mUrl);
   return true;
 }
 
-int
-ApvlvHTML::pagesum ()
-{
-  return 1;
-}
-
-bool
-ApvlvHTML::pagetext (int, double, double, double, double, char **)
-{
-  return false;
-}
-
-bool
-ApvlvHTML::render (int pn, int ix, int iy, double zm, int rot,
-                   ApvlvWebview *webview)
-{
-  auto url = QUrl (QString::fromStdString (mUri));
-  webview->load (url);
-  return false;
-}
-
-unique_ptr<ApvlvPoses>
-ApvlvHTML::pagesearch (int pn, const char *str, bool reverse)
-{
-  return nullptr;
-}
-
-unique_ptr<ApvlvLinks>
-ApvlvHTML::getlinks (int pn)
-{
-  return nullptr;
-}
-
-bool
-ApvlvHTML::pageprint (int pn, QPrinter *cr)
-{
-  return false;
-}
-ApvlvSearchMatches
-ApvlvHTML::searchPage (int pn, const string &text, bool is_case, bool is_reg)
-{
-  return ApvlvSearchMatches ();
-}
 }
 
 // Local Variables:

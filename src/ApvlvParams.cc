@@ -24,7 +24,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2008/09/30 00:00:00 Alf */
 
 #include "ApvlvParams.h"
 #include "ApvlvCmds.h"
@@ -69,6 +68,7 @@ ApvlvParams::ApvlvParams ()
 #endif
   push ("guioptions", "mT");
   push ("autoreload", "3");
+  push ("thread_count", "auto");
 }
 
 ApvlvParams::~ApvlvParams () { mSettings.clear (); }

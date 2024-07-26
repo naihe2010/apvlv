@@ -23,7 +23,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2024/03/07 11:06:35 Alf*/
 
 #include <QFile>
 #include <QXmlStreamReader>
@@ -98,7 +97,7 @@ const string section_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
 FILE_TYPE_DEFINITION (ApvlvFB2, { ".fb2" });
 
 ApvlvFB2::ApvlvFB2 (const string &filename, bool check)
-    : ApvlvFile (filename, check)
+    : File (filename, check)
 {
   QFile file (QString::fromStdString (filename));
   if (!file.open (QFile::ReadOnly | QFile::Text))
@@ -291,59 +290,22 @@ ApvlvFB2::fb2_get_index ()
         continue;
 
       auto title = titleSections[mPages[ind]].first;
-      auto chap = ApvlvFileIndex (title, ind, pagenum, FILE_INDEX_PAGE);
+      auto chap = FileIndex (title, ind, pagenum, FILE_INDEX_PAGE);
       mIndex.mChildrenIndex.emplace_back (chap);
     }
 
   return true;
 }
 
-bool
-ApvlvFB2::writefile (const char *filename)
-{
-  return false;
-}
-
-bool
-ApvlvFB2::pagesize (int pn, int rot, double *px, double *py)
-{
-  return false;
-}
-
 int
-ApvlvFB2::pagesum ()
+ApvlvFB2::sum ()
 {
   return (int)mPages.size ();
 }
 
-unique_ptr<ApvlvPoses>
-ApvlvFB2::pagesearch (int pn, const char *str, bool reverse)
-{
-  return nullptr;
-}
-
-unique_ptr<ApvlvLinks>
-ApvlvFB2::getlinks (int pn)
-{
-  return nullptr;
-}
-
 bool
-ApvlvFB2::pagetext (int pn, double x1, double y1, double x2, double y2,
-                    char **out)
-{
-  return false;
-}
-
-bool
-ApvlvFB2::render (int, int, int, double, int, QImage *)
-{
-  return false;
-}
-
-bool
-ApvlvFB2::render (int pn, int ix, int iy, double zm, int rot,
-                  ApvlvWebview *webview)
+ApvlvFB2::pageRender (int pn, int ix, int iy, double zm, int rot,
+                      ApvlvWebview *webview)
 {
   webview->setZoomFactor (zm);
   QUrl url = QString ("apvlv:///") + QString::number (pn);
@@ -351,14 +313,8 @@ ApvlvFB2::render (int pn, int ix, int iy, double zm, int rot,
   return true;
 }
 
-bool
-ApvlvFB2::pageprint (int pn, QPrinter *cr)
-{
-  return false;
-}
-
 optional<QByteArray>
-ApvlvFB2::get_ocf_file (const string &uri)
+ApvlvFB2::pathContent (const string &uri)
 {
   if (uri == "stylesheet.css")
     {
@@ -368,12 +324,6 @@ ApvlvFB2::get_ocf_file (const string &uri)
 
   auto byte_array = QByteArray::fromStdString (titleSections[uri].second);
   return byte_array;
-}
-
-ApvlvSearchMatches
-ApvlvFB2::searchPage (int pn, const string &text, bool is_case, bool is_reg)
-{
-  return ApvlvSearchMatches ();
 }
 
 }

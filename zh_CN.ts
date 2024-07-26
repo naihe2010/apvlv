@@ -99,19 +99,19 @@
     <name>apvlv::ApvlvSearchDialog</name>
     <message>
         <source>Case sensitive</source>
-        <translation>大小写</translation>
+        <translation type="vanished">大小写</translation>
     </message>
     <message>
         <source>Regular expression</source>
-        <translation>正则表达式</translation>
+        <translation type="vanished">正则表达式</translation>
     </message>
     <message>
         <source>...</source>
-        <translation>……</translation>
+        <translation type="vanished">……</translation>
     </message>
     <message>
         <source>Find Directory: </source>
-        <translation>查找目录：</translation>
+        <translation type="vanished">查找目录：</translation>
     </message>
 </context>
 <context>
@@ -210,6 +210,25 @@
     <message>
         <source>Back Search</source>
         <translation>反向查找</translation>
+    </message>
+</context>
+<context>
+    <name>apvlv::SearchDialog</name>
+    <message>
+        <source>Case sensitive</source>
+        <translation>区分大小写</translation>
+    </message>
+    <message>
+        <source>Regular expression</source>
+        <translation>正则表达式</translation>
+    </message>
+    <message>
+        <source>Find Directory: </source>
+        <translation>查找目录：</translation>
+    </message>
+    <message>
+        <source>...</source>
+        <translation>……</translation>
     </message>
 </context>
 </TS>

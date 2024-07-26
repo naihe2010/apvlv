@@ -24,7 +24,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2008/09/30 00:00:00 Alf */
 
 #ifndef _APVLV_WINDOW_H_
 #define _APVLV_WINDOW_H_

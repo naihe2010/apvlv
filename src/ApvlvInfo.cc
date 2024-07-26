@@ -23,7 +23,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2010/02/23 15:00:42 Alf*/
 
 #include "ApvlvInfo.h"
 
@@ -32,7 +31,6 @@
 #include <cstring>
 #include <fstream>
 #include <sstream>
-#include <utility>
 
 namespace apvlv
 {

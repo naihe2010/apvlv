@@ -19,11 +19,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/* @CPPFILE ApvlvFile.h
+/* @CPPFILE File.h
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2009/11/20 19:37:44 Alf*/
 
 #ifndef _APVLV_FILE_H_
 #define _APVLV_FILE_H_
@@ -34,7 +33,7 @@
 #include <memory>
 #include <vector>
 
-#include "ApvlvWebView.h"
+#include "ApvlvSearch.h"
 
 namespace apvlv
 {
@@ -77,26 +76,6 @@ struct ApvlvPos
 
 using ApvlvPoses = vector<ApvlvPos>;
 
-struct ApvlvSearchMatch
-{
-  string keyword;
-  string line;
-};
-
-using ApvlvSearchMatches = vector<ApvlvSearchMatch>;
-
-struct ApvlvSearchResult
-{
-  int page;
-  ApvlvSearchMatches matches;
-};
-
-struct ApvlvSearchResults
-{
-  string filename;
-  vector<ApvlvSearchResult> result_list;
-};
-
 enum ApvlvAnnotType
 {
   APVLV_ANNOT_UNDERLINE,
@@ -112,94 +91,52 @@ struct ApvlvAnnotText
 
 using ApvlvAnnotTexts = vector<ApvlvAnnotText>;
 
-enum ApvlvFileIndexType
+enum FileIndexType
 {
   FILE_INDEX_PAGE,
   FILE_INDEX_FILE,
   FILE_INDEX_DIR
 };
 
-class ApvlvFileIndex
+class FileIndex
 {
 public:
-  ApvlvFileIndex () : page (0), type (FILE_INDEX_PAGE){};
-  ApvlvFileIndex (const string &title, int page, const string &path,
-                  ApvlvFileIndexType type);
-  ApvlvFileIndex (string &&title, int page, string &&path,
-                  ApvlvFileIndexType type);
-  ~ApvlvFileIndex ();
+  FileIndex () : page (0), type (FILE_INDEX_PAGE){};
+  FileIndex (const string &title, int page, const string &path,
+             FileIndexType type);
+  FileIndex (string &&title, int page, string &&path, FileIndexType type);
+  ~FileIndex ();
 
   void loadDirectory (const string &path1);
-  void appendChild (const ApvlvFileIndex &child);
-  [[nodiscard]] const ApvlvFileIndex *
-  findIndex (const ApvlvFileIndex &tmp_index) const;
+  void appendChild (const FileIndex &child);
+  [[nodiscard]] const FileIndex *findIndex (const FileIndex &tmp_index) const;
 
-  bool operator== (const ApvlvFileIndex &) const;
+  bool operator== (const FileIndex &) const;
 
   string title;
   int page;
   string path;
   string anchor;
-  ApvlvFileIndexType type;
-  vector<ApvlvFileIndex> mChildrenIndex;
+  FileIndexType type;
+  vector<FileIndex> mChildrenIndex;
 };
 
-class ApvlvFile
+class ApvlvWebview;
+class File
 {
 public:
   const static map<string, vector<string> > &supportMimeTypes ();
   static vector<string> supportFileExts ();
 
-  ApvlvFile (const string &filename, bool check);
+  static File *newFile (const string &filename, bool check = false);
 
-  virtual ~ApvlvFile ();
+  File (const string &filename, bool check);
 
-  static ApvlvFile *newFile (const string &filename, bool check = false);
+  virtual ~File ();
 
-  virtual bool writefile (const char *filename) = 0;
-
-  virtual bool pagesize (int page, int rot, double *x, double *y) = 0;
-
-  virtual int pagesum () = 0;
-
-  virtual bool pagetext (int, double, double, double, double, char **) = 0;
-
-  virtual bool render (int, int, int, double, int, QImage *);
-
-  virtual bool render (int pn, int, int, double, int, ApvlvWebview *);
-
-  virtual unique_ptr<ApvlvPoses> pagesearch (int pn, const char *str,
-                                             bool reverse)
-      = 0;
-
-  virtual ApvlvSearchMatches searchPage (int pn, const string &text,
-                                         bool is_case, bool is_reg)
-      = 0;
-
-  virtual bool pageselectsearch (int, int, int, double, int, QImage *,
-                                 ApvlvPoses *);
-
-  virtual bool annot_underline (int, double, double, double, double);
-
-  virtual bool annot_text (int, double, double, double, double,
-                           const char *text);
-
-  virtual bool annot_update (int, ApvlvAnnotText *text);
-
-  virtual ApvlvAnnotTexts getAnnotTexts (int pn);
-
-  virtual unique_ptr<ApvlvLinks> getlinks (int pn) = 0;
-
-  virtual bool pageprint (int pn, QPrinter *cr) = 0;
-
-  virtual optional<QByteArray> get_ocf_file (const string &path);
-
-  virtual string get_ocf_mime_type (const string &path);
-
-  virtual int get_ocf_page (const string &path);
-
-  virtual DISPLAY_TYPE
-  get_display_type () const
+  // File methods
+  [[nodiscard]] virtual DISPLAY_TYPE
+  getDisplayType () const
   {
     return DISPLAY_TYPE_HTML;
   }
@@ -211,19 +148,92 @@ public:
   }
 
   const ApvlvCover &
-  get_cover ()
+  getCover ()
   {
     return mCover;
   }
 
-  const ApvlvFileIndex &
-  get_index ()
+  const FileIndex &
+  getIndex ()
   {
     return mIndex;
   }
 
-  vector<ApvlvSearchResult> search (const string &text, bool is_case,
-                                    bool is_reg);
+  virtual bool
+  writeFile (const char *filename)
+  {
+    return false;
+  }
+
+  virtual unique_ptr<SearchFileMatch> grepFile (const string &seq,
+                                                bool is_case, bool is_regex,
+                                                atomic<bool> &is_abort);
+
+  virtual int
+  sum ()
+  {
+    return 1;
+  };
+
+  // Page methods
+  virtual bool
+  pageSize (int page, int rot, double *x, double *y)
+  {
+    return false;
+  }
+
+  virtual bool
+  pageRender (int page, int x, int y, double zm, int rot, QImage *pix)
+  {
+    return false;
+  }
+
+  virtual bool pageRender (int pn, int x, int y, double zm, int rot,
+                           ApvlvWebview *webview);
+
+  virtual bool
+  pageText (int pn, string &text)
+  {
+    return false;
+  }
+
+  virtual unique_ptr<ApvlvLinks>
+  pageLinks (int pn)
+  {
+    return nullptr;
+  }
+
+  virtual bool
+  pageSelection (int pn, double left, double top, double width, double height,
+                 string &text)
+  {
+    return false;
+  }
+
+  virtual unique_ptr<ApvlvPoses>
+  pageSearch (int pn, const char *str, bool reverse)
+  {
+    return nullptr;
+  }
+
+  virtual bool pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
+                                 QImage *pix, ApvlvPoses *poses);
+
+  virtual bool pageAnnotUnderline (int, double, double, double, double);
+
+  virtual bool pageAnnotText (int, double, double, double, double,
+                              const char *text);
+
+  virtual bool pageAnnotUpdate (int, ApvlvAnnotText *text);
+
+  virtual ApvlvAnnotTexts pageAnnotTexts (int pn);
+
+  // path methods
+  virtual optional<QByteArray> pathContent (const string &path);
+
+  virtual string pathMimeType (const string &path);
+
+  virtual int pathPageNumber (const string &path);
 
   bool hasByteArray (const string &key);
   optional<const QByteArray> getByteArray (const string &key);
@@ -231,11 +241,11 @@ public:
 
 protected:
   static int registerClass (const string &mime,
-                            function<ApvlvFile *(const string &)> fun,
+                            function<File *(const string &)> fun,
                             initializer_list<string> exts);
 
   string mFilename;
-  ApvlvFileIndex mIndex;
+  FileIndex mIndex;
   std::vector<string> mPages;
   std::map<string, int> srcPages;
   std::map<string, string> srcMimeTypes;
@@ -245,10 +255,10 @@ private:
   QMap<string, QByteArray> mCacheByteArray;
 
   static map<string, std::vector<string> > mSupportMimeTypes;
-  static map<string, function<ApvlvFile *(const string &)> > mSupportClass;
+  static map<string, function<File *(const string &)> > mSupportClass;
 
-  optional<QByteArray> get_ocf_html (int, int, int, double, int);
-  optional<QByteArray> get_ocf_image (int, int, int, double, int);
+  optional<QByteArray> pathContentHtml (int, int, int, double, int);
+  optional<QByteArray> pathContentPng (int, int, int, double, int);
 };
 
 #define FILE_TYPE_DECLARATION(cls)                                            \
@@ -257,9 +267,7 @@ private:                                                                      \
 #define FILE_TYPE_DEFINITION(cls, ...)                                        \
   int cls::class_id_of_##cls = registerClass (                                \
       #cls,                                                                   \
-      [] (const string &filename) -> ApvlvFile * {                            \
-        return new cls (filename);                                            \
-      },                                                                      \
+      [] (const string &filename) -> File * { return new cls (filename); },   \
       __VA_ARGS__)
 
 };

@@ -24,11 +24,12 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2024/07/25 00:00:00 Alf */
 
 #ifndef _APVLV_WEBVIEW_H_
 #define _APVLV_WEBVIEW_H_
 
+#include <QBuffer>
+#include <QByteArray>
 #include <QWebEngineProfile>
 #include <QWebEngineUrlRequestJob>
 #include <QWebEngineUrlSchemeHandler>
@@ -40,20 +41,22 @@ namespace apvlv
 {
 using namespace std;
 
-class ApvlvFile;
+class File;
 class ApvlvSchemeHandler : public QWebEngineUrlSchemeHandler
 {
   Q_OBJECT
 public:
   void
-  setFile (ApvlvFile *file)
+  setFile (File *file)
   {
     mFile = file;
   }
   void requestStarted (QWebEngineUrlRequestJob *job) override;
 
 private:
-  ApvlvFile *mFile;
+  File *mFile;
+  QByteArray mArray;
+  QBuffer mBuffer;
 
 signals:
   void webpageUpdated (const string &key);
@@ -65,7 +68,7 @@ class ApvlvWebview : public QWebEngineView
 public:
   ApvlvWebview ();
   void
-  setFile (ApvlvFile *file)
+  setFile (File *file)
   {
     mSchemeHandler->setFile (file);
   }

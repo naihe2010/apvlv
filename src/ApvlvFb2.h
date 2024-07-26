@@ -23,7 +23,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2024/03/07 11:05:10 Alf*/
 
 #ifndef _APVLV_FB2_H_
 #define _APVLV_FB2_H_
@@ -34,7 +33,7 @@
 
 namespace apvlv
 {
-class ApvlvFB2 : public ApvlvFile
+class ApvlvFB2 : public File
 {
   FILE_TYPE_DECLARATION (ApvlvFB2);
 
@@ -43,30 +42,12 @@ public:
 
   ~ApvlvFB2 () override = default;
 
-  bool writefile (const char *filename) override;
+  int sum () override;
 
-  bool pagesize (int page, int rot, double *x, double *y) override;
+  bool pageRender (int pn, int ix, int iy, double zm, int rot,
+                   ApvlvWebview *webview) override;
 
-  int pagesum () override;
-
-  bool pagetext (int, double, double, double, double, char **) override;
-
-  bool render (int, int, int, double, int, QImage *) override;
-
-  bool render (int pn, int ix, int iy, double zm, int rot,
-               ApvlvWebview *webview) override;
-
-  unique_ptr<ApvlvPoses> pagesearch (int pn, const char *s,
-                                     bool reverse) override;
-
-  ApvlvSearchMatches searchPage (int pn, const string &text, bool is_case,
-                                 bool is_reg) override;
-
-  unique_ptr<ApvlvLinks> getlinks (int pn) override;
-
-  bool pageprint (int pn, QPrinter *cr) override;
-
-  optional<QByteArray> get_ocf_file (const string &path) override;
+  optional<QByteArray> pathContent (const string &path) override;
 
 private:
   map<string, pair<string, string> > titleSections;

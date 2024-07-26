@@ -24,22 +24,17 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2008/09/30 00:00:00 Alf */
 
 #include <QByteArray>
 #include <QCoreApplication>
 #include <QDir>
 #include <QProcessEnvironment>
 #include <QXmlStreamReader>
-#include <cstdarg>
-#include <iostream>
 #include <memory>
 #include <optional>
 #include <string>
 
 #include "ApvlvUtil.h"
-
-using namespace std;
 
 namespace apvlv
 {
@@ -193,83 +188,6 @@ xml_content_get_attribute_value (const char *content, size_t length,
   return xml_stream_get_attribute_value (xml, key);
 }
 
-#if 0
-xmlNodeSetPtr
-xmldoc_get_nodeset (xmlDocPtr doc, const char *xpath, const char *pre,
-                    const char *ns)
-{
-  xmlXPathContextPtr xpathctx;
-  xmlXPathObjectPtr xpathobj;
-  xmlNodeSetPtr nodes;
-
-  xpathctx = xmlXPathNewContext (doc);
-  if (xpathctx == nullptr)
-    {
-      qDebug ("unable to create new XPath context\n");
-      return nullptr;
-    }
-
-  if (ns != nullptr)
-    {
-      xmlXPathRegisterNs (xpathctx, BAD_CAST pre, BAD_CAST ns);
-    }
-
-  xpathobj = xmlXPathEvalExpression (BAD_CAST xpath, xpathctx);
-  xmlXPathFreeContext (xpathctx);
-  if (xpathobj == nullptr)
-    {
-      qDebug ("unable to evaluate xpath expression \"%s\"\n", xpath);
-      return nullptr;
-    }
-
-  if (xmlXPathNodeSetIsEmpty (xpathobj->nodesetval))
-    {
-      qDebug ("unable to get \"%s\"\n", xpath);
-      xmlXPathFreeObject (xpathobj);
-      return nullptr;
-    }
-
-  nodes = xpathobj->nodesetval;
-
-  xmlXPathFreeNodeSetList (xpathobj);
-
-  return nodes;
-}
-
-xmlNodePtr
-xmldoc_get_node (xmlDocPtr doc, const char *xpath, const char *pre,
-                 const char *ns)
-{
-  xmlNodePtr node = nullptr;
-  xmlNodeSetPtr nodes = xmldoc_get_nodeset (doc, xpath, pre, ns);
-  if (nodes != nullptr)
-    {
-      node = nodes->nodeTab[0];
-      xmlXPathFreeNodeSet (nodes);
-    }
-
-  return node;
-}
-
-string
-xmlnode_attr_get (xmlNodePtr node, const char *attr)
-{
-  xmlAttrPtr prop;
-  string value;
-
-  for (prop = node->properties; prop != nullptr; prop = prop->next)
-    {
-      if (prop->type == XML_ATTRIBUTE_NODE
-          && strcmp ((char *)prop->name, attr) == 0)
-        {
-          value = (char *)prop->mChildrenIndex->content;
-          break;
-        }
-    }
-
-  return value;
-}
-#endif
 string
 filename_ext (const string &filename)
 {

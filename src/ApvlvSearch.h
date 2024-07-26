@@ -20,11 +20,10 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-/* @CPPFILE ApvlvSearchDialog.h
+/* @CPPFILE SearchDialog.h
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2024/07/13 17:26:00 Alf */
 
 #ifndef _APVLV_SEARCH_DIALOG_H_
 #define _APVLV_SEARCH_DIALOG_H_
@@ -40,16 +39,37 @@
 #include <thread>
 #include <vector>
 
-#include "ApvlvFile.h"
 #include "ApvlvQueue.h"
 #include "ApvlvWebView.h"
 
 namespace apvlv
 {
-class ApvlvSearchOptions
+
+struct SearchMatch
+{
+  string match;
+  string line;
+  size_t pos, length;
+};
+
+using SearchMatchList = vector<SearchMatch>;
+
+struct SearchPageMatch
+{
+  int page;
+  SearchMatchList matches;
+};
+
+struct SearchFileMatch
+{
+  string filename;
+  vector<SearchPageMatch> page_matches;
+};
+
+class SearchOptions
 {
 public:
-  bool operator== (const ApvlvSearchOptions &other) const;
+  bool operator== (const SearchOptions &other) const;
 
   string mText;
   bool mCaseSensitive;
@@ -64,8 +84,8 @@ public:
   Searcher ();
   ~Searcher ();
 
-  void submit (const ApvlvSearchOptions &options);
-  bool get (ApvlvSearchResults &results);
+  void submit (const SearchOptions &options);
+  unique_ptr<SearchFileMatch> get ();
 
 private:
   void dispatch ();
@@ -75,19 +95,20 @@ private:
 
   vector<thread> mTasks;
 
-  ApvlvSearchOptions mOptions;
+  SearchOptions mOptions;
   LockQueue<string> mFilenameQueue;
-  LockQueue<ApvlvSearchResults> mResults;
+  LockQueue<unique_ptr<SearchFileMatch> > mResults;
   atomic<bool> mRestart;
   atomic<bool> mQuit;
 };
 
-class ApvlvSearchDialog : public QDialog
+class File;
+class SearchDialog : public QDialog
 {
   Q_OBJECT
 public:
-  explicit ApvlvSearchDialog (QWidget *parent = nullptr);
-  ~ApvlvSearchDialog () {}
+  explicit SearchDialog (QWidget *parent = nullptr);
+  ~SearchDialog () {}
 
 signals:
   void loadFile (const string &path, int pn);
@@ -97,11 +118,12 @@ private slots:
   void getResults ();
   void previewItem (QListWidgetItem *item);
   void activateItem (QListWidgetItem *item);
-  void displayResults (const ApvlvSearchResults &results);
   void loadFinish (bool ret);
 
 private:
-  ApvlvSearchOptions mOptions;
+  void displayResult (unique_ptr<SearchFileMatch> result);
+
+  SearchOptions mOptions;
 
   Searcher mSearcher;
 
@@ -115,9 +137,12 @@ private:
   QListWidget mResults;
   ApvlvWebview mPreview;
 
-  unique_ptr<ApvlvFile> mPreviewFile;
+  unique_ptr<File> mPreviewFile;
   bool mPreviewIsFinished;
 };
+
+vector<pair<size_t, size_t> > grep (const string &source, const string &text,
+                                    bool is_case, bool is_regex);
 
 }
 

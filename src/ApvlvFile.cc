@@ -19,11 +19,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/* @CPPFILE ApvlvFile.cc
+/* @CPPFILE File.cc
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2009/11/20 19:38:30 Alf*/
 
 #include <QBuffer>
 #include <algorithm>
@@ -59,13 +58,13 @@ using namespace std;
 using namespace std::filesystem;
 
 const map<string, vector<string> > &
-ApvlvFile::supportMimeTypes ()
+File::supportMimeTypes ()
 {
   return mSupportMimeTypes;
 }
 
 vector<string>
-ApvlvFile::supportFileExts ()
+File::supportFileExts ()
 {
   vector<string> exts;
   for (const auto &pair : mSupportMimeTypes)
@@ -75,15 +74,12 @@ ApvlvFile::supportFileExts ()
   return exts;
 }
 
-map<string, vector<string> > ApvlvFile::mSupportMimeTypes{};
-map<string, function<ApvlvFile *(const string &)> > ApvlvFile::mSupportClass{};
+map<string, vector<string> > File::mSupportMimeTypes{};
+map<string, function<File *(const string &)> > File::mSupportClass{};
 
-ApvlvFile::ApvlvFile (const string &filename, bool check)
-    : mFilename (filename)
-{
-}
+File::File (const string &filename, bool check) : mFilename (filename) {}
 
-ApvlvFile::~ApvlvFile ()
+File::~File ()
 {
   mPages.clear ();
   srcPages.clear ();
@@ -91,9 +87,8 @@ ApvlvFile::~ApvlvFile ()
 }
 
 int
-ApvlvFile::registerClass (const string &mime,
-                          function<ApvlvFile *(const string &)> fun,
-                          initializer_list<string> exts)
+File::registerClass (const string &mime, function<File *(const string &)> fun,
+                     initializer_list<string> exts)
 {
   mSupportMimeTypes.insert ({ mime, exts });
   for_each (exts.begin (), exts.end (),
@@ -101,10 +96,10 @@ ApvlvFile::registerClass (const string &mime,
   return static_cast<int> (mSupportMimeTypes.size ());
 }
 
-ApvlvFile *
-ApvlvFile::newFile (const string &filename, bool check)
+File *
+File::newFile (const string &filename, bool check)
 {
-  ApvlvFile *file;
+  File *file;
 
   auto ext = filename_ext (filename);
   if (ext.empty ())
@@ -126,15 +121,54 @@ ApvlvFile::newFile (const string &filename, bool check)
   return file;
 }
 
-bool
-ApvlvFile::render (int pn, int ix, int iy, double zm, int rot, QImage *pix)
+unique_ptr<SearchFileMatch>
+File::grepFile (const string &seq, bool is_case, bool is_regex,
+                atomic<bool> &is_abort)
 {
-  return false;
+  vector<SearchPageMatch> page_matches;
+  for (int pn = 0; pn < sum (); ++pn)
+    {
+      if (is_abort.load () == true)
+        return nullptr;
+
+      string content;
+      if (pageText (pn, content) == false)
+        continue;
+
+      istringstream iss{ content };
+      string line;
+      SearchMatchList matches;
+      while (getline (iss, line))
+        {
+          if (is_abort.load () == true)
+            return nullptr;
+
+          auto founds = apvlv::grep (line, seq, is_case, is_regex);
+          for (auto const &found : founds)
+            {
+              SearchMatch match{ line.substr (found.first, found.second), line,
+                                 found.first, found.second };
+              matches.push_back (match);
+            }
+        }
+      if (!matches.empty ())
+        {
+          page_matches.push_back ({ pn, matches });
+        }
+    }
+
+  if (page_matches.empty ())
+    return nullptr;
+
+  auto file_match = make_unique<SearchFileMatch> ();
+  file_match->filename = getFilename ();
+  file_match->page_matches = std::move (page_matches);
+  return file_match;
 }
 
 bool
-ApvlvFile::render (int pn, int ix, int iy, double zm, int rot,
-                   ApvlvWebview *webview)
+File::pageRender (int pn, int ix, int iy, double zm, int rot,
+                  ApvlvWebview *webview)
 {
   webview->setZoomFactor (zm);
   QUrl pdfuri = QString ("apvlv:///%1-%2-%3-%4-%5.html")
@@ -148,7 +182,7 @@ ApvlvFile::render (int pn, int ix, int iy, double zm, int rot,
 }
 
 string
-ApvlvFile::get_ocf_mime_type (const string &path)
+File::pathMimeType (const string &path)
 {
   if (srcMimeTypes.find (path) != srcMimeTypes.end ())
     return srcMimeTypes[path];
@@ -159,36 +193,21 @@ ApvlvFile::get_ocf_mime_type (const string &path)
 }
 
 int
-ApvlvFile::get_ocf_page (const string &path)
+File::pathPageNumber (const string &path)
 {
   if (srcPages.find (path) != srcPages.end ())
     return srcPages[path];
   return -1;
 }
 
-vector<ApvlvSearchResult>
-ApvlvFile::search (const string &text, bool is_case, bool is_reg)
-{
-  vector<ApvlvSearchResult> results;
-  for (auto pn = 0; pn < pagesum (); ++pn)
-    {
-      auto matches = searchPage (pn, text, is_case, is_reg);
-      if (!matches.empty ())
-        {
-          results.emplace_back (ApvlvSearchResult{ pn, matches });
-        }
-    }
-  return results;
-}
-
 bool
-ApvlvFile::hasByteArray (const string &key)
+File::hasByteArray (const string &key)
 {
   return mCacheByteArray.contains (key);
 }
 
 optional<const QByteArray>
-ApvlvFile::getByteArray (const string &key)
+File::getByteArray (const string &key)
 {
   if (mCacheByteArray.contains (key))
     return mCacheByteArray[key];
@@ -197,14 +216,14 @@ ApvlvFile::getByteArray (const string &key)
 }
 
 void
-ApvlvFile::cacheByteArray (const string &key, const QByteArray &array)
+File::cacheByteArray (const string &key, const QByteArray &array)
 {
   mCacheByteArray.insert (key, array);
 }
 
 bool
-ApvlvFile::pageselectsearch (int pn, int ix, int iy, double zm, int rot,
-                             QImage *pix, ApvlvPoses *poses)
+File::pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
+                        QImage *pix, ApvlvPoses *poses)
 {
   for (auto const &pos : *poses)
     {
@@ -224,31 +243,31 @@ ApvlvFile::pageselectsearch (int pn, int ix, int iy, double zm, int rot,
 }
 
 bool
-ApvlvFile::annot_underline (int, double, double, double, double)
+File::pageAnnotUnderline (int, double, double, double, double)
 {
   return false;
 }
 
 bool
-ApvlvFile::annot_text (int, double, double, double, double, const char *text)
+File::pageAnnotText (int, double, double, double, double, const char *text)
 {
   return false;
 }
 
 ApvlvAnnotTexts
-ApvlvFile::getAnnotTexts (int pn)
+File::pageAnnotTexts (int pn)
 {
   ApvlvAnnotTexts texts;
   return texts;
 }
 bool
-ApvlvFile::annot_update (int, ApvlvAnnotText *text)
+File::pageAnnotUpdate (int, ApvlvAnnotText *text)
 {
   return false;
 }
 
 optional<QByteArray>
-ApvlvFile::get_ocf_file (const string &path)
+File::pathContent (const string &path)
 {
   auto words = QString::fromStdString (path).split ("-");
   int pn = words[0].toInt ();
@@ -258,13 +277,13 @@ ApvlvFile::get_ocf_file (const string &path)
   int rot = words[4].toInt ();
 
   if (QString::fromStdString (path).endsWith (".html"))
-    return get_ocf_html (pn, ix, iy, zm, rot);
+    return pathContentHtml (pn, ix, iy, zm, rot);
   else
-    return get_ocf_image (pn, ix, iy, zm, rot);
+    return pathContentPng (pn, ix, iy, zm, rot);
 }
 
 optional<QByteArray>
-ApvlvFile::get_ocf_html (int pn, int ix, int iy, double zm, int rot)
+File::pathContentHtml (int pn, int ix, int iy, double zm, int rot)
 {
   auto src = QString ("apvlv:///%1-%2-%3-%4-%5.png")
                  .arg (pn)
@@ -278,10 +297,10 @@ ApvlvFile::get_ocf_html (int pn, int ix, int iy, double zm, int rot)
 }
 
 optional<QByteArray>
-ApvlvFile::get_ocf_image (int pn, int ix, int iy, double zm, int rot)
+File::pathContentPng (int pn, int ix, int iy, double zm, int rot)
 {
   QImage image;
-  if (render (pn, ix, iy, zm, rot, &image) == false)
+  if (pageRender (pn, ix, iy, zm, rot, &image) == false)
     return nullopt;
 
   QByteArray array;
@@ -293,20 +312,22 @@ ApvlvFile::get_ocf_image (int pn, int ix, int iy, double zm, int rot)
 }
 
 void
-ApvlvFileIndex::loadDirectory (const string &path1)
+FileIndex::loadDirectory (const string &path1)
 {
-  auto exts = ApvlvFile::supportFileExts ();
+  auto exts = File::supportFileExts ();
 
   for (auto &entry :
        directory_iterator (path1, directory_options::follow_directory_symlink))
     {
       if (entry.is_directory ())
         {
-          auto index
-              = ApvlvFileIndex (entry.path ().filename ().string (), 0,
-                                entry.path ().string (), FILE_INDEX_DIR);
+          auto index = FileIndex (entry.path ().filename ().string (), 0,
+                                  entry.path ().string (), FILE_INDEX_DIR);
           index.loadDirectory (entry.path ().string ());
-          mChildrenIndex.emplace_back (index);
+          if (!index.mChildrenIndex.empty ())
+            {
+              mChildrenIndex.emplace_back (index);
+            }
         }
       else if (entry.file_size () > 0)
         {
@@ -314,21 +335,21 @@ ApvlvFileIndex::loadDirectory (const string &path1)
           if (find (exts.cbegin (), exts.cend (), file_ext) != exts.cend ())
             {
               auto index
-                  = ApvlvFileIndex (entry.path ().filename ().string (), 0,
-                                    entry.path ().string (), FILE_INDEX_FILE);
+                  = FileIndex (entry.path ().filename ().string (), 0,
+                               entry.path ().string (), FILE_INDEX_FILE);
               mChildrenIndex.emplace_back (index);
             }
         }
     }
 
   sort (mChildrenIndex.begin (), mChildrenIndex.end (),
-        [] (const ApvlvFileIndex &a, const ApvlvFileIndex &b) {
+        [] (const FileIndex &a, const FileIndex &b) {
           return a.title < b.title;
         });
 }
 
 void
-ApvlvFileIndex::appendChild (const ApvlvFileIndex &child_index)
+FileIndex::appendChild (const FileIndex &child_index)
 {
   Q_ASSERT (type == FILE_INDEX_FILE);
   Q_ASSERT (child_index.type == FILE_INDEX_FILE);
@@ -336,10 +357,10 @@ ApvlvFileIndex::appendChild (const ApvlvFileIndex &child_index)
   mChildrenIndex = child_index.mChildrenIndex;
 }
 
-const ApvlvFileIndex *
-ApvlvFileIndex::findIndex (const ApvlvFileIndex &tmp_index) const
+const FileIndex *
+FileIndex::findIndex (const FileIndex &tmp_index) const
 {
-  stack<const ApvlvFileIndex *> indexes;
+  stack<const FileIndex *> indexes;
   indexes.push (this);
   while (!indexes.empty ())
     {
@@ -356,15 +377,15 @@ ApvlvFileIndex::findIndex (const ApvlvFileIndex &tmp_index) const
 }
 
 bool
-ApvlvFileIndex::operator== (const ApvlvFileIndex &tmp_index) const
+FileIndex::operator== (const FileIndex &tmp_index) const
 {
   return title == tmp_index.title && page == tmp_index.page
          && path == tmp_index.path && anchor == tmp_index.anchor
          && type == tmp_index.type;
 }
 
-ApvlvFileIndex::ApvlvFileIndex (const string &title, int page,
-                                const string &path, ApvlvFileIndexType type)
+FileIndex::FileIndex (const string &title, int page, const string &path,
+                      FileIndexType type)
 {
   this->title = title;
   this->page = page;
@@ -372,8 +393,8 @@ ApvlvFileIndex::ApvlvFileIndex (const string &title, int page,
   this->type = type;
 }
 
-ApvlvFileIndex::ApvlvFileIndex (string &&title, int page, string &&path,
-                                ApvlvFileIndexType type)
+FileIndex::FileIndex (string &&title, int page, string &&path,
+                      FileIndexType type)
 {
   this->title = std::move (title);
   this->page = page;
@@ -381,7 +402,7 @@ ApvlvFileIndex::ApvlvFileIndex (string &&title, int page, string &&path,
   this->type = type;
 }
 
-ApvlvFileIndex::~ApvlvFileIndex () {}
+FileIndex::~FileIndex () {}
 }
 
 // Local Variables:

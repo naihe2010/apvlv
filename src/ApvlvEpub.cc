@@ -23,7 +23,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2018/04/19 13:51:04 Alf*/
 
 #include <QDomDocument>
 #include <QXmlStreamReader>
@@ -31,8 +30,6 @@
 #include <quazipfile.h>
 
 #include "ApvlvEpub.h"
-#include "ApvlvHtm.h"
-#include "ApvlvInfo.h"
 #include "ApvlvUtil.h"
 
 namespace apvlv
@@ -40,7 +37,7 @@ namespace apvlv
 FILE_TYPE_DEFINITION (ApvlvEPUB, { ".epub" });
 
 ApvlvEPUB::ApvlvEPUB (const string &filename, bool check)
-    : ApvlvFile (filename, check),
+    : File (filename, check),
       mQuaZip (make_unique<QuaZip> (QString::fromStdString (filename)))
 {
   if (mQuaZip->open (QuaZip::mdUnzip) == false)
@@ -77,35 +74,15 @@ ApvlvEPUB::ApvlvEPUB (const string &filename, bool check)
 
 ApvlvEPUB::~ApvlvEPUB () { mQuaZip->close (); }
 
-bool
-ApvlvEPUB::writefile (const char *filename)
-{
-  return false;
-}
-
-bool
-ApvlvEPUB::pagesize (int page, int rot, double *x, double *y)
-{
-  *x = HTML_DEFAULT_WIDTH;
-  *y = HTML_DEFAULT_HEIGHT;
-  return true;
-}
-
 int
-ApvlvEPUB::pagesum ()
+ApvlvEPUB::sum ()
 {
   return int (mPages.size ());
 }
 
 bool
-ApvlvEPUB::pagetext (int, double, double, double, double, char **)
-{
-  return false;
-}
-
-bool
-ApvlvEPUB::render (int pn, int ix, int iy, double zm, int rot,
-                   ApvlvWebview *webview)
+ApvlvEPUB::pageRender (int pn, int ix, int iy, double zm, int rot,
+                       ApvlvWebview *webview)
 {
   webview->setZoomFactor (zm);
   QUrl epuburi = QString ("apvlv:///") + QString::fromStdString (mPages[pn]);
@@ -113,26 +90,8 @@ ApvlvEPUB::render (int pn, int ix, int iy, double zm, int rot,
   return true;
 }
 
-unique_ptr<ApvlvPoses>
-ApvlvEPUB::pagesearch (int pn, const char *str, bool reverse)
-{
-  return nullptr;
-}
-
-unique_ptr<ApvlvLinks>
-ApvlvEPUB::getlinks (int pn)
-{
-  return nullptr;
-}
-
-bool
-ApvlvEPUB::pageprint (int pn, QPrinter *cr)
-{
-  return false;
-}
-
 optional<QByteArray>
-ApvlvEPUB::get_ocf_file (const string &path)
+ApvlvEPUB::pathContent (const string &path)
 {
   auto optcontent = get_zip_file_contents (QString::fromStdString (path));
   return optcontent;
@@ -290,7 +249,7 @@ ApvlvEPUB::ncx_set_index (const string &ncxfile)
 void
 ApvlvEPUB::ncx_node_set_index (QXmlStreamReader *xml,
                                const string &element_name,
-                               const string &ncxfile, ApvlvFileIndex &index)
+                               const string &ncxfile, FileIndex &index)
 {
   while (!xml->atEnd ()
          && !(xml->isEndElement ()
@@ -355,7 +314,7 @@ ApvlvEPUB::ncx_node_set_index (QXmlStreamReader *xml,
           if (xml->name ().toString () == "navPoint")
             {
               xml->readNextStartElement ();
-              auto childindex = ApvlvFileIndex{};
+              auto childindex = FileIndex{};
               ncx_node_set_index (xml, "navPoint", ncxfile, childindex);
               index.mChildrenIndex.emplace_back (childindex);
             }
@@ -363,11 +322,6 @@ ApvlvEPUB::ncx_node_set_index (QXmlStreamReader *xml,
 
       xml->readNextStartElement ();
     }
-}
-ApvlvSearchMatches
-ApvlvEPUB::searchPage (int pn, const string &text, bool is_case, bool is_reg)
-{
-  return ApvlvSearchMatches ();
 }
 }
 

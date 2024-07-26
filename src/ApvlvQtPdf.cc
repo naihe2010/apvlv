@@ -23,7 +23,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2011/09/16 13:50:18 Alf*/
 
 #include <QApplication>
 #include <QInputDialog>
@@ -44,7 +43,7 @@ using namespace std;
 FILE_TYPE_DEFINITION (ApvlvPDF, { ".pdf" });
 
 ApvlvPDF::ApvlvPDF (const string &filename, bool check)
-    : ApvlvFile (filename, check), mDoc (make_unique<QPdfDocument> ())
+    : File (filename, check), mDoc (make_unique<QPdfDocument> ())
 {
   auto res = mDoc->load (QString::fromStdString (filename));
   if (res == QPdfDocument::Error::IncorrectPassword)
@@ -75,22 +74,7 @@ ApvlvPDF::ApvlvPDF (const string &filename, bool check)
 }
 
 bool
-ApvlvPDF::writefile (const char *filename)
-{
-  qDebug ("write %p to %s", this, filename);
-  auto path = filesystem::absolute (filename);
-  if (mDoc)
-    {
-      // need impl
-      // auto ret = mDoc->write();
-      // qDebug ("write pdf: %p to %s, return %d", mDoc, uri, ret);
-      return true;
-    }
-  return false;
-}
-
-bool
-ApvlvPDF::pagesize (int pn, int rot, double *x, double *y)
+ApvlvPDF::pageSize (int pn, int rot, double *x, double *y)
 {
   if (mDoc == nullptr)
     return false;
@@ -110,13 +94,13 @@ ApvlvPDF::pagesize (int pn, int rot, double *x, double *y)
 }
 
 int
-ApvlvPDF::pagesum ()
+ApvlvPDF::sum ()
 {
   return mDoc ? mDoc->pageCount () : 0;
 }
 
 unique_ptr<ApvlvPoses>
-ApvlvPDF::pagesearch (int pn, const char *str, bool is_reverse)
+ApvlvPDF::pageSearch (int pn, const char *str, bool is_reverse)
 {
   if (mDoc == nullptr)
     return nullptr;
@@ -125,32 +109,26 @@ ApvlvPDF::pagesearch (int pn, const char *str, bool is_reverse)
   qsearch->setDocument (mDoc.get ());
   qsearch->setSearchString (str);
   auto results = qsearch->resultsOnPage (pn);
+  if (results.empty ())
+    return nullptr;
 
   if (is_reverse)
     reverse (results.begin (), results.end ());
+
   auto poses = make_unique<ApvlvPoses> ();
   for (auto const &res : results)
     {
-      auto rects = res.rectangles ();
-      transform (rects.begin (), rects.end (), poses->begin (),
-                 [] (auto const &rect) {
-                   return ApvlvPos{ rect.left (), rect.bottom (),
-                                    rect.right (), rect.top () };
-                 });
+      for (auto const &rect : res.rectangles ())
+        {
+          poses->push_back (
+              { rect.left (), rect.bottom (), rect.right (), rect.top () });
+        }
     }
   return poses;
 }
 
 bool
-ApvlvPDF::pagetext (int pn, double x1, double y1, double x2, double y2,
-                    char **out)
-{
-
-  return true;
-}
-
-bool
-ApvlvPDF::render (int pn, int ix, int iy, double zm, int rot, QImage *pix)
+ApvlvPDF::pageRender (int pn, int ix, int iy, double zm, int rot, QImage *pix)
 {
   if (mDoc == nullptr)
     return false;
@@ -171,10 +149,15 @@ ApvlvPDF::render (int pn, int ix, int iy, double zm, int rot, QImage *pix)
   return true;
 }
 
-unique_ptr<ApvlvLinks>
-ApvlvPDF::getlinks (int pn)
+bool
+ApvlvPDF::pageText (int pn, string &text)
 {
-  return make_unique<ApvlvLinks> ();
+  if (mDoc == nullptr)
+    return false;
+
+  auto selection = mDoc->getAllText (pn);
+  text = selection.text ().toStdString ();
+  return true;
 }
 
 bool
@@ -188,7 +171,7 @@ ApvlvPDF::pdf_get_index ()
 }
 
 void
-ApvlvPDF::pdf_get_index_iter (ApvlvFileIndex &file_index,
+ApvlvPDF::pdf_get_index_iter (FileIndex &file_index,
                               const QPdfBookmarkModel *bookmark_model,
                               const QModelIndex &parent)
 {
@@ -200,8 +183,8 @@ ApvlvPDF::pdf_get_index_iter (ApvlvFileIndex &file_index,
       auto page = bookmark_model->data (index, 258);
       auto location = bookmark_model->data (index, 259);
 
-      ApvlvFileIndex child_index (title.toString ().toStdString (),
-                                  page.toInt (), "", FILE_INDEX_PAGE);
+      FileIndex child_index (title.toString ().toStdString (), page.toInt (),
+                             "", FILE_INDEX_PAGE);
       if (bookmark_model->hasChildren (index))
         {
           pdf_get_index_iter (child_index, bookmark_model, index);
@@ -212,53 +195,31 @@ ApvlvPDF::pdf_get_index_iter (ApvlvFileIndex &file_index,
 }
 
 bool
-ApvlvPDF::pageprint (int pn, QPrinter *printer)
-{
-  return false;
-}
-
-bool
-ApvlvPDF::annot_underline (int pn, double x1, double y1, double x2, double y2)
+ApvlvPDF::pageAnnotUnderline (int pn, double x1, double y1, double x2,
+                              double y2)
 {
   return true;
 }
 
 bool
-ApvlvPDF::annot_text (int pn, double x1, double y1, double x2, double y2,
-                      const char *text)
+ApvlvPDF::pageAnnotText (int pn, double x1, double y1, double x2, double y2,
+                         const char *text)
 {
   return true;
 }
 
 ApvlvAnnotTexts
-ApvlvPDF::getAnnotTexts (int pn)
+ApvlvPDF::pageAnnotTexts (int pn)
 {
   return {};
 }
 
 bool
-ApvlvPDF::annot_update (int pn, ApvlvAnnotText *text)
+ApvlvPDF::pageAnnotUpdate (int pn, ApvlvAnnotText *text)
 {
   return false;
 }
 
-ApvlvSearchMatches
-ApvlvPDF::searchPage (int pn, const string &text, bool is_case, bool is_reg)
-{
-  auto selection = mDoc->getAllText (pn);
-  auto page_text = selection.text ();
-  auto qlines = page_text.split ("\r\n");
-  auto matches = ApvlvSearchMatches{};
-  for (auto const &qline : qlines)
-    {
-      auto line = qline.toStdString ();
-      if (line.find (text) != string::npos)
-        {
-          matches.emplace_back (ApvlvSearchMatch{ text, line });
-        }
-    }
-  return matches;
-}
 }
 
 // Local Variables:

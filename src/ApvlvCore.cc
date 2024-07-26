@@ -24,7 +24,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2009/01/04 09:34:51 Alf*/
 
 #include <QBuffer>
 #include <QMessageBox>
@@ -83,8 +82,8 @@ ApvlvCore::ApvlvCore (ApvlvView *view)
     }
 
   mContent = new ApvlvContent ();
-  QObject::connect (this, SIGNAL (indexGenerited (const ApvlvFileIndex &)),
-                    mContent, SLOT (set_index (const ApvlvFileIndex &)));
+  QObject::connect (this, SIGNAL (indexGenerited (const FileIndex &)),
+                    mContent, SLOT (set_index (const FileIndex &)));
 
   mPaned->addWidget (mContent);
 
@@ -150,7 +149,7 @@ ApvlvCore::zoomvalue ()
   return mZoomrate;
 }
 
-ApvlvFile *
+File *
 ApvlvCore::file ()
 {
   return mFile;
@@ -162,7 +161,7 @@ ApvlvCore::writefile (const char *name)
   if (mFile != nullptr)
     {
       qDebug ("write %p to %s", mFile, name);
-      return mFile->writefile (name ? name : filename ());
+      return mFile->writeFile (name ? name : filename ());
     }
   return false;
 }
@@ -584,6 +583,7 @@ ApvlvCore::setDirIndex (const string &path)
   mDirIndex = { "", 0, path, FILE_INDEX_DIR };
   mDirIndex.loadDirectory (path);
   emit indexGenerited (mDirIndex);
+  toggleContent (true);
 }
 
 bool
@@ -706,7 +706,7 @@ ApvlvCore::showWeb ()
 void
 ApvlvCore::webview_update (const string &key)
 {
-  auto pn = file ()->get_ocf_page (key);
+  auto pn = file ()->pathPageNumber (key);
   if (pn >= 0)
     {
       mPagenum = pn;

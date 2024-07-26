@@ -24,7 +24,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2008/09/30 00:00:00 Alf */
 
 #include <QApplication>
 #include <QFileDialog>
@@ -236,7 +235,7 @@ ApvlvView::open ()
 
   // qDebug ("lastfile: [%s], dirname: [%s]", fp ? fp->file.c_str () : "",
   // dirname);
-  auto mimes = ApvlvFile::supportMimeTypes ();
+  auto mimes = File::supportMimeTypes ();
   QString filters;
   for (const auto &m : mimes)
     {
@@ -319,7 +318,7 @@ ApvlvView::backSearch ()
 void
 ApvlvView::advancedSearch ()
 {
-  auto diag = ApvlvSearchDialog (this);
+  auto diag = SearchDialog (this);
   QObject::connect (&diag, SIGNAL (loadFile (const string &, int)), this,
                     SLOT (loadFileOnPage (const string &, int)));
   diag.exec ();

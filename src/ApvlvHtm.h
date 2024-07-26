@@ -23,50 +23,28 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2011/09/16 13:50:49 Alf*/
 
 #ifndef _APVLV_HTM_H_
 #define _APVLV_HTM_H_
+
+#include <QUrl>
 
 #include "ApvlvFile.h"
 
 namespace apvlv
 {
-const double HTML_DEFAULT_WIDTH = 800;
-const double HTML_DEFAULT_HEIGHT = 800;
-
-class ApvlvHTML : public ApvlvFile
+class ApvlvHTML : public File
 {
   FILE_TYPE_DECLARATION (ApvlvHTML);
 
 public:
   explicit ApvlvHTML (const string &filename, bool check = true);
 
-  ~ApvlvHTML () override;
-
-  bool writefile (const char *filename) override;
-
-  bool pagesize (int page, int rot, double *x, double *y) override;
-
-  int pagesum () override;
-
-  bool pagetext (int, double, double, double, double, char **) override;
-
-  bool render (int pn, int ix, int iy, double zm, int rot,
-               ApvlvWebview *webview) override;
-
-  unique_ptr<ApvlvPoses> pagesearch (int pn, const char *str,
-                                     bool reverse) override;
-
-  ApvlvSearchMatches searchPage (int pn, const string &text, bool is_case,
-                                 bool is_reg) override;
-
-  unique_ptr<ApvlvLinks> getlinks (int pn) override;
-
-  bool pageprint (int pn, QPrinter *cr) override;
+  bool pageRender (int pn, int ix, int iy, double zm, int rot,
+                   ApvlvWebview *webview) override;
 
 private:
-  string mUri;
+  QUrl mUrl;
 };
 
 }

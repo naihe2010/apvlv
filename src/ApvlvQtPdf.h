@@ -23,7 +23,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2011/09/16 13:50:04 Alf*/
 
 #ifndef _APVLV_QTPDF_H_
 #define _APVLV_QTPDF_H_ 1
@@ -36,7 +35,7 @@
 namespace apvlv
 {
 
-class ApvlvPDF : public ApvlvFile
+class ApvlvPDF : public File
 {
   FILE_TYPE_DECLARATION (ApvlvPDF);
 
@@ -45,39 +44,29 @@ public:
 
   ~ApvlvPDF () override = default;
 
-  bool writefile (const char *filename) override;
+  bool pageSize (int page, int rot, double *x, double *y) override;
 
-  bool pagesize (int page, int rot, double *x, double *y) override;
+  int sum () override;
 
-  int pagesum () override;
+  bool pageRender (int, int, int, double, int, QImage *) override;
 
-  bool pagetext (int pn, double x1, double y1, double x2, double y2,
-                 char **out) override;
+  bool pageText (int, string &text) override;
 
-  bool render (int, int, int, double, int, QImage *) override;
+  bool pageAnnotUnderline (int, double, double, double, double) override;
 
-  bool annot_underline (int, double, double, double, double) override;
+  bool pageAnnotText (int, double, double, double, double,
+                      const char *text) override;
 
-  bool annot_text (int, double, double, double, double,
-                   const char *text) override;
+  bool pageAnnotUpdate (int pn, ApvlvAnnotText *text) override;
 
-  bool annot_update (int pn, ApvlvAnnotText *text) override;
-
-  unique_ptr<ApvlvPoses> pagesearch (int pn, const char *s,
+  unique_ptr<ApvlvPoses> pageSearch (int pn, const char *s,
                                      bool reverse) override;
 
-  ApvlvSearchMatches searchPage (int pn, const string &text, bool is_case,
-                                 bool is_reg) override;
-
-  ApvlvAnnotTexts getAnnotTexts (int pn) override;
-
-  unique_ptr<ApvlvLinks> getlinks (int pn) override;
-
-  bool pageprint (int pn, QPrinter *cr) override;
+  ApvlvAnnotTexts pageAnnotTexts (int pn) override;
 
 private:
   bool pdf_get_index ();
-  void pdf_get_index_iter (ApvlvFileIndex &, const QPdfBookmarkModel *,
+  void pdf_get_index_iter (FileIndex &, const QPdfBookmarkModel *,
                            const QModelIndex &);
 
   unique_ptr<QPdfDocument> mDoc;

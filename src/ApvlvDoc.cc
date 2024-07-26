@@ -24,7 +24,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2008/09/30 00:00:00 Alf */
 
 #include <QClipboard>
 #include <QCursor>
@@ -92,7 +91,7 @@ ApvlvDoc::ApvlvDoc (ApvlvView *view, const char *zm, bool cache)
     }
   mMainImageFrame->setLayout (mVbox);
 
-  mDisplayType = DISPLAY_TYPE_IMAGE;
+  mDisplayType = DISPLAY_TYPE_HTML;
 
   mImg[0] = make_unique<ApvlvImage> (this, 0);
   mVbox->addWidget (mImg[0].get (), 0);
@@ -241,11 +240,11 @@ ApvlvDoc::yank (ApvlvImage *image, int times)
 
   auto poses = cache->getSelected (mLastPoint, mCurPoint, mInVisual);
   string content;
-  char *text;
+  string text;
   for (auto pos : poses)
     {
-      if (mFile->pagetext (cache->getpagenum (), pos.p1x, pos.p1y, pos.p2x,
-                           pos.p2y, &text))
+      if (mFile->pageSelection (cache->getpagenum (), pos.p1x, pos.p1y,
+                                pos.p2x, pos.p2y, text))
         {
           content.append (text);
         }
@@ -265,8 +264,8 @@ ApvlvDoc::annotUnderline (ApvlvImage *image)
   auto poses = cache->getSelected (mLastPoint, mCurPoint, mInVisual);
   for (auto pos : poses)
     {
-      mFile->annot_underline (cache->getpagenum (), pos.p1x, pos.p2y, pos.p2x,
-                              pos.p2y);
+      mFile->pageAnnotUnderline (cache->getpagenum (), pos.p1x, pos.p2y,
+                                 pos.p2x, pos.p2y);
     }
 
   refresh ();
@@ -288,9 +287,9 @@ ApvlvDoc::annotText (ApvlvImage *image)
                           int (mZoomrate * (pos.p2y - pos.p1y)));
   if (text)
     {
-      mFile->annot_text (cache->getpagenum (), pos.p1x,
-                         cache->getheight () - pos.p1y, pos.p2x,
-                         cache->getheight () - pos.p2y, text);
+      mFile->pageAnnotText (cache->getpagenum (), pos.p1x,
+                            cache->getheight () - pos.p1y, pos.p2x,
+                            cache->getheight () - pos.p2y, text);
     }
 
   refresh ();
@@ -315,8 +314,8 @@ ApvlvDoc::commentText (ApvlvImage *image)
 
   for (auto &&pos : poses)
     {
-      mFile->annot_underline (cache->getpagenum (), pos.p1x, pos.p2y, pos.p2x,
-                              pos.p2y);
+      mFile->pageAnnotUnderline (cache->getpagenum (), pos.p1x, pos.p2y,
+                                 pos.p2x, pos.p2y);
     }
 
   auto text
@@ -324,9 +323,9 @@ ApvlvDoc::commentText (ApvlvImage *image)
                           int (mZoomrate * (cpos.p2y - cpos.p1y)));
   if (text)
     {
-      mFile->annot_text (cache->getpagenum (), cpos.p1x,
-                         cache->getheight () - cpos.p1y, cpos.p2x,
-                         cache->getheight () - cpos.p2y, text);
+      mFile->pageAnnotText (cache->getpagenum (), cpos.p1x,
+                            cache->getheight () - cpos.p1y, cpos.p2x,
+                            cache->getheight () - cpos.p2y, text);
     }
 
   refresh ();
@@ -560,7 +559,7 @@ ApvlvDoc::process (int has, int ct, uint key)
       markposition ('\'');
       if (!has)
         {
-          showpage (mFile->pagesum () - 1, 0.0);
+          showpage (mFile->sum () - 1, 0.0);
         }
       else
         {
@@ -678,7 +677,7 @@ ApvlvDoc::setzoom (const char *z)
   if (mFile != nullptr)
     {
       int pn = max (0, pagenumber () - 1);
-      mFile->pagesize (pn, mRotatevalue, &mPagex, &mPagey);
+      mFile->pageSize (pn, mRotatevalue, &mPagex, &mPagey);
 
       if (mZoommode == FITWIDTH)
         {
@@ -797,24 +796,24 @@ ApvlvDoc::loadfile (const string &filename, bool check, bool show_content)
     }
   mReady = false;
 
-  mFile = ApvlvFile::newFile (filename, false);
+  mFile = File::newFile (filename, false);
 
   // qDebug ("mFile = %p", mFile);
   if (mFile != nullptr)
     {
-      emit indexGenerited (mFile->get_index ());
+      emit indexGenerited (mFile->getIndex ());
 
       mFilestr = filename;
 
-      if (mFile->pagesum () <= 1)
+      if (mFile->sum () <= 1)
         {
-          qDebug ("pagesum () = %d", mFile->pagesum ());
+          qDebug ("sum () = %d", mFile->sum ());
           mContinuous = false;
           mAutoScrollDoc = false;
           mAutoScrollPage = false;
         }
 
-      // qDebug ("pagesum () = %d", mFile->pagesum ());
+      // qDebug ("pagesum () = %d", mFile->sum ());
 
       mCurrentCache[0] = make_unique<ApvlvDocCache> (mFile);
       if (mContinuous)
@@ -823,7 +822,7 @@ ApvlvDoc::loadfile (const string &filename, bool check, bool show_content)
           mCurrentCache[2] = make_unique<ApvlvDocCache> (mFile);
         }
 
-      setDisplayType (mFile->get_display_type ());
+      setDisplayType (mFile->getDisplayType ());
 
       loadlastposition (filename);
 
@@ -879,7 +878,7 @@ ApvlvDoc::convertindex (int p)
 {
   if (mFile != nullptr)
     {
-      int c = mFile->pagesum ();
+      int c = mFile->sum ();
 
       if (p >= 0 && p < c)
         {
@@ -989,7 +988,7 @@ ApvlvDoc::refresh ()
   if (mFile == nullptr)
     return;
 
-  mFile->pagesize (mPagenum, mRotatevalue, &mPagex, &mPagey);
+  mFile->pageSize (mPagenum, mRotatevalue, &mPagex, &mPagey);
   int px = static_cast<int> (mPagex * mZoomrate);
   int py = static_cast<int> (mPagey * mZoomrate);
 
@@ -1021,7 +1020,8 @@ ApvlvDoc::refresh ()
     }
   else if (mDisplayType == DISPLAY_TYPE_HTML)
     {
-      mFile->render (mPagenum, px, py, mZoomrate, mRotatevalue, mMainWebView);
+      mFile->pageRender (mPagenum, px, py, mZoomrate, mRotatevalue,
+                         mMainWebView);
     }
 
   display ();
@@ -1179,10 +1179,27 @@ ApvlvDoc::markselection ()
   mCurrentCache[0]->set (mPagenum, mZoomrate, mRotatevalue);
   auto p = mCurrentCache[0]->getbuf (true);
 
-  mFile->pageselectsearch (mPagenum, mCurrentCache[0]->getwidth (),
+  mFile->pageSelectSearch (mPagenum, mCurrentCache[0]->getwidth (),
                            mCurrentCache[0]->getheight (), mZoomrate,
                            mRotatevalue, &p, mSearchResults.get ());
   mImg[0]->setImage (p);
+  qDebug ("helight num: %d", mPagenum);
+}
+
+void
+ApvlvDoc::markselectionweb ()
+{
+  Q_ASSERT (mSearchResults->size () > mSearchSelect);
+
+  double width, height;
+  if (mFile->pageSize (mPagenum, mRotatevalue, &width, &height) == false)
+    return;
+
+  auto rect = (*mSearchResults)[mSearchSelect];
+
+  auto xrate = (rect.p1x + rect.p2x) / 2 / width;
+  auto yrate = (rect.p1y + rect.p2y) / 2 / height;
+  scrollwebto (xrate, yrate);
   qDebug ("helight num: %d", mPagenum);
 }
 
@@ -1398,7 +1415,10 @@ ApvlvDoc::needsearch (const char *str, bool reverse)
           mSearchSelect--;
         }
 
-      markselection ();
+      if (mDisplayType == DISPLAY_TYPE_IMAGE)
+        markselection ();
+      else
+        markselectionweb ();
       return false;
     }
 }
@@ -1426,20 +1446,23 @@ ApvlvDoc::search (const char *str, bool reverse)
   bool wrap = gParams->valueb ("wrapscan");
 
   int i = mPagenum;
-  int sum = mFile->pagesum (), from = i;
+  int sum = mFile->sum (), from = i;
   bool search = false;
   while (true)
     {
       if (*str != 0 || search)
         {
-          mSearchResults = mFile->pagesearch ((i + sum) % sum,
+          mSearchResults = mFile->pageSearch ((i + sum) % sum,
                                               mSearchStr.c_str (), reverse);
           mSearchReverse = reverse;
           if (mSearchResults != nullptr)
             {
               showpage ((i + sum) % sum, 0.5);
               mSearchPagenum = mPagenum;
-              markselection ();
+              if (mDisplayType == DISPLAY_TYPE_IMAGE)
+                markselection ();
+              else
+                markselectionweb ();
               return true;
             }
         }
@@ -1470,9 +1493,10 @@ ApvlvDoc::totext (const char *file)
   if (mFile == nullptr)
     return false;
 
-  char *txt;
-  bool ret = mFile->pagetext (mPagenum, 0, 0, mCurrentCache[0]->getwidth (),
-                              mCurrentCache[0]->getheight (), &txt);
+  string txt;
+  bool ret
+      = mFile->pageSelection (mPagenum, 0, 0, mCurrentCache[0]->getwidth (),
+                              mCurrentCache[0]->getheight (), txt);
   if (ret)
     {
       // need impl g_file_set_contents (file, txt, -1, nullptr);
@@ -1612,7 +1636,7 @@ ApvlvDoc::edit_annotation_cb ()
   if (text)
     {
       mCurrentAnnotText->text = text;
-      mFile->annot_update (cache->getpagenum (), mCurrentAnnotText);
+      mFile->pageAnnotUpdate (cache->getpagenum (), mCurrentAnnotText);
     }
 
   refresh ();
@@ -1623,17 +1647,17 @@ ApvlvDoc::delete_annotation_cb ()
 {
   auto cache = mCurrentCache[mCurrentImage->mId].get ();
   mCurrentAnnotText->text = "";
-  mFile->annot_update (cache->getpagenum (), mCurrentAnnotText);
+  mFile->pageAnnotUpdate (cache->getpagenum (), mCurrentAnnotText);
   refresh ();
 }
 
 void
-ApvlvDoc::contentShowPage (const ApvlvFileIndex *index, bool force)
+ApvlvDoc::contentShowPage (const FileIndex *index, bool force)
 {
   if (index == nullptr)
     return;
 
-  if (index->type == ApvlvFileIndexType::FILE_INDEX_FILE)
+  if (index->type == FileIndexType::FILE_INDEX_FILE)
     {
       loadfile (index->path, true, true);
       return;
@@ -1656,7 +1680,7 @@ ApvlvDoc::contentShowPage (const ApvlvFileIndex *index, bool force)
 
   else if (follow_mode == "page")
     {
-      if (index->type == ApvlvFileIndexType::FILE_INDEX_PAGE)
+      if (index->type == FileIndexType::FILE_INDEX_PAGE)
         {
           if (index->page != mPagenum || index->anchor != mAnchor)
             showpage (index->page, index->anchor);
@@ -1666,7 +1690,7 @@ ApvlvDoc::contentShowPage (const ApvlvFileIndex *index, bool force)
 
   else if (follow_mode == "always")
     {
-      if (index->type == ApvlvFileIndexType::FILE_INDEX_PAGE)
+      if (index->type == FileIndexType::FILE_INDEX_PAGE)
         {
           if (index->page != mPagenum || index->anchor != mAnchor)
             showpage (index->page, index->anchor);
@@ -1713,7 +1737,7 @@ ApvlvDoc::updateCurPoint (double x, double y, bool updateLast)
   mCurPoint = { x, y };
 }
 
-ApvlvDocCache::ApvlvDocCache (ApvlvFile *file)
+ApvlvDocCache::ApvlvDocCache (File *file)
 {
   mFile = file;
   mPagenum = -1;
@@ -1743,7 +1767,7 @@ ApvlvDocCache::set (uint p, double zm, uint rot, bool delay)
 void
 ApvlvDocCache::load ()
 {
-  int c = mFile->pagesum ();
+  int c = mFile->sum ();
 
   if (mPagenum < 0 || mPagenum >= c)
     {
@@ -1752,30 +1776,30 @@ ApvlvDocCache::load ()
     }
 
   double tpagex, tpagey;
-  if (!mFile->pagesize (mPagenum, int (mRotate), &tpagex, &tpagey))
+  if (!mFile->pageSize (mPagenum, int (mRotate), &tpagex, &tpagey))
     {
-      qCritical ("error getting pagesize for pagenum: %d", mPagenum);
+      qCritical ("error getting pageSize for pagenum: %d", mPagenum);
       return;
     };
 
   mWidth = static_cast<int> (tpagex);
   mHeight = static_cast<int> (tpagey);
   // qDebug ("ac->mFile: %p", ac->mFile);
-  mFile->render (mPagenum, mWidth, mHeight, mZoom, int (mRotate), &mBuf);
+  mFile->pageRender (mPagenum, mWidth, mHeight, mZoom, int (mRotate), &mBuf);
   if (mInverted)
     {
       // need impl invert_pixbuf (bu);
     }
 
   // set annot text
-  mAnnotTexts = mFile->getAnnotTexts (mPagenum);
+  mAnnotTexts = mFile->pageAnnotTexts (mPagenum);
   for (const auto &annot : mAnnotTexts)
     {
       if (annot.type == APVLV_ANNOT_TEXT && annot.text.length () > 0)
         setAnnot (annot);
     }
 
-  mLinks = mFile->getlinks (mPagenum);
+  mLinks = mFile->pageLinks (mPagenum);
   // qDebug ("has mLinkMappings: %p", ac->mLinks);
 
   preGetLines (0, 0, int (tpagex), int (tpagey));
@@ -1951,9 +1975,9 @@ ApvlvDocCache::preGetLines (int x1, int y1, int x2, int y2)
       return;
     }
 
-  char *content = nullptr;
-  mFile->pagetext (mPagenum, x1, y1, x2, y2, &content);
-  if (content != nullptr)
+  string content;
+  mFile->pageSelection (mPagenum, x1, y1, x2, y2, content);
+  if (!content.empty ())
     {
       string word;
 
@@ -1974,7 +1998,7 @@ ApvlvDocCache::preGetLines (int x1, int y1, int x2, int y2)
               processed.insert (word);
 
               auto results
-                  = mFile->pagesearch (mPagenum, word.c_str (), false);
+                  = mFile->pageSearch (mPagenum, word.c_str (), false);
               if (results != nullptr)
                 {
                   prepare_add (word.c_str (), results.get ());
@@ -2007,7 +2031,7 @@ ApvlvDocCache::preGetLines (int x1, int y1, int x2, int y2)
                   processed.insert (word);
 
                   qDebug ("search [%s]", p);
-                  auto results = mFile->pagesearch (mPagenum, p, false);
+                  auto results = mFile->pageSearch (mPagenum, p, false);
                   if (results != nullptr)
                     {
                       prepare_add (p, results.get ());
@@ -2232,7 +2256,7 @@ ApvlvDoc::display ()
       vector<string> labels;
 
       int pn = pagenumber ();
-      int totpn = file ()->pagesum ();
+      int totpn = file ()->sum ();
       double sr = scrollrate ();
       int tmprtimes = 0;
       srtranslate (tmprtimes, sr, false);
@@ -2260,7 +2284,7 @@ bool
 ApvlvDoc::find (const char *str)
 {
   auto cache = mCurrentCache[mCurrentImage->mId].get ();
-  auto results = mFile->pagesearch (cache->getpagenum (), str, false);
+  auto results = mFile->pageSearch (cache->getpagenum (), str, false);
 
   for (auto pos : *results)
     {

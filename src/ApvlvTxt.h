@@ -23,53 +23,29 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2012/01/16 11:05:10 Alf*/
 
 #ifndef _APVLV_TXT_H_
 #define _APVLV_TXT_H_
 
-#include "ApvlvFile.h"
+#include "ApvlvHtm.h"
 
 namespace apvlv
 {
-class ApvlvTXT : public ApvlvFile
+class ApvlvTXT : public ApvlvHTML
 {
   FILE_TYPE_DECLARATION (ApvlvTXT);
 
 public:
-  explicit ApvlvTXT (const string &filename, bool check = true);
+  explicit ApvlvTXT (const string &filename, bool check = true)
+      : ApvlvHTML (filename, check){};
 
-  ~ApvlvTXT () override = default;
-
-  bool writefile (const char *filename) override;
-
-  bool pagesize (int page, int rot, double *x, double *y) override;
-
-  int pagesum () override;
-
-  bool pagetext (int, double, double, double, double, char **) override;
-
-  bool render (int, int, int, double, int, QImage *) override;
-
-  bool render (int pn, int ix, int iy, double zm, int rot,
-               ApvlvWebview *webview) override;
-
-  unique_ptr<ApvlvPoses> pagesearch (int pn, const char *s,
-                                     bool reverse) override;
-
-  ApvlvSearchMatches searchPage (int pn, const string &text, bool is_case,
-                                 bool is_reg) override;
-
-  unique_ptr<ApvlvLinks> getlinks (int pn) override;
-
-  bool pageprint (int pn, QPrinter *cr) override;
-
-  optional<QByteArray> get_ocf_file (const string &path) override;
-
-  string get_ocf_mime_type (const string &path) override;
-
-private:
-  QByteArray mContent;
+  bool pageRender (int pn, int ix, int iy, double zm, int rot,
+                   ApvlvWebview *webview) override;
+  string
+  pathMimeType (const string &path) override
+  {
+    return "text/plain";
+  };
 };
 
 }

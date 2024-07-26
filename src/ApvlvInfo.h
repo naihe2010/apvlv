@@ -23,7 +23,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2010/02/23 14:56:21 Alf*/
 
 #ifndef _APVLV_INFO_H_
 #define _APVLV_INFO_H_ 1

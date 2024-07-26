@@ -23,7 +23,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2011/09/16 13:50:18 Alf*/
 
 #include <QInputDialog>
 #include <QMessageBox>
@@ -41,7 +40,7 @@ using namespace std;
 FILE_TYPE_DEFINITION (ApvlvPDF, { ".pdf" });
 
 ApvlvPDF::ApvlvPDF (const string &filename, bool check)
-    : ApvlvFile (filename, check)
+    : File (filename, check)
 {
   mDoc = Document::load (QString::fromStdString (filename));
   if (mDoc == nullptr)
@@ -61,22 +60,7 @@ ApvlvPDF::ApvlvPDF (const string &filename, bool check)
 }
 
 bool
-ApvlvPDF::writefile (const char *filename)
-{
-  qDebug ("write %p to %s", this, filename);
-  auto path = filesystem::absolute (filename);
-  if (mDoc)
-    {
-      // need impl
-      // auto ret = mDoc->write();
-      // qDebug ("write pdf: %p to %s, return %d", mDoc, uri, ret);
-      return true;
-    }
-  return false;
-}
-
-bool
-ApvlvPDF::pagesize (int pn, int rot, double *x, double *y)
+ApvlvPDF::pageSize (int pn, int rot, double *x, double *y)
 {
   if (mDoc == nullptr)
     return false;
@@ -97,13 +81,13 @@ ApvlvPDF::pagesize (int pn, int rot, double *x, double *y)
 }
 
 int
-ApvlvPDF::pagesum ()
+ApvlvPDF::sum ()
 {
   return mDoc ? mDoc->numPages () : 0;
 }
 
 unique_ptr<ApvlvPoses>
-ApvlvPDF::pagesearch (int pn, const char *str, bool is_reverse)
+ApvlvPDF::pageSearch (int pn, const char *str, bool is_reverse)
 {
   if (mDoc == nullptr)
     return nullptr;
@@ -122,15 +106,7 @@ ApvlvPDF::pagesearch (int pn, const char *str, bool is_reverse)
 }
 
 bool
-ApvlvPDF::pagetext (int pn, double x1, double y1, double x2, double y2,
-                    char **out)
-{
-
-  return true;
-}
-
-bool
-ApvlvPDF::render (int pn, int ix, int iy, double zm, int rot, QImage *pix)
+ApvlvPDF::pageRender (int pn, int ix, int iy, double zm, int rot, QImage *pix)
 {
   if (mDoc == nullptr)
     return false;
@@ -153,12 +129,6 @@ ApvlvPDF::render (int pn, int ix, int iy, double zm, int rot, QImage *pix)
   return true;
 }
 
-unique_ptr<ApvlvLinks>
-ApvlvPDF::getlinks (int pn)
-{
-  return make_unique<ApvlvLinks> ();
-}
-
 bool
 ApvlvPDF::pdf_get_index ()
 {
@@ -172,14 +142,14 @@ ApvlvPDF::pdf_get_index ()
 }
 
 void
-ApvlvPDF::pdf_get_children_index (ApvlvFileIndex &root_index,
+ApvlvPDF::pdf_get_children_index (FileIndex &root_index,
                                   QVector<OutlineItem> &outlines)
 {
   for (auto const &outline : outlines)
     {
-      ApvlvFileIndex index{ outline.name ().toStdString (),
-                            outline.destination ()->pageNumber () - 1, "",
-                            FILE_INDEX_PAGE };
+      FileIndex index{ outline.name ().toStdString (),
+                       outline.destination ()->pageNumber () - 1, "",
+                       FILE_INDEX_PAGE };
       auto child_outlines = outline.children ();
       pdf_get_children_index (index, child_outlines);
       root_index.mChildrenIndex.emplace_back (index);
@@ -187,40 +157,29 @@ ApvlvPDF::pdf_get_children_index (ApvlvFileIndex &root_index,
 }
 
 bool
-ApvlvPDF::pageprint (int pn, QPrinter *printer)
-{
-  return false;
-}
-
-bool
-ApvlvPDF::annot_underline (int pn, double x1, double y1, double x2, double y2)
+ApvlvPDF::pageAnnotUnderline (int pn, double x1, double y1, double x2,
+                              double y2)
 {
   return true;
 }
 
 bool
-ApvlvPDF::annot_text (int pn, double x1, double y1, double x2, double y2,
-                      const char *text)
+ApvlvPDF::pageAnnotText (int pn, double x1, double y1, double x2, double y2,
+                         const char *text)
 {
   return true;
 }
 
 ApvlvAnnotTexts
-ApvlvPDF::getAnnotTexts (int pn)
+ApvlvPDF::pageAnnotTexts (int pn)
 {
   return {};
 }
 
 bool
-ApvlvPDF::annot_update (int pn, ApvlvAnnotText *text)
+ApvlvPDF::pageAnnotUpdate (int pn, ApvlvAnnotText *text)
 {
   return false;
-}
-
-ApvlvSearchMatches
-ApvlvPDF::searchPage (int pn, const string &text, bool is_case, bool is_reg)
-{
-  return ApvlvSearchMatches ();
 }
 
 }

@@ -23,18 +23,17 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2011/09/16 13:49:22 Alf*/
 
 #ifndef _APVLV_DJVU_H_
 #define _APVLV_DJVU_H_
 
-#include "ApvlvFile.h"
-
 #include <libdjvu/ddjvuapi.h>
+
+#include "ApvlvFile.h"
 
 namespace apvlv
 {
-class ApvlvDJVU : public ApvlvFile
+class ApvlvDJVU : public File
 {
   FILE_TYPE_DECLARATION (ApvlvDJVU);
 
@@ -43,25 +42,13 @@ public:
 
   ~ApvlvDJVU () override;
 
-  bool writefile (const char *filename) override;
+  bool writeFile (const char *filename) override;
 
-  bool pagesize (int page, int rot, double *x, double *y) override;
+  bool pageSize (int page, int rot, double *x, double *y) override;
 
-  int pagesum () override;
+  int sum () override;
 
-  bool pagetext (int, double, double, double, double, char **) override;
-
-  bool render (int, int, int, double, int, QImage *) override;
-
-  unique_ptr<ApvlvPoses> pagesearch (int pn, const char *s,
-                                     bool reverse) override;
-
-  ApvlvSearchMatches searchPage (int pn, const string &text, bool is_case,
-                                 bool is_reg) override;
-
-  unique_ptr<ApvlvLinks> getlinks (int pn) override;
-
-  bool pageprint (int pn, QPrinter *cr) override;
+  bool pageRender (int, int, int, double, int, QImage *) override;
 
 private:
   ddjvu_context_t *mContext;

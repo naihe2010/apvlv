@@ -23,7 +23,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2018/04/19 13:50:49 Alf*/
 
 #ifndef _APVLV_EPUB_H_
 #define _APVLV_EPUB_H_
@@ -37,7 +36,7 @@
 
 namespace apvlv
 {
-class ApvlvEPUB : public ApvlvFile
+class ApvlvEPUB : public File
 {
   FILE_TYPE_DECLARATION (ApvlvEPUB);
 
@@ -45,28 +44,12 @@ public:
   explicit ApvlvEPUB (const string &filename, bool check = true);
   ~ApvlvEPUB () override;
 
-  bool writefile (const char *filename) override;
+  int sum () override;
 
-  bool pagesize (int page, int rot, double *x, double *y) override;
+  bool pageRender (int pn, int ix, int iy, double zm, int rot,
+                   ApvlvWebview *widget) override;
 
-  int pagesum () override;
-
-  bool pagetext (int, double, double, double, double, char **) override;
-
-  bool render (int pn, int ix, int iy, double zm, int rot,
-               ApvlvWebview *widget) override;
-
-  unique_ptr<ApvlvPoses> pagesearch (int pn, const char *str,
-                                     bool reverse) override;
-
-  ApvlvSearchMatches searchPage (int pn, const string &text, bool is_case,
-                                 bool is_reg) override;
-
-  unique_ptr<ApvlvLinks> getlinks (int pn) override;
-
-  bool pageprint (int pn, QPrinter *cr) override;
-
-  optional<QByteArray> get_ocf_file (const string &path) override;
+  optional<QByteArray> pathContent (const string &path) override;
 
 private:
   optional<QByteArray> get_zip_file_contents (const QString &name);
@@ -78,7 +61,7 @@ private:
   bool ncx_set_index (const string &ncxfile);
 
   void ncx_node_set_index (QXmlStreamReader *xml, const string &element_name,
-                           const string &ncxfile, ApvlvFileIndex &index);
+                           const string &ncxfile, FileIndex &index);
 
   unique_ptr<QuaZip> mQuaZip;
   std::map<string, string> idSrcs;

@@ -24,7 +24,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2021/07/19 20:34:51 Alf*/
 
 #include <filesystem>
 
@@ -68,18 +67,18 @@ ApvlvContent::isReady ()
 }
 
 void
-ApvlvContent::set_index (const ApvlvFileIndex &index)
+ApvlvContent::set_index (const FileIndex &index)
 {
   auto cur_index = currentIndex ();
-  if (cur_index == nullptr)
+  if (cur_index == nullptr || index.type == FILE_INDEX_DIR)
     {
       refreshIndex (index);
       return;
     }
 
-  if (mIndex.type == ApvlvFileIndexType::FILE_INDEX_DIR
-      && cur_index->type == ApvlvFileIndexType::FILE_INDEX_FILE
-      && index.type == ApvlvFileIndexType::FILE_INDEX_FILE)
+  if (mIndex.type == FileIndexType::FILE_INDEX_DIR
+      && cur_index->type == FileIndexType::FILE_INDEX_FILE
+      && index.type == FileIndexType::FILE_INDEX_FILE)
     {
       if (cur_index->mChildrenIndex.empty ())
         appendIndex (index);
@@ -87,11 +86,12 @@ ApvlvContent::set_index (const ApvlvFileIndex &index)
 }
 
 void
-ApvlvContent::setIndex (const ApvlvFileIndex &index, QTreeWidgetItem *root_itr)
+ApvlvContent::setIndex (const FileIndex &index, QTreeWidgetItem *root_itr)
 {
   auto itr = new QTreeWidgetItem ();
   itr->setText (CONTENT_COL_TITLE, QString::fromStdString (index.title));
   itr->setIcon (CONTENT_COL_TITLE, mTypeIcons[index.type]);
+  itr->setToolTip (CONTENT_COL_TITLE, QString::fromStdString (index.path));
   itr->setText (CONTENT_COL_PAGE, QString::number (index.page));
   itr->setText (CONTENT_COL_ANCHOR, QString::fromStdString (index.anchor));
   itr->setText (CONTENT_COL_PATH, QString::fromStdString (index.path));
@@ -112,7 +112,7 @@ ApvlvContent::setIndex (const ApvlvFileIndex &index, QTreeWidgetItem *root_itr)
 }
 
 void
-ApvlvContent::refreshIndex (const ApvlvFileIndex &index)
+ApvlvContent::refreshIndex (const FileIndex &index)
 {
   mIndex = index;
 
@@ -128,7 +128,7 @@ ApvlvContent::refreshIndex (const ApvlvFileIndex &index)
 }
 
 void
-ApvlvContent::appendIndex (const ApvlvFileIndex &index)
+ApvlvContent::appendIndex (const FileIndex &index)
 {
   auto path = mCurrentItem->text (CONTENT_COL_PATH);
   find_index_and_append (mIndex, path, index);
@@ -138,30 +138,30 @@ ApvlvContent::appendIndex (const ApvlvFileIndex &index)
     }
 }
 
-const ApvlvFileIndex *
+const FileIndex *
 ApvlvContent::treeItemToIndex (QTreeWidgetItem *item) const
 {
   if (item == nullptr)
     return nullptr;
 
-  ApvlvFileIndex tmp_index;
+  FileIndex tmp_index;
   tmp_index.title = item->text (CONTENT_COL_TITLE).toStdString ();
   tmp_index.page = item->text (CONTENT_COL_PAGE).toInt ();
   tmp_index.anchor = item->text (CONTENT_COL_ANCHOR).toStdString ();
   tmp_index.path = item->text (CONTENT_COL_PATH).toStdString ();
-  tmp_index.type = static_cast<ApvlvFileIndexType> (
-      item->text (CONTENT_COL_TYPE).toInt ());
+  tmp_index.type
+      = static_cast<FileIndexType> (item->text (CONTENT_COL_TYPE).toInt ());
   auto index = mIndex.findIndex (tmp_index);
   return index;
 }
 
-const ApvlvFileIndex *
+const FileIndex *
 ApvlvContent::treeItemToFileIndex (QTreeWidgetItem *item) const
 {
   auto type = FILE_INDEX_PAGE;
   while (item != nullptr)
     {
-      type = static_cast<ApvlvFileIndexType> (
+      type = static_cast<FileIndexType> (
           item->text (CONTENT_COL_TYPE).toInt ());
       if (type == FILE_INDEX_FILE)
         break;
@@ -212,10 +212,10 @@ ApvlvContent::find_index_and_select (QTreeWidgetItem *itr, const string &path,
 }
 
 bool
-ApvlvContent::find_index_and_append (ApvlvFileIndex &root, const QString &path,
-                                     const ApvlvFileIndex &index)
+ApvlvContent::find_index_and_append (FileIndex &root, const QString &path,
+                                     const FileIndex &index)
 {
-  if (root.type == ApvlvFileIndexType::FILE_INDEX_FILE
+  if (root.type == FileIndexType::FILE_INDEX_FILE
       && root.path == path.toStdString ())
     {
       root.appendChild (index);
@@ -378,14 +378,14 @@ ApvlvContent::first_select_cb ()
   mFirstTimer->stop ();
 }
 
-const ApvlvFileIndex *
+const FileIndex *
 ApvlvContent::currentIndex ()
 {
   auto index = treeItemToIndex (mCurrentItem);
   return index;
 }
 
-const ApvlvFileIndex *
+const FileIndex *
 ApvlvContent::currentFileIndex ()
 {
   auto index = treeItemToFileIndex (mCurrentItem);

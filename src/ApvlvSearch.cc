@@ -20,23 +20,23 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-/* @CPPFILE ApvlvSearchDialog.cc
+/* @CPPFILE SearchDialog.cc
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2024/07/13 17:27:00 Alf */
 
 #include <QCheckBox>
 #include <QFileDialog>
 #include <QFileSystemModel>
 #include <QPushButton>
-#include <QScrollArea>
 #include <QSplitter>
 #include <QVBoxLayout>
 #include <algorithm>
+#include <regex>
 #include <stack>
 
 #include "ApvlvFile.h"
+#include "ApvlvParams.h"
 #include "ApvlvSearch.h"
 
 namespace apvlv
@@ -44,7 +44,7 @@ namespace apvlv
 using namespace std;
 
 bool
-ApvlvSearchOptions::operator== (const ApvlvSearchOptions &other) const
+SearchOptions::operator== (const SearchOptions &other) const
 {
   if (mText != other.mText)
     return false;
@@ -62,18 +62,25 @@ ApvlvSearchOptions::operator== (const ApvlvSearchOptions &other) const
 Searcher::Searcher () : mRestart (false), mQuit (false)
 {
   auto task = thread (&Searcher::dispatch, this);
-  mTasks.emplace_back (move (task));
+  mTasks.emplace_back (std::move (task));
 
-  auto cpu_count = thread::hardware_concurrency ();
-  for (auto ind = 0u; ind < cpu_count - 1; ++ind)
+  auto thread_count = thread::hardware_concurrency () - 1;
+  auto thread_value = gParams->values ("thread_count");
+  if (strcmp (thread_value, "auto") != 0)
+    {
+      thread_count = gParams->valuei ("thread_count");
+    }
+
+  for (auto ind = 0u; ind < thread_count; ++ind)
     {
       task = thread (&Searcher::fileLoopFunc, this);
-      mTasks.emplace_back (move (task));
+      mTasks.emplace_back (std::move (task));
     }
 }
 
 Searcher::~Searcher ()
 {
+  mRestart.store (true);
   mQuit.store (true);
   for_each (mTasks.begin (), mTasks.end (),
             [] (thread &task) { task.join (); });
@@ -81,7 +88,7 @@ Searcher::~Searcher ()
 }
 
 void
-Searcher::submit (const ApvlvSearchOptions &options)
+Searcher::submit (const SearchOptions &options)
 {
   mOptions = options;
   auto path = filesystem::path (options.mFromDir);
@@ -92,10 +99,12 @@ Searcher::submit (const ApvlvSearchOptions &options)
   mRestart.store (true);
 }
 
-bool
-Searcher::get (ApvlvSearchResults &results)
+unique_ptr<SearchFileMatch>
+Searcher::get ()
 {
-  return mResults.pop (results);
+  unique_ptr<SearchFileMatch> ptr;
+  mResults.pop (ptr);
+  return ptr;
 }
 
 void
@@ -105,9 +114,12 @@ Searcher::dispatch ()
     {
       if (mRestart.load () == true)
         {
-          mRestart.store (false);
+          this_thread::sleep_for (2s);
+
           mFilenameQueue.clear ();
           mResults.clear ();
+
+          mRestart.store (false);
 
           try
             {
@@ -185,7 +197,7 @@ Searcher::fileLoopFunc ()
         }
       else
         {
-          this_thread::sleep_for (100ms);
+          this_thread::sleep_for (1s);
         }
     }
 }
@@ -193,19 +205,17 @@ Searcher::fileLoopFunc ()
 void
 Searcher::fileFunc (const string &path)
 {
-  unique_ptr<ApvlvFile> file{ ApvlvFile::newFile (path, false) };
+  unique_ptr<File> file{ File::newFile (path, false) };
   if (file)
     {
-      auto results = file->search (mOptions.mText, mOptions.mCaseSensitive,
-                                   mOptions.mRegex);
-      if (!results.empty ())
-        {
-          mResults.push ({ path, results });
-        }
+      auto result = file->grepFile (mOptions.mText, mOptions.mCaseSensitive,
+                                    mOptions.mRegex, mRestart);
+      if (result)
+        mResults.push (std::move (result));
     }
 }
 
-ApvlvSearchDialog::ApvlvSearchDialog (QWidget *parent)
+SearchDialog::SearchDialog (QWidget *parent) : mPreviewIsFinished (true)
 {
   auto vbox = new QVBoxLayout;
   setLayout (vbox);
@@ -243,7 +253,7 @@ ApvlvSearchDialog::ApvlvSearchDialog (QWidget *parent)
   auto hbox3 = new QHBoxLayout;
   vbox->addLayout (hbox3);
 
-  auto mime_types = ApvlvFile::supportMimeTypes ();
+  auto mime_types = File::supportMimeTypes ();
   for_each (mime_types.begin (), mime_types.end (), [&] (const auto &pair) {
     for_each (pair.second.begin (), pair.second.end (), [&] (const auto &ext) {
       auto checkbox = new QCheckBox (QString::fromStdString (ext));
@@ -276,9 +286,9 @@ ApvlvSearchDialog::ApvlvSearchDialog (QWidget *parent)
 }
 
 void
-ApvlvSearchDialog::search ()
+SearchDialog::search ()
 {
-  ApvlvSearchOptions options;
+  SearchOptions options;
   options.mText = mSearchEdit.text ().trimmed ().toStdString ();
   options.mCaseSensitive = mCaseSensitive.isChecked ();
   options.mRegex = mRegex.isChecked ();
@@ -293,22 +303,26 @@ ApvlvSearchDialog::search ()
     return;
 
   mSearcher.submit (options);
+  mResults.clear ();
   mOptions = options;
 }
 
 void
-ApvlvSearchDialog::getResults ()
+SearchDialog::getResults ()
 {
-  ApvlvSearchResults results;
-  while (mSearcher.get (results))
+  unique_ptr<SearchFileMatch> result;
+  while ((result = mSearcher.get ()) != nullptr)
     {
-      displayResults (results);
+      displayResult (std::move (result));
     }
 }
 
 void
-ApvlvSearchDialog::previewItem (QListWidgetItem *item)
+SearchDialog::previewItem (QListWidgetItem *item)
 {
+  if (item == NULL)
+    return;
+
   if (mPreviewIsFinished == false)
     return;
 
@@ -319,20 +333,20 @@ ApvlvSearchDialog::previewItem (QListWidgetItem *item)
     mPreviewFile = nullptr;
 
   if (mPreviewFile == nullptr)
-    mPreviewFile = unique_ptr<ApvlvFile>{ ApvlvFile::newFile (path, false) };
+    mPreviewFile = unique_ptr<File>{ File::newFile (path, false) };
 
   if (mPreviewFile)
     {
       double x, y;
       mPreview.setFile (mPreviewFile.get ());
-      mPreviewFile->pagesize (pn, 0, &x, &y);
+      mPreviewFile->pageSize (pn, 0, &x, &y);
       mPreviewIsFinished = false;
-      mPreviewFile->render (pn, int (x), int (y), 1.0, 0, &mPreview);
+      mPreviewFile->pageRender (pn, int (x), int (y), 1.0, 0, &mPreview);
     }
 }
 
 void
-ApvlvSearchDialog::activateItem (QListWidgetItem *item)
+SearchDialog::activateItem (QListWidgetItem *item)
 {
   auto words = item->data (Qt::UserRole).toStringList ();
   auto path = words[0];
@@ -342,18 +356,18 @@ ApvlvSearchDialog::activateItem (QListWidgetItem *item)
 }
 
 void
-ApvlvSearchDialog::displayResults (const ApvlvSearchResults &results)
+SearchDialog::displayResult (unique_ptr<SearchFileMatch> result)
 {
-  auto line = QString::fromStdString (results.filename);
-  for (const auto &result : results.result_list)
+  auto line = QString::fromStdString (result->filename);
+  for (const auto &page : result->page_matches)
     {
-      auto pos = line + ':' + QString::number (result.page + 1);
-      for_each (result.matches.begin (), result.matches.end (),
+      auto pos = line + ':' + QString::number (page.page + 1);
+      for_each (page.matches.begin (), page.matches.end (),
                 [&] (const auto &match) {
                   auto matchitem = new QListWidgetItem (
                       { QString::fromStdString (match.line) });
                   matchitem->setToolTip (pos);
-                  QStringList data{ line, QString::number (result.page) };
+                  QStringList data{ line, QString::number (page.page) };
                   matchitem->setData (Qt::UserRole, data);
                   mResults.addItem (matchitem);
                 });
@@ -361,9 +375,60 @@ ApvlvSearchDialog::displayResults (const ApvlvSearchResults &results)
 }
 
 void
-ApvlvSearchDialog::loadFinish (bool ret)
+SearchDialog::loadFinish (bool ret)
 {
   mPreviewIsFinished = true;
+}
+
+vector<pair<size_t, size_t> >
+grep (const string &source, const string &text, bool is_case, bool is_regex)
+{
+  vector<pair<size_t, size_t> > results;
+  if (is_regex == true)
+    {
+      regex regex_1{ text };
+      const sregex_token_iterator end;
+      sregex_token_iterator iter;
+      vector<string> regex_texts;
+      while ((iter
+              = regex_token_iterator (source.begin (), source.end (), regex_1))
+             != end)
+        {
+          regex_texts.push_back (iter->str ());
+        }
+      size_t pos = 0;
+      for (auto const &r_text : regex_texts)
+        {
+          pos = source.find (r_text, pos);
+          pair res{ pos, r_text.size () };
+          results.emplace_back (move (res));
+        }
+    }
+  else
+    {
+      auto p_source = &source;
+      auto p_text = &text;
+      if (is_case == false)
+        {
+          auto nsource = source;
+          auto ntext = text;
+          transform (nsource.begin (), nsource.end (), nsource.begin (),
+                     ::tolower);
+          transform (ntext.begin (), ntext.end (), ntext.begin (), ::tolower);
+          p_source = &nsource;
+          p_text = &ntext;
+        }
+
+      auto pos = p_source->find (*p_text);
+      while (pos != string::npos)
+        {
+          pair res{ pos, p_text->size () };
+          results.emplace_back (std::move (res));
+          pos = p_source->find (*p_text, pos + 1);
+        }
+    }
+
+  return results;
 }
 
 }

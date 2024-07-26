@@ -24,7 +24,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2008/09/30 00:00:00 Alf */
 
 #ifndef _APVLV_CORE_H_
 #define _APVLV_CORE_H_
@@ -81,7 +80,7 @@ public:
 
   virtual ApvlvCore *copy ();
 
-  virtual ApvlvFile *file ();
+  virtual File *file ();
 
   virtual void setDirIndex (const string &path);
 
@@ -175,9 +174,9 @@ public:
   static ApvlvCore *findByWidget (QWidget *widget);
 
 protected:
-  ApvlvFile *mFile{};
+  File *mFile{};
 
-  ApvlvFileIndex mDirIndex{};
+  FileIndex mDirIndex{};
 
   bool mAutoScrollPage{};
   bool mAutoScrollDoc{};
@@ -262,7 +261,7 @@ protected:
   void showWeb ();
 
 signals:
-  void indexGenerited (const ApvlvFileIndex &);
+  void indexGenerited (const FileIndex &);
 
 private slots:
   void webview_update (const string &key);

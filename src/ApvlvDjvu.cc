@@ -23,7 +23,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2011/09/16 13:49:38 Alf*/
 
 #include <QThread>
 
@@ -59,7 +58,7 @@ handle_ddjvu_messages (ddjvu_context_t *ctx, int wait)
 FILE_TYPE_DEFINITION (ApvlvDJVU, { ".djv", ".djvu" });
 
 ApvlvDJVU::ApvlvDJVU (const string &filename, bool check)
-    : ApvlvFile (filename, check)
+    : File (filename, check)
 {
   mContext = ddjvu_context_create ("apvlv");
   if (mContext)
@@ -106,7 +105,7 @@ ApvlvDJVU::~ApvlvDJVU ()
 }
 
 bool
-ApvlvDJVU::writefile (const char *filename)
+ApvlvDJVU::writeFile (const char *filename)
 {
   FILE *fp = fopen (filename, "wb");
   if (fp != nullptr)
@@ -123,7 +122,7 @@ ApvlvDJVU::writefile (const char *filename)
 }
 
 bool
-ApvlvDJVU::pagesize (int pn, int rot, double *x, double *y)
+ApvlvDJVU::pageSize (int pn, int rot, double *x, double *y)
 {
   ddjvu_status_t t;
   ddjvu_pageinfo_t info[1];
@@ -142,13 +141,13 @@ ApvlvDJVU::pagesize (int pn, int rot, double *x, double *y)
 }
 
 int
-ApvlvDJVU::pagesum ()
+ApvlvDJVU::sum ()
 {
   return mDoc ? ddjvu_document_get_pagenum (mDoc) : 0;
 }
 
 bool
-ApvlvDJVU::render (int pn, int ix, int iy, double zm, int rot, QImage *pix)
+ApvlvDJVU::pageRender (int pn, int ix, int iy, double zm, int rot, QImage *pix)
 {
   ddjvu_page_t *tpage;
 
@@ -199,35 +198,6 @@ ApvlvDJVU::render (int pn, int ix, int iy, double zm, int rot, QImage *pix)
   return true;
 }
 
-unique_ptr<ApvlvPoses>
-ApvlvDJVU::pagesearch (int pn, const char *str, bool reverse)
-{
-  return nullptr;
-}
-
-unique_ptr<ApvlvLinks>
-ApvlvDJVU::getlinks (int pn)
-{
-  return nullptr;
-}
-
-bool
-ApvlvDJVU::pagetext (int pn, double x1, double y1, double x2, double y2,
-                     char **out)
-{
-  return false;
-}
-
-bool
-ApvlvDJVU::pageprint (int pn, QPrinter *cr)
-{
-  return false;
-}
-ApvlvSearchMatches
-ApvlvDJVU::searchPage (int pn, const string &text, bool is_case, bool is_reg)
-{
-  return ApvlvSearchMatches ();
-}
 }
 
 // Local Variables:

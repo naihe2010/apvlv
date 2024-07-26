@@ -24,12 +24,10 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2024/07/24 00:00:00 Alf */
 
 #ifndef _APVLV_QUEUE_H_
 #define _APVLV_QUEUE_H_
 
-#include <condition_variable>
 #include <mutex>
 #include <queue>
 

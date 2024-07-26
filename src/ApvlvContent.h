@@ -24,7 +24,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2021/07/19 20:34:00 Alf */
 
 #ifndef _APVLV_CONTENT_H_
 #define _APVLV_CONTENT_H_ 1
@@ -60,14 +59,14 @@ public:
 
   bool isReady ();
 
-  const ApvlvFileIndex *currentIndex ();
+  const FileIndex *currentIndex ();
 
-  const ApvlvFileIndex *currentFileIndex ();
+  const FileIndex *currentFileIndex ();
 
   bool find_index_and_select (QTreeWidgetItem *itr, const string &path, int pn,
                               const char *anchor);
-  bool find_index_and_append (ApvlvFileIndex &root, const QString &path,
-                              const ApvlvFileIndex &index);
+  bool find_index_and_append (FileIndex &root, const QString &path,
+                              const FileIndex &index);
 
   void setCurrentIndex (const string &path, int pn, const char *anchor);
 
@@ -98,11 +97,11 @@ public:
   }
 
 private:
-  map<ApvlvFileIndexType, QIcon> mTypeIcons;
+  map<FileIndexType, QIcon> mTypeIcons;
 
   bool mIsFocused;
 
-  ApvlvFileIndex mIndex;
+  FileIndex mIndex;
 
   ApvlvDoc *mDoc{ nullptr };
 
@@ -110,19 +109,19 @@ private:
 
   QTreeWidgetItem *mCurrentItem{ nullptr };
 
-  void setIndex (const ApvlvFileIndex &index, QTreeWidgetItem *root_itr);
-  void refreshIndex (const ApvlvFileIndex &index);
-  void appendIndex (const ApvlvFileIndex &index);
+  void setIndex (const FileIndex &index, QTreeWidgetItem *root_itr);
+  void refreshIndex (const FileIndex &index);
+  void appendIndex (const FileIndex &index);
 
-  const ApvlvFileIndex *treeItemToIndex (QTreeWidgetItem *item) const;
-  const ApvlvFileIndex *treeItemToFileIndex (QTreeWidgetItem *item) const;
+  const FileIndex *treeItemToIndex (QTreeWidgetItem *item) const;
+  const FileIndex *treeItemToFileIndex (QTreeWidgetItem *item) const;
 
 private slots:
   void on_changed ();
   void on_row_activated (QTreeWidgetItem *item, int column);
   void on_row_doubleclicked ();
   void first_select_cb ();
-  void set_index (const ApvlvFileIndex &index);
+  void set_index (const FileIndex &index);
 };
 }
 

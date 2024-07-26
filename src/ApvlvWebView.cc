@@ -24,7 +24,6 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2024/07/25 00:00:00 Alf*/
 
 #include <QBuffer>
 #include <QWebEnginePage>
@@ -44,31 +43,17 @@ ApvlvSchemeHandler::requestStarted (QWebEngineUrlRequestJob *job)
   auto url = job->requestUrl ();
   auto path = url.path ().toStdString ();
   auto key = path.substr (1);
-  auto mime = mFile->get_ocf_mime_type (key);
-  if (!mFile->hasByteArray (key))
+  auto mime = mFile->pathMimeType (key);
+  auto roptcont = mFile->pathContent (key);
+  if (!roptcont)
     {
-      auto roptcont = mFile->get_ocf_file (key);
-      if (!roptcont)
-        {
-          job->fail (QWebEngineUrlRequestJob::UrlNotFound);
-          return;
-        }
-
-      mFile->cacheByteArray (key, roptcont.value ());
-    }
-
-  auto optcont = mFile->getByteArray (key);
-  if (!optcont)
-    {
-      job->fail (QWebEngineUrlRequestJob::RequestFailed);
+      job->fail (QWebEngineUrlRequestJob::UrlNotFound);
       return;
     }
 
-  auto buffer = new QBuffer ();
-  buffer->setData (optcont.value ());
-  QObject::connect (job, SIGNAL (destroyed (QObject *)), buffer,
-                    SLOT (deleteLater ()));
-  job->reply (QByteArray (mime.c_str ()), buffer);
+  mArray = std::move (roptcont.value ());
+  mBuffer.setData (mArray);
+  job->reply (QByteArray (mime.c_str ()), &mBuffer);
 
   emit webpageUpdated (key);
 }
@@ -76,6 +61,7 @@ ApvlvSchemeHandler::requestStarted (QWebEngineUrlRequestJob *job)
 ApvlvWebview::ApvlvWebview ()
 {
   auto profile = new QWebEngineProfile ();
+  profile->setHttpCacheType (QWebEngineProfile::NoCache);
   mSchemeHandler = make_unique<ApvlvSchemeHandler> ();
   profile->installUrlSchemeHandler ("apvlv", mSchemeHandler.get ());
 
