@@ -171,12 +171,13 @@ File::pageRender (int pn, int ix, int iy, double zm, int rot,
                   ApvlvWebview *webview)
 {
   webview->setZoomFactor (zm);
-  QUrl pdfuri = QString ("apvlv:///%1-%2-%3-%4-%5.html")
+  QUrl pdfuri = QString ("apvlv:///%1-%2-%3-%4-%5-%6.html")
                     .arg (pn)
                     .arg (ix)
                     .arg (iy)
                     .arg (zm)
-                    .arg (rot);
+                    .arg (rot)
+                    .arg (random ());
   webview->load (pdfuri);
   return true;
 }
@@ -201,44 +202,59 @@ File::pathPageNumber (const string &path)
 }
 
 bool
-File::hasByteArray (const string &key)
-{
-  return mCacheByteArray.contains (key);
-}
-
-optional<const QByteArray>
-File::getByteArray (const string &key)
-{
-  if (mCacheByteArray.contains (key))
-    return mCacheByteArray[key];
-  else
-    return nullopt;
-}
-
-void
-File::cacheByteArray (const string &key, const QByteArray &array)
-{
-  mCacheByteArray.insert (key, array);
-}
-
-bool
 File::pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
-                        QImage *pix, ApvlvPoses *poses)
+                        QImage *pix, int select, ApvlvPoses *poses)
 {
-  for (auto const &pos : *poses)
+  for (auto itr = (*poses).begin (); itr != (*poses).end (); ++itr)
     {
-      for (int w = pos.p1x * zm; w < pos.p2x * zm; ++w)
+      auto pos = *itr;
+
+      auto p1xz = int (pos.p1x * zm);
+      auto p2xz = int (pos.p2x * zm);
+      auto p1yz = int (pos.p2y * zm);
+      auto p2yz = int (pos.p1y * zm);
+
+      if (pix->format () == QImage::Format_ARGB32)
         {
-          for (int h = pos.p2y * zm; h < pos.p1y * zm; ++h)
+          imageArgb32ToRgb32 (*pix, p1xz, p1yz, p2xz, p2yz);
+        }
+
+      if (std::distance ((*poses).begin (), itr) == select)
+        {
+          for (int w = p1xz; w < p2xz; ++w)
             {
-              QColor rgb = pix->pixel (w, h);
-              rgb.setRgb (255 - rgb.red (), 255 - rgb.green (),
-                          255 - rgb.blue ());
-              pix->setPixel (w, h, rgb.rgba ());
+              for (int h = p1yz; h < p2yz; ++h)
+                {
+                  QColor c = pix->pixelColor (w, h);
+                  c.setRgb (255 - c.red (), 255 - c.red (), 255 - c.red ());
+                  pix->setPixelColor (w, h, c);
+                }
+            }
+        }
+      else
+        {
+          for (int w = p1xz; w < p2xz; ++w)
+            {
+              for (int h = p1yz; h < p2yz; ++h)
+                {
+                  QColor c = pix->pixelColor (w, h);
+                  c.setRgb (255 - c.red () / 2, 255 - c.red () / 2,
+                            255 - c.red () / 2);
+                  pix->setPixelColor (w, h, c);
+                }
             }
         }
     }
 
+  return true;
+}
+
+bool
+File::pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
+                        ApvlvWebview *webview, int select, ApvlvPoses *poses)
+{
+  mSearchPoses = *poses;
+  mSearchSelect = select;
   return true;
 }
 
@@ -285,12 +301,13 @@ File::pathContent (const string &path)
 optional<QByteArray>
 File::pathContentHtml (int pn, int ix, int iy, double zm, int rot)
 {
-  auto src = QString ("apvlv:///%1-%2-%3-%4-%5.png")
+  auto src = QString ("apvlv:///%1-%2-%3-%4-%5-%6.png")
                  .arg (pn)
                  .arg (ix)
                  .arg (iy)
                  .arg (zm)
-                 .arg (rot);
+                 .arg (rot)
+                 .arg (random ());
   auto html = QString::asprintf (html_template.c_str (),
                                  src.toStdString ().c_str ());
   return QByteArray::fromStdString (html.toStdString ());
@@ -302,6 +319,12 @@ File::pathContentPng (int pn, int ix, int iy, double zm, int rot)
   QImage image;
   if (pageRender (pn, ix, iy, zm, rot, &image) == false)
     return nullopt;
+
+  if (!mSearchPoses.empty ())
+    {
+      pageSelectSearch (pn, ix, iy, zm, rot, &image, mSearchSelect,
+                        &mSearchPoses);
+    }
 
   QByteArray array;
   QBuffer buffer (&array);

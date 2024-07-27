@@ -43,7 +43,7 @@ public:
   bool pageRender (int pn, int ix, int iy, double zm, int rot,
                    ApvlvWebview *webview) override;
 
-private:
+protected:
   QUrl mUrl;
 };
 

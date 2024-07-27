@@ -1179,9 +1179,9 @@ ApvlvDoc::markselection ()
   mCurrentCache[0]->set (mPagenum, mZoomrate, mRotatevalue);
   auto p = mCurrentCache[0]->getbuf (true);
 
-  mFile->pageSelectSearch (mPagenum, mCurrentCache[0]->getwidth (),
-                           mCurrentCache[0]->getheight (), mZoomrate,
-                           mRotatevalue, &p, mSearchResults.get ());
+  mFile->pageSelectSearch (
+      mPagenum, mCurrentCache[0]->getwidth (), mCurrentCache[0]->getheight (),
+      mZoomrate, mRotatevalue, &p, mSearchSelect, mSearchResults.get ());
   mImg[0]->setImage (p);
   qDebug ("helight num: %d", mPagenum);
 }
@@ -1190,17 +1190,22 @@ void
 ApvlvDoc::markselectionweb ()
 {
   Q_ASSERT (mSearchResults->size () > mSearchSelect);
-
-  double width, height;
-  if (mFile->pageSize (mPagenum, mRotatevalue, &width, &height) == false)
-    return;
-
   auto rect = (*mSearchResults)[mSearchSelect];
 
-  auto xrate = (rect.p1x + rect.p2x) / 2 / width;
-  auto yrate = (rect.p1y + rect.p2y) / 2 / height;
+  double width, height, xrate = 0.0, yrate = 0.0;
+  if (mFile->pageSize (mPagenum, mRotatevalue, &width, &height))
+    {
+      xrate = (rect.p1x + rect.p2x) / 2 / width;
+      yrate = (rect.p1y + rect.p2y) / 2 / height;
+    }
+
+  qDebug ("helight num: %d:%f", mPagenum, yrate);
+  mFile->pageSelectSearch (mPagenum, int (width), int (height), mZoomrate,
+                           mRotatevalue, mMainWebView, int (mSearchSelect),
+                           mSearchResults.get ());
+  mFile->pageRender (mPagenum, int (width), int (height), mZoomrate,
+                     mRotatevalue, mMainWebView);
   scrollwebto (xrate, yrate);
-  qDebug ("helight num: %d", mPagenum);
 }
 
 void

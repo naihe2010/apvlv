@@ -19,38 +19,31 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/* @CPPFILE ApvlvTxt.h
+/* @CPPFILE ApvlvImage.h
  *
  *  Author: Alf <naihe2010@126.com>
  */
 
-#ifndef _APVLV_TXT_H_
-#define _APVLV_TXT_H_
+#ifndef _APVLV_IMAGE_H_
+#define _APVLV_IMAGE_H_
 
 #include "ApvlvHtm.h"
 
 namespace apvlv
 {
-class ApvlvTXT : public ApvlvHTML
+class ApvlvIMAGE : public ApvlvHTML
 {
-  FILE_TYPE_DECLARATION (ApvlvTXT);
+  FILE_TYPE_DECLARATION (ApvlvIMAGE);
 
 public:
-  explicit ApvlvTXT (const string &filename, bool check = true)
-      : ApvlvHTML (filename, check){};
-
-  bool pageText (int pn, string &text) override;
-
-  bool pageRender (int pn, int ix, int iy, double zm, int rot,
-                   ApvlvWebview *webview) override;
-  string
-  pathMimeType (const string &path) override
+  explicit ApvlvIMAGE (const string &filename, bool check = true)
+      : ApvlvHTML (filename, check)
   {
-    return "text/plain";
-  };
+  }
 };
 
 }
+
 #endif
 
 /* Local Variables: */

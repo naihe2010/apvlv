@@ -239,6 +239,8 @@ SearchDialog::SearchDialog (QWidget *parent) : mPreviewIsFinished (true)
   auto label = new QLabel (tr ("Find Directory: "));
   hbox2->addWidget (label, 0);
   hbox2->addWidget (&mFromDir, 1);
+  QObject::connect (&mFromDir, SIGNAL (returnPressed ()), this,
+                    SLOT (search ()));
   mFromDir.setText (QDir::homePath ());
   auto dir_button = new QPushButton (tr ("..."));
   dir_button->setFocusPolicy (Qt::NoFocus);
@@ -320,7 +322,7 @@ SearchDialog::getResults ()
 void
 SearchDialog::previewItem (QListWidgetItem *item)
 {
-  if (item == NULL)
+  if (item == nullptr)
     return;
 
   if (mPreviewIsFinished == false)

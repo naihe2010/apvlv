@@ -28,12 +28,13 @@
 #ifndef _APVLV_UTIL_H_
 #define _APVLV_UTIL_H_ 1
 
+#include <QImage>
 #include <QXmlStreamReader>
-
-using namespace std;
 
 namespace apvlv
 {
+using namespace std;
+
 // Global files
 extern string helppdf;
 extern string iniexam;
@@ -99,6 +100,9 @@ enum ReturnType
 // because every unsigned char is < 256, so use this marco to stand for
 // Ctrl+char, Shift+char
 #define CTRL(c) ((c) + 256)
+
+void imageArgb32ToRgb32 (QImage &image, int left, int top, int right,
+                         int bottom);
 
 }
 #endif

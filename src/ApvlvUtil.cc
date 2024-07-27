@@ -200,6 +200,24 @@ filename_ext (const string &filename)
   return ext;
 }
 
+void
+imageArgb32ToRgb32 (QImage &image, int left, int top, int right, int bottom)
+{
+  for (auto x = left; x < right; ++x)
+    {
+      for (auto y = top; y < bottom; ++y)
+        {
+          auto c = image.pixelColor (x, y);
+          double ra = double (c.alpha ()) / 255.0;
+          int nr = static_cast<int> (c.red () * ra + 255 * (1.0 - ra));
+          int ng = static_cast<int> (c.green () * ra + 255 * (1.0 - ra));
+          int nb = static_cast<int> (c.blue () * ra + 255 * (1.0 - ra));
+          auto pc = QColor::fromRgb (nr, ng, nb, 255);
+          image.setPixelColor (x, y, pc);
+        }
+    }
+}
+
 }
 
 // Local Variables:

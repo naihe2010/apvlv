@@ -217,7 +217,11 @@ public:
   }
 
   virtual bool pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
-                                 QImage *pix, ApvlvPoses *poses);
+                                 QImage *pix, int select, ApvlvPoses *poses);
+
+  virtual bool pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
+                                 ApvlvWebview *webview, int select,
+                                 ApvlvPoses *poses);
 
   virtual bool pageAnnotUnderline (int, double, double, double, double);
 
@@ -235,10 +239,6 @@ public:
 
   virtual int pathPageNumber (const string &path);
 
-  bool hasByteArray (const string &key);
-  optional<const QByteArray> getByteArray (const string &key);
-  void cacheByteArray (const string &key, const QByteArray &array);
-
 protected:
   static int registerClass (const string &mime,
                             function<File *(const string &)> fun,
@@ -251,9 +251,10 @@ protected:
   std::map<string, string> srcMimeTypes;
   ApvlvCover mCover;
 
-private:
-  QMap<string, QByteArray> mCacheByteArray;
+  ApvlvPoses mSearchPoses;
+  int mSearchSelect;
 
+private:
   static map<string, std::vector<string> > mSupportMimeTypes;
   static map<string, function<File *(const string &)> > mSupportClass;
 

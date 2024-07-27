@@ -19,38 +19,45 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/* @CPPFILE ApvlvTxt.h
+/* @CPPFILE ApvlvOffice.h
  *
  *  Author: Alf <naihe2010@126.com>
  */
 
-#ifndef _APVLV_TXT_H_
-#define _APVLV_TXT_H_
+#ifndef _APVLV_OFFICE_H_
+#define _APVLV_OFFICE_H_
 
-#include "ApvlvHtm.h"
+#include <LibreOfficeKit/LibreOfficeKit.hxx>
+#include <memory>
+
+#include "ApvlvFile.h"
 
 namespace apvlv
 {
-class ApvlvTXT : public ApvlvHTML
+class ApvlvOFFICE : public File
 {
-  FILE_TYPE_DECLARATION (ApvlvTXT);
+  FILE_TYPE_DECLARATION (ApvlvOFFICE);
 
 public:
-  explicit ApvlvTXT (const string &filename, bool check = true)
-      : ApvlvHTML (filename, check){};
+  explicit ApvlvOFFICE (const string &filename, bool check = true);
+  ~ApvlvOFFICE ();
+
+  int sum () override;
 
   bool pageText (int pn, string &text) override;
 
   bool pageRender (int pn, int ix, int iy, double zm, int rot,
-                   ApvlvWebview *webview) override;
-  string
-  pathMimeType (const string &path) override
-  {
-    return "text/plain";
-  };
+                   QImage *pix) override;
+
+protected:
+  unique_ptr<lok::Document> mDoc;
+
+private:
+  static unique_ptr<lok::Office> mOffice;
 };
 
 }
+
 #endif
 
 /* Local Variables: */

@@ -13,13 +13,12 @@ ENDIF ()
 MESSAGE("-- BUILD TYPE: ${CMAKE_BUILD_TYPE}")
 MESSAGE("-- CXX FLAGS: ${CMAKE_CXX_FLAGS}")
 
-SET(APVLV_WITH_POPPLER OFF CACHE BOOL "if has poppler-qt6 library")
+SET(APVLV_USE_POPPLER OFF CACHE BOOL "if has poppler-qt6 library")
 
 IF (WIN32)
     SET(Qt6_DIR "C:/Qt/6.7.2/msvc2019_64/lib/cmake/Qt6" CACHE STRING "Qt6config.cmake directory")
     SET(Qt6QmlTools_DIR "C:/Qt/6.7.2/msvc2019_64/lib/cmake/Qt6QmlTools" CACHE STRING "Qt6QmlToolsconfig.cmake directory")
     SET(QUAZIP_INCLUDE_DIRS "C:/Qt/6.7.2/msvc2019_64/include/QuaZip-Qt6-1.4/quazip;C:/Qt/6.7.2/msvc2019_64/include" CACHE STRING "Quazip include directory")
-    SET(APVLV_WITH_POPPLER OFF)
     SET(QUAZIP_LIBRARY_DIRS "C:/Qt/6.7.2/msvc2019_64/lib" CACHE STRING "Quazip lib directory")
     SET(QUAZIP_LIBRARIES "C:/Qt/6.7.2/msvc2019_64/lib/quazip1-qt6.lib" CACHE STRING "Quazip library file")
     CMAKE_POLICY(SET CMP0010 NEW)
@@ -80,6 +79,7 @@ SET(HEADERS
         ApvlvSearch.h
         ApvlvQueue.h
         ApvlvWebView.h
+        ApvlvImage.h
 )
 
 SET(SOURCES
@@ -102,11 +102,11 @@ SET(SOURCES
         ApvlvLog.cc
         ApvlvSearch.cc
         ApvlvWebView.cc
+        ApvlvImage.cc
         main.cc
 )
 
-IF (APVLV_WITH_POPPLER)
-    ADD_DEFINITIONS(-DAPVLV_WITH_POPPLER)
+IF (APVLV_USE_POPPLER)
     SET(HEADERS ${HEADERS} ApvlvPopplerPdf.h)
     SET(SOURCES ${SOURCES} ApvlvPopplerPdf.cc)
 ELSE ()
@@ -114,10 +114,9 @@ ELSE ()
     SET(SOURCES ${SOURCES} ApvlvQtPdf.cc)
 ENDIF ()
 
-OPTION(APVLV_WITH_DJVU "If build apvlv with djvu format support." OFF)
+OPTION(APVLV_WITH_DJVU "If build apvlv with djvu format support." ON)
 IF (APVLV_WITH_DJVU)
-    ADD_DEFINITIONS(-DAPVLV_WITH_DJVU)
-
+    MESSAGE("-- Will use djvulibre for djvu file support")
     IF (WIN32)
         SET(DJVULIBRE_DIR ${CMAKE_HOME_DIRECTORY}/win32/djvulibre)
 
@@ -133,6 +132,21 @@ IF (APVLV_WITH_DJVU)
     SET(HEADERS ${HEADERS} ApvlvDjvu.h)
     SET(SOURCES ${SOURCES} ApvlvDjvu.cc)
 ENDIF (APVLV_WITH_DJVU)
+
+OPTION(APVLV_WITH_OFFICE "If build apvlv with office format support." ON)
+IF (APVLV_WITH_OFFICE)
+    IF (WIN32)
+    ELSE (WIN32)
+        SET(APVLV_LOK_PATH "/usr/lib64/libreoffice/program" CACHE STRING "Libreoffice install path")
+        MESSAGE("-- Office: Will use libreofficekit for office file support")
+        MESSAGE(WARNING "-- Office: Please make sure the APVLV_LOK_PATH variable is correct")
+        SET(APVLV_REQ_LIBRARIES -llibreofficekitgtk
+                ${APVLV_REQ_LIBRARIES})
+        ADD_DEFINITIONS(-DLIBO_INTERNAL_ONLY=1 -DAPVLV_LOK_PATH="${APVLV_LOK_PATH}")
+        SET(HEADERS ${HEADERS} ApvlvLibreOffice.h)
+        SET(SOURCES ${SOURCES} ApvlvLibreOffice.cc)
+    ENDIF (WIN32)
+ENDIF (APVLV_WITH_OFFICE)
 
 MESSAGE("-- link libraries: ${APVLV_REQ_LIBRARIES}")
 ADD_EXECUTABLE(apvlv ${HEADERS} ${SOURCES})

@@ -144,8 +144,7 @@ ApvlvPDF::pageRender (int pn, int ix, int iy, double zm, int rot, QImage *pix)
   QPdfDocumentRenderOptions options{};
   options.setRotation (prot);
   options.setScaledSize (image_size);
-  auto image = mDoc->render (pn, image_size, options);
-  *pix = std::move (image);
+  *pix = mDoc->render (pn, image_size, options);
   return true;
 }
 

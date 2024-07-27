@@ -34,6 +34,19 @@ namespace apvlv
 FILE_TYPE_DEFINITION (ApvlvTXT, { ".txt", ".text" });
 
 bool
+ApvlvTXT::pageText (int pn, string &text)
+{
+  QFile file (mUrl.path ());
+  if (file.open (QIODeviceBase::ReadOnly) == false)
+    return false;
+
+  auto bytes = file.readAll ();
+  text.append (bytes.toStdString ());
+  file.close ();
+  return true;
+}
+
+bool
 ApvlvTXT::pageRender (int pn, int ix, int iy, double zm, int rot,
                       ApvlvWebview *webview)
 {
