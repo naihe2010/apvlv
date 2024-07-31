@@ -99,7 +99,7 @@ ApvlvPDF::sum ()
   return mDoc ? mDoc->pageCount () : 0;
 }
 
-unique_ptr<ApvlvPoses>
+unique_ptr<WordListRectangle>
 ApvlvPDF::pageSearch (int pn, const char *str, bool is_reverse)
 {
   if (mDoc == nullptr)
@@ -115,14 +115,16 @@ ApvlvPDF::pageSearch (int pn, const char *str, bool is_reverse)
   if (is_reverse)
     reverse (results.begin (), results.end ());
 
-  auto poses = make_unique<ApvlvPoses> ();
+  auto poses = make_unique<WordListRectangle> ();
   for (auto const &res : results)
     {
+      WordRectangle word_rectangle;
       for (auto const &rect : res.rectangles ())
         {
-          poses->push_back (
+          word_rectangle.push_back (
               { rect.left (), rect.bottom (), rect.right (), rect.top () });
         }
+      poses->push_back (word_rectangle);
     }
   return poses;
 }

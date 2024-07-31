@@ -30,6 +30,7 @@
 #include <functional>
 #include <iostream>
 #include <optional>
+#include <sstream>
 #include <stack>
 #include <utility>
 
@@ -114,6 +115,7 @@ File::newFile (const string &filename, bool check)
 
   catch (const bad_alloc &e)
     {
+      qCritical ("open %s error: %s", filename.c_str (), e.what ());
       delete file;
       file = nullptr;
     }
@@ -177,7 +179,7 @@ File::pageRender (int pn, int ix, int iy, double zm, int rot,
                     .arg (iy)
                     .arg (zm)
                     .arg (rot)
-                    .arg (random ());
+                    .arg (rand ());
   webview->load (pdfuri);
   return true;
 }
@@ -203,44 +205,48 @@ File::pathPageNumber (const string &path)
 
 bool
 File::pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
-                        QImage *pix, int select, ApvlvPoses *poses)
+                        QImage *pix, int select, WordListRectangle *wordlist)
 {
-  for (auto itr = (*poses).begin (); itr != (*poses).end (); ++itr)
+  for (auto itr = (*wordlist).begin (); itr != (*wordlist).end (); ++itr)
     {
-      auto pos = *itr;
+      auto rectangles = *itr;
 
-      auto p1xz = int (pos.p1x * zm);
-      auto p2xz = int (pos.p2x * zm);
-      auto p1yz = int (pos.p2y * zm);
-      auto p2yz = int (pos.p1y * zm);
-
-      if (pix->format () == QImage::Format_ARGB32)
+      for (auto const &pos : rectangles)
         {
-          imageArgb32ToRgb32 (*pix, p1xz, p1yz, p2xz, p2yz);
-        }
+          auto p1xz = int (pos.p1x * zm);
+          auto p2xz = int (pos.p2x * zm);
+          auto p1yz = int (pos.p2y * zm);
+          auto p2yz = int (pos.p1y * zm);
 
-      if (std::distance ((*poses).begin (), itr) == select)
-        {
-          for (int w = p1xz; w < p2xz; ++w)
+          if (pix->format () == QImage::Format_ARGB32)
             {
-              for (int h = p1yz; h < p2yz; ++h)
+              imageArgb32ToRgb32 (*pix, p1xz, p1yz, p2xz, p2yz);
+            }
+
+          if (std::distance ((*wordlist).begin (), itr) == select)
+            {
+              for (int w = p1xz; w < p2xz; ++w)
                 {
-                  QColor c = pix->pixelColor (w, h);
-                  c.setRgb (255 - c.red (), 255 - c.red (), 255 - c.red ());
-                  pix->setPixelColor (w, h, c);
+                  for (int h = p1yz; h < p2yz; ++h)
+                    {
+                      QColor c = pix->pixelColor (w, h);
+                      c.setRgb (255 - c.red (), 255 - c.red (),
+                                255 - c.red ());
+                      pix->setPixelColor (w, h, c);
+                    }
                 }
             }
-        }
-      else
-        {
-          for (int w = p1xz; w < p2xz; ++w)
+          else
             {
-              for (int h = p1yz; h < p2yz; ++h)
+              for (int w = p1xz; w < p2xz; ++w)
                 {
-                  QColor c = pix->pixelColor (w, h);
-                  c.setRgb (255 - c.red () / 2, 255 - c.red () / 2,
-                            255 - c.red () / 2);
-                  pix->setPixelColor (w, h, c);
+                  for (int h = p1yz; h < p2yz; ++h)
+                    {
+                      QColor c = pix->pixelColor (w, h);
+                      c.setRgb (255 - c.red () / 2, 255 - c.red () / 2,
+                                255 - c.red () / 2);
+                      pix->setPixelColor (w, h, c);
+                    }
                 }
             }
         }
@@ -251,7 +257,8 @@ File::pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
 
 bool
 File::pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
-                        ApvlvWebview *webview, int select, ApvlvPoses *poses)
+                        ApvlvWebview *webview, int select,
+                        WordListRectangle *poses)
 {
   mSearchPoses = *poses;
   mSearchSelect = select;
@@ -307,7 +314,7 @@ File::pathContentHtml (int pn, int ix, int iy, double zm, int rot)
                  .arg (iy)
                  .arg (zm)
                  .arg (rot)
-                 .arg (random ());
+                 .arg (rand ());
   auto html = QString::asprintf (html_template.c_str (),
                                  src.toStdString ().c_str ());
   return QByteArray::fromStdString (html.toStdString ());

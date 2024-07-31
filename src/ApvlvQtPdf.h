@@ -59,8 +59,8 @@ public:
 
   bool pageAnnotUpdate (int pn, ApvlvAnnotText *text) override;
 
-  unique_ptr<ApvlvPoses> pageSearch (int pn, const char *s,
-                                     bool reverse) override;
+  unique_ptr<WordListRectangle> pageSearch (int pn, const char *s,
+                                            bool reverse) override;
 
   ApvlvAnnotTexts pageAnnotTexts (int pn) override;
 

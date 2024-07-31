@@ -60,13 +60,13 @@ typedef map<char, ApvlvDocPosition> ApvlvDocPositionMap;
 
 struct ApvlvWord
 {
-  ApvlvPos pos;
+  CharRectangle pos;
   string word;
 };
 
 struct ApvlvLine
 {
-  ApvlvPos pos;
+  CharRectangle pos;
   vector<ApvlvWord> mWords;
 };
 
@@ -111,14 +111,14 @@ public:
 
   vector<ApvlvLine *> getlines (double y1, double y2);
 
-  vector<ApvlvPos> getSelected (ApvlvPoint last, ApvlvPoint cur,
-                                ApvlvVisualMode visual);
+  vector<CharRectangle> getSelected (ApvlvPoint last, ApvlvPoint cur,
+                                     ApvlvVisualMode visual);
 
-  bool getAvailableSpace (ApvlvPos pos, ApvlvPos *outpos);
+  bool getAvailableSpace (CharRectangle pos, CharRectangle *outpos);
 
   void setAnnot (const ApvlvAnnotText &annot) const;
 
-  ApvlvAnnotText *annotAtPos (ApvlvPos vpos);
+  ApvlvAnnotText *annotAtPos (CharRectangle vpos);
 
 private:
   File *mFile;
@@ -135,7 +135,7 @@ private:
 
   void preGetLines (int x1, int y1, int x2, int y2);
   void sortLines ();
-  void prepare_add (const char *word, ApvlvPoses *results);
+  void prepare_add (const char *word, WordListRectangle *results);
 };
 
 class ApvlvImage : public QLabel
@@ -232,7 +232,7 @@ public:
 private:
   void blank (ApvlvImage *img);
 
-  static void blankarea (ApvlvImage *image, ApvlvPos pos, uchar *buffer,
+  static void blankarea (ApvlvImage *image, CharRectangle pos, uchar *buffer,
                          int width, int height);
 
   void doubleClickBlank (ApvlvImage *img, double x, double y);

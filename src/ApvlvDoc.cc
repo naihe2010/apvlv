@@ -118,8 +118,8 @@ ApvlvDoc::~ApvlvDoc ()
 }
 
 void
-ApvlvDoc::blankarea (ApvlvImage *image, ApvlvPos pos, uchar *buffer, int width,
-                     int height)
+ApvlvDoc::blankarea (ApvlvImage *image, CharRectangle pos, uchar *buffer,
+                     int width, int height)
 {
   int x1 = int (pos.p1x), x2 = int (pos.p2x);
   int y1 = int (pos.p1y), y2 = int (pos.p2y);
@@ -149,7 +149,7 @@ ApvlvDoc::doubleClickBlank (ApvlvImage *img, double x, double y)
 {
   auto cache = mCurrentCache[img->mId].get ();
 
-  ApvlvPos pos = { x, x, y, y };
+  CharRectangle pos = { x, x, y, y };
 
   if (strcasecmp (gParams->values ("doubleclick"), "word") == 0)
     {
@@ -198,10 +198,10 @@ ApvlvDoc::blank (ApvlvImage *img)
   auto poses = cache->getSelected (mLastPoint, mCurPoint, mInVisual);
   auto p = cache->getbuf (true);
 
-  for (auto pos : poses)
-    {
-      // blankarea (img, pos, buffer, cache->getwidth (), cache->getheight ());
-    }
+  // for (auto pos : poses)
+  //  {
+  //  blankarea (img, pos, buffer, cache->getwidth (), cache->getheight ());
+  //}
 
   img->setImage (p);
 }
@@ -304,8 +304,9 @@ ApvlvDoc::commentText (ApvlvImage *image)
   if (poses.empty ())
     return;
 
-  ApvlvPos apos = { mLastPoint.x, mCurPoint.x, mLastPoint.y, mCurPoint.y };
-  ApvlvPos cpos{};
+  CharRectangle apos
+      = { mLastPoint.x, mCurPoint.x, mLastPoint.y, mCurPoint.y };
+  CharRectangle cpos{};
   if (cache->getAvailableSpace (apos, &cpos) == false)
     {
       qDebug ("not find space");
@@ -1128,7 +1129,7 @@ ApvlvDoc::markselection ()
   if (mSearchResults->size () <= mSearchSelect)
     return;
 
-  auto rect = (*mSearchResults)[mSearchSelect];
+  auto rect = (*mSearchResults)[mSearchSelect][0];
 
   // Caculate the correct position
   // qDebug ("pagex: %f, pagey: %f, p1x: %f, p1y: %f, p2x: %f, p2y: %f",
@@ -1190,7 +1191,7 @@ void
 ApvlvDoc::markselectionweb ()
 {
   Q_ASSERT (mSearchResults->size () > mSearchSelect);
-  auto rect = (*mSearchResults)[mSearchSelect];
+  auto rect = (*mSearchResults)[mSearchSelect][0];
 
   double width, height, xrate = 0.0, yrate = 0.0;
   if (mFile->pageSize (mPagenum, mRotatevalue, &width, &height))
@@ -1818,7 +1819,7 @@ ApvlvDocCache::setAnnot (const ApvlvAnnotText &annot) const
 }
 
 bool
-ApvlvDocCache::getAvailableSpace (ApvlvPos pos, ApvlvPos *outpos)
+ApvlvDocCache::getAvailableSpace (CharRectangle pos, CharRectangle *outpos)
 {
   auto lines = getlines (pos.p1y, pos.p2y);
   if (lines.empty ())
@@ -1834,8 +1835,8 @@ ApvlvDocCache::getAvailableSpace (ApvlvPos pos, ApvlvPos *outpos)
       if (l->pos.p2x > maxx)
         maxx = l->pos.p2x;
     }
-  ApvlvPos apos = { maxx + 20, double (mWidth - 1), lines[0]->pos.p1y,
-                    lines[linelid]->pos.p2y };
+  CharRectangle apos = { maxx + 20, double (mWidth - 1), lines[0]->pos.p1y,
+                         lines[linelid]->pos.p2y };
   if (annotAtPos (apos) == nullptr)
     {
       *outpos = apos;
@@ -1848,14 +1849,15 @@ ApvlvDocCache::getAvailableSpace (ApvlvPos pos, ApvlvPos *outpos)
       if (l->pos.p1x < minx)
         minx = l->pos.p1x;
     }
-  ApvlvPos bpos = { 1, minx - 20, lines[0]->pos.p1y, lines[linelid]->pos.p2y };
+  CharRectangle bpos
+      = { 1, minx - 20, lines[0]->pos.p1y, lines[linelid]->pos.p2y };
   if (annotAtPos (bpos) == nullptr)
     {
       *outpos = bpos;
       return true;
     }
 
-  ApvlvPos cpos = { 1, double (mWidth - 1), 1, mLines[0].pos.p1y - 20 };
+  CharRectangle cpos = { 1, double (mWidth - 1), 1, mLines[0].pos.p1y - 20 };
   if (annotAtPos (cpos) == nullptr)
     {
       *outpos = cpos;
@@ -1863,8 +1865,8 @@ ApvlvDocCache::getAvailableSpace (ApvlvPos pos, ApvlvPos *outpos)
     }
 
   auto glid = mLines.size () - 1;
-  ApvlvPos dpos = { 1, double (mWidth - 1), mLines[glid].pos.p2y + 20,
-                    double (mHeight - 1) };
+  CharRectangle dpos = { 1, double (mWidth - 1), mLines[glid].pos.p2y + 20,
+                         double (mHeight - 1) };
   if (annotAtPos (dpos) == nullptr)
     {
       *outpos = dpos;
@@ -1947,7 +1949,7 @@ ApvlvDocCache::getline (double y)
 }
 
 ApvlvAnnotText *
-ApvlvDocCache::annotAtPos (ApvlvPos vpos)
+ApvlvDocCache::annotAtPos (CharRectangle vpos)
 {
   auto x1 = vpos.p1x, y1 = mHeight - vpos.p2y;
   auto x2 = vpos.p2x, y2 = mHeight - vpos.p1y;
@@ -2066,9 +2068,9 @@ ApvlvDocCache::sortLines ()
 }
 
 void
-ApvlvDocCache::prepare_add (const char *word, ApvlvPoses *results)
+ApvlvDocCache::prepare_add (const char *word, WordListRectangle *results)
 {
-  for (auto itr : *results)
+  for (auto itr : (*results)[0]) // need impl loop
     {
       itr.p1x = itr.p1x * mZoom;
       itr.p2x = itr.p2x * mZoom;
@@ -2165,11 +2167,11 @@ ApvlvDocCache::getWidthOfWord (double x, double y)
   return APVLV_WORD_WIDTH_DEFAULT;
 }
 
-vector<ApvlvPos>
+vector<CharRectangle>
 ApvlvDocCache::getSelected (ApvlvPoint last, ApvlvPoint cur,
                             ApvlvVisualMode visual)
 {
-  vector<ApvlvPos> poses;
+  vector<CharRectangle> poses;
   auto y1 = last.y, y2 = cur.y;
   auto x1 = last.x, x2 = cur.x;
 
@@ -2186,47 +2188,48 @@ ApvlvDocCache::getSelected (ApvlvPoint last, ApvlvPoint cur,
     {
       if (lines.empty ())
         {
-          ApvlvPos pos = { x1, x2, y1, y2 };
+          CharRectangle pos = { x1, x2, y1, y2 };
           poses.push_back (pos);
         }
       else if (lines.size () == 1)
         {
-          ApvlvPos pos = { x1, x2, lines[0]->pos.p1y, lines[0]->pos.p2y };
+          CharRectangle pos = { x1, x2, lines[0]->pos.p1y, lines[0]->pos.p2y };
           poses.push_back (pos);
         }
       else if (lines.size () == 2)
         {
-          ApvlvPos pos1 = { x1, lines[0]->pos.p2x, lines[0]->pos.p1y,
-                            lines[0]->pos.p2y };
+          CharRectangle pos1 = { x1, lines[0]->pos.p2x, lines[0]->pos.p1y,
+                                 lines[0]->pos.p2y };
           poses.push_back (pos1);
-          ApvlvPos pos2 = { lines[1]->pos.p1x, x2, lines[1]->pos.p1y,
-                            lines[1]->pos.p2y };
+          CharRectangle pos2 = { lines[1]->pos.p1x, x2, lines[1]->pos.p1y,
+                                 lines[1]->pos.p2y };
           poses.push_back (pos2);
         }
       else
         {
-          ApvlvPos pos1 = { x1, lines[0]->pos.p2x, lines[0]->pos.p1y,
-                            lines[0]->pos.p2y };
+          CharRectangle pos1 = { x1, lines[0]->pos.p2x, lines[0]->pos.p1y,
+                                 lines[0]->pos.p2y };
           poses.push_back (pos1);
           for (size_t lid = 1; lid < lines.size () - 1; ++lid)
             {
               poses.push_back (lines[lid]->pos);
             }
           auto lastid = lines.size () - 1;
-          ApvlvPos pos2 = { lines[lastid]->pos.p1x, x2, lines[lastid]->pos.p1y,
-                            lines[lastid]->pos.p2y };
+          CharRectangle pos2
+              = { lines[lastid]->pos.p1x, x2, lines[lastid]->pos.p1y,
+                  lines[lastid]->pos.p2y };
           poses.push_back (pos2);
         }
     }
   else if (visual == ApvlvVisualMode::VISUAL_CTRL_V)
     {
-      ApvlvPos pos = { x1, x2, y1, y2 };
+      CharRectangle pos = { x1, x2, y1, y2 };
       poses.push_back (pos);
     }
   else
     {
-      ApvlvPos pos = { cur.x, cur.x + int (APVLV_CURSOR_WIDTH_DEFAULT), cur.y,
-                       cur.y + APVLV_LINE_HEIGHT_DEFAULT };
+      CharRectangle pos = { cur.x, cur.x + int (APVLV_CURSOR_WIDTH_DEFAULT),
+                            cur.y, cur.y + APVLV_LINE_HEIGHT_DEFAULT };
       if (!lines.empty ())
         {
           pos.p1y = lines[lines.size () - 1]->pos.p1y;
@@ -2291,13 +2294,14 @@ ApvlvDoc::find (const char *str)
   auto cache = mCurrentCache[mCurrentImage->mId].get ();
   auto results = mFile->pageSearch (cache->getpagenum (), str, false);
 
-  for (auto pos : *results)
+  for (auto const &wordpos : *results)
     {
+      auto pos = wordpos[0];
       if (pos.p1y > mCurPoint.y
           || (pos.p1y == mCurPoint.y && pos.p1x > mCurPoint.x))
         {
-          ApvlvPos pos1 = { pos.p1x, pos.p2x, cache->getheight () - pos.p1y,
-                            cache->getheight () - pos.p2y };
+          Rectangle pos1 = { pos.p1x, pos.p2x, cache->getheight () - pos.p1y,
+                             cache->getheight () - pos.p2y };
           blankarea (mCurrentImage, pos1, nullptr, cache->getwidth (),
                      cache->getheight ());
           auto p = cache->getbuf (true);
@@ -2376,8 +2380,8 @@ ApvlvImage::contextMenuEvent (QContextMenuEvent *ev)
 
   auto cache = mDoc->mCurrentCache[mId].get ();
   auto cursor_pos = QCursor::pos ();
-  ApvlvPos pos = { (double)cursor_pos.x (), (double)cursor_pos.x (),
-                   (double)cursor_pos.y (), (double)cursor_pos.y () };
+  CharRectangle pos = { (double)cursor_pos.x (), (double)cursor_pos.x (),
+                        (double)cursor_pos.y (), (double)cursor_pos.y () };
   mDoc->mCurrentAnnotText = cache->annotAtPos (pos);
 
   if (mDoc->mCurrentAnnotText == nullptr

@@ -69,12 +69,16 @@ struct ApvlvPoint
 //
 // position of a search result, or just an area
 //
-struct ApvlvPos
+struct Rectangle
 {
   double p1x, p1y, p2x, p2y;
 };
 
-using ApvlvPoses = vector<ApvlvPos>;
+using CharRectangle = Rectangle;
+
+using WordRectangle = vector<CharRectangle>;
+
+using WordListRectangle = vector<WordRectangle>;
 
 enum ApvlvAnnotType
 {
@@ -85,7 +89,7 @@ enum ApvlvAnnotType
 struct ApvlvAnnotText
 {
   ApvlvAnnotType type;
-  ApvlvPos pos;
+  CharRectangle pos;
   string text;
 };
 
@@ -210,18 +214,19 @@ public:
     return false;
   }
 
-  virtual unique_ptr<ApvlvPoses>
+  virtual unique_ptr<WordListRectangle>
   pageSearch (int pn, const char *str, bool reverse)
   {
     return nullptr;
   }
 
   virtual bool pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
-                                 QImage *pix, int select, ApvlvPoses *poses);
+                                 QImage *pix, int select,
+                                 WordListRectangle *poses);
 
   virtual bool pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
                                  ApvlvWebview *webview, int select,
-                                 ApvlvPoses *poses);
+                                 WordListRectangle *poses);
 
   virtual bool pageAnnotUnderline (int, double, double, double, double);
 
@@ -251,7 +256,7 @@ protected:
   std::map<string, string> srcMimeTypes;
   ApvlvCover mCover;
 
-  ApvlvPoses mSearchPoses;
+  WordListRectangle mSearchPoses;
   int mSearchSelect;
 
 private:

@@ -196,7 +196,7 @@ protected:
   char mSearchCmd{};
   bool mSearchReverse{};
   uint mSearchSelect{};
-  unique_ptr<ApvlvPoses> mSearchResults;
+  unique_ptr<WordListRectangle> mSearchResults;
   string mSearchStr;
 
   enum

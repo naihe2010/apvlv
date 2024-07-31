@@ -94,7 +94,7 @@ Searcher::submit (const SearchOptions &options)
   auto path = filesystem::path (options.mFromDir);
   if (is_regular_file (path))
     {
-      mFilenameQueue.push (move (absolute (path)));
+      mFilenameQueue.push (move (absolute (path).string ()));
     }
   mRestart.store (true);
 }
