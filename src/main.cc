@@ -154,8 +154,8 @@ loadTranslator (QTranslator &translator)
   if (lanuage_translator.find (lanstr) != lanuage_translator.end ())
     {
       auto lantrans = lanuage_translator[lanstr];
-      if (!translator.load (QString::fromStdString (lantrans),
-                            QString::fromStdString (translations)))
+      if (!translator.load (QString::fromLocal8Bit (lantrans),
+                            QString::fromLocal8Bit (translations)))
         {
           qCritical ("Load i18n file failed, using English");
         }
@@ -191,7 +191,7 @@ main (int argc, char *argv[])
       return 1;
     }
 
-  ApvlvLog sLog (QString::fromStdString (logfile));
+  ApvlvLog sLog (QString::fromLocal8Bit (logfile));
 
   string path;
   if (opt > 0 && argc > opt)

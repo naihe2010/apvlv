@@ -44,6 +44,22 @@ public:
 
   ~ApvlvPDF () override = default;
 
+  [[nodiscard]] DISPLAY_TYPE
+  getDisplayType () const override
+  {
+    return DISPLAY_TYPE_HTML;
+  }
+
+  QWidget *getWidget () override;
+
+  bool widgetGoto (QWidget *widget, int pn) override;
+
+  bool widgetGoto (QWidget *widget, const string &anchor) override;
+
+  bool widgetZoom (QWidget *widget, double zm) override;
+
+  bool widgetSearch (QWidget *widget, const string &word) override;
+
   bool pageSize (int page, int rot, double *x, double *y) override;
 
   int sum () override;
@@ -70,6 +86,9 @@ private:
                            const QModelIndex &);
 
   unique_ptr<QPdfDocument> mDoc;
+  unique_ptr<QPdfSearchModel> mSearchModel;
+
+  QWidget *mView;
 };
 }
 #endif

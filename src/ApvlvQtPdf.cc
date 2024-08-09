@@ -28,8 +28,10 @@
 #include <QInputDialog>
 #include <QPdfBookmarkModel>
 #include <QPdfDocument>
+#include <QPdfPageNavigator>
 #include <QPdfSearchModel>
 #include <QThread>
+#include <QtPdfWidgets/QPdfView>
 #include <filesystem>
 #include <fstream>
 
@@ -43,9 +45,10 @@ using namespace std;
 FILE_TYPE_DEFINITION (ApvlvPDF, { ".pdf" });
 
 ApvlvPDF::ApvlvPDF (const string &filename, bool check)
-    : File (filename, check), mDoc (make_unique<QPdfDocument> ())
+    : File (filename, check), mDoc (make_unique<QPdfDocument> ()),
+      mView (nullptr)
 {
-  auto res = mDoc->load (QString::fromStdString (filename));
+  auto res = mDoc->load (QString::fromLocal8Bit (filename));
   if (res == QPdfDocument::Error::IncorrectPassword)
     {
       if (QThread::currentThread () == QApplication::instance ()->thread ())
@@ -57,7 +60,7 @@ ApvlvPDF::ApvlvPDF (const string &filename, bool check)
 
           auto pass = QByteArray::fromStdString (text.toStdString ());
           mDoc->setPassword (pass);
-          res = mDoc->load (QString::fromStdString (filename));
+          res = mDoc->load (QString::fromLocal8Bit (filename));
         }
       else
         {
@@ -70,7 +73,59 @@ ApvlvPDF::ApvlvPDF (const string &filename, bool check)
       throw std::bad_alloc ();
     }
 
+  mSearchModel = make_unique<QPdfSearchModel> ();
+  mSearchModel->setDocument (mDoc.get ());
+
   pdf_get_index ();
+}
+
+QWidget *
+ApvlvPDF::getWidget ()
+{
+  if (mView == nullptr)
+    {
+      auto view = new QPdfView;
+      view->setDocument (mDoc.get ());
+      view->setSearchModel (mSearchModel.get ());
+      mView = view;
+    }
+  return mView;
+}
+
+bool
+ApvlvPDF::widgetGoto (QWidget *widget, int pn)
+{
+  auto *view = dynamic_cast<QPdfView *> (widget);
+  auto nav = view->pageNavigator ();
+  nav->jump (pn, { 0, 0 });
+  return true;
+}
+
+bool
+ApvlvPDF::widgetGoto (QWidget *widget, const string &anchor)
+{
+  auto *view = dynamic_cast<QPdfView *> (widget);
+  auto nav = view->pageNavigator ();
+  auto link = QPdfLink{};
+  nav->jump (link);
+  return true;
+}
+
+bool
+ApvlvPDF::widgetZoom (QWidget *widget, double zm)
+{
+  auto *view = dynamic_cast<QPdfView *> (widget);
+  view->setZoomFactor (zm);
+  return true;
+}
+
+bool
+ApvlvPDF::widgetSearch (QWidget *widget, const string &word)
+{
+  auto *view = dynamic_cast<QPdfView *> (widget);
+  mSearchModel->setSearchString (QString::fromLocal8Bit (word));
+  view->setCurrentSearchResultIndex (1);
+  return true;
 }
 
 bool

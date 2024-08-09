@@ -99,7 +99,7 @@ FILE_TYPE_DEFINITION (ApvlvFB2, { ".fb2" });
 ApvlvFB2::ApvlvFB2 (const string &filename, bool check)
     : File (filename, check)
 {
-  QFile file (QString::fromStdString (filename));
+  QFile file (QString::fromLocal8Bit (filename));
   if (!file.open (QFile::ReadOnly | QFile::Text))
     {
       throw bad_alloc ();

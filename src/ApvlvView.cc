@@ -225,7 +225,7 @@ ApvlvView::open ()
   auto fp = gInfo->file (0);
   if (fp)
     {
-      dirname = QString::fromStdString (
+      dirname = QString::fromLocal8Bit (
           filesystem::path (fp.value ()->file).parent_path ().string ());
     }
   else
@@ -253,7 +253,7 @@ ApvlvView::open ()
                                                 filters, &selected);
   if (!filename.isEmpty ())
     {
-      loadfile (filename.toStdString ());
+      loadfile (string (filename.toLocal8Bit ().constData ()));
     }
 }
 
@@ -264,7 +264,7 @@ ApvlvView::opendir ()
   auto fp = gInfo->file (0);
   if (fp)
     {
-      dirname = QString::fromStdString (
+      dirname = QString::fromLocal8Bit (
           filesystem::path (fp.value ()->file).parent_path ().string ());
     }
   else
@@ -365,7 +365,7 @@ ApvlvView::newtab (ApvlvCore *core)
             ? filesystem::path (core->filename ()).filename ().string ()
             : "NONE";
   mTabContainer->insertTab (pos, mTabList[pos],
-                            QString::fromStdString (basename));
+                            QString::fromLocal8Bit (basename));
   mTabContainer->setCurrentIndex (pos);
 
   return true;
@@ -704,7 +704,7 @@ ApvlvView::cmd_auto (const char *ps)
   if (!comtext.empty ())
     {
       qDebug ("get a match: %s", comtext.c_str ());
-      QString s = QString::fromStdString (comtext);
+      QString s = QString::fromLocal8Bit (comtext);
       s.replace (" ", "\\ ");
       QString linetext = QString::asprintf (":%s %s", cmd.c_str (),
                                             s.toStdString ().c_str ());
@@ -966,7 +966,7 @@ ApvlvView::run (const char *str)
 void
 ApvlvView::settitle (const string &title)
 {
-  setWindowTitle (QString::fromStdString (title));
+  setWindowTitle (QString::fromLocal8Bit (title));
 }
 
 bool
@@ -1249,7 +1249,7 @@ ApvlvView::commandbar_keypress_cb (QKeyEvent *gek)
     {
       if (!mCmdHistroy.empty ())
         {
-          mCommandBar->setText (QString::fromStdString (
+          mCommandBar->setText (QString::fromLocal8Bit (
               mCurrHistroy > 0 ? mCmdHistroy[mCurrHistroy--]
                                : mCmdHistroy[0]));
         }
@@ -1258,7 +1258,7 @@ ApvlvView::commandbar_keypress_cb (QKeyEvent *gek)
     {
       if (!mCmdHistroy.empty ())
         {
-          mCommandBar->setText (QString::fromStdString (
+          mCommandBar->setText (QString::fromLocal8Bit (
               (size_t)mCurrHistroy < mCmdHistroy.size () - 1
                   ? mCmdHistroy[++mCurrHistroy]
                   : mCmdHistroy[mCmdHistroy.size () - 1]));

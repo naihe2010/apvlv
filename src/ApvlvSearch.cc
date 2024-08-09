@@ -258,7 +258,7 @@ SearchDialog::SearchDialog (QWidget *parent) : mPreviewIsFinished (true)
   auto mime_types = File::supportMimeTypes ();
   for_each (mime_types.begin (), mime_types.end (), [&] (const auto &pair) {
     for_each (pair.second.begin (), pair.second.end (), [&] (const auto &ext) {
-      auto checkbox = new QCheckBox (QString::fromStdString (ext));
+      auto checkbox = new QCheckBox (QString::fromLocal8Bit (ext));
       checkbox->setChecked (true);
       hbox3->addWidget (checkbox);
       mTypes.emplace_back (checkbox);
@@ -360,14 +360,14 @@ SearchDialog::activateItem (QListWidgetItem *item)
 void
 SearchDialog::displayResult (unique_ptr<SearchFileMatch> result)
 {
-  auto line = QString::fromStdString (result->filename);
+  auto line = QString::fromLocal8Bit (result->filename);
   for (const auto &page : result->page_matches)
     {
       auto pos = line + ':' + QString::number (page.page + 1);
       for_each (page.matches.begin (), page.matches.end (),
                 [&] (const auto &match) {
                   auto matchitem = new QListWidgetItem (
-                      { QString::fromStdString (match.line) });
+                      { QString::fromLocal8Bit (match.line) });
                   matchitem->setToolTip (pos);
                   QStringList data{ line, QString::number (page.page) };
                   matchitem->setData (Qt::UserRole, data);

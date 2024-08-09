@@ -81,6 +81,8 @@ ApvlvCore::ApvlvCore (ApvlvView *view)
       mVbox->addWidget (mPaned, 1);
     }
 
+  mCustomWidget = nullptr;
+
   mContent = new ApvlvContent ();
   QObject::connect (this, SIGNAL (indexGenerited (const FileIndex &)),
                     mContent, SLOT (set_index (const FileIndex &)));
@@ -232,7 +234,7 @@ ApvlvCore::scrollweb (int times, int h, int v)
   stringstream scripts;
   scripts << "window.scrollBy(" << times * h << "," << times * v << ")";
   auto page = mMainWebView->page ();
-  page->runJavaScript (QString::fromStdString (scripts.str ()));
+  page->runJavaScript (QString::fromLocal8Bit (scripts.str ()));
 }
 
 void
@@ -246,7 +248,7 @@ ApvlvCore::scrollwebto (double xrate, double yrate)
   scripts << " (document.body.offsetHeight - window.innerHeight) * " << yrate
           << ");";
   auto page = mMainWebView->page ();
-  page->runJavaScript (QString::fromStdString (scripts.str ()));
+  page->runJavaScript (QString::fromLocal8Bit (scripts.str ()));
 }
 
 void
@@ -558,6 +560,8 @@ ApvlvCore::setActive (bool act)
     {
       if (mDisplayType == DISPLAY_TYPE_IMAGE)
         mMainImageScrolView->setFocus ();
+      else if (mDisplayType == DISPLAY_TYPE_CUSTOM)
+        mCustomWidget->setFocus ();
       else
         mMainWebView->setFocus ();
     }
@@ -689,6 +693,20 @@ ApvlvCore::showImage ()
 }
 
 void
+ApvlvCore::showWidget ()
+{
+  if (mMainWebView->parent () != nullptr)
+    {
+      mMainWebView->setParent (nullptr);
+    }
+  if (mMainImageScrolView->parent () != nullptr)
+    {
+      mMainImageScrolView->setParent (nullptr);
+    }
+  mPaned->addWidget (mCustomWidget);
+}
+
+void
 ApvlvCore::showWeb ()
 {
   if (mMainImageScrolView->parent () != nullptr)
@@ -726,7 +744,7 @@ ApvlvCore::webview_load_finished (bool suc)
           javasrc << "document.getElementById('";
           javasrc << mAnchor.substr (1);
           javasrc << "').scrollIntoView();";
-          page->runJavaScript (QString::fromStdString (javasrc.str ()));
+          page->runJavaScript (QString::fromLocal8Bit (javasrc.str ()));
         }
       else if (mWebScrollUp)
         {
@@ -772,12 +790,12 @@ ApvlvStatus::showMessages (const vector<string> &msgs)
       if (children.size () > (qsizetype)ind)
         {
           auto label = children[ind];
-          label->setText (QString::fromStdString (msgs[ind]));
+          label->setText (QString::fromLocal8Bit (msgs[ind]));
         }
       else
         {
           auto label = new QLabel ();
-          label->setText (QString::fromStdString (msgs[ind]));
+          label->setText (QString::fromLocal8Bit (msgs[ind]));
           newlabels.push_back (label);
         }
     }

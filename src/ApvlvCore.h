@@ -39,7 +39,6 @@
 #include "ApvlvContent.h"
 #include "ApvlvFile.h"
 #include "ApvlvUtil.h"
-#include "ApvlvWebView.h"
 
 using namespace std;
 
@@ -238,6 +237,9 @@ protected:
   // the webview
   ApvlvWebview *mMainWebView;
 
+  // the custom widget
+  QWidget *mCustomWidget;
+
   QScrollBar *mMainVaj, *mMainHaj;
 
   // the document scrolled window
@@ -257,6 +259,8 @@ protected:
   void initWebUi ();
 
   void showImage ();
+
+  void showWidget ();
 
   void showWeb ();
 

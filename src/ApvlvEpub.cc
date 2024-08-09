@@ -38,7 +38,7 @@ FILE_TYPE_DEFINITION (ApvlvEPUB, { ".epub" });
 
 ApvlvEPUB::ApvlvEPUB (const string &filename, bool check)
     : File (filename, check),
-      mQuaZip (make_unique<QuaZip> (QString::fromStdString (filename)))
+      mQuaZip (make_unique<QuaZip> (QString::fromLocal8Bit (filename)))
 {
   if (mQuaZip->open (QuaZip::mdUnzip) == false)
     {
@@ -85,7 +85,7 @@ ApvlvEPUB::pageRender (int pn, int ix, int iy, double zm, int rot,
                        ApvlvWebview *webview)
 {
   webview->setZoomFactor (zm);
-  QUrl epuburi = QString ("apvlv:///") + QString::fromStdString (mPages[pn]);
+  QUrl epuburi = QString ("apvlv:///") + QString::fromLocal8Bit (mPages[pn]);
   webview->load (epuburi);
   return true;
 }
@@ -93,7 +93,7 @@ ApvlvEPUB::pageRender (int pn, int ix, int iy, double zm, int rot,
 optional<QByteArray>
 ApvlvEPUB::pathContent (const string &path)
 {
-  auto optcontent = get_zip_file_contents (QString::fromStdString (path));
+  auto optcontent = get_zip_file_contents (QString::fromLocal8Bit (path));
   return optcontent;
 }
 
@@ -123,7 +123,7 @@ ApvlvEPUB::content_get_media (const string &contentfile)
   string cover_id = "cover";
 
   auto optcontent
-      = get_zip_file_contents (QString::fromStdString (contentfile));
+      = get_zip_file_contents (QString::fromLocal8Bit (contentfile));
   if (!optcontent)
     {
       return false;
@@ -223,7 +223,7 @@ ApvlvEPUB::content_get_media (const string &contentfile)
 bool
 ApvlvEPUB::ncx_set_index (const string &ncxfile)
 {
-  auto opttoc = get_zip_file_contents (QString::fromStdString (ncxfile));
+  auto opttoc = get_zip_file_contents (QString::fromLocal8Bit (ncxfile));
   if (!opttoc)
     {
       return false;

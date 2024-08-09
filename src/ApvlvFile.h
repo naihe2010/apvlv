@@ -43,6 +43,7 @@ typedef enum
 {
   DISPLAY_TYPE_IMAGE = 0,
   DISPLAY_TYPE_HTML = 1,
+  DISPLAY_TYPE_CUSTOM = 2,
 } DISPLAY_TYPE;
 
 //
@@ -143,6 +144,37 @@ public:
   getDisplayType () const
   {
     return DISPLAY_TYPE_HTML;
+  }
+
+  // when display type is custom, using this
+  virtual QWidget *
+  getWidget ()
+  {
+    return nullptr;
+  }
+
+  virtual bool
+  widgetGoto (QWidget *widget, int pn)
+  {
+    return false;
+  }
+
+  virtual bool
+  widgetGoto (QWidget *widget, const string &anchor)
+  {
+    return false;
+  }
+
+  virtual bool
+  widgetZoom (QWidget *widget, double zm)
+  {
+    return false;
+  }
+
+  virtual bool
+  widgetSearch (QWidget *widget, const string &word)
+  {
+    return false;
   }
 
   const string &

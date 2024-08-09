@@ -36,7 +36,7 @@ ApvlvHTML::ApvlvHTML (const string &filename, bool check)
     : File (filename, check)
 {
   mUrl.setScheme ("file");
-  mUrl.setPath (QString::fromStdString (filename));
+  mUrl.setPath (QString::fromLocal8Bit (filename));
 }
 
 bool

@@ -253,7 +253,7 @@ ApvlvDoc::yank (ApvlvImage *image, int times)
   qDebug ("selected \n[%s]\n", content.c_str ());
 
   auto cb = QGuiApplication::clipboard ();
-  cb->setText (QString::fromStdString (content));
+  cb->setText (QString::fromLocal8Bit (content));
 }
 
 void
@@ -852,12 +852,12 @@ ApvlvDoc::loadfile (const string &filename, bool check, bool show_content)
               auto realname = filesystem::read_symlink (systempath).string ();
               if (filesystem::is_regular_file (realname))
                 {
-                  mWatcher->addPath (QString::fromStdString (realname));
+                  mWatcher->addPath (QString::fromLocal8Bit (realname));
                 }
             }
           else
             {
-              mWatcher->addPath (QString::fromStdString (filename));
+              mWatcher->addPath (QString::fromLocal8Bit (filename));
             }
         }
     }
@@ -1018,6 +1018,11 @@ ApvlvDoc::refresh ()
           mImg[2]->resize (px, py);
           mImg[2]->setImage (p);
         }
+    }
+  else if (mDisplayType == DISPLAY_TYPE_CUSTOM)
+    {
+      mFile->widgetGoto (mCustomWidget, mPagenum);
+      mFile->widgetZoom (mCustomWidget, mZoomrate);
     }
   else if (mDisplayType == DISPLAY_TYPE_HTML)
     {
@@ -1437,6 +1442,11 @@ ApvlvDoc::search (const char *str, bool reverse)
       return false;
     }
 
+  if (mFile->getDisplayType () == DISPLAY_TYPE_CUSTOM)
+    {
+      return mFile->widgetSearch (mCustomWidget, str);
+    }
+
   if (*str != '\0')
     {
       mSearchCmd = reverse ? BACKSEARCH : SEARCH;
@@ -1717,6 +1727,15 @@ ApvlvDoc::setDisplayType (DISPLAY_TYPE type)
   if (type == DISPLAY_TYPE_IMAGE)
     {
       showImage ();
+    }
+  else if (type == DISPLAY_TYPE_CUSTOM)
+    {
+      if (mCustomWidget != nullptr)
+        {
+          mCustomWidget->deleteLater ();
+        }
+      mCustomWidget = mFile->getWidget ();
+      showWidget ();
     }
   else
     {

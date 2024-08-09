@@ -18,6 +18,7 @@ SET(APVLV_USE_POPPLER OFF CACHE BOOL "if has poppler-qt6 library")
 IF (WIN32)
     SET(Qt6_DIR "C:/Qt/6.7.2/msvc2019_64/lib/cmake/Qt6" CACHE STRING "Qt6config.cmake directory")
     SET(Qt6QmlTools_DIR "C:/Qt/6.7.2/msvc2019_64/lib/cmake/Qt6QmlTools" CACHE STRING "Qt6QmlToolsconfig.cmake directory")
+    SET(Qt6AxContainer_DIR "C:/Qt/6.7.2/msvc2019_64/lib/cmake/Qt6AxContainer" CACHE STRING "Qt6config.cmake directory")
     SET(QUAZIP_INCLUDE_DIRS "C:/Qt/6.7.2/msvc2019_64/include/QuaZip-Qt6-1.4/quazip;C:/Qt/6.7.2/msvc2019_64/include" CACHE STRING "Quazip include directory")
     SET(QUAZIP_LIBRARY_DIRS "C:/Qt/6.7.2/msvc2019_64/lib" CACHE STRING "Quazip lib directory")
     SET(QUAZIP_LIBRARIES "C:/Qt/6.7.2/msvc2019_64/lib/quazip1-qt6.lib" CACHE STRING "Quazip library file")
@@ -29,7 +30,7 @@ ELSE ()
     PKG_CHECK_MODULES(QUAZIP quazip1-qt6 REQUIRED)
 ENDIF ()
 
-FIND_PACKAGE(Qt6 NAMES Qt6 COMPONENTS Core Gui Widgets WebEngineWidgets Pdf Xml PrintSupport REQUIRED)
+FIND_PACKAGE(Qt6 NAMES Qt6 COMPONENTS Core Gui Widgets WebEngineWidgets Pdf PdfWidgets Xml PrintSupport REQUIRED)
 
 SET(Qt_INCLUDE_DIRS
         ${Qt6Core_INCLUDE_DIRS}
@@ -37,9 +38,10 @@ SET(Qt_INCLUDE_DIRS
         ${Qt6Widgets_INCLUDE_DIRS}
         ${Qt6WebEngineWidgets_INCLUDE_DIRS}
         ${Qt6Pdf_INCLUDE_DIRS}
+        ${Qt6PdfWidgets_INCLUDE_DIRS}
         ${Qt6Xml_INCLUDE_DIRS}
         ${Qt6PrintSupport_INCLUDE_DIRS})
-SET(Qt_LIBRARIES Qt6::Core Qt6::Gui Qt6::Widgets Qt6::WebEngineWidgets Qt::Pdf Qt6::Xml Qt6::PrintSupport)
+SET(Qt_LIBRARIES Qt6::Core Qt6::Gui Qt6::Widgets Qt6::WebEngineWidgets Qt6::Pdf Qt6::PdfWidgets Qt6::Xml Qt6::PrintSupport)
 GET_FILENAME_COMPONENT(_qt_bin_dir "${WINDEPLOYQT_EXECUTABLE}" DIRECTORY)
 MESSAGE("-- Qt6 binary directory: ${_qt_bin_dir}")
 
@@ -136,6 +138,12 @@ ENDIF (APVLV_WITH_DJVU)
 OPTION(APVLV_WITH_OFFICE "If build apvlv with office format support." ON)
 IF (APVLV_WITH_OFFICE)
     IF (WIN32)
+        FIND_PACKAGE(Qt6AxContainer REQUIRED)
+        INCLUDE_DIRECTORIES(${Qt6AxContainer_INCLUDE_DIRES})
+        SET(APVLV_REQ_LIBRARIES ${Qt6AxContainer_LIBRARIES} Shlwapi.lib
+                ${APVLV_REQ_LIBRARIES})
+        SET(HEADERS ${HEADERS} ApvlvAxOffice.h)
+        SET(SOURCES ${SOURCES} ApvlvAxOffice.cc)
     ELSE (WIN32)
         SET(APVLV_LOK_PATH "/usr/lib64/libreoffice/program" CACHE STRING "Libreoffice install path")
         MESSAGE("-- Office: Will use libreofficekit for office file support")

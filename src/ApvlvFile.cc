@@ -189,7 +189,7 @@ File::pathMimeType (const string &path)
 {
   if (srcMimeTypes.find (path) != srcMimeTypes.end ())
     return srcMimeTypes[path];
-  else if (QString::fromStdString (path).endsWith (".png"))
+  else if (QString::fromLocal8Bit (path).endsWith (".png"))
     return "image/png";
   else
     return "text/html";
@@ -292,14 +292,14 @@ File::pageAnnotUpdate (int, ApvlvAnnotText *text)
 optional<QByteArray>
 File::pathContent (const string &path)
 {
-  auto words = QString::fromStdString (path).split ("-");
+  auto words = QString::fromLocal8Bit (path).split ("-");
   int pn = words[0].toInt ();
   int ix = words[1].toInt ();
   int iy = words[2].toInt ();
   double zm = words[3].toDouble ();
   int rot = words[4].toInt ();
 
-  if (QString::fromStdString (path).endsWith (".html"))
+  if (QString::fromLocal8Bit (path).endsWith (".html"))
     return pathContentHtml (pn, ix, iy, zm, rot);
   else
     return pathContentPng (pn, ix, iy, zm, rot);

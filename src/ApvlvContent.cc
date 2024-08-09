@@ -89,12 +89,13 @@ void
 ApvlvContent::setIndex (const FileIndex &index, QTreeWidgetItem *root_itr)
 {
   auto itr = new QTreeWidgetItem ();
-  itr->setText (CONTENT_COL_TITLE, QString::fromStdString (index.title));
+  itr->setText (CONTENT_COL_TITLE,
+                QString::fromLocal8Bit (index.title.c_str ()));
   itr->setIcon (CONTENT_COL_TITLE, mTypeIcons[index.type]);
-  itr->setToolTip (CONTENT_COL_TITLE, QString::fromStdString (index.path));
+  itr->setToolTip (CONTENT_COL_TITLE, QString::fromLocal8Bit (index.path));
   itr->setText (CONTENT_COL_PAGE, QString::number (index.page));
-  itr->setText (CONTENT_COL_ANCHOR, QString::fromStdString (index.anchor));
-  itr->setText (CONTENT_COL_PATH, QString::fromStdString (index.path));
+  itr->setText (CONTENT_COL_ANCHOR, QString::fromLocal8Bit (index.anchor));
+  itr->setText (CONTENT_COL_PATH, QString::fromLocal8Bit (index.path));
   itr->setText (CONTENT_COL_TYPE, QString::number (index.type));
   if (root_itr == nullptr)
     {

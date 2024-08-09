@@ -42,7 +42,7 @@ FILE_TYPE_DEFINITION (ApvlvPDF, { ".pdf" });
 ApvlvPDF::ApvlvPDF (const string &filename, bool check)
     : File (filename, check)
 {
-  mDoc = Document::load (QString::fromStdString (filename));
+  mDoc = Document::load (QString::fromLocal8Bit (filename));
   if (mDoc == nullptr)
     {
       auto text
