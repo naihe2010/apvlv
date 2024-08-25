@@ -29,7 +29,7 @@
 
 #include <QtAxContainer>
 
-#include "ApvlvFile.h"
+#include "../ApvlvFile.h"
 
 namespace apvlv
 {

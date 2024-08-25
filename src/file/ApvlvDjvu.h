@@ -29,7 +29,7 @@
 
 #include <libdjvu/ddjvuapi.h>
 
-#include "ApvlvFile.h"
+#include "../ApvlvFile.h"
 
 namespace apvlv
 {

@@ -30,8 +30,8 @@
 #include <fstream>
 #include <qt6/poppler-qt6.h>
 
+#include "../ApvlvView.h"
 #include "ApvlvPopplerPdf.h"
-#include "ApvlvView.h"
 
 namespace apvlv
 {

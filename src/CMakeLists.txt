@@ -71,17 +71,17 @@ SET(HEADERS
         ApvlvView.h
         ApvlvWindow.h
         ApvlvCompletion.h
-        ApvlvHtm.h
-        ApvlvEpub.h
-        ApvlvTxt.h
-        ApvlvFb2.h
         ApvlvContent.h
         ApvlvLab.h
         ApvlvLog.h
         ApvlvSearch.h
         ApvlvQueue.h
         ApvlvWebView.h
-        ApvlvImage.h
+        file/ApvlvEpub.h
+        file/ApvlvFb2.h
+        file/ApvlvHtm.h
+        file/ApvlvImage.h
+        file/ApvlvTxt.h
 )
 
 SET(SOURCES
@@ -95,25 +95,25 @@ SET(SOURCES
         ApvlvView.cc
         ApvlvWindow.cc
         ApvlvCompletion.cc
-        ApvlvHtm.cc
-        ApvlvEpub.cc
-        ApvlvTxt.cc
-        ApvlvFb2.cc
         ApvlvContent.cc
         ApvlvLab.cc
         ApvlvLog.cc
         ApvlvSearch.cc
         ApvlvWebView.cc
-        ApvlvImage.cc
+        file/ApvlvEpub.cc
+        file/ApvlvFb2.cc
+        file/ApvlvHtm.cc
+        file/ApvlvImage.cc
+        file/ApvlvTxt.cc
         main.cc
 )
 
 IF (APVLV_USE_POPPLER)
-    SET(HEADERS ${HEADERS} ApvlvPopplerPdf.h)
-    SET(SOURCES ${SOURCES} ApvlvPopplerPdf.cc)
+    SET(HEADERS ${HEADERS} file/ApvlvPopplerPdf.h)
+    SET(SOURCES ${SOURCES} file/ApvlvPopplerPdf.cc)
 ELSE ()
-    SET(HEADERS ${HEADERS} ApvlvQtPdf.h)
-    SET(SOURCES ${SOURCES} ApvlvQtPdf.cc)
+    SET(HEADERS ${HEADERS} file/ApvlvQtPdf.h)
+    SET(SOURCES ${SOURCES} file/ApvlvQtPdf.cc)
 ENDIF ()
 
 OPTION(APVLV_WITH_DJVU "If build apvlv with djvu format support." ON)
@@ -131,8 +131,8 @@ IF (APVLV_WITH_DJVU)
                 ${APVLV_REQ_LIBRARIES})
     ENDIF (WIN32)
 
-    SET(HEADERS ${HEADERS} ApvlvDjvu.h)
-    SET(SOURCES ${SOURCES} ApvlvDjvu.cc)
+    SET(HEADERS ${HEADERS} file/ApvlvDjvu.h)
+    SET(SOURCES ${SOURCES} file/ApvlvDjvu.cc)
 ENDIF (APVLV_WITH_DJVU)
 
 OPTION(APVLV_WITH_OFFICE "If build apvlv with office format support." ON)
@@ -142,8 +142,8 @@ IF (APVLV_WITH_OFFICE)
         INCLUDE_DIRECTORIES(${Qt6AxContainer_INCLUDE_DIRES})
         SET(APVLV_REQ_LIBRARIES ${Qt6AxContainer_LIBRARIES} Shlwapi.lib
                 ${APVLV_REQ_LIBRARIES})
-        SET(HEADERS ${HEADERS} ApvlvAxOffice.h)
-        SET(SOURCES ${SOURCES} ApvlvAxOffice.cc)
+        SET(HEADERS ${HEADERS} file/ApvlvAxOffice.h)
+        SET(SOURCES ${SOURCES} file/ApvlvAxOffice.cc)
     ELSE (WIN32)
         SET(APVLV_LOK_PATH "/usr/lib64/libreoffice/program" CACHE STRING "Libreoffice install path")
         MESSAGE("-- Office: Will use libreofficekit for office file support")
@@ -151,8 +151,8 @@ IF (APVLV_WITH_OFFICE)
         SET(APVLV_REQ_LIBRARIES -llibreofficekitgtk
                 ${APVLV_REQ_LIBRARIES})
         ADD_DEFINITIONS(-DLIBO_INTERNAL_ONLY=1 -DAPVLV_LOK_PATH="${APVLV_LOK_PATH}")
-        SET(HEADERS ${HEADERS} ApvlvLibreOffice.h)
-        SET(SOURCES ${SOURCES} ApvlvLibreOffice.cc)
+        SET(HEADERS ${HEADERS} file/ApvlvLibreOffice.h)
+        SET(SOURCES ${SOURCES} file/ApvlvLibreOffice.cc)
     ENDIF (WIN32)
 ENDIF (APVLV_WITH_OFFICE)
 

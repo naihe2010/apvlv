@@ -35,8 +35,8 @@
 #include <filesystem>
 #include <fstream>
 
+#include "../ApvlvUtil.h"
 #include "ApvlvQtPdf.h"
-#include "ApvlvUtil.h"
 
 namespace apvlv
 {

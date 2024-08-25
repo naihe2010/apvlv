@@ -30,7 +30,7 @@
 #include <LibreOfficeKit/LibreOfficeKit.hxx>
 #include <memory>
 
-#include "ApvlvFile.h"
+#include "../ApvlvFile.h"
 
 namespace apvlv
 {

@@ -30,7 +30,7 @@
 #include <QPdfBookmarkModel>
 #include <QPdfDocument>
 
-#include "ApvlvFile.h"
+#include "../ApvlvFile.h"
 
 namespace apvlv
 {

@@ -19,32 +19,52 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/* @CPPFILE ApvlvHtm.h
+/* @CPPFILE ApvlvEpub.h
  *
  *  Author: Alf <naihe2010@126.com>
  */
 
-#ifndef _APVLV_HTM_H_
-#define _APVLV_HTM_H_
+#ifndef _APVLV_EPUB_H_
+#define _APVLV_EPUB_H_
 
-#include <QUrl>
+#include <QXmlStreamReader>
+#include <map>
+#include <memory>
+#include <quazip.h>
 
-#include "ApvlvFile.h"
+#include "../ApvlvFile.h"
 
 namespace apvlv
 {
-class ApvlvHTML : public File
+class ApvlvEPUB : public File
 {
-  FILE_TYPE_DECLARATION (ApvlvHTML);
+  FILE_TYPE_DECLARATION (ApvlvEPUB);
 
 public:
-  explicit ApvlvHTML (const string &filename, bool check = true);
+  explicit ApvlvEPUB (const string &filename, bool check = true);
+  ~ApvlvEPUB () override;
+
+  int sum () override;
 
   bool pageRender (int pn, int ix, int iy, double zm, int rot,
-                   ApvlvWebview *webview) override;
+                   ApvlvWebview *widget) override;
 
-protected:
-  QUrl mUrl;
+  optional<QByteArray> pathContent (const string &path) override;
+
+private:
+  optional<QByteArray> get_zip_file_contents (const QString &name);
+
+  static string container_get_contentfile (const char *container, int len);
+
+  bool content_get_media (const string &contentfile);
+
+  bool ncx_set_index (const string &ncxfile);
+
+  void ncx_node_set_index (QXmlStreamReader *xml, const string &element_name,
+                           const string &ncxfile, FileIndex &index);
+
+  unique_ptr<QuaZip> mQuaZip;
+  std::map<string, string> idSrcs;
 };
 
 }

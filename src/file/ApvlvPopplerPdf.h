@@ -29,7 +29,7 @@
 
 #include <qt6/poppler-qt6.h>
 
-#include "ApvlvFile.h"
+#include "../ApvlvFile.h"
 
 namespace apvlv
 {

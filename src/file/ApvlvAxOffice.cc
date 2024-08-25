@@ -31,8 +31,8 @@
 #include <Windows.h>
 #include <ocidl.h>
 
+#include "../ApvlvUtil.h"
 #include "ApvlvAxOffice.h"
-#include "ApvlvUtil.h"
 
 namespace apvlv
 {
@@ -134,7 +134,7 @@ ApvlvOfficeWord::pageRender (int pn, int ix, int iy, double zm, int rot,
         lpFormatName = szFormatName;
       else
         lpFormatName = "(unknown)";
-      qDebug ("get format: %s\n", lpFormatName);
+      qDebug ("get file: %s\n", lpFormatName);
       uFormat = EnumClipboardFormats (uFormat);
     }
 

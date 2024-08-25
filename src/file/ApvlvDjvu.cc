@@ -26,8 +26,8 @@
 
 #include <QThread>
 
+#include "../ApvlvUtil.h"
 #include "ApvlvDjvu.h"
-#include "ApvlvUtil.h"
 
 namespace apvlv
 {

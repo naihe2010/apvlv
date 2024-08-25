@@ -29,8 +29,8 @@
 #include <filesystem>
 #include <quazipfile.h>
 
+#include "../ApvlvUtil.h"
 #include "ApvlvEpub.h"
-#include "ApvlvUtil.h"
 
 namespace apvlv
 {
