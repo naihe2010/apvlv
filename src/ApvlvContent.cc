@@ -20,7 +20,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-/* @CPPFILE ApvlvCore.cc
+/* @CPPFILE ApvlvFrame.cc
  *
  *  Author: Alf <naihe2010@126.com>
  */
@@ -28,7 +28,7 @@
 #include <filesystem>
 
 #include "ApvlvContent.h"
-#include "ApvlvDoc.h"
+#include "ApvlvFrame.h"
 #include "ApvlvParams.h"
 #include "ApvlvUtil.h"
 
@@ -181,7 +181,7 @@ ApvlvContent::treeItemToFileIndex (QTreeWidgetItem *item) const
 
 bool
 ApvlvContent::find_index_and_select (QTreeWidgetItem *itr, const string &path,
-                                     int pn, const char *anchor)
+                                     int pn, const string &anchor)
 {
   auto index = treeItemToIndex (itr);
   auto file_index = treeItemToFileIndex (itr);
@@ -233,7 +233,8 @@ ApvlvContent::find_index_and_append (FileIndex &root, const QString &path,
 }
 
 void
-ApvlvContent::setCurrentIndex (const string &path, int pn, const char *anchor)
+ApvlvContent::setCurrentIndex (const string &path, int pn,
+                               const string &anchor)
 {
   if (mIndex.type == FILE_INDEX_DIR)
     return;
@@ -247,7 +248,7 @@ ApvlvContent::setCurrentIndex (const string &path, int pn, const char *anchor)
 }
 
 void
-ApvlvContent::scrollup (int times)
+ApvlvContent::scrollUp (int times)
 {
   if (mCurrentItem == nullptr)
     return;
@@ -276,7 +277,7 @@ ApvlvContent::scrollup (int times)
 }
 
 void
-ApvlvContent::scrolldown (int times)
+ApvlvContent::scrollDown (int times)
 {
   if (mCurrentItem == nullptr)
     return;
@@ -305,7 +306,7 @@ ApvlvContent::scrolldown (int times)
 }
 
 void
-ApvlvContent::scrollleft (int times)
+ApvlvContent::scrollLeft (int times)
 {
   if (mCurrentItem == nullptr)
     return;
@@ -320,7 +321,7 @@ ApvlvContent::scrollleft (int times)
 }
 
 void
-ApvlvContent::scrollright (int times)
+ApvlvContent::scrollRight (int times)
 {
   if (mCurrentItem == nullptr)
     return;
@@ -347,7 +348,7 @@ ApvlvContent::on_changed ()
 void
 ApvlvContent::on_row_activated (QTreeWidgetItem *item, int column)
 {
-  mDoc->contentShowPage (currentIndex (), true);
+  mFrame->contentShowPage (currentIndex (), true);
 }
 
 void
@@ -365,14 +366,14 @@ ApvlvContent::first_select_cb ()
 
   if (topLevelItemCount () > 0)
     {
-      if (mDoc->pagenumber () <= 1)
+      if (mFrame->pageNumber () <= 1)
         {
           auto itr = topLevelItem (0);
           itr->setSelected (true);
         }
       else
         {
-          setCurrentIndex (mDoc->filename (), mDoc->pagenumber () - 1, "");
+          setCurrentIndex (mFrame->filename (), mFrame->pageNumber (), "");
         }
     }
 

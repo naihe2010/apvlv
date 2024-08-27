@@ -75,7 +75,7 @@ ApvlvLog::writeMessage (const QString &msg)
 #ifdef WIN32
   endstr = "\r\n";
 #endif
-  if (mTextStream.status () == QTextStream::Ok)
+  if (mTextStream.device () && mTextStream.device ()->isOpen ())
     {
       mTextStream << msg << endstr;
     }

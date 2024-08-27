@@ -30,20 +30,20 @@
 
 #include <iostream>
 
-#include "ApvlvCore.h"
+#include "ApvlvFrame.h"
 
 using namespace std;
 
 namespace apvlv
 {
-class ApvlvCore;
+class ApvlvFrame;
 class ApvlvWindowContext;
 
 class ApvlvWindow : public QObject
 {
   Q_OBJECT
 public:
-  ApvlvWindow (ApvlvWindowContext *context, ApvlvCore *core);
+  ApvlvWindow (ApvlvWindowContext *context, ApvlvFrame *core);
   ~ApvlvWindow () override;
 
   /* WE operate the AW_DOC window
@@ -58,7 +58,7 @@ public:
     AW_CORE
   } mType;
 
-  bool birth (WindowType type, ApvlvCore *doc);
+  bool birth (WindowType type, ApvlvFrame *doc);
 
   void unbirth ();
 
@@ -66,9 +66,9 @@ public:
 
   QWidget *widget ();
 
-  void setCore (ApvlvCore *doc);
+  void setCore (ApvlvFrame *doc);
 
-  ApvlvCore *getCore ();
+  ApvlvFrame *getCore ();
 
   bool isRoot ();
 
@@ -93,7 +93,7 @@ private:
 
   QSplitter *mPaned;
 
-  ApvlvCore *mCore;
+  ApvlvFrame *mCore;
 
   ApvlvWindowContext *mContext;
 };

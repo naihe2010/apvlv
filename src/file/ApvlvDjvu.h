@@ -42,8 +42,6 @@ public:
 
   ~ApvlvDJVU () override;
 
-  bool writeFile (const char *filename) override;
-
   bool pageSize (int page, int rot, double *x, double *y) override;
 
   int sum () override;

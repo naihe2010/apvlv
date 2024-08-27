@@ -29,8 +29,9 @@
 #include <cmath>
 #include <sstream>
 
-#include "../ApvlvUtil.h"
 #include "ApvlvFb2.h"
+#include "ApvlvUtil.h"
+#include "ApvlvWebViewWidget.h"
 
 namespace apvlv
 {
@@ -305,7 +306,7 @@ ApvlvFB2::sum ()
 
 bool
 ApvlvFB2::pageRender (int pn, int ix, int iy, double zm, int rot,
-                      ApvlvWebview *webview)
+                      WebView *webview)
 {
   webview->setZoomFactor (zm);
   QUrl url = QString ("apvlv:///") + QString::number (pn);

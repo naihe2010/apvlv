@@ -20,7 +20,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-/* @CPPFILE ApvlvCore.h
+/* @CPPFILE ApvlvFrame.h
  *
  *  Author: Alf <naihe2010@126.com>
  */
@@ -41,7 +41,7 @@ using namespace std;
 
 namespace apvlv
 {
-class ApvlvDoc;
+class ApvlvFrame;
 
 const int CONTENT_COL_TITLE = 0;
 const int CONTENT_COL_PAGE = 1;
@@ -64,25 +64,25 @@ public:
   const FileIndex *currentFileIndex ();
 
   bool find_index_and_select (QTreeWidgetItem *itr, const string &path, int pn,
-                              const char *anchor);
+                              const string &anchor);
   bool find_index_and_append (FileIndex &root, const QString &path,
                               const FileIndex &index);
 
-  void setCurrentIndex (const string &path, int pn, const char *anchor);
+  void setCurrentIndex (const string &path, int pn, const string &anchor);
 
   void
-  setDoc (ApvlvDoc *doc)
+  setFrame (ApvlvFrame *frame)
   {
-    mDoc = doc;
+    mFrame = frame;
   }
 
-  void scrollup (int times);
+  void scrollUp (int times);
 
-  void scrolldown (int times);
+  void scrollDown (int times);
 
-  void scrollleft (int times);
+  void scrollLeft (int times);
 
-  void scrollright (int times);
+  void scrollRight (int times);
 
   [[nodiscard]] bool
   isFocused () const
@@ -103,7 +103,7 @@ private:
 
   FileIndex mIndex;
 
-  ApvlvDoc *mDoc{ nullptr };
+  ApvlvFrame *mFrame{ nullptr };
 
   unique_ptr<QTimer> mFirstTimer;
 

@@ -76,8 +76,8 @@ ApvlvDJVU::ApvlvDJVU (const string &filename, bool check)
       else
         {
           /*
-            ddjvu_document_release (mDoc);
-            mDoc = nullptr;
+            ddjvu_document_release (mFrame);
+            mFrame = nullptr;
             ddjvu_context_release (mContext);
             mContext = nullptr;
             throw std::bad_alloc (); */
@@ -102,23 +102,6 @@ ApvlvDJVU::~ApvlvDJVU ()
     {
       ddjvu_document_release (mDoc);
     }
-}
-
-bool
-ApvlvDJVU::writeFile (const char *filename)
-{
-  FILE *fp = fopen (filename, "wb");
-  if (fp != nullptr)
-    {
-      ddjvu_job_t *job = ddjvu_document_save (mDoc, fp, 0, nullptr);
-      while (!ddjvu_job_done (job))
-        {
-          handle_ddjvu_messages (mContext, true);
-        }
-      fclose (fp);
-      return true;
-    }
-  return false;
 }
 
 bool

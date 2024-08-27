@@ -39,12 +39,12 @@ namespace apvlv
 {
 
 using namespace std;
-typedef enum
+enum DISPLAY_TYPE
 {
   DISPLAY_TYPE_IMAGE = 0,
   DISPLAY_TYPE_HTML = 1,
   DISPLAY_TYPE_CUSTOM = 2,
-} DISPLAY_TYPE;
+};
 
 //
 // link to an url, or a page num
@@ -77,24 +77,13 @@ struct Rectangle
 
 using CharRectangle = Rectangle;
 
-using WordRectangle = vector<CharRectangle>;
+struct WordRectangle
+{
+  string word;
+  vector<CharRectangle> rect_list;
+};
 
 using WordListRectangle = vector<WordRectangle>;
-
-enum ApvlvAnnotType
-{
-  APVLV_ANNOT_UNDERLINE,
-  APVLV_ANNOT_TEXT,
-};
-
-struct ApvlvAnnotText
-{
-  ApvlvAnnotType type;
-  CharRectangle pos;
-  string text;
-};
-
-using ApvlvAnnotTexts = vector<ApvlvAnnotText>;
 
 enum FileIndexType
 {
@@ -103,6 +92,7 @@ enum FileIndexType
   FILE_INDEX_DIR
 };
 
+class FileWidget;
 class FileIndex
 {
 public:
@@ -126,7 +116,7 @@ public:
   vector<FileIndex> mChildrenIndex;
 };
 
-class ApvlvWebview;
+class WebView;
 class File
 {
 public:
@@ -146,35 +136,10 @@ public:
     return DISPLAY_TYPE_HTML;
   }
 
-  // when display type is custom, using this
-  virtual QWidget *
+  virtual FileWidget *
   getWidget ()
   {
     return nullptr;
-  }
-
-  virtual bool
-  widgetGoto (QWidget *widget, int pn)
-  {
-    return false;
-  }
-
-  virtual bool
-  widgetGoto (QWidget *widget, const string &anchor)
-  {
-    return false;
-  }
-
-  virtual bool
-  widgetZoom (QWidget *widget, double zm)
-  {
-    return false;
-  }
-
-  virtual bool
-  widgetSearch (QWidget *widget, const string &word)
-  {
-    return false;
   }
 
   const string &
@@ -193,12 +158,6 @@ public:
   getIndex ()
   {
     return mIndex;
-  }
-
-  virtual bool
-  writeFile (const char *filename)
-  {
-    return false;
   }
 
   virtual unique_ptr<SearchFileMatch> grepFile (const string &seq,
@@ -225,7 +184,7 @@ public:
   }
 
   virtual bool pageRender (int pn, int x, int y, double zm, int rot,
-                           ApvlvWebview *webview);
+                           WebView *webview);
 
   virtual bool
   pageText (int pn, string &text)
@@ -247,7 +206,7 @@ public:
   }
 
   virtual unique_ptr<WordListRectangle>
-  pageSearch (int pn, const char *str, bool reverse)
+  pageSearch (int pn, const char *str)
   {
     return nullptr;
   }
@@ -257,17 +216,8 @@ public:
                                  WordListRectangle *poses);
 
   virtual bool pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
-                                 ApvlvWebview *webview, int select,
+                                 WebView *webview, int select,
                                  WordListRectangle *poses);
-
-  virtual bool pageAnnotUnderline (int, double, double, double, double);
-
-  virtual bool pageAnnotText (int, double, double, double, double,
-                              const char *text);
-
-  virtual bool pageAnnotUpdate (int, ApvlvAnnotText *text);
-
-  virtual ApvlvAnnotTexts pageAnnotTexts (int pn);
 
   // path methods
   virtual optional<QByteArray> pathContent (const string &path);

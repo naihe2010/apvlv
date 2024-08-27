@@ -31,10 +31,7 @@
 " set default dir
 "set defaultdir=C:\
 
-" set if use content view
-"set content=yes
-
-" set weather use continuous view 
+" set weather use continuous view
 " make sure the autoscrollpage is set to "yes" if you want to set this to yes
 "set continuous=yes
 
@@ -50,12 +47,6 @@
 " set if disable ~/.apvlvinfo, default is no
 "set noinfo=no
 
-" set pdf object cache size
-"set pdfcache = 4
-
-" set if use visual mode to select and copy text
-"set visualmode = no
-
 " set if wrapscan text
 "set wrapscan = yes
 
@@ -66,10 +57,6 @@
 " set GUI options
 " m means menu, T means toolbar
 "set guioptions = mT
-
-" set if use auto reload document
-" > 0 means auto reload after some seconds. = 0 means not auto reload
-"set autoreload = 3
 
 " set if reverted pdf page
 "set reverted = no

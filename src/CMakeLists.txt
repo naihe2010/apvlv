@@ -22,6 +22,7 @@ IF (WIN32)
     SET(QUAZIP_INCLUDE_DIRS "C:/Qt/6.7.2/msvc2019_64/include/QuaZip-Qt6-1.4/quazip;C:/Qt/6.7.2/msvc2019_64/include" CACHE STRING "Quazip include directory")
     SET(QUAZIP_LIBRARY_DIRS "C:/Qt/6.7.2/msvc2019_64/lib" CACHE STRING "Quazip lib directory")
     SET(QUAZIP_LIBRARIES "C:/Qt/6.7.2/msvc2019_64/lib/quazip1-qt6.lib" CACHE STRING "Quazip library file")
+    SET(DJVULIBRE_DIR "C:/Program Files (x86)/DjVuLibre" CACHE PATH "DjvuLibre dir")
     CMAKE_POLICY(SET CMP0010 NEW)
     CMAKE_POLICY(SET CMP0087 NEW)
 ELSE ()
@@ -46,6 +47,7 @@ GET_FILENAME_COMPONENT(_qt_bin_dir "${WINDEPLOYQT_EXECUTABLE}" DIRECTORY)
 MESSAGE("-- Qt6 binary directory: ${_qt_bin_dir}")
 
 INCLUDE_DIRECTORIES(
+        ${CMAKE_CURRENT_SOURCE_DIR}
         ${POPPLER_INCLUDE_DIRS}
         ${QUAZIP_INCLUDE_DIRS}
         ${Qt_INCLUDE_DIRS})
@@ -62,9 +64,9 @@ ADD_DEFINITIONS(-DQT_MESSAGELOGCONTEXT)
 
 SET(HEADERS
         ApvlvCmds.h
-        ApvlvCore.h
-        ApvlvDoc.h
+        ApvlvFrame.h
         ApvlvFile.h
+        ApvlvFileWidget.h
         ApvlvInfo.h
         ApvlvParams.h
         ApvlvUtil.h
@@ -75,8 +77,10 @@ SET(HEADERS
         ApvlvLab.h
         ApvlvLog.h
         ApvlvSearch.h
+        ApvlvSearchDialog.h
         ApvlvQueue.h
-        ApvlvWebView.h
+        ApvlvImageWidget.h
+        ApvlvWebViewWidget.h
         file/ApvlvEpub.h
         file/ApvlvFb2.h
         file/ApvlvHtm.h
@@ -86,9 +90,9 @@ SET(HEADERS
 
 SET(SOURCES
         ApvlvCmds.cc
-        ApvlvCore.cc
-        ApvlvDoc.cc
+        ApvlvFrame.cc
         ApvlvFile.cc
+        ApvlvFileWidget.cc
         ApvlvInfo.cc
         ApvlvParams.cc
         ApvlvUtil.cc
@@ -99,7 +103,9 @@ SET(SOURCES
         ApvlvLab.cc
         ApvlvLog.cc
         ApvlvSearch.cc
-        ApvlvWebView.cc
+        ApvlvSearchDialog.cc
+        ApvlvImageWidget.cc
+        ApvlvWebViewWidget.cc
         file/ApvlvEpub.cc
         file/ApvlvFb2.cc
         file/ApvlvHtm.cc
@@ -120,8 +126,6 @@ OPTION(APVLV_WITH_DJVU "If build apvlv with djvu format support." ON)
 IF (APVLV_WITH_DJVU)
     MESSAGE("-- Will use djvulibre for djvu file support")
     IF (WIN32)
-        SET(DJVULIBRE_DIR ${CMAKE_HOME_DIRECTORY}/win32/djvulibre)
-
         INCLUDE_DIRECTORIES(${DJVULIBRE_DIR}/include)
         LINK_DIRECTORIES(${DJVULIBRE_DIR})
         SET(APVLV_REQ_LIBRARIES libdjvulibre.lib

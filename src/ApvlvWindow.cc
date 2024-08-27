@@ -79,14 +79,14 @@ ApvlvWindowContext::unregisterWindow (ApvlvWindow *win)
     }
 }
 
-ApvlvWindow::ApvlvWindow (ApvlvWindowContext *context, ApvlvCore *core)
+ApvlvWindow::ApvlvWindow (ApvlvWindowContext *context, ApvlvFrame *core)
 {
   mPaned = nullptr;
 
   mType = AW_CORE;
   if (core == nullptr)
     {
-      auto ndoc = new ApvlvDoc (context->getView (), gParams->values ("zoom"));
+      auto ndoc = new ApvlvFrame (context->getView ());
       mCore = ndoc;
     }
   else
@@ -162,7 +162,7 @@ ApvlvWindow::process (int ct, uint key)
 ApvlvWindow *
 ApvlvWindowContext::findWindowByWidget (QWidget *widget)
 {
-  auto doc = ApvlvCore::findByWidget (widget);
+  auto doc = ApvlvFrame::findByWidget (widget);
   if (doc == nullptr)
     return nullptr;
 
@@ -379,7 +379,7 @@ ApvlvWindow::getNext ()
 // birth a new AW_CORE window, and the new window beyond the input doc
 // this made a AW_CORE window to AW_SP|AW_VSP
 bool
-ApvlvWindow::birth (WindowType type, ApvlvCore *doc)
+ApvlvWindow::birth (WindowType type, ApvlvFrame *doc)
 {
   if (doc == mCore)
     {
@@ -473,7 +473,7 @@ ApvlvWindow::setActive (bool act)
 }
 
 void
-ApvlvWindow::setCore (ApvlvCore *doc)
+ApvlvWindow::setCore (ApvlvFrame *doc)
 {
   qDebug ("widget (): %p, doc->widget (): %p", widget (), doc);
   if (mType == AW_CORE)
@@ -491,7 +491,7 @@ ApvlvWindow::setCore (ApvlvCore *doc)
   mCore = doc;
 }
 
-ApvlvCore *
+ApvlvFrame *
 ApvlvWindow::getCore ()
 {
   return mCore;

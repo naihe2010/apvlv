@@ -20,72 +20,49 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-/* @CPPFILE ApvlvWebView.h
+/* @CPPFILE ApvlvImageWidget.h
  *
  *  Author: Alf <naihe2010@126.com>
  */
 
-#ifndef _APVLV_WEBVIEW_H_
-#define _APVLV_WEBVIEW_H_
+#ifndef _APVLV_IMAGEWIDGET_H_
+#define _APVLV_IMAGEWIDGET_H_
 
-#include <QBuffer>
-#include <QByteArray>
-#include <QWebEngineProfile>
-#include <QWebEngineUrlRequestJob>
-#include <QWebEngineUrlSchemeHandler>
-#include <QWebEngineView>
-#include <memory>
-#include <string>
+#include <QLabel>
+#include <QScrollArea>
+#include <QScrollBar>
+#include <iostream>
+#include <map>
+
+#include "ApvlvFileWidget.h"
+#include "ApvlvUtil.h"
 
 namespace apvlv
 {
+
 using namespace std;
 
-class File;
-class ApvlvSchemeHandler : public QWebEngineUrlSchemeHandler
+class ApvlvImageWidget : public QScrollArea
 {
   Q_OBJECT
 public:
-  void
-  setFile (File *file)
-  {
-    mFile = file;
-  }
-  void requestStarted (QWebEngineUrlRequestJob *job) override;
+  ApvlvImageWidget ();
+
+  ~ApvlvImageWidget () override;
 
 private:
-  File *mFile;
-  QByteArray mArray;
-  QBuffer mBuffer;
+  QLabel *mImageContainer;
 
-signals:
-  void webpageUpdated (const string &key);
+  friend class ImageWidget;
 };
 
-class ApvlvWebview : public QWebEngineView
+class ImageWidget : public FileWidget
 {
-  Q_OBJECT
 public:
-  ApvlvWebview ();
-  void
-  setFile (File *file)
-  {
-    mSchemeHandler->setFile (file);
-  }
+  QWidget *createWidget () override;
 
-signals:
-  void webpageUpdated (const string &);
-
-private slots:
-  void
-  webview_update (const string &msg)
-  {
-    emit webpageUpdated (msg);
-  };
-
-private:
-  unique_ptr<QWebEnginePage> mPage;
-  unique_ptr<ApvlvSchemeHandler> mSchemeHandler;
+  void showPage (int, double s) override;
+  void showPage (int, const string &anchor) override;
 };
 
 }

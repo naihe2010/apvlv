@@ -36,7 +36,7 @@
 
 #include "ApvlvFile.h"
 #include "ApvlvUtil.h"
-#include "ApvlvWebView.h"
+#include "ApvlvWebViewWidget.h"
 
 namespace apvlv
 {
@@ -169,8 +169,7 @@ File::grepFile (const string &seq, bool is_case, bool is_regex,
 }
 
 bool
-File::pageRender (int pn, int ix, int iy, double zm, int rot,
-                  ApvlvWebview *webview)
+File::pageRender (int pn, int ix, int iy, double zm, int rot, WebView *webview)
 {
   webview->setZoomFactor (zm);
   QUrl pdfuri = QString ("apvlv:///%1-%2-%3-%4-%5-%6.html")
@@ -211,7 +210,7 @@ File::pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
     {
       auto rectangles = *itr;
 
-      for (auto const &pos : rectangles)
+      for (auto const &pos : rectangles.rect_list)
         {
           auto p1xz = int (pos.p1x * zm);
           auto p2xz = int (pos.p2x * zm);
@@ -257,36 +256,11 @@ File::pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
 
 bool
 File::pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
-                        ApvlvWebview *webview, int select,
-                        WordListRectangle *poses)
+                        WebView *webview, int select, WordListRectangle *poses)
 {
   mSearchPoses = *poses;
   mSearchSelect = select;
   return true;
-}
-
-bool
-File::pageAnnotUnderline (int, double, double, double, double)
-{
-  return false;
-}
-
-bool
-File::pageAnnotText (int, double, double, double, double, const char *text)
-{
-  return false;
-}
-
-ApvlvAnnotTexts
-File::pageAnnotTexts (int pn)
-{
-  ApvlvAnnotTexts texts;
-  return texts;
-}
-bool
-File::pageAnnotUpdate (int, ApvlvAnnotText *text)
-{
-  return false;
 }
 
 optional<QByteArray>
@@ -346,30 +320,38 @@ FileIndex::loadDirectory (const string &path1)
 {
   auto exts = File::supportFileExts ();
 
-  for (auto &entry :
-       directory_iterator (path1, directory_options::follow_directory_symlink))
+  try
     {
-      if (entry.is_directory ())
+      for (auto &entry : directory_iterator (
+               path1, directory_options::follow_directory_symlink))
         {
-          auto index = FileIndex (entry.path ().filename ().string (), 0,
-                                  entry.path ().string (), FILE_INDEX_DIR);
-          index.loadDirectory (entry.path ().string ());
-          if (!index.mChildrenIndex.empty ())
+          if (entry.is_directory ())
             {
-              mChildrenIndex.emplace_back (index);
+              auto index = FileIndex (entry.path ().filename ().string (), 0,
+                                      entry.path ().string (), FILE_INDEX_DIR);
+              index.loadDirectory (entry.path ().string ());
+              if (!index.mChildrenIndex.empty ())
+                {
+                  mChildrenIndex.emplace_back (index);
+                }
+            }
+          else if (entry.file_size () > 0)
+            {
+              auto file_ext = filename_ext (entry.path ().string ());
+              if (find (exts.cbegin (), exts.cend (), file_ext)
+                  != exts.cend ())
+                {
+                  auto index
+                      = FileIndex (entry.path ().filename ().string (), 0,
+                                   entry.path ().string (), FILE_INDEX_FILE);
+                  mChildrenIndex.emplace_back (index);
+                }
             }
         }
-      else if (entry.file_size () > 0)
-        {
-          auto file_ext = filename_ext (entry.path ().string ());
-          if (find (exts.cbegin (), exts.cend (), file_ext) != exts.cend ())
-            {
-              auto index
-                  = FileIndex (entry.path ().filename ().string (), 0,
-                               entry.path ().string (), FILE_INDEX_FILE);
-              mChildrenIndex.emplace_back (index);
-            }
-        }
+    }
+  catch (filesystem_error &err)
+    {
+      qWarning ("file system error: %s", err.what ());
     }
 
   sort (mChildrenIndex.begin (), mChildrenIndex.end (),

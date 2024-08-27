@@ -41,7 +41,7 @@ public:
   explicit ApvlvHTML (const string &filename, bool check = true);
 
   bool pageRender (int pn, int ix, int iy, double zm, int rot,
-                   ApvlvWebview *webview) override;
+                   WebView *webview) override;
 
 protected:
   QUrl mUrl;

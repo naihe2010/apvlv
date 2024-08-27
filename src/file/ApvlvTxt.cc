@@ -24,10 +24,12 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
+#include <QFile>
 #include <QWebEngineSettings>
 #include <fstream>
 
 #include "ApvlvTxt.h"
+#include "ApvlvWebViewWidget.h"
 
 namespace apvlv
 {
@@ -48,7 +50,7 @@ ApvlvTXT::pageText (int pn, string &text)
 
 bool
 ApvlvTXT::pageRender (int pn, int ix, int iy, double zm, int rot,
-                      ApvlvWebview *webview)
+                      WebView *webview)
 {
   auto settings = webview->settings ();
   settings->setDefaultTextEncoding ("UTF-8");

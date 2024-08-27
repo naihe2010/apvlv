@@ -31,8 +31,9 @@
 #include <Windows.h>
 #include <ocidl.h>
 
-#include "../ApvlvUtil.h"
 #include "ApvlvAxOffice.h"
+#include "ApvlvUtil.h"
+#include "ApvlvWebViewWidget.h"
 
 namespace apvlv
 {
@@ -184,7 +185,7 @@ ApvlvOfficeWord::pageRender (int pn, int ix, int iy, double zm, int rot,
 
 bool
 ApvlvOfficeWord::pageRender (int pn, int ix, int iy, double zm, int rot,
-                             ApvlvWebview *webview)
+                             WebView *webview)
 {
   webview->setZoomFactor (zm);
   QUrl url = QString ("apvlv:///%1").arg (pn);
@@ -295,42 +296,54 @@ ApvlvPowerPoint::pageRender (int pn, int ix, int iy, double zm, int rot,
   return true;
 }
 
+ExcelWidget *
+ApvlvExcel::getWidget ()
+{
+  auto wid = new ExcelWidget ();
+  wid->setFile (this);
+  wid->createWidget ();
+  return wid;
+}
+
+QWidget *
+ExcelWidget::createWidget ()
+{
+  auto qname = QString::fromLocal8Bit (mFile->getFilename ());
+  mAxWidget = new QAxWidget ("Excel.Workbook");
+  mAxWidget->setProperty ("Visible", true);
+  mAxWidget->setProperty ("ReadOnly", true);
+  mAxWidget->setControl (qname);
+  return mAxWidget;
+}
+
+void
+ExcelWidget::showPage (int p, double s)
+{
+  auto widget = dynamic_cast<QAxWidget *> (mWidget);
+  auto sheets = widget->querySubObject ("Sheets");
+  auto sheet = sheets->querySubObject ("Item(int)", p + 1);
+  sheet->dynamicCall ("Activate()");
+  mPageNumber = p;
+  mScrollValue = s;
+}
+
+void
+ExcelWidget::showPage (int p, const string &anchor)
+{
+  showPage (p, 0.0);
+  mPageNumber = p;
+  mScrollValue = 0;
+}
+
 ApvlvExcel::ApvlvExcel (const string &filename, bool check)
     : File (filename, check)
 {
   auto qname = QString::fromLocal8Bit (filename);
   mApp = new QAxWidget ("Excel.Workbook");
-  mApp->setProperty ("Visible", true);
+  mApp->setProperty ("Visible", false);
   mApp->setProperty ("ReadOnly", true);
   mApp->setControl (qname);
   mDoc = nullptr;
-}
-
-bool
-ApvlvExcel::widgetGoto (QWidget *widget, int pn)
-{
-  auto sheets = mApp->querySubObject ("Sheets");
-  auto sheet = sheets->querySubObject ("Item(int)", pn + 1);
-  sheet->dynamicCall ("Activate()");
-  return true;
-}
-
-bool
-ApvlvExcel::widgetGoto (QWidget *widget, const string &anchor)
-{
-  return false;
-}
-
-bool
-ApvlvExcel::widgetZoom (QWidget *widget, double zm)
-{
-  return false;
-}
-
-bool
-ApvlvExcel::widgetSearch (QWidget *widget, const string &word)
-{
-  return false;
 }
 
 int

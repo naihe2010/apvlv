@@ -30,6 +30,7 @@
 #include <QtAxContainer>
 
 #include "../ApvlvFile.h"
+#include "../ApvlvFileWidget.h"
 
 namespace apvlv
 {
@@ -69,7 +70,7 @@ public:
                    QImage *pix) override;
 
   bool pageRender (int pn, int ix, int iy, double zm, int rot,
-                   ApvlvWebview *webview) override;
+                   WebView *webview) override;
 
   optional<QByteArray> pathContent (const string &path) override;
 };
@@ -91,6 +92,18 @@ public:
                    QImage *pix) override;
 };
 
+class ExcelWidget : public FileWidget
+{
+public:
+  QWidget *createWidget () override;
+
+  void showPage (int, double s) override;
+  void showPage (int, const string &anchor) override;
+
+private:
+  QAxWidget *mAxWidget;
+};
+
 class ApvlvExcel : public File, public AxOffice
 {
   FILE_TYPE_DECLARATION (ApvlvExcel);
@@ -104,19 +117,7 @@ public:
     return DISPLAY_TYPE_CUSTOM;
   }
 
-  QWidget *
-  getWidget () override
-  {
-    return dynamic_cast<QWidget *> (mApp);
-  }
-
-  bool widgetGoto (QWidget *widget, int pn) override;
-
-  bool widgetGoto (QWidget *widget, const string &anchor) override;
-
-  bool widgetZoom (QWidget *widget, double zm) override;
-
-  bool widgetSearch (QWidget *widget, const string &word) override;
+  ExcelWidget *getWidget () override;
 
   int sum () override;
 

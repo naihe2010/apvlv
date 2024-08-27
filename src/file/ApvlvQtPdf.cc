@@ -80,52 +80,30 @@ ApvlvPDF::ApvlvPDF (const string &filename, bool check)
 }
 
 QWidget *
-ApvlvPDF::getWidget ()
+PDFWidget::createWidget ()
 {
-  if (mView == nullptr)
+  if (mWidget == nullptr)
     {
       auto view = new QPdfView;
-      view->setDocument (mDoc.get ());
-      view->setSearchModel (mSearchModel.get ());
-      mView = view;
+
+      auto pdf = dynamic_cast<ApvlvPDF *> (mFile);
+      view->setDocument (pdf->mDoc.get ());
+      view->setSearchModel (pdf->mSearchModel.get ());
+
+      mHalScrollBar = view->horizontalScrollBar ();
+      mValScrollBar = view->verticalScrollBar ();
+      mWidget = view;
     }
-  return mView;
+  return mWidget;
 }
 
-bool
-ApvlvPDF::widgetGoto (QWidget *widget, int pn)
+PDFWidget *
+ApvlvPDF::getWidget ()
 {
-  auto *view = dynamic_cast<QPdfView *> (widget);
-  auto nav = view->pageNavigator ();
-  nav->jump (pn, { 0, 0 });
-  return true;
-}
-
-bool
-ApvlvPDF::widgetGoto (QWidget *widget, const string &anchor)
-{
-  auto *view = dynamic_cast<QPdfView *> (widget);
-  auto nav = view->pageNavigator ();
-  auto link = QPdfLink{};
-  nav->jump (link);
-  return true;
-}
-
-bool
-ApvlvPDF::widgetZoom (QWidget *widget, double zm)
-{
-  auto *view = dynamic_cast<QPdfView *> (widget);
-  view->setZoomFactor (zm);
-  return true;
-}
-
-bool
-ApvlvPDF::widgetSearch (QWidget *widget, const string &word)
-{
-  auto *view = dynamic_cast<QPdfView *> (widget);
-  mSearchModel->setSearchString (QString::fromLocal8Bit (word));
-  view->setCurrentSearchResultIndex (1);
-  return true;
+  auto wid = new PDFWidget ();
+  wid->setFile (this);
+  wid->createWidget ();
+  return wid;
 }
 
 bool
@@ -155,20 +133,15 @@ ApvlvPDF::sum ()
 }
 
 unique_ptr<WordListRectangle>
-ApvlvPDF::pageSearch (int pn, const char *str, bool is_reverse)
+ApvlvPDF::pageSearch (int pn, const char *str)
 {
   if (mDoc == nullptr)
     return nullptr;
 
-  auto qsearch = make_unique<QPdfSearchModel> ();
-  qsearch->setDocument (mDoc.get ());
-  qsearch->setSearchString (str);
-  auto results = qsearch->resultsOnPage (pn);
+  mSearchModel->setSearchString (str);
+  auto results = mSearchModel->resultsOnPage (pn);
   if (results.empty ())
     return nullptr;
-
-  if (is_reverse)
-    reverse (results.begin (), results.end ());
 
   auto poses = make_unique<WordListRectangle> ();
   for (auto const &res : results)
@@ -176,7 +149,7 @@ ApvlvPDF::pageSearch (int pn, const char *str, bool is_reverse)
       WordRectangle word_rectangle;
       for (auto const &rect : res.rectangles ())
         {
-          word_rectangle.push_back (
+          word_rectangle.rect_list.push_back (
               { rect.left (), rect.bottom (), rect.right (), rect.top () });
         }
       poses->push_back (word_rectangle);
@@ -250,32 +223,58 @@ ApvlvPDF::pdf_get_index_iter (FileIndex &file_index,
     }
 }
 
-bool
-ApvlvPDF::pageAnnotUnderline (int pn, double x1, double y1, double x2,
-                              double y2)
+void
+PDFWidget::showPage (int p, double s)
 {
-  return true;
+  auto *view = dynamic_cast<QPdfView *> (mWidget);
+  auto nav = view->pageNavigator ();
+  nav->jump (p, { 0, 0 });
+  scrollTo (s, 0.0);
+  mPageNumber = p;
+  mScrollValue = s;
+}
+void
+PDFWidget::showPage (int p, const string &anchor)
+{
+  auto *view = dynamic_cast<QPdfView *> (mWidget);
+  auto nav = view->pageNavigator ();
+  nav->jump (p, { 0, 0 });
+  mPageNumber = p;
+  mScrollValue = 0;
 }
 
-bool
-ApvlvPDF::pageAnnotText (int pn, double x1, double y1, double x2, double y2,
-                         const char *text)
+void
+PDFWidget::setSearchSelect (int select)
 {
-  return true;
+  auto view = dynamic_cast<QPdfView *> (mWidget);
+  auto pdf = dynamic_cast<ApvlvPDF *> (mFile);
+  auto model = pdf->mSearchModel.get ();
+
+  auto doc_select = 0;
+  for (auto pn = 0; pn < mPageNumber; ++pn)
+    {
+      auto res = model->resultsOnPage (pn);
+      doc_select += static_cast<int> (res.size ());
+    }
+  doc_select += select;
+  view->setCurrentSearchResultIndex (doc_select);
+
+  auto link = model->resultAtIndex (doc_select);
+  auto scr = static_cast<int> (link.location ().y ());
+  mValScrollBar->setValue (scr);
+
+  qDebug ("link: %d,{%f,%f}: select: %d", link.page (), link.location ().x (),
+          link.location ().y (), doc_select);
+  mSearchSelect = select;
 }
 
-ApvlvAnnotTexts
-ApvlvPDF::pageAnnotTexts (int pn)
+void
+PDFWidget::setZoomrate (double zm)
 {
-  return {};
+  mZoomrate = zm;
+  auto *view = dynamic_cast<QPdfView *> (mWidget);
+  view->setZoomFactor (zm);
 }
-
-bool
-ApvlvPDF::pageAnnotUpdate (int pn, ApvlvAnnotText *text)
-{
-  return false;
-}
-
 }
 
 // Local Variables:

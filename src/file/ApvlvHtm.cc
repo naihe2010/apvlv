@@ -27,6 +27,7 @@
 #include <QUrl>
 
 #include "ApvlvHtm.h"
+#include "ApvlvWebViewWidget.h"
 
 namespace apvlv
 {
@@ -41,7 +42,7 @@ ApvlvHTML::ApvlvHTML (const string &filename, bool check)
 
 bool
 ApvlvHTML::pageRender (int pn, int ix, int iy, double zm, int rot,
-                       ApvlvWebview *webview)
+                       WebView *webview)
 {
   webview->setZoomFactor (zm);
   webview->load (mUrl);

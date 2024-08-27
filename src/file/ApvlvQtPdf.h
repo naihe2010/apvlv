@@ -29,11 +29,25 @@
 
 #include <QPdfBookmarkModel>
 #include <QPdfDocument>
+#include <QPdfSearchModel>
 
-#include "../ApvlvFile.h"
+#include "ApvlvFile.h"
+#include "ApvlvFileWidget.h"
 
 namespace apvlv
 {
+
+class PDFWidget : public FileWidget
+{
+public:
+  QWidget *createWidget () override;
+  void showPage (int, double s) override;
+  void showPage (int, const string &anchor) override;
+
+  void setSearchSelect (int select) override;
+
+  void setZoomrate (double zm) override;
+};
 
 class ApvlvPDF : public File
 {
@@ -47,18 +61,10 @@ public:
   [[nodiscard]] DISPLAY_TYPE
   getDisplayType () const override
   {
-    return DISPLAY_TYPE_HTML;
+    return DISPLAY_TYPE_CUSTOM;
   }
 
-  QWidget *getWidget () override;
-
-  bool widgetGoto (QWidget *widget, int pn) override;
-
-  bool widgetGoto (QWidget *widget, const string &anchor) override;
-
-  bool widgetZoom (QWidget *widget, double zm) override;
-
-  bool widgetSearch (QWidget *widget, const string &word) override;
+  PDFWidget *getWidget () override;
 
   bool pageSize (int page, int rot, double *x, double *y) override;
 
@@ -68,17 +74,7 @@ public:
 
   bool pageText (int, string &text) override;
 
-  bool pageAnnotUnderline (int, double, double, double, double) override;
-
-  bool pageAnnotText (int, double, double, double, double,
-                      const char *text) override;
-
-  bool pageAnnotUpdate (int pn, ApvlvAnnotText *text) override;
-
-  unique_ptr<WordListRectangle> pageSearch (int pn, const char *s,
-                                            bool reverse) override;
-
-  ApvlvAnnotTexts pageAnnotTexts (int pn) override;
+  unique_ptr<WordListRectangle> pageSearch (int pn, const char *s) override;
 
 private:
   bool pdf_get_index ();
@@ -89,6 +85,8 @@ private:
   unique_ptr<QPdfSearchModel> mSearchModel;
 
   QWidget *mView;
+
+  friend class PDFWidget;
 };
 }
 #endif

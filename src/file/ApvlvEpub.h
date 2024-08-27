@@ -47,7 +47,9 @@ public:
   int sum () override;
 
   bool pageRender (int pn, int ix, int iy, double zm, int rot,
-                   ApvlvWebview *widget) override;
+                   WebView *widget) override;
+
+  unique_ptr<WordListRectangle> pageSearch (int pn, const char *s) override;
 
   optional<QByteArray> pathContent (const string &path) override;
 

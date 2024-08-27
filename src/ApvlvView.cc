@@ -40,7 +40,7 @@
 
 #include "ApvlvInfo.h"
 #include "ApvlvParams.h"
-#include "ApvlvSearch.h"
+#include "ApvlvSearchDialog.h"
 #include "ApvlvView.h"
 
 namespace apvlv
@@ -61,8 +61,8 @@ isalt_escape (QKeyEvent *event)
 void
 ApvlvCommandBar::keyPressEvent (QKeyEvent *evt)
 {
-  qDebug ("command bar key press: %d, modifiers: %d", evt->key (),
-          evt->modifiers ().toInt ());
+  // qDebug ("command bar key press: %d, modifiers: %d", evt->key (),
+  // evt->modifiers ().toInt ());
   if (evt->key () == Qt::Key_Escape || isalt_escape (evt)
       || evt->key () == Qt::Key_Tab || evt->key () == Qt::Key_Up
       || evt->key () == Qt::Key_Down)
@@ -330,7 +330,7 @@ ApvlvView::newtab (const string &filename, bool disable_content)
   auto optndoc = hasloaded (filename);
   if (!optndoc)
     {
-      auto ndoc = new ApvlvDoc (this, gParams->values ("zoom"), false);
+      auto ndoc = new ApvlvFrame (this);
       if (!ndoc->loadfile (filename, true, gParams->valueb ("content")))
         {
           delete ndoc;
@@ -340,7 +340,7 @@ ApvlvView::newtab (const string &filename, bool disable_content)
       if (ndoc)
         {
           regloaded (ndoc);
-          optndoc = make_optional<ApvlvCore *> (ndoc);
+          optndoc = make_optional<ApvlvFrame *> (ndoc);
         }
     }
 
@@ -356,7 +356,7 @@ ApvlvView::newtab (const string &filename, bool disable_content)
 }
 
 bool
-ApvlvView::newtab (ApvlvCore *core)
+ApvlvView::newtab (ApvlvFrame *core)
 {
   auto pos = new_tabcontext (core);
 
@@ -372,7 +372,7 @@ ApvlvView::newtab (ApvlvCore *core)
 }
 
 int
-ApvlvView::new_tabcontext (ApvlvCore *core)
+ApvlvView::new_tabcontext (ApvlvFrame *core)
 {
   auto context = new ApvlvWindowContext (this);
 
@@ -399,12 +399,12 @@ ApvlvView::loadfile (const string &filename)
   auto abpath = filesystem::absolute (filename).string ();
 
   ApvlvWindow *win = currentWindow ();
-  ApvlvCore *ndoc = nullptr;
+  ApvlvFrame *ndoc = nullptr;
 
   auto optndoc = hasloaded (abpath);
   if (!optndoc)
     {
-      ndoc = new ApvlvDoc (this, gParams->values ("zoom"), false);
+      ndoc = new ApvlvFrame (this);
       if (!ndoc->loadfile (filename, true, gParams->valueb ("content")))
         {
           delete ndoc;
@@ -413,7 +413,7 @@ ApvlvView::loadfile (const string &filename)
       else
         {
           regloaded (ndoc);
-          optndoc = make_optional<ApvlvCore *> (ndoc);
+          optndoc = make_optional<ApvlvFrame *> (ndoc);
         }
     }
 
@@ -439,14 +439,14 @@ ApvlvView::loadFileOnPage (const string &filename, int pn)
     }
 }
 
-optional<ApvlvCore *>
+optional<ApvlvFrame *>
 ApvlvView::hasloaded (const string &abpath)
 {
   for (auto &core : mDocs)
     {
       if (!core->inuse () && abpath == core->filename ())
         {
-          return make_optional<ApvlvCore *> (core.get ());
+          return make_optional<ApvlvFrame *> (core.get ());
         }
     }
 
@@ -454,7 +454,7 @@ ApvlvView::hasloaded (const string &abpath)
 }
 
 void
-ApvlvView::regloaded (ApvlvCore *core)
+ApvlvView::regloaded (ApvlvFrame *core)
 {
   if (gParams->valuei ("pdfcache") < 2)
     {
@@ -479,7 +479,7 @@ ApvlvView::regloaded (ApvlvCore *core)
         }
     }
 
-  mDocs.push_back (unique_ptr<ApvlvCore> (core));
+  mDocs.push_back (unique_ptr<ApvlvFrame> (core));
 }
 
 void
@@ -721,7 +721,7 @@ ApvlvView::fullscreen ()
 {
   if (mHasFull == false)
     {
-      ApvlvCore *core = crtadoc ();
+      ApvlvFrame *core = crtadoc ();
       if (core)
         core->toggleContent (false);
 
@@ -797,15 +797,14 @@ ApvlvView::unbirth ()
   currentWindow ()->unbirth ();
 }
 
-ApvlvCore *
+ApvlvFrame *
 ApvlvView::crtadoc ()
 {
   auto widget = QApplication::focusWidget ();
   if (widget)
     {
-      auto meta = widget->metaObject ();
-      qDebug ("now focus in a %s widget", meta->className ());
-      auto doc = ApvlvCore::findByWidget (widget);
+      // qDebug ("now focus in a %s widget", meta->className ());
+      auto doc = ApvlvFrame::findByWidget (widget);
       if (doc)
         return doc;
     }
@@ -952,7 +951,7 @@ ApvlvView::run (const char *str)
       break;
 
     case FIND:
-      ret = crtadoc ()->find (str + 1);
+      ret = crtadoc ()->search (str + 1, false);
       break;
 
     default:
@@ -993,17 +992,7 @@ ApvlvView::runcmd (const char *str)
 
       if (cmd == "set")
         {
-          if (subcmd == "cache")
-            {
-              gParams->push ("cache", "yes");
-              crtadoc ()->usecache (true);
-            }
-          else if (subcmd == "nocache")
-            {
-              gParams->push ("cache", "no");
-              crtadoc ()->usecache (false);
-            }
-          else if (subcmd == "skip")
+          if (subcmd == "skip")
             {
               crtadoc ()->setskip (int (strtol (argu.c_str (), nullptr, 10)));
             }
@@ -1129,10 +1118,6 @@ ApvlvView::runcmd (const char *str)
         {
           switchtab (mTabContainer->currentIndex () - 1);
         }
-      else if (cmd == "w" || cmd == "write")
-        {
-          crtadoc ()->writefile (!subcmd.empty () ? subcmd.c_str () : nullptr);
-        }
       else if (cmd == "toc")
         {
           loadfile (crtadoc ()->filename ());
@@ -1152,7 +1137,7 @@ ApvlvView::runcmd (const char *str)
             {
               auto p = strtol (cmd.c_str (), nullptr, 10);
               p += crtadoc ()->getskip ();
-              if (p != crtadoc ()->pagenumber ())
+              if (p != crtadoc ()->pageNumber ())
                 {
                   crtadoc ()->showpage (int (p - 1), 0.0);
                 }

@@ -25,6 +25,8 @@
  */
 
 #include <LibreOfficeKit/LibreOfficeKit.hxx>
+#include <QDir>
+#include <QImage>
 #include <QTemporaryFile>
 
 #include "ApvlvLibreOffice.h"
@@ -84,7 +86,7 @@ ApvlvOFFICE::pageRender (int pn, int ix, int iy, double zm, int rot,
   auto height = static_cast<int>(iy * zm);
   auto size = static_cast<size_t>(width) * height * 4;
   auto buffer = make_unique<unsigned char>(size);
-  mDoc->paintPartTile (buffer.get(), pn, 0, width, height, 0, 0, ix, iy);
+  mFrame->paintPartTile (buffer.get(), pn, 0, width, height, 0, 0, ix, iy);
   *pix = QImage(buffer.get(), width, height, QImage::Format_ARGB32);
    */
   mDoc->setPart (pn);

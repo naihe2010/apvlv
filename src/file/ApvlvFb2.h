@@ -45,7 +45,7 @@ public:
   int sum () override;
 
   bool pageRender (int pn, int ix, int iy, double zm, int rot,
-                   ApvlvWebview *webview) override;
+                   WebView *webview) override;
 
   optional<QByteArray> pathContent (const string &path) override;
 

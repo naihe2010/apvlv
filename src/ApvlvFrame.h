@@ -20,13 +20,13 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-/* @CPPFILE ApvlvCore.h
+/* @CPPFILE ApvlvFrame.h
  *
  *  Author: Alf <naihe2010@126.com>
  */
 
-#ifndef _APVLV_CORE_H_
-#define _APVLV_CORE_H_
+#ifndef _APVLV_FRAME_H_
+#define _APVLV_FRAME_H_
 
 #include <QBoxLayout>
 #include <QFileSystemWatcher>
@@ -38,17 +38,34 @@
 
 #include "ApvlvContent.h"
 #include "ApvlvFile.h"
+#include "ApvlvFileWidget.h"
 #include "ApvlvUtil.h"
-
-using namespace std;
 
 namespace apvlv
 {
-const int APVLV_DEFAULT_CONTENT_WIDTH = 200;
-const int APVLV_WORD_WIDTH_DEFAULT = 40;
-const int APVLV_LINE_HEIGHT_DEFAULT = 15;
+using namespace std;
 
-class ApvlvCore;
+struct ApvlvDocPosition
+{
+  int pagenum;
+  double scrollrate;
+};
+
+using ApvlvDocPositionMap = map<char, ApvlvDocPosition>;
+
+struct ApvlvWord
+{
+  CharRectangle pos;
+  string word;
+};
+
+struct ApvlvLine
+{
+  CharRectangle pos;
+  vector<ApvlvWord> mWords;
+};
+
+class ApvlvFrame;
 class ApvlvStatus : public QFrame
 {
   Q_OBJECT
@@ -62,14 +79,17 @@ public:
   void showMessages (const vector<string> &msgs);
 };
 
+const int DEFAULT_CONTENT_WIDTH = 30;
+
+class FileWidget;
 class ApvlvView;
-class ApvlvCore : public QFrame
+class ApvlvFrame : public QFrame
 {
   Q_OBJECT
 public:
-  explicit ApvlvCore (ApvlvView *);
+  explicit ApvlvFrame (ApvlvView *);
 
-  virtual ~ApvlvCore ();
+  virtual ~ApvlvFrame ();
 
   virtual bool reload ();
 
@@ -77,9 +97,7 @@ public:
 
   virtual bool inuse ();
 
-  virtual ApvlvCore *copy ();
-
-  virtual File *file ();
+  virtual ApvlvFrame *copy ();
 
   virtual void setDirIndex (const string &path);
 
@@ -87,43 +105,15 @@ public:
 
   virtual const char *filename ();
 
-  virtual bool writefile (const char *);
+  virtual int pageNumber ();
 
-  virtual int pagenumber ();
-
-  virtual void showpage (int, double s);
-  virtual void showpage (int, const string &anchor);
-  virtual void refresh ();
-
-  virtual double zoomvalue ();
+  virtual void showpage (int pn, double s);
+  virtual void showpage (int pn, const string &anchor);
+  virtual void refresh (int pn);
 
   virtual void setActive (bool act);
 
-  virtual double scrollrate ();
-
-  virtual bool scrollto (double s);
-
-  void scrollweb (int times, int w, int h);
-  void scrollwebto (double xrate, double yrate);
-
-  virtual void scrollup (int times);
-  virtual void scrolldown (int times);
-  virtual void scrollleft (int times);
-  virtual void scrollright (int times);
-
-  virtual void scrollupweb (int times);
-  virtual void scrolldownweb (int times);
-  virtual void scrollleftweb (int times);
-  virtual void scrollrightweb (int times);
-
-  bool webIsScrolledToTop ();
-  bool webIsScrolledToBottom ();
-
-  virtual bool usecache ();
-
-  virtual void usecache (bool use);
-
-  virtual void display ();
+  virtual void updateStatus ();
 
   virtual bool print (int ct);
 
@@ -147,11 +137,14 @@ public:
 
   virtual bool search (const char *str, bool reverse);
 
-  virtual bool find (const char *str);
-
   virtual void gotolink (int ct);
 
   virtual void returnlink (int ct);
+
+  bool loadLastPosition (const string &filename);
+  bool saveLastPosition (const string &filename);
+
+  void contentShowPage (const FileIndex *index, bool force);
 
   virtual int getskip ();
   virtual void setskip (int ct);
@@ -166,11 +159,11 @@ public:
 
   virtual bool isControlledContent ();
 
-  virtual ReturnType process (int has, int times, uint keyval) = 0;
+  virtual ReturnType process (int has, int times, uint keyval);
 
   ApvlvView *mView;
 
-  static ApvlvCore *findByWidget (QWidget *widget);
+  static ApvlvFrame *findByWidget (QWidget *widget);
 
 protected:
   File *mFile{};
@@ -191,10 +184,7 @@ protected:
 
   uint mProCmd;
 
-  int mSearchPagenum{};
   char mSearchCmd{};
-  bool mSearchReverse{};
-  uint mSearchSelect{};
   unique_ptr<WordListRectangle> mSearchResults;
   string mSearchStr;
 
@@ -206,46 +196,28 @@ protected:
     CUSTOM
   } mZoommode;
 
-  double mZoomrate{};
-
   bool mZoominit{};
 
   int mRotatevalue;
 
   bool mAdjInchg{};
 
-  int mPagenum{};
-
-  string mAnchor{};
-
   int mSkip{};
 
-  double mPagex{}, mPagey{};
-
-  DISPLAY_TYPE mDisplayType;
+  ApvlvDocPositionMap mPositions;
 
   // the main menubar
   QBoxLayout *mVbox;
 
   // the main panel
   QSplitter *mPaned;
+  int mContentWidth;
 
   // content panel
   ApvlvContent *mContent;
-  QScrollArea *mMainImageScrolView;
-
-  // the webview
-  ApvlvWebview *mMainWebView;
 
   // the custom widget
-  QWidget *mCustomWidget;
-
-  QScrollBar *mMainVaj, *mMainHaj;
-
-  // the document scrolled window
-  QFrame *mMainImageFrame;
-
-  bool mWebScrollUp;
+  unique_ptr<FileWidget> mWidget;
 
   // if active
   bool mActive{};
@@ -253,24 +225,13 @@ protected:
   // status bar
   ApvlvStatus *mStatus;
 
-protected:
-  void initImageUi ();
-
-  void initWebUi ();
-
-  void showImage ();
-
-  void showWidget ();
-
-  void showWeb ();
+  void setWidget (DISPLAY_TYPE type);
+  bool needsearch (const string &str, bool reverse);
+  int convertPageNumber (int p);
+  ReturnType subprocess (int ct, uint key);
 
 signals:
   void indexGenerited (const FileIndex &);
-
-private slots:
-  void webview_update (const string &key);
-  void webview_load_finished (bool suc);
-  void webview_context_menu_cb (const QPoint &);
 };
 }
 

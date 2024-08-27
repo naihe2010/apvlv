@@ -25,22 +25,14 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
-#ifndef _APVLV_SEARCH_DIALOG_H_
-#define _APVLV_SEARCH_DIALOG_H_
+#ifndef _APVLV_SEARCH_H_
+#define _APVLV_SEARCH_H_
 
-#include <QCheckBox>
-#include <QDialog>
-#include <QFileSystemModel>
-#include <QLabel>
-#include <QLineEdit>
-#include <QListWidget>
-#include <QTimer>
 #include <string>
 #include <thread>
 #include <vector>
 
 #include "ApvlvQueue.h"
-#include "ApvlvWebView.h"
 
 namespace apvlv
 {
@@ -100,45 +92,6 @@ private:
   LockQueue<unique_ptr<SearchFileMatch> > mResults;
   atomic<bool> mRestart;
   atomic<bool> mQuit;
-};
-
-class File;
-class SearchDialog : public QDialog
-{
-  Q_OBJECT
-public:
-  explicit SearchDialog (QWidget *parent = nullptr);
-  ~SearchDialog () {}
-
-signals:
-  void loadFile (const string &path, int pn);
-
-private slots:
-  void search ();
-  void getResults ();
-  void previewItem (QListWidgetItem *item);
-  void activateItem (QListWidgetItem *item);
-  void loadFinish (bool ret);
-
-private:
-  void displayResult (unique_ptr<SearchFileMatch> result);
-
-  SearchOptions mOptions;
-
-  Searcher mSearcher;
-
-  QTimer mGetTimer;
-
-  QLineEdit mSearchEdit;
-  QCheckBox mCaseSensitive;
-  QCheckBox mRegex;
-  vector<QCheckBox *> mTypes;
-  QLineEdit mFromDir;
-  QListWidget mResults;
-  ApvlvWebview mPreview;
-
-  unique_ptr<File> mPreviewFile;
-  bool mPreviewIsFinished;
 };
 
 vector<pair<size_t, size_t> > grep (const string &source, const string &text,

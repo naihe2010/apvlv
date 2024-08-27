@@ -42,7 +42,7 @@ public:
   bool pageText (int pn, string &text) override;
 
   bool pageRender (int pn, int ix, int iy, double zm, int rot,
-                   ApvlvWebview *webview) override;
+                   WebView *webview) override;
   string
   pathMimeType (const string &path) override
   {

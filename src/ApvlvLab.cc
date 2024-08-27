@@ -26,6 +26,7 @@
 
 #include "ApvlvLab.h"
 #include "ApvlvUtil.h"
+#include "ApvlvWebViewWidget.h"
 
 #include <sstream>
 
@@ -98,7 +99,7 @@ ApvlvLab::~ApvlvLab () {}
 
 bool
 ApvlvLab::pageRender (int pn, int ix, int iy, double zm, int rot,
-                      ApvlvWebview *webview)
+                      WebView *webview)
 {
   webview->setZoomFactor (zm);
   QUrl url = QString ("apvlv:///") + QString::number (pn);

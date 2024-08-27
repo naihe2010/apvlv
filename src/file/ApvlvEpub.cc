@@ -29,8 +29,9 @@
 #include <filesystem>
 #include <quazipfile.h>
 
-#include "../ApvlvUtil.h"
 #include "ApvlvEpub.h"
+#include "ApvlvUtil.h"
+#include "ApvlvWebViewWidget.h"
 
 namespace apvlv
 {
@@ -82,12 +83,35 @@ ApvlvEPUB::sum ()
 
 bool
 ApvlvEPUB::pageRender (int pn, int ix, int iy, double zm, int rot,
-                       ApvlvWebview *webview)
+                       WebView *webview)
 {
   webview->setZoomFactor (zm);
   QUrl epuburi = QString ("apvlv:///") + QString::fromLocal8Bit (mPages[pn]);
   webview->load (epuburi);
   return true;
+}
+
+unique_ptr<WordListRectangle>
+ApvlvEPUB::pageSearch (int pn, const char *s)
+{
+  auto qpath = QString::fromLocal8Bit (mPages[pn]);
+  auto content = get_zip_file_contents (qpath);
+  auto html = content->toStdString ();
+  auto pos = html.find (s);
+  if (pos == string::npos)
+    return nullptr;
+
+  auto wordlist = make_unique<WordListRectangle> ();
+  do
+    {
+      WordRectangle word{};
+      word.word = s;
+      wordlist->push_back (word);
+      pos = html.find (s, pos + 1);
+    }
+  while (pos != string::npos);
+
+  return wordlist;
 }
 
 optional<QByteArray>

@@ -37,7 +37,7 @@
 
 #include "ApvlvCmds.h"
 #include "ApvlvCompletion.h"
-#include "ApvlvDoc.h"
+#include "ApvlvFrame.h"
 #include "ApvlvWindow.h"
 
 namespace apvlv
@@ -50,7 +50,7 @@ enum CmdModeType
   FIND = 'F'
 };
 
-class ApvlvDoc;
+class ApvlvFrame;
 class ApvlvWindow;
 
 class ApvlvCommandBar : public QLineEdit
@@ -81,7 +81,7 @@ public:
 
   bool newtab (const string &filename, bool disable_content = false);
 
-  bool newtab (ApvlvCore *core);
+  bool newtab (ApvlvFrame *core);
 
   void promptcommand (char ch);
 
@@ -100,9 +100,9 @@ public:
 
   bool loaddir (const string &path);
 
-  optional<ApvlvCore *> hasloaded (const string &abpath);
+  optional<ApvlvFrame *> hasloaded (const string &abpath);
 
-  void regloaded (ApvlvCore *);
+  void regloaded (ApvlvFrame *);
 
   ReturnType process (int hastimes, int times, uint keyval);
 
@@ -116,7 +116,7 @@ public:
 
   void settitle (const string &title);
 
-  ApvlvCore *crtadoc ();
+  ApvlvFrame *crtadoc ();
 
   void append_child (ApvlvView *);
 
@@ -166,7 +166,7 @@ private:
 
   bool runcmd (const char *cmd);
 
-  int new_tabcontext (ApvlvCore *core);
+  int new_tabcontext (ApvlvFrame *core);
 
   void delete_tabcontext (int tabPos);
 
@@ -216,7 +216,7 @@ private:
 
   ApvlvCmds mCmds;
 
-  std::vector<unique_ptr<ApvlvCore> > mDocs;
+  std::vector<unique_ptr<ApvlvFrame> > mDocs;
 
   std::vector<string> mCmdHistroy;
   size_t mCurrHistroy;
