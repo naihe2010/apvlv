@@ -109,7 +109,7 @@ public:
 
   virtual void showpage (int pn, double s);
   virtual void showpage (int pn, const string &anchor);
-  virtual void refresh (int pn);
+  virtual void refresh (int pn, double s);
 
   virtual void setActive (bool act);
 
@@ -170,12 +170,6 @@ protected:
 
   FileIndex mDirIndex{};
 
-  bool mAutoScrollPage{};
-  bool mAutoScrollDoc{};
-  bool mContinuous{};
-
-  bool mReady;
-
   bool mInuse;
 
   unique_ptr<QFileSystemWatcher> mWatcher;
@@ -199,8 +193,6 @@ protected:
   bool mZoominit{};
 
   int mRotatevalue;
-
-  bool mAdjInchg{};
 
   int mSkip{};
 
@@ -227,7 +219,6 @@ protected:
 
   void setWidget (DISPLAY_TYPE type);
   bool needsearch (const string &str, bool reverse);
-  int convertPageNumber (int p);
   ReturnType subprocess (int ct, uint key);
 
 signals:

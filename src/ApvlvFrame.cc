@@ -50,8 +50,6 @@ ApvlvFrame::ApvlvFrame (ApvlvView *view)
 
   mView = view;
 
-  mReady = false;
-
   mProCmd = 0;
 
   mZoommode = NORMAL;
@@ -60,10 +58,6 @@ ApvlvFrame::ApvlvFrame (ApvlvView *view)
 
   mSearchResults = nullptr;
   mSearchStr = "";
-
-  mContinuous = gParams->valueb ("continuous");
-  mAutoScrollPage = gParams->valueb ("autoscrollpage");
-  mAutoScrollDoc = gParams->valueb ("autoscrolldoc");
 
   mVbox = new QVBoxLayout ();
   setLayout (mVbox);
@@ -336,24 +330,24 @@ ApvlvFrame::subprocess (int ct, uint key)
           char temp[0x10];
           snprintf (temp, sizeof temp, "%f", zoomrate * 1.1);
           setzoom (temp);
-          refresh (mWidget->pageNumber ());
+          refresh (mWidget->pageNumber (), mWidget->scrollRate());
         }
       else if (key == 'o')
         {
           char temp[0x10];
           snprintf (temp, sizeof temp, "%f", zoomrate / 1.1);
           setzoom (temp);
-          refresh (mWidget->pageNumber ());
+          refresh (mWidget->pageNumber (), mWidget->scrollRate());
         }
       else if (key == 'h')
         {
           setzoom ("fitheight");
-          refresh (mWidget->pageNumber ());
+          refresh (mWidget->pageNumber (), mWidget->scrollRate());
         }
       else if (key == 'w')
         {
           setzoom ("fitwidth");
-          refresh (mWidget->pageNumber ());
+          refresh (mWidget->pageNumber (),  mWidget->scrollRate());
         }
       break;
 
@@ -404,10 +398,10 @@ ApvlvFrame::process (int has, int ct, uint key)
       mWidget->scrollTo (0.0, 0.0);
       break;
     case 'M':
-      mWidget->scrollTo (0.5, 0.0);
+      mWidget->scrollTo (0.0, 0.5);
       break;
     case 'L':
-      mWidget->scrollTo (1.0, 0.0);
+      mWidget->scrollTo (0.0, 1.0);
       break;
     case '0':
       mWidget->scrollLeft (INT_MAX);
@@ -713,7 +707,6 @@ ApvlvFrame::loadfile (const string &filename, bool check, bool show_content)
       delete mFile;
       mFile = nullptr;
     }
-  mReady = false;
 
   mFile = File::newFile (filename, false);
 
@@ -727,9 +720,6 @@ ApvlvFrame::loadfile (const string &filename, bool check, bool show_content)
       if (mFile->sum () <= 1)
         {
           qDebug ("sum () = %d", mFile->sum ());
-          mContinuous = false;
-          mAutoScrollDoc = false;
-          mAutoScrollPage = false;
         }
 
       // qDebug ("pagesum () = %d", mFile->sum ());
@@ -739,8 +729,6 @@ ApvlvFrame::loadfile (const string &filename, bool check, bool show_content)
       loadLastPosition (filename);
 
       setActive (true);
-
-      mReady = true;
 
       mSearchStr = "";
       mSearchResults = nullptr;
@@ -779,33 +767,6 @@ ApvlvFrame::loadfile (const string &filename, bool check, bool show_content)
   return mFile != nullptr;
 }
 
-int
-ApvlvFrame::convertPageNumber (int p)
-{
-  if (mFile != nullptr)
-    {
-      int c = mFile->sum ();
-
-      if (p >= 0 && p < c)
-        {
-          return p;
-        }
-      else if (p >= c && mAutoScrollDoc)
-        {
-          return p % c;
-        }
-      else if (p < 0 && mAutoScrollDoc)
-        {
-          return c + p;
-        }
-      else
-        {
-          return -1;
-        }
-    }
-  return -1;
-}
-
 void
 ApvlvFrame::markposition (const char s)
 {
@@ -828,28 +789,9 @@ ApvlvFrame::jump (const char s)
 void
 ApvlvFrame::showpage (int p, double s)
 {
-  int rp = convertPageNumber (p);
+  auto rp = mFile->pageNumberWrap (p);
   if (rp < 0)
     return;
-
-  // qDebug ("display page: %d | %lf", rp,s);
-  mAdjInchg = true;
-
-  if (mAutoScrollPage && mContinuous && !mAutoScrollDoc)
-    {
-      int rp2 = convertPageNumber (p + 1);
-      if (rp2 < 0)
-        {
-          if (rp == mWidget->pageNumber () + 1)
-            {
-              return;
-            }
-          else
-            {
-              rp--;
-            }
-        }
-    }
 
   mWidget->setAnchor ("");
 
@@ -859,17 +801,21 @@ ApvlvFrame::showpage (int p, double s)
       setzoom (nullptr);
     }
 
-  refresh (rp);
-
-  mWidget->scrollTo (s, 0.0);
+  refresh (rp, s);
 }
 
 void
 ApvlvFrame::showpage (int p, const string &anchor)
 {
-  auto pn = convertPageNumber (p);
+  auto pn = mFile->pageNumberWrap (p);
   if (pn < 0)
     return;
+  if (!mZoominit)
+    {
+      mZoominit = true;
+      setzoom (nullptr);
+    }
+
   mWidget->showPage (p, anchor);
   updateStatus ();
 }
@@ -877,22 +823,22 @@ ApvlvFrame::showpage (int p, const string &anchor)
 void
 ApvlvFrame::nextpage (int times)
 {
-  showpage (convertPageNumber (mWidget->pageNumber () + times), 0.0f);
+  showpage (mWidget->pageNumber () + times, 0.0f);
 }
 
 void
 ApvlvFrame::prepage (int times)
 {
-  showpage (convertPageNumber (mWidget->pageNumber () - times), 0.0f);
+  showpage (mWidget->pageNumber () - times, 0.0f);
 }
 
 void
-ApvlvFrame::refresh (int pn)
+ApvlvFrame::refresh (int pn, double s)
 {
   if (mFile == nullptr)
     return;
 
-  mWidget->showPage (pn, 0.0f);
+  mWidget->showPage (pn, s);
   updateStatus ();
 }
 
@@ -901,9 +847,6 @@ ApvlvFrame::halfnextpage (int times)
 {
   double sr = mWidget->scrollRate ();
   int rtimes = times / 2;
-
-  // if (mAutoScrollPage && mContinuous)
-  //   srtranslate (rtimes, sr, false);
 
   if (times % 2 != 0)
     {
@@ -918,9 +861,6 @@ ApvlvFrame::halfnextpage (int times)
         }
     }
 
-  // if (mAutoScrollPage && mContinuous)
-  //   srtranslate (rtimes, sr, true);
-
   showpage (mWidget->pageNumber () + rtimes, sr);
 }
 
@@ -929,9 +869,6 @@ ApvlvFrame::halfprepage (int times)
 {
   double sr = mWidget->scrollRate ();
   int rtimes = times / 2;
-
-  // if (mAutoScrollPage && mContinuous)
-  //   srtranslate (rtimes, sr, false);
 
   if (times % 2 != 0)
     {
@@ -945,9 +882,6 @@ ApvlvFrame::halfprepage (int times)
           sr = 0;
         }
     }
-
-  // if (mAutoScrollPage && mContinuous)
-  // srtranslate (rtimes, sr, true);
 
   showpage (mWidget->pageNumber () - rtimes, sr);
 }
@@ -1010,9 +944,9 @@ ApvlvFrame::search (const char *str, bool reverse)
       return false;
     }
 
-  if (*str != '\0')
+  if (*str)
     {
-      mSearchCmd = reverse ? BACKSEARCH : SEARCH;
+      mSearchCmd = (reverse ? BACKSEARCH : SEARCH);
     }
 
   if (!needsearch (str, reverse))
@@ -1111,7 +1045,7 @@ ApvlvFrame::rotate (int ct)
     {
       mRotatevalue -= 360;
     }
-  refresh (mWidget->pageNumber ());
+  refresh (mWidget->pageNumber (), 0.0);
   return true;
 }
 

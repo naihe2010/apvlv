@@ -33,6 +33,7 @@
 #include <memory>
 #include <vector>
 
+#include "ApvlvParams.h"
 #include "ApvlvSearch.h"
 
 namespace apvlv
@@ -175,6 +176,32 @@ public:
   pageSize (int page, int rot, double *x, double *y)
   {
     return false;
+  }
+
+  virtual int
+  pageNumberWrap (int page)
+  {
+    auto scrdoc = gParams->valueb ("autoscrolldoc");
+    int c = sum ();
+
+    if (page >= 0 && page < c)
+      {
+        return page;
+      }
+    else if (page >= c && scrdoc)
+      {
+        return page % c;
+      }
+    else if (page < 0 && scrdoc)
+      {
+        while (page < 0)
+          page += c;
+        return page;
+      }
+    else
+      {
+        return -1;
+      }
   }
 
   virtual bool

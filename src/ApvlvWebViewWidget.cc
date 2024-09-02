@@ -136,8 +136,12 @@ WebViewWidget::scrollUp (int times)
   auto widget = dynamic_cast<WebView *> (mWidget);
   if (widget->isScrolledToTop ())
     {
-      mIsScrollUp = true;
-      showPage (mPageNumber - 1, 0.0);
+      auto p = mFile->pageNumberWrap (mPageNumber - 1);
+      if (p >= 0)
+        {
+          mIsScrollUp = true;
+          showPage (p, 0.0);
+        }
     }
 }
 
@@ -149,7 +153,9 @@ WebViewWidget::scrollDown (int times)
   auto widget = dynamic_cast<WebView *> (mWidget);
   if (widget->isScrolledToBottom ())
     {
-      showPage (mPageNumber + 1, 0.0);
+      auto p = mFile->pageNumberWrap (mPageNumber + 1);
+      if (p >= 0)
+        showPage (p, 0.0);
     }
 }
 

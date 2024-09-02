@@ -42,13 +42,13 @@ namespace apvlv
 
 using namespace std;
 
-class ApvlvImageWidget : public QScrollArea
+class ApvlvImage : public QScrollArea
 {
   Q_OBJECT
 public:
-  ApvlvImageWidget ();
+  ApvlvImage ();
 
-  ~ApvlvImageWidget () override;
+  ~ApvlvImage () override;
 
 private:
   QLabel *mImageContainer;

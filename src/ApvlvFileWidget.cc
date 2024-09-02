@@ -71,7 +71,7 @@ FileWidget::scrollTo (double s, double y)
     return;
 
   auto maxv = mValScrollBar->maximum () - mValScrollBar->minimum ();
-  auto val = static_cast<int> (s * maxv);
+  auto val = static_cast<int> (y * maxv);
   mValScrollBar->setValue (val);
 }
 

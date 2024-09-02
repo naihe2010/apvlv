@@ -29,8 +29,8 @@
 
 #include <QtAxContainer>
 
-#include "../ApvlvFile.h"
-#include "../ApvlvFileWidget.h"
+#include "ApvlvFile.h"
+#include "ApvlvFileWidget.h"
 
 namespace apvlv
 {

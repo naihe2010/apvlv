@@ -37,7 +37,7 @@
 namespace apvlv
 {
 
-ApvlvImageWidget::ApvlvImageWidget ()
+ApvlvImage::ApvlvImage ()
 {
   setAlignment (Qt::AlignCenter);
   setHorizontalScrollBarPolicy (Qt::ScrollBarPolicy::ScrollBarAsNeeded);
@@ -47,10 +47,7 @@ ApvlvImageWidget::ApvlvImageWidget ()
   QScrollArea::setWidget (mImageContainer);
 }
 
-ApvlvImageWidget::~ApvlvImageWidget ()
-{
-  qDebug ("ApvlvImageWidget: %p be freed", this);
-}
+ApvlvImage::~ApvlvImage () { qDebug ("ApvlvImage: %p be freed", this); }
 
 void
 ImageWidget::showPage (int p, double s)
@@ -61,13 +58,15 @@ ImageWidget::showPage (int p, double s)
     {
       if (mFile->pageRender (p, int (x), int (y), mZoomrate, 0, &img))
         {
-          auto widget = dynamic_cast<ApvlvImageWidget *> (mWidget);
+          auto widget = dynamic_cast<ApvlvImage *> (mWidget);
           widget->mImageContainer->setPixmap (QPixmap::fromImage (img));
           auto wx = static_cast<int> (x * mZoomrate);
           auto wy = static_cast<int> (y * mZoomrate);
           widget->mImageContainer->resize (wx, wy);
         }
     }
+  scrollTo (0.0, s);
+  mPageNumber = p;
 }
 
 void
@@ -80,7 +79,7 @@ ImageWidget::showPage (int p, const string &anchor)
 QWidget *
 ImageWidget::createWidget ()
 {
-  mWidget = new ApvlvImageWidget ();
+  mWidget = new ApvlvImage ();
   auto scrollarea = dynamic_cast<QScrollArea *> (mWidget);
   mHalScrollBar = scrollarea->horizontalScrollBar ();
   mValScrollBar = scrollarea->verticalScrollBar ();
