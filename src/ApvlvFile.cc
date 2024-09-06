@@ -133,8 +133,9 @@ File::grepFile (const string &seq, bool is_case, bool is_regex,
       if (is_abort.load () == true)
         return nullptr;
 
+      auto size = pageSizeF (pn, 0);
       string content;
-      if (pageText (pn, content) == false)
+      if (pageText (pn, { 0, 0, size.width, size.height }, content) == false)
         continue;
 
       istringstream iss{ content };
@@ -169,13 +170,11 @@ File::grepFile (const string &seq, bool is_case, bool is_regex,
 }
 
 bool
-File::pageRender (int pn, int ix, int iy, double zm, int rot, WebView *webview)
+File::pageRender (int pn, double zm, int rot, WebView *webview)
 {
   webview->setZoomFactor (zm);
-  QUrl pdfuri = QString ("apvlv:///%1-%2-%3-%4-%5-%6.html")
+  QUrl pdfuri = QString ("apvlv:///%1-%2-%3-%4.html")
                     .arg (pn)
-                    .arg (ix)
-                    .arg (iy)
                     .arg (zm)
                     .arg (rot)
                     .arg (rand ());
@@ -202,90 +201,25 @@ File::pathPageNumber (const string &path)
   return -1;
 }
 
-bool
-File::pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
-                        QImage *pix, int select, WordListRectangle *wordlist)
-{
-  for (auto itr = (*wordlist).begin (); itr != (*wordlist).end (); ++itr)
-    {
-      auto rectangles = *itr;
-
-      for (auto const &pos : rectangles.rect_list)
-        {
-          auto p1xz = int (pos.p1x * zm);
-          auto p2xz = int (pos.p2x * zm);
-          auto p1yz = int (pos.p2y * zm);
-          auto p2yz = int (pos.p1y * zm);
-
-          if (pix->format () == QImage::Format_ARGB32)
-            {
-              imageArgb32ToRgb32 (*pix, p1xz, p1yz, p2xz, p2yz);
-            }
-
-          if (std::distance ((*wordlist).begin (), itr) == select)
-            {
-              for (int w = p1xz; w < p2xz; ++w)
-                {
-                  for (int h = p1yz; h < p2yz; ++h)
-                    {
-                      QColor c = pix->pixelColor (w, h);
-                      c.setRgb (255 - c.red (), 255 - c.red (),
-                                255 - c.red ());
-                      pix->setPixelColor (w, h, c);
-                    }
-                }
-            }
-          else
-            {
-              for (int w = p1xz; w < p2xz; ++w)
-                {
-                  for (int h = p1yz; h < p2yz; ++h)
-                    {
-                      QColor c = pix->pixelColor (w, h);
-                      c.setRgb (255 - c.red () / 2, 255 - c.red () / 2,
-                                255 - c.red () / 2);
-                      pix->setPixelColor (w, h, c);
-                    }
-                }
-            }
-        }
-    }
-
-  return true;
-}
-
-bool
-File::pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
-                        WebView *webview, int select, WordListRectangle *poses)
-{
-  mSearchPoses = *poses;
-  mSearchSelect = select;
-  return true;
-}
-
 optional<QByteArray>
 File::pathContent (const string &path)
 {
   auto words = QString::fromLocal8Bit (path).split ("-");
   int pn = words[0].toInt ();
-  int ix = words[1].toInt ();
-  int iy = words[2].toInt ();
   double zm = words[3].toDouble ();
   int rot = words[4].toInt ();
 
   if (QString::fromLocal8Bit (path).endsWith (".html"))
-    return pathContentHtml (pn, ix, iy, zm, rot);
+    return pathContentHtml (pn, zm, rot);
   else
-    return pathContentPng (pn, ix, iy, zm, rot);
+    return pathContentPng (pn, zm, rot);
 }
 
 optional<QByteArray>
-File::pathContentHtml (int pn, int ix, int iy, double zm, int rot)
+File::pathContentHtml (int pn, double zm, int rot)
 {
-  auto src = QString ("apvlv:///%1-%2-%3-%4-%5-%6.png")
+  auto src = QString ("apvlv:///%1-%2-%3-%4.png")
                  .arg (pn)
-                 .arg (ix)
-                 .arg (iy)
                  .arg (zm)
                  .arg (rot)
                  .arg (rand ());
@@ -295,17 +229,11 @@ File::pathContentHtml (int pn, int ix, int iy, double zm, int rot)
 }
 
 optional<QByteArray>
-File::pathContentPng (int pn, int ix, int iy, double zm, int rot)
+File::pathContentPng (int pn, double zm, int rot)
 {
   QImage image;
-  if (pageRender (pn, ix, iy, zm, rot, &image) == false)
+  if (pageRender (pn, zm, rot, &image) == false)
     return nullopt;
-
-  if (!mSearchPoses.empty ())
-    {
-      pageSelectSearch (pn, ix, iy, zm, rot, &image, mSearchSelect,
-                        &mSearchPoses);
-    }
 
   QByteArray array;
   QBuffer buffer (&array);

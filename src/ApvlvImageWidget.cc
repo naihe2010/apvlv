@@ -27,15 +27,60 @@
 
 #include <QBuffer>
 #include <QMessageBox>
+#include <QMouseEvent>
 #include <QScrollArea>
 #include <QSplitter>
 #include <iostream>
 
-#include "ApvlvFile.h"
 #include "ApvlvImageWidget.h"
 
 namespace apvlv
 {
+void
+ImageContainer::mousePressEvent (QMouseEvent *event)
+{
+  if (event->button () != Qt::MouseButton::LeftButton)
+    return;
+
+  // qDebug () << "mouse press at " << event->position ();
+  mIsSelected = true;
+  mPressPosition = event->position ();
+}
+
+void
+ImageContainer::mouseMoveEvent (QMouseEvent *event)
+{
+  if (!mIsSelected)
+    return;
+
+  // qDebug () << "mouse move to " << event->position ();
+  mMovePosition = event->position ();
+  double left = mPressPosition.x () / mImageWidget->zoomrate ();
+  double top = mPressPosition.y () / mImageWidget->zoomrate ();
+  double right = mMovePosition.x () / mImageWidget->zoomrate ();
+  double bottom = mMovePosition.y () / mImageWidget->zoomrate ();
+  auto rect_list = mImageWidget->file ()->pageHighlight (
+      mImageWidget->pageNumber (), { left, top }, { right, bottom });
+  if (!rect_list)
+    return;
+
+  QImage img;
+  if (mImageWidget->file ()->pageRender (mImageWidget->pageNumber (),
+                                         mImageWidget->zoomrate (),
+                                         mImageWidget->rotate (), &img)
+      == false)
+    return;
+
+  imageSelect (&img, mImageWidget->zoomrate (), rect_list.value ());
+  setPixmap (QPixmap::fromImage (img));
+  resize (img.width (), img.height ());
+}
+
+void
+ImageContainer::mouseReleaseEvent (QMouseEvent *event)
+{
+  mIsSelected = false;
+}
 
 ApvlvImage::ApvlvImage ()
 {
@@ -43,8 +88,7 @@ ApvlvImage::ApvlvImage ()
   setHorizontalScrollBarPolicy (Qt::ScrollBarPolicy::ScrollBarAsNeeded);
   setVerticalScrollBarPolicy (Qt::ScrollBarPolicy::ScrollBarAsNeeded);
 
-  mImageContainer = new QLabel ();
-  QScrollArea::setWidget (mImageContainer);
+  QScrollArea::setWidget (&mImageContainer);
 }
 
 ApvlvImage::~ApvlvImage () { qDebug ("ApvlvImage: %p be freed", this); }
@@ -53,17 +97,15 @@ void
 ImageWidget::showPage (int p, double s)
 {
   QImage img;
-  double x, y;
-  if (mFile->pageSize (p, 0, &x, &y))
+  if (mFile->pageRender (p, mZoomrate, mRotate, &img))
     {
-      if (mFile->pageRender (p, int (x), int (y), mZoomrate, 0, &img))
+      if (!mSearchResults.empty ())
         {
-          auto widget = dynamic_cast<ApvlvImage *> (mWidget);
-          widget->mImageContainer->setPixmap (QPixmap::fromImage (img));
-          auto wx = static_cast<int> (x * mZoomrate);
-          auto wy = static_cast<int> (y * mZoomrate);
-          widget->mImageContainer->resize (wx, wy);
+          imageSelectSearch (&img, mZoomrate, mSearchSelect, &mSearchResults);
         }
+      auto widget = dynamic_cast<ApvlvImage *> (mWidget);
+      widget->mImageContainer.setPixmap (QPixmap::fromImage (img));
+      widget->mImageContainer.resize (img.width (), img.height ());
     }
   scrollTo (0.0, s);
   mPageNumber = p;
@@ -79,11 +121,87 @@ ImageWidget::showPage (int p, const string &anchor)
 QWidget *
 ImageWidget::createWidget ()
 {
-  mWidget = new ApvlvImage ();
-  auto scrollarea = dynamic_cast<QScrollArea *> (mWidget);
-  mHalScrollBar = scrollarea->horizontalScrollBar ();
-  mValScrollBar = scrollarea->verticalScrollBar ();
-  return mWidget;
+  auto widget = new ApvlvImage ();
+  widget->mImageContainer.setImageWidget (this);
+  mHalScrollBar = widget->horizontalScrollBar ();
+  mValScrollBar = widget->verticalScrollBar ();
+  return widget;
+}
+
+bool
+imageSelect (QImage *pix, double zm, const vector<Rectangle> &rect_list)
+{
+  for (auto const &rect : rect_list)
+    {
+      auto p1xz = static_cast<int> (rect.p1x * zm);
+      auto p2xz = static_cast<int> (rect.p2x * zm);
+      auto p1yz = static_cast<int> (rect.p1y * zm);
+      auto p2yz = static_cast<int> (rect.p2y * zm);
+
+      for (auto w = p1xz; w < p2xz; ++w)
+        {
+          for (auto h = p1yz; h < p2yz; ++h)
+            {
+              QColor c = pix->pixelColor (w, h);
+              c.setRgb (255 - c.red (), 255 - c.red (), 255 - c.red ());
+              pix->setPixelColor (w, h, c);
+            }
+        }
+    }
+
+  return true;
+}
+
+bool
+imageSelectSearch (QImage *pix, double zm, int select,
+                   WordListRectangle *wordlist)
+{
+  for (auto itr = (*wordlist).begin (); itr != (*wordlist).end (); ++itr)
+    {
+      auto rectangles = *itr;
+
+      for (auto const &pos : rectangles.rect_list)
+        {
+          auto p1xz = static_cast<int> (pos.p1x * zm);
+          auto p2xz = static_cast<int> (pos.p2x * zm);
+          auto p1yz = static_cast<int> (pos.p2y * zm);
+          auto p2yz = static_cast<int> (pos.p1y * zm);
+
+          if (pix->format () == QImage::Format_ARGB32)
+            {
+              imageArgb32ToRgb32 (*pix, p1xz, p1yz, p2xz, p2yz);
+            }
+
+          if (std::distance ((*wordlist).begin (), itr) == select)
+            {
+              for (int w = p1xz; w < p2xz; ++w)
+                {
+                  for (int h = p1yz; h < p2yz; ++h)
+                    {
+                      QColor c = pix->pixelColor (w, h);
+                      c.setRgb (255 - c.red (), 255 - c.red (),
+                                255 - c.red ());
+                      pix->setPixelColor (w, h, c);
+                    }
+                }
+            }
+          else
+            {
+              for (int w = p1xz; w < p2xz; ++w)
+                {
+                  for (int h = p1yz; h < p2yz; ++h)
+                    {
+                      QColor c = pix->pixelColor (w, h);
+                      c.setRgb (255 - c.red () / 2, 255 - c.red () / 2,
+                                255 - c.red () / 2);
+                      pix->setPixelColor (w, h, c);
+                    }
+                }
+            }
+        }
+    }
+
+  return true;
 }
 
 }

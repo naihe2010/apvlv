@@ -67,8 +67,8 @@ ApvlvOfficeWord::sum ()
   return pages.toInt ();
 }
 
-bool
-ApvlvOfficeWord::pageSize (int pn, int rot, double *x, double *y)
+SizeF
+ApvlvOfficeWord::pageSizeF (int pn, int rot)
 {
   auto pnstr = QString ("Pages(%1)").arg (pn + 1);
   auto win = mDoc->querySubObject ("ActiveWindow");
@@ -76,23 +76,18 @@ ApvlvOfficeWord::pageSize (int pn, int rot, double *x, double *y)
   auto page = pane->querySubObject (pnstr.toStdString ().c_str ());
   auto width = page->property ("Width");
   auto height = page->property ("Height");
-  if (x)
-    *x = width.toDouble ();
-  if (y)
-    *y = height.toDouble ();
-  return true;
+  return { width.toDouble (), height.toDouble () };
 }
 
 bool
-ApvlvOfficeWord::pageText (int pn, string &text)
+ApvlvOfficeWord::pageText (int pn, const Rectangle &rect, string &text)
 {
   auto content = mDoc->querySubObject ("Content");
   return false;
 }
 
 bool
-ApvlvOfficeWord::pageRender (int pn, int ix, int iy, double zm, int rot,
-                             QImage *pix)
+ApvlvOfficeWord::pageRender (int pn, double zm, int rot, QImage *pix)
 {
   char szFormatName[1024];
   const char *lpFormatName;
@@ -184,8 +179,7 @@ ApvlvOfficeWord::pageRender (int pn, int ix, int iy, double zm, int rot,
 }
 
 bool
-ApvlvOfficeWord::pageRender (int pn, int ix, int iy, double zm, int rot,
-                             WebView *webview)
+ApvlvOfficeWord::pageRender (int pn, double zm, int rot, WebView *webview)
 {
   webview->setZoomFactor (zm);
   QUrl url = QString ("apvlv:///%1").arg (pn);
@@ -255,29 +249,24 @@ ApvlvPowerPoint::sum ()
   return count.toInt ();
 }
 
-bool
-ApvlvPowerPoint::pageSize (int pn, int rot, double *x, double *y)
+SizeF
+ApvlvPowerPoint::pageSizeF (int pn, int rot)
 {
   auto page = mDoc->querySubObject ("PageSetup");
   auto width = page->property ("SlideWidth");
   auto height = page->property ("SlideHeight");
-  if (x)
-    *x = width.toDouble ();
-  if (y)
-    *y = height.toDouble ();
-  return true;
+  return { width.toDouble (), height.toDouble () };
 }
 
 bool
-ApvlvPowerPoint::pageText (int pn, string &text)
+ApvlvPowerPoint::pageText (int pn, const Rectangle &rect, string &text)
 {
   auto content = mDoc->querySubObject ("Content");
   return false;
 }
 
 bool
-ApvlvPowerPoint::pageRender (int pn, int ix, int iy, double zm, int rot,
-                             QImage *pix)
+ApvlvPowerPoint::pageRender (int pn, double zm, int rot, QImage *pix)
 {
   auto slides = mDoc->querySubObject ("Slides");
   auto slide = slides->querySubObject ("Item(int)", pn + 1);
@@ -355,7 +344,7 @@ ApvlvExcel::sum ()
 }
 
 bool
-ApvlvExcel::pageText (int pn, string &text)
+ApvlvExcel::pageText (int pn, const Rectangle &rect, string &text)
 {
   return false;
   // auto content = mDoc->querySubObject ("Content");

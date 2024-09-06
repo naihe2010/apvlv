@@ -61,18 +61,18 @@ public:
   [[nodiscard]] DISPLAY_TYPE
   getDisplayType () const override
   {
-    return DISPLAY_TYPE_CUSTOM;
+    return DISPLAY_TYPE_IMAGE;
   }
 
   PDFWidget *getWidget () override;
 
-  bool pageSize (int page, int rot, double *x, double *y) override;
+  SizeF pageSizeF (int page, int rot) override;
 
   int sum () override;
 
-  bool pageRender (int, int, int, double, int, QImage *) override;
+  bool pageRender (int, double, int, QImage *) override;
 
-  bool pageText (int, string &text) override;
+  bool pageText (int, const Rectangle &rect, string &text) override;
 
   unique_ptr<WordListRectangle> pageSearch (int pn, const char *s) override;
 

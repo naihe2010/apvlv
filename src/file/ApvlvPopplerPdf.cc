@@ -59,25 +59,19 @@ ApvlvPDF::ApvlvPDF (const string &filename, bool check)
   pdf_get_index ();
 }
 
-bool
-ApvlvPDF::pageSize (int pn, int rot, double *x, double *y)
+SizeF
+ApvlvPDF::pageSizeF (int pn, int rot)
 {
-  if (mDoc == nullptr)
-    return false;
-
   auto page = mDoc->page (pn);
-  auto size = page->pageSizeF ();
+  auto qsize = page->pageSizeF ();
   if (rot == 0 || rot == 180)
     {
-      *x = size.width ();
-      *y = size.height ();
+      return { qsize.width (), qsize.height () };
     }
   else
     {
-      *x = size.height ();
-      *y = size.width ();
+      return { qsize.height (), qsize.width () };
     }
-  return true;
 }
 
 int

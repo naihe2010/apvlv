@@ -54,8 +54,6 @@ ApvlvFrame::ApvlvFrame (ApvlvView *view)
 
   mZoommode = NORMAL;
 
-  mRotatevalue = 0;
-
   mSearchResults = nullptr;
   mSearchStr = "";
 
@@ -330,24 +328,24 @@ ApvlvFrame::subprocess (int ct, uint key)
           char temp[0x10];
           snprintf (temp, sizeof temp, "%f", zoomrate * 1.1);
           setzoom (temp);
-          refresh (mWidget->pageNumber (), mWidget->scrollRate());
+          refresh (mWidget->pageNumber (), mWidget->scrollRate ());
         }
       else if (key == 'o')
         {
           char temp[0x10];
           snprintf (temp, sizeof temp, "%f", zoomrate / 1.1);
           setzoom (temp);
-          refresh (mWidget->pageNumber (), mWidget->scrollRate());
+          refresh (mWidget->pageNumber (), mWidget->scrollRate ());
         }
       else if (key == 'h')
         {
           setzoom ("fitheight");
-          refresh (mWidget->pageNumber (), mWidget->scrollRate());
+          refresh (mWidget->pageNumber (), mWidget->scrollRate ());
         }
       else if (key == 'w')
         {
           setzoom ("fitwidth");
-          refresh (mWidget->pageNumber (),  mWidget->scrollRate());
+          refresh (mWidget->pageNumber (), mWidget->scrollRate ());
         }
       break;
 
@@ -620,19 +618,21 @@ ApvlvFrame::setzoom (const char *z)
   if (mFile != nullptr)
     {
       int pn = max (0, pageNumber () - 1);
-      double pagex, pagey;
-      mFile->pageSize (pn, mRotatevalue, &pagex, &pagey);
+      auto size = mFile->pageSizeF (pn, 0);
 
-      auto wid = mWidget->widget ();
-      if (mZoommode == FITWIDTH)
+      if (size.width > 0 && size.height > 0)
         {
-          auto x_root = wid->width ();
-          zoomrate = x_root / pagex;
-        }
-      else if (mZoommode == FITHEIGHT)
-        {
-          auto y_root = wid->height ();
-          zoomrate = y_root / pagey;
+          auto wid = mWidget->widget ();
+          if (mZoommode == FITWIDTH)
+            {
+              auto x_root = wid->width ();
+              zoomrate = x_root / size.width;
+            }
+          else if (mZoommode == FITHEIGHT)
+            {
+              auto y_root = wid->height ();
+              zoomrate = y_root / size.height;
+            }
         }
       mWidget->setZoomrate (zoomrate);
     }
@@ -923,11 +923,11 @@ ApvlvFrame::needsearch (const string &str, bool reverse)
               mWidget->searchSelect (), mSearchResults->size ());
       if (!reverse)
         {
-          mWidget->setSearchSelect (mWidget->searchSelect () + 1);
+          setHighlightAndIndex (*mSearchResults, mWidget->searchSelect () + 1);
         }
       else
         {
-          mWidget->setSearchSelect (mWidget->searchSelect () - 1);
+          setHighlightAndIndex (*mSearchResults, mWidget->searchSelect () - 1);
         }
 
       return false;
@@ -975,11 +975,7 @@ ApvlvFrame::search (const char *str, bool reverse)
               auto sel = 0;
               if (reverse)
                 sel = static_cast<int> (results.size () - 1);
-              if (!results[sel].word.empty ())
-                {
-                  mWidget->setSearchStr (results[sel].word);
-                }
-              mWidget->setSearchSelect (sel);
+              setHighlightAndIndex (results, sel);
               return true;
             }
         }
@@ -1011,10 +1007,9 @@ ApvlvFrame::totext (const char *file)
     return false;
 
   auto pn = mWidget->pageNumber ();
-  double w, h;
   string txt;
-  mFile->pageSize (pn, 0, &w, &h);
-  bool ret = mFile->pageSelection (pn, 0, 0, w, h, txt);
+  auto size = mFile->pageSizeF (pn, 0);
+  bool ret = mFile->pageText (pn, { 0, 0, size.width, size.height }, txt);
   if (ret)
     {
       // need impl g_file_set_contents (file, txt, -1, nullptr);
@@ -1036,15 +1031,17 @@ ApvlvFrame::rotate (int ct)
       return false;
     }
 
-  mRotatevalue += ct;
-  while (mRotatevalue < 0)
+  auto rotate = mWidget->rotate ();
+  rotate += ct;
+  while (rotate < 0)
     {
-      mRotatevalue += 360;
+      rotate += 360;
     }
-  while (mRotatevalue > 360)
+  while (rotate > 360)
     {
-      mRotatevalue -= 360;
+      rotate -= 360;
     }
+  mWidget->setRotate (rotate);
   refresh (mWidget->pageNumber (), 0.0);
   return true;
 }
@@ -1136,6 +1133,31 @@ ApvlvFrame::setWidget (DISPLAY_TYPE type)
     mPaned->addWidget (mWidget->widget ());
   else
     mPaned->replaceWidget (1, mWidget->widget ());
+}
+
+void
+ApvlvFrame::setHighlightAndIndex (const WordListRectangle &poses, int sel)
+{
+  if (!poses[sel].word.empty ())
+    {
+      mWidget->setSearchStr (poses[sel].word);
+    }
+  mWidget->setSearchSelect (sel);
+  mWidget->setSearchResults (poses);
+
+  auto sr = mWidget->scrollRate ();
+  if (!poses[sel].rect_list.empty ())
+    {
+      auto rect = poses[sel].rect_list[0];
+      auto size
+          = mFile->pageSizeF (mWidget->pageNumber (), mWidget->rotate ());
+      if (size.height > 0)
+        {
+          sr = rect.p2y / size.height;
+        }
+    }
+
+  refresh (mWidget->pageNumber (), sr);
 }
 
 void

@@ -54,12 +54,18 @@ public:
       mWidget->deleteLater ();
   };
 
-  virtual QWidget *
+  QWidget *
   widget ()
   {
     if (mWidget == nullptr)
       mWidget = createWidget ();
     return mWidget;
+  }
+
+  File *
+  file () const
+  {
+    return mFile;
   }
 
   virtual void
@@ -120,6 +126,18 @@ public:
     mZoomrate = zm;
   }
 
+  virtual void
+  setRotate (int rot)
+  {
+    mRotate = rot;
+  }
+
+  virtual int
+  rotate ()
+  {
+    return mRotate;
+  }
+
   void
   setAnchor (const string &anchor)
   {
@@ -150,6 +168,18 @@ public:
     return mSearchStr;
   }
 
+  virtual void
+  setSearchResults (const WordListRectangle &wlr)
+  {
+    mSearchResults = wlr;
+  }
+
+  virtual const WordListRectangle &
+  searchResults ()
+  {
+    return mSearchResults;
+  }
+
 protected:
   virtual QWidget *createWidget () = 0;
 
@@ -162,8 +192,10 @@ protected:
   double mScrollValue{ 0.0f };
   string mAnchor;
   double mZoomrate{ 1.0f };
+  int mRotate{ 0 };
 
   string mSearchStr;
+  WordListRectangle mSearchResults;
   int mSearchSelect{ 0 };
 };
 }

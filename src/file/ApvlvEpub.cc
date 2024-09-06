@@ -82,8 +82,7 @@ ApvlvEPUB::sum ()
 }
 
 bool
-ApvlvEPUB::pageRender (int pn, int ix, int iy, double zm, int rot,
-                       WebView *webview)
+ApvlvEPUB::pageRender (int pn, double zm, int rot, WebView *webview)
 {
   webview->setZoomFactor (zm);
   QUrl epuburi = QString ("apvlv:///") + QString::fromLocal8Bit (mPages[pn]);

@@ -44,7 +44,7 @@ public:
 
   ~ApvlvPDF () override = default;
 
-  bool pageSize (int page, int rot, double *x, double *y) override;
+  SizeF pageSizeF (int page, int rot) override;
 
   int sum () override;
 

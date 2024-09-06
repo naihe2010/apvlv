@@ -305,8 +305,7 @@ ApvlvFB2::sum ()
 }
 
 bool
-ApvlvFB2::pageRender (int pn, int ix, int iy, double zm, int rot,
-                      WebView *webview)
+ApvlvFB2::pageRender (int pn, double zm, int rot, WebView *webview)
 {
   webview->setZoomFactor (zm);
   QUrl url = QString ("apvlv:///") + QString::number (pn);

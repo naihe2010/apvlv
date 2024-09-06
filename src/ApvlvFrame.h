@@ -192,8 +192,6 @@ protected:
 
   bool mZoominit{};
 
-  int mRotatevalue;
-
   int mSkip{};
 
   ApvlvDocPositionMap mPositions;
@@ -218,6 +216,7 @@ protected:
   ApvlvStatus *mStatus;
 
   void setWidget (DISPLAY_TYPE type);
+  void setHighlightAndIndex (const WordListRectangle &poses, int sel);
   bool needsearch (const string &str, bool reverse);
   ReturnType subprocess (int ct, uint key);
 

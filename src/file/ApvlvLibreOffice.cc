@@ -58,7 +58,7 @@ ApvlvOFFICE::sum ()
 }
 
 bool
-ApvlvOFFICE::pageText (int pn, string &text)
+ApvlvOFFICE::pageText (int pn, const Rectangle &rect, string &text)
 {
   mDoc->setPart (pn);
   auto tmpname = QString ("%1/apvlv.%2.txt")
@@ -78,8 +78,7 @@ ApvlvOFFICE::pageText (int pn, string &text)
 }
 
 bool
-ApvlvOFFICE::pageRender (int pn, int ix, int iy, double zm, int rot,
-                         QImage *pix)
+ApvlvOFFICE::pageRender (int pn, double zm, int rot, QImage *pix)
 {
   /*
   auto width = static_cast<int>(ix * zm);

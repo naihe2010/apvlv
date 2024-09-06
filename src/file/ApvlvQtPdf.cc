@@ -106,24 +106,18 @@ ApvlvPDF::getWidget ()
   return wid;
 }
 
-bool
-ApvlvPDF::pageSize (int pn, int rot, double *x, double *y)
+SizeF
+ApvlvPDF::pageSizeF (int pn, int rot)
 {
-  if (mDoc == nullptr)
-    return false;
-
-  auto size = mDoc->pagePointSize (pn);
+  auto qsize = mDoc->pagePointSize (pn);
   if (rot == 0 || rot == 180)
     {
-      *x = size.width ();
-      *y = size.height ();
+      return { qsize.width (), qsize.height () };
     }
   else
     {
-      *x = size.height ();
-      *y = size.width ();
+      return { qsize.height (), qsize.width () };
     }
-  return true;
 }
 
 int
@@ -158,7 +152,7 @@ ApvlvPDF::pageSearch (int pn, const char *str)
 }
 
 bool
-ApvlvPDF::pageRender (int pn, int ix, int iy, double zm, int rot, QImage *pix)
+ApvlvPDF::pageRender (int pn, double zm, int rot, QImage *pix)
 {
   if (mDoc == nullptr)
     return false;
@@ -179,12 +173,13 @@ ApvlvPDF::pageRender (int pn, int ix, int iy, double zm, int rot, QImage *pix)
 }
 
 bool
-ApvlvPDF::pageText (int pn, string &text)
+ApvlvPDF::pageText (int pn, const Rectangle &rect, string &text)
 {
   if (mDoc == nullptr)
     return false;
 
-  auto selection = mDoc->getAllText (pn);
+  auto selection = mDoc->getSelection (pn, { rect.p1x, rect.p1y },
+                                       { rect.p2x, rect.p2y });
   text = selection.text ().toStdString ();
   return true;
 }

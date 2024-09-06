@@ -68,6 +68,18 @@ struct ApvlvPoint
   double x, y;
 };
 
+struct Size
+{
+  int width;
+  int height;
+};
+
+struct SizeF
+{
+  double width;
+  double height;
+};
+
 //
 // position of a search result, or just an area
 //
@@ -172,10 +184,17 @@ public:
   };
 
   // Page methods
-  virtual bool
-  pageSize (int page, int rot, double *x, double *y)
+  Size
+  pageSize (int page, int rot)
   {
-    return false;
+    auto sizef = pageSizeF (page, rot);
+    return { static_cast<int> (sizef.width), static_cast<int> (sizef.height) };
+  }
+
+  virtual SizeF
+  pageSizeF (int page, int rot)
+  {
+    return { 0, 0 };
   }
 
   virtual int
@@ -205,19 +224,12 @@ public:
   }
 
   virtual bool
-  pageRender (int page, int x, int y, double zm, int rot, QImage *pix)
+  pageRender (int page, double zm, int rot, QImage *pix)
   {
     return false;
   }
 
-  virtual bool pageRender (int pn, int x, int y, double zm, int rot,
-                           WebView *webview);
-
-  virtual bool
-  pageText (int pn, string &text)
-  {
-    return false;
-  }
+  virtual bool pageRender (int pn, double zm, int rot, WebView *webview);
 
   virtual unique_ptr<ApvlvLinks>
   pageLinks (int pn)
@@ -226,8 +238,7 @@ public:
   }
 
   virtual bool
-  pageSelection (int pn, double left, double top, double width, double height,
-                 string &text)
+  pageText (int pn, const Rectangle &rect, string &text)
   {
     return false;
   }
@@ -238,13 +249,11 @@ public:
     return nullptr;
   }
 
-  virtual bool pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
-                                 QImage *pix, int select,
-                                 WordListRectangle *poses);
-
-  virtual bool pageSelectSearch (int pn, int ix, int iy, double zm, int rot,
-                                 WebView *webview, int select,
-                                 WordListRectangle *poses);
+  virtual optional<vector<Rectangle> >
+  pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb)
+  {
+    return nullopt;
+  }
 
   // path methods
   virtual optional<QByteArray> pathContent (const string &path);
@@ -265,15 +274,12 @@ protected:
   std::map<string, string> srcMimeTypes;
   ApvlvCover mCover;
 
-  WordListRectangle mSearchPoses;
-  int mSearchSelect;
-
 private:
   static map<string, std::vector<string> > mSupportMimeTypes;
   static map<string, function<File *(const string &)> > mSupportClass;
 
-  optional<QByteArray> pathContentHtml (int, int, int, double, int);
-  optional<QByteArray> pathContentPng (int, int, int, double, int);
+  optional<QByteArray> pathContentHtml (int, double, int);
+  optional<QByteArray> pathContentPng (int, double, int);
 };
 
 #define FILE_TYPE_DECLARATION(cls)                                            \

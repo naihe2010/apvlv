@@ -42,6 +42,29 @@ namespace apvlv
 
 using namespace std;
 
+class ImageWidget;
+class ImageContainer : public QLabel
+{
+public:
+  void mousePressEvent (QMouseEvent *event) override;
+  void mouseMoveEvent (QMouseEvent *event) override;
+  void mouseReleaseEvent (QMouseEvent *event) override;
+
+  void
+  setImageWidget (ImageWidget *image_widget)
+  {
+    mImageWidget = image_widget;
+  }
+
+private:
+  bool mIsSelected;
+  QPointF mPressPosition;
+  QPointF mMovePosition;
+  ImageWidget *mImageWidget;
+
+  friend class ImageWidget;
+};
+
 class ApvlvImage : public QScrollArea
 {
   Q_OBJECT
@@ -51,7 +74,7 @@ public:
   ~ApvlvImage () override;
 
 private:
-  QLabel *mImageContainer;
+  ImageContainer mImageContainer;
 
   friend class ImageWidget;
 };
@@ -64,6 +87,11 @@ public:
   void showPage (int, double s) override;
   void showPage (int, const string &anchor) override;
 };
+
+bool imageSelect (QImage *pix, double zm, const vector<Rectangle> &poses);
+
+bool imageSelectSearch (QImage *pix, double zm, int select,
+                        WordListRectangle *poses);
 
 }
 

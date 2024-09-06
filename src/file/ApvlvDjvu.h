@@ -42,11 +42,11 @@ public:
 
   ~ApvlvDJVU () override;
 
-  bool pageSize (int page, int rot, double *x, double *y) override;
+  SizeF pageSizeF (int page, int rot) override;
 
   int sum () override;
 
-  bool pageRender (int, int, int, double, int, QImage *) override;
+  bool pageRender (int, double, int, QImage *) override;
 
 private:
   ddjvu_context_t *mContext;

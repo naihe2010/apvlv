@@ -19,35 +19,56 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/* @CPPFILE ApvlvHtm.h
+/* @CPPFILE ApvlvPdf.h
  *
  *  Author: Alf <naihe2010@126.com>
  */
 
-#ifndef _APVLV_HTM_H_
-#define _APVLV_HTM_H_
+#ifndef _APVLV_MUPDF_H_
+#define _APVLV_MUPDF_H_
 
-#include <QUrl>
+#include <mupdf/classes.h>
 
-#include "../ApvlvFile.h"
+#include "ApvlvFile.h"
 
 namespace apvlv
 {
-class ApvlvHTML : public File
+
+class ApvlvPDF : public File
 {
-  FILE_TYPE_DECLARATION (ApvlvHTML);
+  FILE_TYPE_DECLARATION (ApvlvPDF);
 
 public:
-  explicit ApvlvHTML (const string &filename, bool check = true);
+  explicit ApvlvPDF (const string &filename, bool check = true);
 
-  bool pageRender (int pn, double zm, int rot, WebView *webview) override;
+  ~ApvlvPDF () override = default;
 
-protected:
-  QUrl mUrl;
+  [[nodiscard]] DISPLAY_TYPE
+  getDisplayType () const override
+  {
+    return DISPLAY_TYPE_IMAGE;
+  }
+
+  SizeF pageSizeF (int page, int rot) override;
+
+  int sum () override;
+
+  bool pageRender (int, double, int, QImage *) override;
+
+  optional<vector<Rectangle> > pageHighlight (int pn, const ApvlvPoint &pa,
+                                              const ApvlvPoint &pb) override;
+
+  bool pageText (int pn, const Rectangle &rect, string &text) override;
+
+  unique_ptr<WordListRectangle> pageSearch (int pn, const char *str) override;
+
+private:
+  unique_ptr<mupdf::FzDocument> mDoc;
+
+  void pdf_get_index ();
+  void pdf_get_index (FileIndex &, mupdf::FzOutline &outline);
 };
-
 }
-
 #endif
 
 /* Local Variables: */

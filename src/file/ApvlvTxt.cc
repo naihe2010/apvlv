@@ -36,7 +36,7 @@ namespace apvlv
 FILE_TYPE_DEFINITION (ApvlvTXT, { ".txt", ".text" });
 
 bool
-ApvlvTXT::pageText (int pn, string &text)
+ApvlvTXT::pageText (int pn, const Rectangle &rect, string &text)
 {
   QFile file (mUrl.path ());
   if (file.open (QIODeviceBase::ReadOnly) == false)
@@ -49,12 +49,11 @@ ApvlvTXT::pageText (int pn, string &text)
 }
 
 bool
-ApvlvTXT::pageRender (int pn, int ix, int iy, double zm, int rot,
-                      WebView *webview)
+ApvlvTXT::pageRender (int pn, double zm, int rot, WebView *webview)
 {
   auto settings = webview->settings ();
   settings->setDefaultTextEncoding ("UTF-8");
-  return ApvlvHTML::pageRender (pn, ix, iy, zm, rot, webview);
+  return ApvlvHTML::pageRender (pn, zm, rot, webview);
 }
 
 }

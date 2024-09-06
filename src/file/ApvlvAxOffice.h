@@ -62,15 +62,13 @@ public:
 
   int sum () override;
 
-  bool pageSize (int page, int rot, double *x, double *y) override;
+  Size pageSize (int page, int rot) override;
 
-  bool pageText (int pn, string &text) override;
+  bool pageText (int pn, const Rectangle &rect, string &text) override;
 
-  bool pageRender (int pn, int ix, int iy, double zm, int rot,
-                   QImage *pix) override;
+  bool pageRender (int pn, double zm, int rot, QImage *pix) override;
 
-  bool pageRender (int pn, int ix, int iy, double zm, int rot,
-                   WebView *webview) override;
+  bool pageRender (int pn, double zm, int rot, WebView *webview) override;
 
   optional<QByteArray> pathContent (const string &path) override;
 };
@@ -84,12 +82,11 @@ public:
 
   int sum () override;
 
-  bool pageSize (int page, int rot, double *x, double *y) override;
+  Size pageSize (int page, int rot) override;
 
-  bool pageText (int pn, string &text) override;
+  bool pageText (int pn, const Rectangle &rect, string &text) override;
 
-  bool pageRender (int pn, int ix, int iy, double zm, int rot,
-                   QImage *pix) override;
+  bool pageRender (int pn, double zm, int rot, QImage *pix) override;
 };
 
 class ExcelWidget : public FileWidget
@@ -121,7 +118,7 @@ public:
 
   int sum () override;
 
-  bool pageText (int pn, string &text) override;
+  bool pageText (int pn, const Rectangle &rect, string &text) override;
 };
 
 }

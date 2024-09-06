@@ -46,8 +46,7 @@ public:
 
   int sum () override;
 
-  bool pageRender (int pn, int ix, int iy, double zm, int rot,
-                   WebView *widget) override;
+  bool pageRender (int pn, double zm, int rot, WebView *widget) override;
 
   unique_ptr<WordListRectangle> pageSearch (int pn, const char *s) override;
 

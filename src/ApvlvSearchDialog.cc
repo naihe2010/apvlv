@@ -167,11 +167,9 @@ SearchDialog::previewItem (QListWidgetItem *item)
 
   if (mPreviewFile)
     {
-      double x, y;
       mPreview.setFile (mPreviewFile.get ());
-      mPreviewFile->pageSize (pn, 0, &x, &y);
       mPreviewIsFinished = false;
-      mPreviewFile->pageRender (pn, int (x), int (y), 1.0, 0, &mPreview);
+      mPreviewFile->pageRender (pn, 1.0, 0, &mPreview);
     }
 }
 

@@ -104,8 +104,8 @@ ApvlvDJVU::~ApvlvDJVU ()
     }
 }
 
-bool
-ApvlvDJVU::pageSize (int pn, int rot, double *x, double *y)
+SizeF
+ApvlvDJVU::pageSizeF (int pn, int rot)
 {
   ddjvu_status_t t;
   ddjvu_pageinfo_t info[1];
@@ -114,13 +114,13 @@ ApvlvDJVU::pageSize (int pn, int rot, double *x, double *y)
       handle_ddjvu_messages (mContext, true);
     }
 
+  SizeF sizef{ 0.0f, 0.0f };
   if (t == DDJVU_JOB_OK)
     {
-      *x = info->width;
-      *y = info->height;
-      qDebug ("djvu page 1: %f-%f", *x, *y);
+      sizef.width = static_cast<double> (info->width);
+      sizef.height = static_cast<double> (info->height);
     }
-  return true;
+  return sizef;
 }
 
 int
@@ -130,7 +130,7 @@ ApvlvDJVU::sum ()
 }
 
 bool
-ApvlvDJVU::pageRender (int pn, int ix, int iy, double zm, int rot, QImage *pix)
+ApvlvDJVU::pageRender (int pn, double zm, int rot, QImage *pix)
 {
   ddjvu_page_t *tpage;
 
@@ -140,15 +140,17 @@ ApvlvDJVU::pageRender (int pn, int ix, int iy, double zm, int rot, QImage *pix)
       return false;
     }
 
-  ix *= zm;
-  iy *= zm;
+  auto size = pageSizeF (pn, rot);
 
-  ddjvu_rect_t prect[1]
-      = { { static_cast<unsigned int> (0), static_cast<unsigned int> (0),
-            static_cast<unsigned int> (ix), static_cast<unsigned int> (iy) } };
-  ddjvu_rect_t rrect[1]
-      = { { static_cast<unsigned int> (0), static_cast<unsigned int> (0),
-            static_cast<unsigned int> (ix), static_cast<unsigned int> (iy) } };
+  auto dx = size.width * zm;
+  auto dy = size.height * zm;
+
+  auto ix = static_cast<int> (dx);
+  auto iy = static_cast<int> (dy);
+  ddjvu_rect_t prect[1] = { { 0, 0, static_cast<unsigned int> (ix),
+                              static_cast<unsigned int> (iy) } };
+  ddjvu_rect_t rrect[1] = { { 0, 0, static_cast<unsigned int> (ix),
+                              static_cast<unsigned int> (iy) } };
   ddjvu_format_t *format
       = ddjvu_format_create (DDJVU_FORMAT_RGB24, 0, nullptr);
   ddjvu_format_set_row_order (format, true);

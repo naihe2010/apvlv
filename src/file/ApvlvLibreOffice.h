@@ -44,10 +44,9 @@ public:
 
   int sum () override;
 
-  bool pageText (int pn, string &text) override;
+  bool pageText (int pn, const Rectangle &rect, string &text) override;
 
-  bool pageRender (int pn, int ix, int iy, double zm, int rot,
-                   QImage *pix) override;
+  bool pageRender (int pn, double zm, int rot, QImage *pix) override;
 
 protected:
   unique_ptr<lok::Document> mDoc;
