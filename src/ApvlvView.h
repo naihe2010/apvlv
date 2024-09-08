@@ -188,8 +188,8 @@ private:
   QTabWidget *mTabContainer;
   ApvlvCommandBar *mCommandBar;
 
-  std::unique_ptr<QMenuBar> mMenuBar;
-  std::unique_ptr<QToolBar> mToolBar;
+  QMenuBar *mMenuBar;
+  QToolBar *mToolBar;
 
   std::vector<ApvlvWindowContext *> mTabList;
 

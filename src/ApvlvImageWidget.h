@@ -45,10 +45,16 @@ using namespace std;
 class ImageWidget;
 class ImageContainer : public QLabel
 {
+  Q_OBJECT
 public:
+  ImageContainer (QWidget *parent = nullptr);
+
   void mousePressEvent (QMouseEvent *event) override;
   void mouseMoveEvent (QMouseEvent *event) override;
   void mouseReleaseEvent (QMouseEvent *event) override;
+
+  virtual bool renderImage (int pn, double zm, int rot);
+  virtual void redraw ();
 
   void
   setImageWidget (ImageWidget *image_widget)
@@ -57,12 +63,25 @@ public:
   }
 
 private:
-  bool mIsSelected;
+  bool mIsSelected{ false };
+
   QPointF mPressPosition;
   QPointF mMovePosition;
-  ImageWidget *mImageWidget;
+
+  ImageWidget *mImageWidget{ nullptr };
 
   friend class ImageWidget;
+
+  QImage mImage;
+
+  pair<ApvlvPoint, ApvlvPoint> selectionRange ();
+  vector<Rectangle> selectionArea ();
+  string selectionText ();
+
+private slots:
+  void copy ();
+  void underline ();
+  void comment ();
 };
 
 class ApvlvImage : public QScrollArea
@@ -86,12 +105,18 @@ public:
 
   void showPage (int, double s) override;
   void showPage (int, const string &anchor) override;
+
+  void setSearchResults (const WordListRectangle &wlr) override;
+  void setZoomrate (double zm) override;
+  void setRotate (int rotate) override;
 };
+
+bool imageSelectSearch (QImage *pix, double zm, int select,
+                        const WordListRectangle &poses);
 
 bool imageSelect (QImage *pix, double zm, const vector<Rectangle> &poses);
 
-bool imageSelectSearch (QImage *pix, double zm, int select,
-                        WordListRectangle *poses);
+bool imageUnderline (QImage *pix, double zm, const vector<Rectangle> &poses);
 
 }
 

@@ -206,8 +206,8 @@ File::pathContent (const string &path)
 {
   auto words = QString::fromLocal8Bit (path).split ("-");
   int pn = words[0].toInt ();
-  double zm = words[3].toDouble ();
-  int rot = words[4].toInt ();
+  double zm = words[1].toDouble ();
+  int rot = words[2].toInt ();
 
   if (QString::fromLocal8Bit (path).endsWith (".html"))
     return pathContentHtml (pn, zm, rot);

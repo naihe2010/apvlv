@@ -349,6 +349,7 @@ void
 ApvlvContent::on_row_activated (QTreeWidgetItem *item, int column)
 {
   mFrame->contentShowPage (currentIndex (), true);
+  mFrame->toggledControlContent (true);
 }
 
 void

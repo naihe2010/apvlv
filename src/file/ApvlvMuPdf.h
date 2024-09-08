@@ -65,8 +65,9 @@ public:
 private:
   unique_ptr<mupdf::FzDocument> mDoc;
 
-  void pdf_get_index ();
-  void pdf_get_index (FileIndex &, mupdf::FzOutline &outline);
+  void mupdf_get_index ();
+  void mupdf_get_index_recursively (FileIndex &index,
+                                    mupdf::FzOutline &outline);
 };
 }
 #endif

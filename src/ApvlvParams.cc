@@ -45,22 +45,14 @@ ApvlvParams::ApvlvParams ()
   push ("continuous", "yes");
   push ("autoscrollpage", "yes");
   push ("autoscrolldoc", "yes");
-  push ("continuouspad", "2");
   push ("noinfo", "no");
   push ("width", "800");
   push ("height", "600");
   push ("fix_width", "0");
   push ("fix_height", "0");
-  push ("content_follow_mode", "file");
   push ("background", "");
-  push ("content", "yes");
-  push ("cache", "no");
-  push ("pdfcache", "4");
-  push ("scrollbar", "no");
-  push ("visualmode", "no");
   push ("warpscan", "yes");
   push ("commandtimeout", "1000");
-  push ("doubleclick", "page");
 #ifdef WIN32
   push ("defaultdir", "C:\\");
 #else
@@ -69,6 +61,7 @@ ApvlvParams::ApvlvParams ()
   push ("guioptions", "mT");
   push ("autoreload", "3");
   push ("thread_count", "auto");
+  push ("lok_path", "/usr/lib64/libreoffice/program");
 }
 
 ApvlvParams::~ApvlvParams () { mSettings.clear (); }

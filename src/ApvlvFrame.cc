@@ -328,24 +328,24 @@ ApvlvFrame::subprocess (int ct, uint key)
           char temp[0x10];
           snprintf (temp, sizeof temp, "%f", zoomrate * 1.1);
           setzoom (temp);
-          refresh (mWidget->pageNumber (), mWidget->scrollRate ());
+          updateStatus ();
         }
       else if (key == 'o')
         {
           char temp[0x10];
           snprintf (temp, sizeof temp, "%f", zoomrate / 1.1);
           setzoom (temp);
-          refresh (mWidget->pageNumber (), mWidget->scrollRate ());
+          updateStatus ();
         }
       else if (key == 'h')
         {
           setzoom ("fitheight");
-          refresh (mWidget->pageNumber (), mWidget->scrollRate ());
+          updateStatus ();
         }
       else if (key == 'w')
         {
           setzoom ("fitwidth");
-          refresh (mWidget->pageNumber (), mWidget->scrollRate ());
+          updateStatus ();
         }
       break;
 
@@ -955,6 +955,7 @@ ApvlvFrame::search (const char *str, bool reverse)
     }
 
   mSearchResults = nullptr;
+  unsetHighlight ();
 
   bool wrap = gParams->valueb ("wrapscan");
 
@@ -1072,43 +1073,11 @@ ApvlvFrame::contentShowPage (const FileIndex *index, bool force)
   if (file && file->path != mFilestr)
     loadfile (file->path, true, true);
 
-  auto follow_mode = std::string ("always");
-  if (!force)
+  if (index->type == FileIndexType::FILE_INDEX_PAGE)
     {
-      follow_mode = gParams->values ("content_follow_mode");
-    }
-
-  if (follow_mode == "none")
-    {
-      return;
-    }
-
-  else if (follow_mode == "page")
-    {
-      if (index->type == FileIndexType::FILE_INDEX_PAGE)
-        {
-          if (index->page != mWidget->pageNumber ()
-              || index->anchor != mWidget->anchor ())
-            showpage (index->page, index->anchor);
-        }
-      return;
-    }
-
-  else if (follow_mode == "always")
-    {
-      if (index->type == FileIndexType::FILE_INDEX_PAGE)
-        {
-          if (index->page != mWidget->pageNumber ()
-              || index->anchor != mWidget->anchor ())
-            showpage (index->page, index->anchor);
-        }
-      else
-        {
-          if (index->path != filename ())
-            {
-              loadfile (index->path, true, false);
-            }
-        }
+      if (index->page != mWidget->pageNumber ()
+          || index->anchor != mWidget->anchor ())
+        showpage (index->page, index->anchor);
     }
 }
 
@@ -1133,6 +1102,14 @@ ApvlvFrame::setWidget (DISPLAY_TYPE type)
     mPaned->addWidget (mWidget->widget ());
   else
     mPaned->replaceWidget (1, mWidget->widget ());
+}
+
+void
+ApvlvFrame::unsetHighlight ()
+{
+  mWidget->setSearchStr ("");
+  mWidget->setSearchSelect (0);
+  mWidget->setSearchResults ({});
 }
 
 void

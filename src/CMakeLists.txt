@@ -82,11 +82,8 @@ SET(HEADERS
         ApvlvQueue.h
         ApvlvImageWidget.h
         ApvlvWebViewWidget.h
-        file/ApvlvEpub.h
-        file/ApvlvFb2.h
         file/ApvlvHtm.h
         file/ApvlvImage.h
-        file/ApvlvTxt.h
 )
 
 SET(SOURCES
@@ -107,11 +104,8 @@ SET(SOURCES
         ApvlvSearchDialog.cc
         ApvlvImageWidget.cc
         ApvlvWebViewWidget.cc
-        file/ApvlvEpub.cc
-        file/ApvlvFb2.cc
         file/ApvlvHtm.cc
         file/ApvlvImage.cc
-        file/ApvlvTxt.cc
         main.cc
 )
 
@@ -132,6 +126,11 @@ ELSE ()
     MESSAGE("-- PDF will use QtPdf")
     SET(HEADERS ${HEADERS} file/ApvlvQtPdf.h)
     SET(SOURCES ${SOURCES} file/ApvlvQtPdf.cc)
+ENDIF ()
+
+IF (NOT APVLV_USE_MUPDF)
+    SET(HEADERS ${HEADERS} file/ApvlvEpub.h file/ApvlvFb2.h file/ApvlvTxt.h)
+    SET(SOURCES ${SOURCES} file/ApvlvQtPdf.cc file/ApvlvFb2.cc file/ApvlvTxt.cc)
 ENDIF ()
 
 OPTION(APVLV_WITH_DJVU "If build apvlv with djvu format support." ON)
@@ -161,12 +160,9 @@ IF (APVLV_WITH_OFFICE)
         SET(HEADERS ${HEADERS} file/ApvlvAxOffice.h)
         SET(SOURCES ${SOURCES} file/ApvlvAxOffice.cc)
     ELSE (WIN32)
-        SET(APVLV_LOK_PATH "/usr/lib64/libreoffice/program" CACHE STRING "Libreoffice install path")
-        MESSAGE("-- Office: Will use libreofficekit for office file support")
-        MESSAGE(WARNING "-- Office: Please make sure the APVLV_LOK_PATH variable is correct")
         SET(APVLV_REQ_LIBRARIES -llibreofficekitgtk
                 ${APVLV_REQ_LIBRARIES})
-        ADD_DEFINITIONS(-DLIBO_INTERNAL_ONLY=1 -DAPVLV_LOK_PATH="${APVLV_LOK_PATH}")
+        ADD_DEFINITIONS(-DLIBO_INTERNAL_ONLY=1)
         SET(HEADERS ${HEADERS} file/ApvlvLibreOffice.h)
         SET(SOURCES ${SOURCES} file/ApvlvLibreOffice.cc)
     ENDIF (WIN32)

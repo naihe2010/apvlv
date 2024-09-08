@@ -34,6 +34,9 @@
 
 namespace apvlv
 {
+
+const char *DEFAULT_LOK_PATH = "/usr/lib64/libreoffice/program";
+
 class ApvlvOFFICE : public File
 {
   FILE_TYPE_DECLARATION (ApvlvOFFICE);
@@ -53,6 +56,9 @@ protected:
 
 private:
   static unique_ptr<lok::Office> mOffice;
+  static mutex mLokMutex;
+
+  static void initLokInstance ();
 };
 
 }

@@ -78,10 +78,10 @@ bool
 ApvlvCommandBar::eventFilter (QObject *obj, QEvent *event)
 {
   if (event->type () == QEvent::KeyPress
-      && static_cast<QKeyEvent *> (event)->key () == Qt::Key_Tab)
+      && dynamic_cast<QKeyEvent *> (event)->key () == Qt::Key_Tab)
     {
       qDebug ("Ate key press tab");
-      emit keyPressed (static_cast<QKeyEvent *> (event));
+      emit keyPressed (dynamic_cast<QKeyEvent *> (event));
       return true;
     }
   else
@@ -127,21 +127,21 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
   mCentral = new QFrame ();
   setCentralWidget (mCentral);
 
-  mMenuBar = unique_ptr<QMenuBar> (menuBar ());
+  mMenuBar = new QMenuBar ();
   setupMenuBar ();
-  setMenuBar (mMenuBar.get ());
-
-  mToolBar = make_unique<QToolBar> ();
+  setMenuBar (mMenuBar);
+  mToolBar = new QToolBar ();
   setupToolBar ();
-  addToolBar (Qt::TopToolBarArea, mToolBar.get ());
+  addToolBar (Qt::TopToolBarArea, mToolBar);
 
-  if (strchr (gParams->values ("guioptions"), 'm') == nullptr)
+  string guiopt = gParams->values ("guioptions");
+  if (guiopt.find ('m') == string::npos)
     {
-      mMenuBar->setParent (nullptr);
+      mMenuBar->hide ();
     }
-  if (strchr (gParams->values ("guioptions"), 'T') == nullptr)
+  if (guiopt.find ('T') == string::npos)
     {
-      mToolBar->setParent (nullptr);
+      mToolBar->hide ();
     }
 
   auto box = new QVBoxLayout ();
@@ -756,13 +756,13 @@ ApvlvView::toggleContent ()
 void
 ApvlvView::toggleToolBar ()
 {
-  if (mToolBar->parent () == nullptr)
+  if (mToolBar->isHidden ())
     {
-      addToolBar (Qt::TopToolBarArea, mToolBar.get ());
+      mToolBar->show ();
     }
   else
     {
-      mToolBar->setParent (nullptr);
+      mToolBar->hide ();
     }
 }
 

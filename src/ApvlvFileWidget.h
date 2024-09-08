@@ -41,6 +41,9 @@ using namespace std;
 const int WORD_WIDTH_DEFAULT = 40;
 const int LINE_HEIGHT_DEFAULT = 15;
 
+const double DEFAULT_ZOOMRATE = 1.3f;
+const int INVALID_PAGENUM = -1;
+
 class File;
 class FileWidget : public QObject
 {
@@ -180,6 +183,18 @@ public:
     return mSearchResults;
   }
 
+  virtual void
+  setSelects (const vector<Rectangle> &rect_list)
+  {
+    mSelects = rect_list;
+  }
+
+  virtual const vector<Rectangle> &
+  selects ()
+  {
+    return mSelects;
+  }
+
 protected:
   virtual QWidget *createWidget () = 0;
 
@@ -188,15 +203,17 @@ protected:
 
   File *mFile{ nullptr };
 
-  int mPageNumber{ 0 };
+  int mPageNumber{ INVALID_PAGENUM };
   double mScrollValue{ 0.0f };
   string mAnchor;
-  double mZoomrate{ 1.0f };
+  double mZoomrate{ DEFAULT_ZOOMRATE };
   int mRotate{ 0 };
 
   string mSearchStr;
   WordListRectangle mSearchResults;
   int mSearchSelect{ 0 };
+
+  vector<Rectangle> mSelects;
 };
 }
 

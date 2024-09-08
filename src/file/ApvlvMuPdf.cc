@@ -38,7 +38,8 @@ namespace apvlv
 using namespace std;
 using namespace mupdf;
 
-FILE_TYPE_DEFINITION (ApvlvPDF, { ".pdf" });
+FILE_TYPE_DEFINITION (ApvlvPDF, { ".pdf", ".xps", ".epub", ".mobi", ".fb2",
+                                  ".cbz", ".svg", ".txt" });
 
 ApvlvPDF::ApvlvPDF (const string &filename, bool check)
     : File (filename, check)
@@ -53,7 +54,7 @@ ApvlvPDF::ApvlvPDF (const string &filename, bool check)
       throw std::bad_alloc ();
     }
 
-  pdf_get_index ();
+  mupdf_get_index ();
 }
 
 SizeF
@@ -68,15 +69,12 @@ ApvlvPDF::pageSizeF (int pn, int rot)
 int
 ApvlvPDF::sum ()
 {
-  return mDoc ? mDoc->fz_count_pages () : 0;
+  return mDoc->fz_count_pages ();
 }
 
 bool
 ApvlvPDF::pageRender (int pn, double zm, int rot, QImage *pix)
 {
-  if (mDoc == nullptr)
-    return false;
-
   auto matrix
       = FzMatrix::fz_scale (static_cast<float> (zm), static_cast<float> (zm));
   matrix = fz_pre_rotate (matrix, static_cast<float> (rot));
@@ -149,32 +147,44 @@ ApvlvPDF::pageSearch (int pn, const char *str)
 }
 
 void
-ApvlvPDF::pdf_get_index ()
+ApvlvPDF::mupdf_get_index ()
 {
   mIndex = { "", 0, "", FILE_INDEX_FILE };
   auto toc = mDoc->fz_load_outline ();
   while (toc.m_internal != nullptr)
     {
       auto child_index = FileIndex{};
-      pdf_get_index (child_index, toc);
+      mupdf_get_index_recursively (child_index, toc);
       mIndex.mChildrenIndex.push_back (child_index);
       toc = toc.next ();
     }
 }
 
 void
-ApvlvPDF::pdf_get_index (FileIndex &index, mupdf::FzOutline &outline)
+ApvlvPDF::mupdf_get_index_recursively (FileIndex &index,
+                                       mupdf::FzOutline &outline)
 {
-  index.title = outline.title ();
-  index.page = outline.page ().page;
-  index.path = outline.uri ();
   index.type = FILE_INDEX_PAGE;
+  index.title = outline.title ();
+  index.page = mDoc->fz_page_number_from_location (outline.page ());
+  index.path = outline.uri ();
+  auto pos = index.path.find ('#');
+  if (pos != string::npos)
+    {
+      index.anchor = index.path.substr (pos);
+      index.path = index.path.substr (0, pos);
+    }
+  if (index.page == -1)
+    {
+      auto dest = mDoc->fz_resolve_link (outline.uri (), nullptr, nullptr);
+      index.page = mDoc->fz_page_number_from_location (dest);
+    }
 
   auto toc = outline.down ();
   while (toc.m_internal != nullptr)
     {
       auto child_index = FileIndex{};
-      pdf_get_index (child_index, toc);
+      mupdf_get_index_recursively (child_index, toc);
       index.mChildrenIndex.push_back (child_index);
       toc = toc.next ();
     }

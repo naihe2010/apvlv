@@ -35,12 +35,14 @@ namespace apvlv
 {
 FILE_TYPE_DEFINITION (ApvlvOFFICE, { ".doc", ".docx", ".xls", ".xlsx" });
 
-unique_ptr<lok::Office> ApvlvOFFICE::mOffice
-    = unique_ptr<lok::Office>{ lok::lok_cpp_init (APVLV_LOK_PATH) };
+unique_ptr<lok::Office> ApvlvOFFICE::mOffice;
+mutex ApvlvOFFICE::mLokMutex;
 
 ApvlvOFFICE::ApvlvOFFICE (const string &filename, bool check)
     : File (filename, check)
 {
+  initLokInstance ();
+
   mDoc
       = unique_ptr<lok::Document>{ mOffice->documentLoad (filename.c_str ()) };
   if (mDoc == nullptr)
@@ -98,6 +100,25 @@ ApvlvOFFICE::pageRender (int pn, double zm, int rot, QImage *pix)
     }
   return true;
 }
+
+void
+ApvlvOFFICE::initLokInstance ()
+{
+  if (mOffice)
+    return;
+
+  lock_guard<mutex> lock (mLokMutex);
+
+  if (mOffice)
+    return;
+
+  auto lok_path = gParams->values ("lok_path");
+  if (lok_path == nullptr)
+    lok_path = DEFAULT_LOK_PATH;
+
+  mOffice = unique_ptr<lok::Office>{ lok::lok_cpp_init (lok_path) };
+}
+
 }
 
 // Local Variables:
