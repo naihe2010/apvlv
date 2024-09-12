@@ -112,11 +112,8 @@ ApvlvOFFICE::initLokInstance ()
   if (mOffice)
     return;
 
-  auto lok_path = gParams->values ("lok_path");
-  if (lok_path == nullptr)
-    lok_path = DEFAULT_LOK_PATH;
-
-  mOffice = unique_ptr<lok::Office>{ lok::lok_cpp_init (lok_path) };
+  auto lok_path = gParams->getStringOrDefault ("lok_path", DEFAULT_LOK_PATH);
+  mOffice = unique_ptr<lok::Office>{ lok::lok_cpp_init (lok_path.c_str ()) };
 }
 
 }

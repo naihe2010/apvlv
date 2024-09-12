@@ -36,10 +36,10 @@
 #include <iostream>
 #include <map>
 
+#include "ApvlvCmds.h"
 #include "ApvlvContent.h"
 #include "ApvlvFile.h"
 #include "ApvlvFileWidget.h"
-#include "ApvlvUtil.h"
 
 namespace apvlv
 {

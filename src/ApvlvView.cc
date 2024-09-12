@@ -111,10 +111,10 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
 
   processInLast = false;
 
-  int w = gParams->valuei ("width");
-  int h = gParams->valuei ("height");
+  int w = gParams->getIntOrDefault ("width");
+  int h = gParams->getIntOrDefault ("height");
 
-  if (gParams->valueb ("fullscreen"))
+  if (gParams->getBoolOrDefault ("fullscreen"))
     {
       fullscreen ();
     }
@@ -128,13 +128,11 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
   setCentralWidget (mCentral);
 
   mMenuBar = new QMenuBar ();
-  setupMenuBar ();
   setMenuBar (mMenuBar);
   mToolBar = new QToolBar ();
-  setupToolBar ();
   addToolBar (Qt::TopToolBarArea, mToolBar);
 
-  string guiopt = gParams->values ("guioptions");
+  auto guiopt = gParams->getStringOrDefault ("guioptions", "mT");
   if (guiopt.find ('m') == string::npos)
     {
       mMenuBar->hide ();
@@ -143,6 +141,9 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
     {
       mToolBar->hide ();
     }
+
+  setupMenuBar ();
+  setupToolBar ();
 
   auto box = new QVBoxLayout ();
   mCentral->setLayout (box);
@@ -331,7 +332,7 @@ ApvlvView::newtab (const string &filename, bool disable_content)
   if (!optndoc)
     {
       auto ndoc = new ApvlvFrame (this);
-      if (!ndoc->loadfile (filename, true, gParams->valueb ("content")))
+      if (!ndoc->loadfile (filename, true, true))
         {
           delete ndoc;
           ndoc = nullptr;
@@ -405,7 +406,7 @@ ApvlvView::loadfile (const string &filename)
   if (!optndoc)
     {
       ndoc = new ApvlvFrame (this);
-      if (!ndoc->loadfile (filename, true, gParams->valueb ("content")))
+      if (!ndoc->loadfile (filename, true, true))
         {
           delete ndoc;
           ndoc = nullptr;
@@ -456,12 +457,8 @@ ApvlvView::hasloaded (const string &abpath)
 void
 ApvlvView::regloaded (ApvlvFrame *core)
 {
-  if (gParams->valuei ("pdfcache") < 2)
-    {
-      gParams->push ("pdfcache", "2");
-    }
-
-  if (mDocs.size () >= (size_t)gParams->valuei ("pdfcache"))
+  auto cache_count = gParams->getIntOrDefault ("cache_count", 10);
+  if (mDocs.size () >= static_cast<size_t> (cache_count))
     {
       auto found_itr = mDocs.end ();
       for (auto itr = mDocs.begin (); itr != mDocs.end (); ++itr)
@@ -520,7 +517,7 @@ ApvlvView::setupMenuBar ()
   mMenuBar->addMenu (mview);
   action = mview->addAction (tr ("ToolBar"));
   action->setCheckable (true);
-  if (strchr (gParams->values ("guioptions"), 'T') == nullptr)
+  if (mToolBar->isHidden ())
     {
       action->setChecked (false);
     }
@@ -1003,7 +1000,7 @@ ApvlvView::runcmd (const char *str)
         }
       else if (cmd == "map" && !subcmd.empty ())
         {
-          apvlv::ApvlvCmds::buildmap (subcmd.c_str (), argu.c_str ());
+          ApvlvCmds::buildCommandMap (subcmd.c_str (), argu.c_str ());
         }
       else if ((cmd == "o" || cmd == "open" || cmd == "doc")
                && !subcmd.empty ())

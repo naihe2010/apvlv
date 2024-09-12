@@ -28,17 +28,15 @@
 #ifndef _APVLV_PARAMS_H_
 #define _APVLV_PARAMS_H_ 1
 
-#include <iostream>
 #include <map>
 #include <string>
-
-using namespace std;
+#include <string_view>
 
 namespace apvlv
 {
-typedef map<string, string> ApvlvParam;
+using namespace std;
 
-class ApvlvParams
+class ApvlvParams final
 {
 public:
   ApvlvParams ();
@@ -46,18 +44,16 @@ public:
 
   bool loadfile (const string &filename);
 
-  bool push (string &ch, string &str);
+  bool push (string_view ch, string_view str);
 
-  bool push (const char *c, const char *s);
+  string getStringOrDefault (string_view key, const string &defs = "");
 
-  const char *values (const char *key);
+  int getIntOrDefault (string_view key, int defi = 0);
 
-  int valuei (const char *key);
-
-  bool valueb (const char *key);
+  bool getBoolOrDefault (string_view key, bool defb = false);
 
 private:
-  ApvlvParam mSettings;
+  map<string, string> mParamMap;
 };
 
 extern ApvlvParams *gParams;

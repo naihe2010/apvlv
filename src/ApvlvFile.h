@@ -200,7 +200,7 @@ public:
   virtual int
   pageNumberWrap (int page)
   {
-    auto scrdoc = gParams->valueb ("autoscrolldoc");
+    auto scrdoc = gParams->getBoolOrDefault ("autoscrolldoc");
     int c = sum ();
 
     if (page >= 0 && page < c)

@@ -92,11 +92,11 @@ FileWidget::scrollUp (int times)
     }
   else
     {
-      if (gParams->valueb ("autoscrollpage"))
+      if (gParams->getBoolOrDefault ("autoscrollpage"))
         {
           if (mPageNumber == 0)
             {
-              if (gParams->valueb ("autoscrolldoc"))
+              if (gParams->getBoolOrDefault ("autoscrolldoc"))
                 {
                   showPage (mFile->sum () - 1, 1.0);
                 }
@@ -126,11 +126,11 @@ FileWidget::scrollDown (int times)
     }
   else
     {
-      if (gParams->valueb ("autoscrollpage"))
+      if (gParams->getBoolOrDefault ("autoscrollpage"))
         {
           if (mPageNumber == mFile->sum () - 1)
             {
-              if (gParams->valueb ("autoscrolldoc"))
+              if (gParams->getBoolOrDefault ("autoscrolldoc"))
                 {
                   showPage (0, 0.0);
                 }

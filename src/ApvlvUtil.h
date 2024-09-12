@@ -74,33 +74,6 @@ string xml_content_get_attribute_value (const char *content, size_t length,
 
 string filename_ext (const string &filename);
 
-// command type
-enum
-{
-  CMD_NONE,
-  CMD_MESSAGE,
-  CMD_CMD
-};
-
-// function return type
-enum ReturnType
-{
-  MATCH,
-  NEED_MORE,
-  NO_MATCH,
-};
-
-// some windows macro
-#ifdef WIN32
-#define __func__ __FUNCTION__
-#define strcasecmp _strcmpi
-#endif
-
-// char macro
-// because every unsigned char is < 256, so use this marco to stand for
-// Ctrl+char, Shift+char
-#define CTRL(c) ((c) + 256)
-
 void imageArgb32ToRgb32 (QImage &image, int left, int top, int right,
                          int bottom);
 

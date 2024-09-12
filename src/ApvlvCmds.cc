@@ -36,7 +36,7 @@ using namespace Qt;
 
 StringKeyMap SK;
 
-static ApvlvCmdMap mMaps;
+static CommandMap mMaps;
 
 static int
 keyToControlChar (QKeyEvent *key)
@@ -76,7 +76,7 @@ isModifierKey (uint k)
     }
 }
 
-ApvlvCmd::ApvlvCmd ()
+Command::Command ()
 {
   mType = CT_CMD;
 
@@ -90,19 +90,19 @@ ApvlvCmd::ApvlvCmd ()
 }
 
 void
-ApvlvCmd::type (CmdType type)
+Command::type (CmdType type)
 {
   mType = type;
 }
 
 CmdType
-ApvlvCmd::type ()
+Command::type ()
 {
   return mType;
 }
 
 void
-ApvlvCmd::push (const char *s, CmdType type)
+Command::push (string_view sv, CmdType type)
 {
   mType = type;
 
@@ -111,6 +111,7 @@ ApvlvCmd::push (const char *s, CmdType type)
 
   mNext = nullptr;
 
+  auto s = sv.begin ();
   if (isdigit (*s))
     {
       mHasPreCount = true;
@@ -132,7 +133,7 @@ ApvlvCmd::push (const char *s, CmdType type)
         {
           mStrCommand.erase (off, mStrCommand.length () - off);
           mType = CT_STRING_RETURN;
-          mNext = new ApvlvCmd ();
+          mNext = new Command ();
           mNext->push (s + off + 4);
         }
       qDebug ("set string type command: [%s]", mStrCommand.c_str ());
@@ -145,10 +146,10 @@ ApvlvCmd::push (const char *s, CmdType type)
     }
 }
 
-ApvlvCmd::~ApvlvCmd () { delete mNext; }
+Command::~Command () { delete mNext; }
 
 void
-ApvlvCmd::process (ApvlvView *view)
+Command::process (ApvlvView *view)
 {
   if (type () == CT_STRING)
     {
@@ -164,7 +165,7 @@ ApvlvCmd::process (ApvlvView *view)
         {
           int key = keyval (k);
           if (key > 0)
-            view->process (mHasPreCount, precount (), keyval (k));
+            view->process (mHasPreCount, preCount (), keyval (k));
         }
     }
 
@@ -175,7 +176,7 @@ ApvlvCmd::process (ApvlvView *view)
 }
 
 bool
-ApvlvCmd::append (QKeyEvent *key)
+Command::append (QKeyEvent *key)
 {
   if (isModifierKey (key->key ()))
     return false;
@@ -186,7 +187,7 @@ ApvlvCmd::append (QKeyEvent *key)
 }
 
 const char *
-ApvlvCmd::append (const char *s)
+Command::append (const char *s)
 {
   size_t len;
   char *e = strchr ((char *)s, '>');
@@ -198,7 +199,7 @@ ApvlvCmd::append (const char *s)
       e++;
       for (auto &it : SK)
         {
-          if (strncmp (it.first, s, e - s) == 0)
+          if (it.first.compare (0, e - s, s) == 0)
             {
               mKeyVals.push_back (it.second);
               return e;
@@ -233,67 +234,67 @@ ApvlvCmd::append (const char *s)
 }
 
 void
-ApvlvCmd::precount (int precount)
+Command::setPreCount (int precount)
 {
   mPreCount = precount;
   mHasPreCount = true;
 }
 
 int
-ApvlvCmd::precount () const
+Command::preCount () const
 {
   return mPreCount;
 }
 
 void
-ApvlvCmd::origin (ApvlvCmd *ori)
+Command::origin (Command *ori)
 {
   mOrigin = ori;
 }
 
-ApvlvCmd *
-ApvlvCmd::origin ()
+Command *
+Command::origin ()
 {
   return mOrigin;
 }
 
 const char *
-ApvlvCmd::c_str ()
+Command::c_str ()
 {
   return mStrCommand.c_str ();
 }
 
-ApvlvCmdKeyv *
-ApvlvCmd::keyvalv_p ()
+CommandKeyList *
+Command::keyvalv_p ()
 {
   return &mKeyVals;
 }
 
-ApvlvCmdKeyv
-ApvlvCmd::keyvalv ()
+CommandKeyList
+Command::keyvalv ()
 {
   return mKeyVals;
 }
 
-ApvlvCmd *
-ApvlvCmd::next ()
+Command *
+Command::next ()
 {
   return mNext;
 }
 
 int
-ApvlvCmd::keyval (uint id)
+Command::keyval (uint id)
 {
   return id >= mKeyVals.size () ? -1 : mKeyVals[id];
 }
 
 void
-ApvlvCmds::buildmap (const char *os, const char *ms)
+ApvlvCmds::buildCommandMap (string_view os, string_view ms)
 {
-  ApvlvCmd fir;
+  Command fir;
   fir.push (os);
 
-  auto *secp = new ApvlvCmd ();
+  auto *secp = new Command ();
   secp->push (ms);
 
   for (auto &mMap : mMaps)
@@ -371,9 +372,9 @@ ApvlvCmds::append (QKeyEvent *gev)
 
   if (mState == GETTING_CMD)
     {
-      ApvlvCmdKeyv v = mCmdHead->keyvalv ();
+      CommandKeyList v = mCmdHead->keyvalv ();
       v.push_back (keyToControlChar (gev));
-      ReturnType r = ismap (&v);
+      ReturnType r = isMapCommand (&v);
       if (r == NO_MATCH)
         {
           process (mCmdHead);
@@ -384,7 +385,7 @@ ApvlvCmds::append (QKeyEvent *gev)
     }
 
   if (mCmdHead == nullptr)
-    mCmdHead = new ApvlvCmd;
+    mCmdHead = new Command;
 
   if (mState == CMD_OK)
     {
@@ -413,7 +414,7 @@ ApvlvCmds::append (QKeyEvent *gev)
         {
           if (!mCountString.empty ())
             {
-              mCmdHead->precount (
+              mCmdHead->setPreCount (
                   int (strtol (mCountString.c_str (), nullptr, 10)));
               mCountString = "";
             }
@@ -428,17 +429,17 @@ ApvlvCmds::append (QKeyEvent *gev)
     }
 
   mState = GETTING_CMD;
-  ReturnType ret = ismap (mCmdHead->keyvalv_p ());
+  ReturnType ret = isMapCommand (mCmdHead->keyvalv_p ());
   if (ret == NEED_MORE)
     {
       mTimeoutTimer->start (3000);
       return;
     }
 
-  ApvlvCmd *pcmd;
+  Command *pcmd;
   if (ret == MATCH)
     {
-      pcmd = getmap (mCmdHead);
+      pcmd = getMapCommand (mCmdHead);
       pcmd->origin (mCmdHead);
       process (pcmd);
       pcmd->origin (nullptr);
@@ -454,14 +455,14 @@ ApvlvCmds::append (QKeyEvent *gev)
   mState = CMD_OK;
 }
 
-ApvlvCmd *
-ApvlvCmds::process (ApvlvCmd *cmd)
+Command *
+ApvlvCmds::process (Command *cmd)
 {
   uint times = 1;
-  ApvlvCmd *orig = cmd->origin ();
+  Command *orig = cmd->origin ();
   if (orig != nullptr)
     {
-      times = orig->precount ();
+      times = orig->preCount ();
     }
 
   for (uint i = 0; i < times; ++i)
@@ -472,24 +473,24 @@ ApvlvCmds::process (ApvlvCmd *cmd)
 }
 
 ReturnType
-ApvlvCmds::ismap (ApvlvCmdKeyv *cvp)
+ApvlvCmds::isMapCommand (CommandKeyList *ack)
 {
   for (auto &mMap : mMaps)
     {
-      if (*cvp == mMap.first)
+      if (*ack == mMap.first)
         {
           return MATCH;
         }
       else
         {
           uint i;
-          for (i = 0; i < cvp->size (); ++i)
+          for (i = 0; i < ack->size (); ++i)
             {
-              if ((*cvp)[i] != mMap.first[i])
+              if ((*ack)[i] != mMap.first[i])
                 break;
             }
 
-          if (i == cvp->size ())
+          if (i == ack->size ())
             {
               return NEED_MORE;
             }
@@ -499,8 +500,8 @@ ApvlvCmds::ismap (ApvlvCmdKeyv *cvp)
   return NO_MATCH;
 }
 
-ApvlvCmd *
-ApvlvCmds::getmap (ApvlvCmd *cmd)
+Command *
+ApvlvCmds::getMapCommand (Command *cmd)
 {
   auto it = mMaps.find (*cmd->keyvalv_p ());
   return it != mMaps.end () ? it->second : nullptr;

@@ -64,8 +64,8 @@ ApvlvFrame::ApvlvFrame (ApvlvView *view)
   mPaned->setHandleWidth (4);
   mContentWidth = DEFAULT_CONTENT_WIDTH;
 
-  auto f_width = gParams->valuei ("fix_width");
-  auto f_height = gParams->valuei ("fix_height");
+  auto f_width = gParams->getIntOrDefault ("fix_width");
+  auto f_height = gParams->getIntOrDefault ("fix_height");
 
   if (f_width > 0 && f_height > 0)
     {
@@ -641,7 +641,8 @@ ApvlvFrame::setzoom (const char *z)
 bool
 ApvlvFrame::saveLastPosition (const string &filename)
 {
-  if (filename.empty () || helppdf == filename || gParams->valueb ("noinfo"))
+  if (filename.empty () || helppdf == filename
+      || gParams->getBoolOrDefault ("noinfo", false))
     {
       return false;
     }
@@ -654,7 +655,8 @@ ApvlvFrame::saveLastPosition (const string &filename)
 bool
 ApvlvFrame::loadLastPosition (const string &filename)
 {
-  if (filename.empty () || helppdf == filename || gParams->valueb ("noinfo"))
+  if (filename.empty () || helppdf == filename
+      || gParams->getBoolOrDefault ("noinfo"))
     {
       showpage (0, 0.0);
       return false;
@@ -733,7 +735,7 @@ ApvlvFrame::loadfile (const string &filename, bool check, bool show_content)
       mSearchStr = "";
       mSearchResults = nullptr;
 
-      if (gParams->valuei ("autoreload") > 0)
+      if (gParams->getIntOrDefault ("autoreload") > 0)
         {
           mWatcher = make_unique<QFileSystemWatcher> ();
           // QObject::connect(mWatcher, SIGNAL(fileChanged()), this,
@@ -957,7 +959,7 @@ ApvlvFrame::search (const char *str, bool reverse)
   mSearchResults = nullptr;
   unsetHighlight ();
 
-  bool wrap = gParams->valueb ("wrapscan");
+  auto wrap = gParams->getBoolOrDefault ("wrapscan");
 
   int i = mWidget->pageNumber ();
   int sum = mFile->sum (), from = i;

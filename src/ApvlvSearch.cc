@@ -65,10 +65,10 @@ Searcher::Searcher () : mRestart (false), mQuit (false)
   mTasks.emplace_back (std::move (task));
 
   auto thread_count = thread::hardware_concurrency () - 1;
-  auto thread_value = gParams->values ("thread_count");
-  if (strcmp (thread_value, "auto") != 0)
+  auto thread_value = gParams->getStringOrDefault ("thread_count", "auto");
+  if (thread_value != "auto")
     {
-      thread_count = gParams->valuei ("thread_count");
+      thread_count = gParams->getIntOrDefault ("thread_count", thread_count);
     }
 
   for (auto ind = 0u; ind < thread_count; ++ind)

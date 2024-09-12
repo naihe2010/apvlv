@@ -25,13 +25,14 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
-#include "ApvlvParams.h"
-#include "ApvlvCmds.h"
-#include "ApvlvUtil.h"
-
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
+
+#include "ApvlvCmds.h"
+#include "ApvlvParams.h"
+#include "ApvlvUtil.h"
 
 namespace apvlv
 {
@@ -64,7 +65,7 @@ ApvlvParams::ApvlvParams ()
   push ("lok_path", "/usr/lib64/libreoffice/program");
 }
 
-ApvlvParams::~ApvlvParams () { mSettings.clear (); }
+ApvlvParams::~ApvlvParams () = default;
 
 bool
 ApvlvParams::loadfile (const string &filename)
@@ -99,7 +100,7 @@ ApvlvParams::loadfile (const string &filename)
               is >> crap >> data;
               if (crap == "=")
                 {
-                  push (argu.c_str (), data.c_str ());
+                  push (argu, data);
                   continue;
                 }
             }
@@ -135,7 +136,7 @@ ApvlvParams::loadfile (const string &filename)
         {
           is >> argu;
 
-          if (argu.length () == 0)
+          if (argu.empty ())
             {
               qCritical ("map command not complete");
               continue;
@@ -143,12 +144,12 @@ ApvlvParams::loadfile (const string &filename)
 
           getline (is, data);
 
-          while (data.length () > 0 && isspace (data[0]))
+          while (!data.empty () && isspace (data[0]))
             data.erase (0, 1);
 
-          if (argu.length () > 0 && data.length () > 0)
+          if (!argu.empty () && !data.empty ())
             {
-              ApvlvCmds::buildmap (argu.c_str (), data.c_str ());
+              ApvlvCmds::buildCommandMap (argu.c_str (), data.c_str ());
             }
           else
             {
@@ -166,54 +167,51 @@ ApvlvParams::loadfile (const string &filename)
 }
 
 bool
-ApvlvParams::push (const char *c, const char *s)
+ApvlvParams::push (string_view ch, string_view str)
 {
-  string cs (c), ss (s);
-  mSettings[cs] = ss;
+  mParamMap[string (ch)] = str;
   return true;
 }
 
-bool
-ApvlvParams::push (string &ch, string &str)
+string
+ApvlvParams::getStringOrDefault (string_view key, const string &defs)
 {
-  mSettings[ch] = str;
-  return true;
-}
-
-const char *
-ApvlvParams::values (const char *s)
-{
-  string ss (s);
-  auto it = mSettings.find (ss);
-  if (it != mSettings.end ())
+  auto itr = find_if (mParamMap.cbegin (), mParamMap.cend (),
+                      [key] (const pair<string, string> &p) -> bool {
+                        return p.first == key;
+                      });
+  if (itr != mParamMap.cend ())
     {
-      return it->second.c_str ();
+      return itr->second;
     }
-  return nullptr;
+  return defs;
 }
 
 int
-ApvlvParams::valuei (const char *s)
+ApvlvParams::getIntOrDefault (string_view key, int defi)
 {
-  string ss (s);
-  auto it = mSettings.find (ss);
-  if (it != mSettings.end ())
-    {
-      return int (strtol (it->second.c_str (), nullptr, 10));
-    }
-  return -1;
+  auto values = getStringOrDefault (key, "");
+  if (values.empty ())
+    return defi;
+
+  return int (strtol (values.c_str (), nullptr, 10));
 }
 
 bool
-ApvlvParams::valueb (const char *s)
+ApvlvParams::getBoolOrDefault (string_view key, bool defb)
 {
-  string ss (s);
-  auto it = mSettings.find (ss);
-  if (it != mSettings.end () && it->second == "yes")
+  auto values = getStringOrDefault (key, "");
+  if (values.empty ())
+    return defb;
+
+  if (values == "true" || values == "yes" || values == "on" || values == "1")
     {
       return true;
     }
-  return false;
+  else
+    {
+      return false;
+    }
 }
 }
 

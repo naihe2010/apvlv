@@ -33,8 +33,6 @@
 #include <map>
 #include <vector>
 
-#include "ApvlvUtil.h"
-
 using namespace std;
 
 namespace apvlv
@@ -46,23 +44,44 @@ enum CmdType
   CT_STRING_RETURN
 };
 
-typedef map<const char *, int> StringKeyMap;
+// command type
+enum
+{
+  CMD_NONE,
+  CMD_MESSAGE,
+  CMD_CMD
+};
 
-class ApvlvCmd;
-typedef vector<int> ApvlvCmdKeyv;
-typedef map<ApvlvCmdKeyv, ApvlvCmd *> ApvlvCmdMap;
+// function return type
+enum ReturnType
+{
+  MATCH,
+  NEED_MORE,
+  NO_MATCH,
+};
+
+// char macro
+// because every unsigned char is < 256, so use this marco to stand for
+// Ctrl+char, Shift+char
+#define CTRL(c) ((c) + 256)
+
+using StringKeyMap = map<string, int>;
+
+class Command;
+using CommandKeyList = vector<int>;
+using CommandMap = map<CommandKeyList, Command *>;
 
 class ApvlvView;
-class ApvlvCmd
+class Command
 {
 public:
-  ApvlvCmd ();
+  Command ();
 
-  ~ApvlvCmd ();
+  ~Command ();
 
   void process (ApvlvView *);
 
-  void push (const char *s, CmdType type = CT_CMD);
+  void push (string_view s, CmdType type = CT_CMD);
 
   bool append (QKeyEvent *key);
 
@@ -74,21 +93,21 @@ public:
 
   const char *c_str ();
 
-  ApvlvCmdKeyv *keyvalv_p ();
+  CommandKeyList *keyvalv_p ();
 
-  ApvlvCmdKeyv keyvalv ();
+  CommandKeyList keyvalv ();
 
-  void precount (int precount);
+  void setPreCount (int precount);
 
-  [[nodiscard]] int precount () const;
+  [[nodiscard]] int preCount () const;
 
   int keyval (uint id);
 
-  ApvlvCmd *next ();
+  Command *next ();
 
-  void origin (ApvlvCmd *cmd);
+  void origin (Command *cmd);
 
-  ApvlvCmd *origin ();
+  Command *origin ();
 
 private:
   // command type
@@ -102,17 +121,17 @@ private:
   string mStrCommand;
 
   // key's value list
-  ApvlvCmdKeyv mKeyVals;
+  CommandKeyList mKeyVals;
 
   // cmd's pre count
   int mPreCount;
 
   // next command
-  ApvlvCmd *mNext;
+  Command *mNext;
 
   // when a key is map to other, this is the origin cmd.
   // after a mapped key was processed, return to this cmds
-  ApvlvCmd *mOrigin;
+  Command *mOrigin;
 };
 
 class ApvlvCmds : public QObject
@@ -125,16 +144,16 @@ public:
 
   void append (QKeyEvent *gev);
 
-  static void buildmap (const char *os, const char *ms);
+  static void buildCommandMap (string_view os, string_view ms);
 
 private:
-  ApvlvCmd *process (ApvlvCmd *cmd);
+  Command *process (Command *cmd);
 
-  static ReturnType ismap (ApvlvCmdKeyv *ack);
+  static ReturnType isMapCommand (CommandKeyList *ack);
 
-  static ApvlvCmd *getmap (ApvlvCmd *cmd);
+  static Command *getMapCommand (Command *cmd);
 
-  ApvlvCmd *mCmdHead;
+  Command *mCmdHead;
 
   // command view
   ApvlvView *mView;
