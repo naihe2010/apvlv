@@ -25,6 +25,8 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
+#include <filesystem>
+
 #ifndef WIN32
 #include <getopt.h>
 #endif
@@ -42,6 +44,7 @@
 #include "ApvlvUtil.h"
 #include "ApvlvView.h"
 
+using namespace std::filesystem;
 using namespace apvlv;
 
 #if defined WIN32 && defined NDEBUG
@@ -107,11 +110,11 @@ parse_options (int argc, char *argv[])
       switch (c)
         {
         case 'c':
-          inifile = filesystem::absolute (optarg).string ();
+          inifile = std::filesystem::absolute (optarg).string ();
           break;
 
         case 'l':
-          logfile = filesystem::absolute (optarg).string ();
+          logfile = std::filesystem::absolute (optarg).string ();
           break;
 
         case 'h':
@@ -204,7 +207,7 @@ main (int argc, char *argv[])
       path = helppdf;
     }
 
-  if (!filesystem::is_regular_file (path))
+  if (!std::filesystem::is_regular_file (path))
     {
       qFatal ("File '%s' is not readable.\n", path.c_str ());
       return 1;
@@ -218,7 +221,7 @@ main (int argc, char *argv[])
 
   while (opt < argc)
     {
-      auto apath = filesystem::absolute (argv[opt++]).string ();
+      auto apath = std::filesystem::absolute (argv[opt++]).string ();
       if (!sView.loadfile (apath))
         {
           qCritical ("Can't open document: %s", apath.c_str ());

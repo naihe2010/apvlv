@@ -30,7 +30,7 @@
 #include <LibreOfficeKit/LibreOfficeKit.hxx>
 #include <memory>
 
-#include "../ApvlvFile.h"
+#include "ApvlvFile.h"
 
 namespace apvlv
 {
@@ -52,11 +52,11 @@ public:
   bool pageRender (int pn, double zm, int rot, QImage *pix) override;
 
 protected:
-  unique_ptr<lok::Document> mDoc;
+  std::unique_ptr<lok::Document> mDoc;
 
 private:
-  static unique_ptr<lok::Office> mOffice;
-  static mutex mLokMutex;
+  static std::unique_ptr<lok::Office> mOffice;
+  static std::mutex mLokMutex;
 
   static void initLokInstance ();
 };

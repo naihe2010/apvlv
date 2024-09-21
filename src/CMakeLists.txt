@@ -13,8 +13,8 @@ ENDIF ()
 MESSAGE("-- BUILD TYPE: ${CMAKE_BUILD_TYPE}")
 MESSAGE("-- CXX FLAGS: ${CMAKE_CXX_FLAGS}")
 
-SET(APVLV_USE_POPPLER OFF CACHE BOOL "if use poppler-qt6 library")
-SET(APVLV_USE_MUPDF ON CACHE BOOL "if use mupdf library")
+SET(APVLV_PDF_BACKEND MUPDF CACHE STRING "apvlv use which library to render pdf")
+SET_PROPERTY(CACHE APVLV_PDF_BACKEND PROPERTY STRINGS MUPDF POPPLER QTPDF)
 
 IF (WIN32)
     SET(Qt6_DIR "C:/Qt/6.7.2/msvc2019_64/lib/cmake/Qt6" CACHE STRING "Qt6config.cmake directory")
@@ -28,7 +28,9 @@ IF (WIN32)
     CMAKE_POLICY(SET CMP0087 NEW)
 ELSE ()
     FIND_PACKAGE(PkgConfig)
-    PKG_CHECK_MODULES(POPPLER poppler-qt6)
+    IF (${APVLV_PDF_BACKEND} STREQUAL "POPPLER")
+        PKG_CHECK_MODULES(POPPLER poppler-qt6)
+    ENDIF ()
     PKG_CHECK_MODULES(QUAZIP quazip1-qt6 REQUIRED)
 ENDIF ()
 
@@ -49,15 +51,12 @@ MESSAGE("-- Qt6 binary directory: ${_qt_bin_dir}")
 
 INCLUDE_DIRECTORIES(
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${POPPLER_INCLUDE_DIRS}
         ${QUAZIP_INCLUDE_DIRS}
         ${Qt_INCLUDE_DIRS})
 LINK_DIRECTORIES(
-        ${POPPLER_LIBRARY_DIRS}
         ${QUAZIP_LIBRARY_DIRS}
         ${Qt_LIBRARY_DIRS})
 SET(APVLV_REQ_LIBRARIES
-        ${POPPLER_LIBRARIES}
         ${QUAZIP_LIBRARIES}
         ${Qt_LIBRARIES})
 
@@ -109,12 +108,8 @@ SET(SOURCES
         main.cc
 )
 
-IF (APVLV_USE_POPPLER)
-    MESSAGE("-- PDF will use poppler-qt6")
-    SET(HEADERS ${HEADERS} file/ApvlvPopplerPdf.h)
-    SET(SOURCES ${SOURCES} file/ApvlvPopplerPdf.cc)
-ELSEIF (APVLV_USE_MUPDF)
-    MESSAGE("-- PDF will use mupdf")
+IF (${APVLV_PDF_BACKEND} STREQUAL "MUPDF")
+    MESSAGE("-- use mupdf as pdf backend")
     SET(HEADERS ${HEADERS} file/ApvlvMuPdf.h)
     SET(SOURCES ${SOURCES} file/ApvlvMuPdf.cc)
     IF (WIN32)
@@ -122,15 +117,24 @@ ELSEIF (APVLV_USE_MUPDF)
     ELSE ()
         SET(APVLV_REQ_LIBRARIES -lmupdfcpp ${APVLV_REQ_LIBRARIES})
     ENDIF ()
-ELSE ()
-    MESSAGE("-- PDF will use QtPdf")
+ELSEIF (${APVLV_PDF_BACKEND} STREQUAL "POPPLER")
+    MESSAGE("-- use poppler-qt6 as pdf backend")
+    SET(HEADERS ${HEADERS} file/ApvlvPopplerPdf.h)
+    SET(SOURCES ${SOURCES} file/ApvlvPopplerPdf.cc)
+    INCLUDE_DIRECTORIES(${POPPLER_INCLUDE_DIRS})
+    LINK_DIRECTORIES(${POPPLER_LIBRARY_DIRS})
+    SET(APVLV_REQ_LIBRARIES ${POPPLER_LIBRARIES} ${APVLV_REQ_LIBRARIES})
+ELSEIF (${APVLV_PDF_BACKEND} STREQUAL "QTPDF")
+    MESSAGE("-- use QtPdf as pdf backend")
     SET(HEADERS ${HEADERS} file/ApvlvQtPdf.h)
     SET(SOURCES ${SOURCES} file/ApvlvQtPdf.cc)
+ELSE ()
+    MESSAGE("-- not support pdf file")
 ENDIF ()
 
-IF (NOT APVLV_USE_MUPDF)
+IF (NOT ${APVLV_PDF_BACKEND} STREQUAL "MUPDF")
     SET(HEADERS ${HEADERS} file/ApvlvEpub.h file/ApvlvFb2.h file/ApvlvTxt.h)
-    SET(SOURCES ${SOURCES} file/ApvlvQtPdf.cc file/ApvlvFb2.cc file/ApvlvTxt.cc)
+    SET(SOURCES ${SOURCES} file/ApvlvEpub.cc file/ApvlvFb2.cc file/ApvlvTxt.cc)
 ENDIF ()
 
 OPTION(APVLV_WITH_DJVU "If build apvlv with djvu format support." ON)

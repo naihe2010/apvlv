@@ -36,8 +36,6 @@
 namespace apvlv
 {
 
-using namespace std;
-
 const int WORD_WIDTH_DEFAULT = 40;
 const int LINE_HEIGHT_DEFAULT = 15;
 

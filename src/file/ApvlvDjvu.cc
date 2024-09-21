@@ -26,8 +26,8 @@
 
 #include <QThread>
 
-#include "../ApvlvUtil.h"
 #include "ApvlvDjvu.h"
+#include "ApvlvUtil.h"
 
 namespace apvlv
 {
@@ -156,7 +156,7 @@ ApvlvDJVU::pageRender (int pn, double zm, int rot, QImage *pix)
   ddjvu_format_set_row_order (format, true);
 
   auto psize = 3 * ix * iy;
-  auto buffer = make_unique<char[]> (psize);
+  auto buffer = std::make_unique<char[]> (psize);
 
   int retry = 0;
   while (retry <= 20

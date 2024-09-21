@@ -3,5 +3,6 @@
 cscope.files
 cscope.out
 /.idea
+/.vscode
 share/doc/apvlv/translations/*
 share/doc/apvlv/Startup.pdf

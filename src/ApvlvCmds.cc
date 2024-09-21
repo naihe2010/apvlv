@@ -32,6 +32,7 @@
 
 namespace apvlv
 {
+using namespace std;
 using namespace Qt;
 
 StringKeyMap SK;
@@ -78,13 +79,11 @@ isModifierKey (uint k)
 
 Command::Command ()
 {
-  mType = CT_CMD;
+  mType = CmdType::CT_CMD;
 
   mHasPreCount = false;
 
   mPreCount = 1;
-
-  mNext = nullptr;
 
   mOrigin = nullptr;
 }
@@ -109,8 +108,6 @@ Command::push (string_view sv, CmdType type)
   mHasPreCount = false;
   mPreCount = 1;
 
-  mNext = nullptr;
-
   auto s = sv.begin ();
   if (isdigit (*s))
     {
@@ -126,14 +123,14 @@ Command::push (string_view sv, CmdType type)
   if (*s == ':' || *s == '/' || *s == '?')
     {
       mStrCommand = s;
-      mType = CT_STRING;
+      mType = CmdType::CT_STRING;
 
       size_t off = mStrCommand.find ("<CR>");
       if (off != string::npos)
         {
           mStrCommand.erase (off, mStrCommand.length () - off);
-          mType = CT_STRING_RETURN;
-          mNext = new Command ();
+          mType = CmdType::CT_STRING_RETURN;
+          mNext = make_unique<Command> ();
           mNext->push (s + off + 4);
         }
       qDebug ("set string type command: [%s]", mStrCommand.c_str ());
@@ -146,16 +143,14 @@ Command::push (string_view sv, CmdType type)
     }
 }
 
-Command::~Command () { delete mNext; }
-
 void
 Command::process (ApvlvView *view)
 {
-  if (type () == CT_STRING)
+  if (type () == CmdType::CT_STRING)
     {
       view->promptcommand (c_str ());
     }
-  else if (type () == CT_STRING_RETURN)
+  else if (type () == CmdType::CT_STRING_RETURN)
     {
       view->run (c_str ());
     }
@@ -279,7 +274,7 @@ Command::keyvalv ()
 Command *
 Command::next ()
 {
-  return mNext;
+  return mNext.get ();
 }
 
 int
@@ -314,9 +309,7 @@ ApvlvCmds::ApvlvCmds (ApvlvView *view)
 {
   mView = view;
 
-  mState = CMD_OK;
-
-  mCmdHead = nullptr;
+  mState = CmdState::CMD_OK;
 
   if (SK.empty ())
     {
@@ -370,37 +363,36 @@ ApvlvCmds::append (QKeyEvent *gev)
       mTimeoutTimer->stop ();
     }
 
-  if (mState == GETTING_CMD)
+  if (mState == CmdState::GETTING_CMD)
     {
       CommandKeyList v = mCmdHead->keyvalv ();
       v.push_back (keyToControlChar (gev));
-      ReturnType r = isMapCommand (&v);
-      if (r == NO_MATCH)
+      CmdReturn r = isMapCommand (&v);
+      if (r == CmdReturn::NO_MATCH)
         {
-          process (mCmdHead);
-          delete mCmdHead;
-          mCmdHead = nullptr;
-          mState = CMD_OK;
+          process (mCmdHead.get ());
+          mCmdHead.release ();
+          mState = CmdState::CMD_OK;
         }
     }
 
   if (mCmdHead == nullptr)
-    mCmdHead = new Command;
+    mCmdHead = make_unique<Command> ();
 
-  if (mState == CMD_OK)
+  if (mState == CmdState::CMD_OK)
     {
       if (isdigit (int (gev->key ())) && gev->key () != '0')
         {
           char s[2] = { 0 };
           s[0] = char (gev->key ());
           mCountString += s;
-          mState = GETTING_COUNT;
+          mState = CmdState::GETTING_COUNT;
           mTimeoutTimer->start (3000);
           return;
         }
     }
 
-  else if (mState == GETTING_COUNT)
+  else if (mState == CmdState::GETTING_COUNT)
     {
       if (isdigit (int (gev->key ())))
         {
@@ -428,31 +420,30 @@ ApvlvCmds::append (QKeyEvent *gev)
       return;
     }
 
-  mState = GETTING_CMD;
-  ReturnType ret = isMapCommand (mCmdHead->keyvalv_p ());
-  if (ret == NEED_MORE)
+  mState = CmdState::GETTING_CMD;
+  CmdReturn ret = isMapCommand (mCmdHead->keyvalv_p ());
+  if (ret == CmdReturn::NEED_MORE)
     {
       mTimeoutTimer->start (3000);
       return;
     }
 
   Command *pcmd;
-  if (ret == MATCH)
+  if (ret == CmdReturn::MATCH)
     {
-      pcmd = getMapCommand (mCmdHead);
-      pcmd->origin (mCmdHead);
+      pcmd = getMapCommand (mCmdHead.get ());
+      pcmd->origin (mCmdHead.get ());
       process (pcmd);
       pcmd->origin (nullptr);
       pcmd = nullptr;
     }
   else
     {
-      pcmd = process (mCmdHead);
+      pcmd = process (mCmdHead.get ());
     }
 
-  delete mCmdHead;
-  mCmdHead = pcmd;
-  mState = CMD_OK;
+  mCmdHead.reset (pcmd);
+  mState = CmdState::CMD_OK;
 }
 
 Command *
@@ -472,14 +463,14 @@ ApvlvCmds::process (Command *cmd)
   return orig;
 }
 
-ReturnType
+CmdReturn
 ApvlvCmds::isMapCommand (CommandKeyList *ack)
 {
   for (auto &mMap : mMaps)
     {
       if (*ack == mMap.first)
         {
-          return MATCH;
+          return CmdReturn::MATCH;
         }
       else
         {
@@ -492,12 +483,12 @@ ApvlvCmds::isMapCommand (CommandKeyList *ack)
 
           if (i == ack->size ())
             {
-              return NEED_MORE;
+              return CmdReturn::NEED_MORE;
             }
         }
     }
 
-  return NO_MATCH;
+  return CmdReturn::NO_MATCH;
 }
 
 Command *
@@ -512,11 +503,10 @@ ApvlvCmds::timeout_cb ()
 {
   if (mCmdHead != nullptr)
     {
-      process (mCmdHead);
-      delete mCmdHead;
-      mCmdHead = nullptr;
+      process (mCmdHead.get ());
+      mCmdHead.release ();
     }
-  mState = CMD_OK;
+  mState = CmdState::CMD_OK;
 }
 }
 

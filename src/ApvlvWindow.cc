@@ -125,7 +125,7 @@ ApvlvWindow::widget ()
     }
 }
 
-ReturnType
+CmdReturn
 ApvlvWindow::process (int ct, uint key)
 {
   ApvlvWindow *nwin;
@@ -156,7 +156,7 @@ ApvlvWindow::process (int ct, uint key)
     default:
       break;
     }
-  return MATCH;
+  return CmdReturn::MATCH;
 }
 
 ApvlvWindow *
@@ -166,7 +166,7 @@ ApvlvWindowContext::findWindowByWidget (QWidget *widget)
   if (doc == nullptr)
     return nullptr;
 
-  stack<ApvlvWindow *> winstack;
+  std::stack<ApvlvWindow *> winstack;
   winstack.push (mRootWindow);
   while (!winstack.empty ())
     {

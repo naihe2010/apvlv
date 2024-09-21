@@ -30,14 +30,14 @@
 #include <fstream>
 #include <qt6/poppler-qt6.h>
 
-#include "../ApvlvView.h"
 #include "ApvlvPopplerPdf.h"
+#include "ApvlvView.h"
 
 namespace apvlv
 {
-using namespace std;
-
 FILE_TYPE_DEFINITION (ApvlvPDF, { ".pdf" });
+
+using namespace Poppler;
 
 ApvlvPDF::ApvlvPDF (const string &filename, bool check)
     : File (filename, check)
@@ -80,27 +80,30 @@ ApvlvPDF::sum ()
   return mDoc ? mDoc->numPages () : 0;
 }
 
-unique_ptr<ApvlvPoses>
-ApvlvPDF::pageSearch (int pn, const char *str, bool is_reverse)
+std::unique_ptr<WordListRectangle>
+ApvlvPDF::pageSearch (int pn, const char *str)
 {
   if (mDoc == nullptr)
     return nullptr;
 
   auto page = mDoc->page (pn);
   auto results = page->search (str);
-  if (is_reverse)
-    reverse (results.begin (), results.end ());
-  auto poses = make_unique<ApvlvPoses> ();
-  for (auto res : results)
+  if (results.empty ())
+    return nullptr;
+
+  auto poses = std::make_unique<WordListRectangle> ();
+  for (auto const &res : results)
     {
-      poses->push_back (
-          { res.left (), res.bottom (), res.right (), res.top () });
+      WordRectangle wr;
+      wr.rect_list.push_back (
+          { res.left (), res.top (), res.right (), res.bottom () });
+      poses->push_back (wr);
     }
   return poses;
 }
 
 bool
-ApvlvPDF::pageRender (int pn, int ix, int iy, double zm, int rot, QImage *pix)
+ApvlvPDF::pageRender (int pn, double zm, int rot, QImage *pix)
 {
   if (mDoc == nullptr)
     return false;
@@ -118,7 +121,9 @@ ApvlvPDF::pageRender (int pn, int ix, int iy, double zm, int rot, QImage *pix)
     prot = Poppler::Page::Rotate270;
 
   auto page = mDoc->page (pn);
-  auto image = page->renderToImage (xres, yres, 0, 0, ix * zm, iy * zm, prot);
+  auto size = page->pageSizeF ();
+  auto image = page->renderToImage (xres, yres, 0, 0, size.width () * zm,
+                                    size.height () * zm, prot);
   *pix = std::move (image);
   return true;
 }
@@ -148,32 +153,6 @@ ApvlvPDF::pdf_get_children_index (FileIndex &root_index,
       pdf_get_children_index (index, child_outlines);
       root_index.mChildrenIndex.emplace_back (index);
     }
-}
-
-bool
-ApvlvPDF::pageAnnotUnderline (int pn, double x1, double y1, double x2,
-                              double y2)
-{
-  return true;
-}
-
-bool
-ApvlvPDF::pageAnnotText (int pn, double x1, double y1, double x2, double y2,
-                         const char *text)
-{
-  return true;
-}
-
-ApvlvAnnotTexts
-ApvlvPDF::pageAnnotTexts (int pn)
-{
-  return {};
-}
-
-bool
-ApvlvPDF::pageAnnotUpdate (int pn, ApvlvAnnotText *text)
-{
-  return false;
 }
 
 }

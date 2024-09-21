@@ -34,6 +34,8 @@
 
 namespace apvlv
 {
+using namespace std;
+
 ApvlvInfo *gInfo = nullptr;
 
 ApvlvInfo::ApvlvInfo (const string &filename) : mFileName (filename)

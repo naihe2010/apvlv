@@ -46,9 +46,9 @@ ApvlvLog::ApvlvLog (const QString &path)
       if (mFile.open (FileFlag::Text | FileFlag::WriteOnly | FileFlag::Append)
           == false)
         {
-          cerr << "Open log file: " << path.toStdString ()
-               << "error: " << mFile.errorString ().toStdString ()
-               << std::endl;
+          std::cerr << "Open log file: " << path.toStdString ()
+                    << "error: " << mFile.errorString ().toStdString ()
+                    << std::endl;
           return;
         }
 
@@ -66,9 +66,9 @@ ApvlvLog::ApvlvLog (const QString &path)
 void
 ApvlvLog::writeMessage (const QString &msg)
 {
-  lock_guard<mutex> lock (mMutex);
+  std::lock_guard<std::mutex> lock (mMutex);
 #ifdef _DEBUG
-  std::cout << msg.toStdString () << endl;
+  std::cout << msg.toStdString () << std::endl;
 #endif
 
   auto endstr = "\n";

@@ -94,7 +94,7 @@ Searcher::submit (const SearchOptions &options)
   auto path = filesystem::path (options.mFromDir);
   if (is_regular_file (path))
     {
-      mFilenameQueue.push (move (absolute (path).string ()));
+      mFilenameQueue.push (absolute (path).string ());
     }
   mRestart.store (true);
 }
@@ -236,7 +236,7 @@ grep (const string &source, const string &text, bool is_case, bool is_regex)
         {
           pos = source.find (r_text, pos);
           pair res{ pos, r_text.size () };
-          results.emplace_back (move (res));
+          results.emplace_back (std::move (res));
         }
     }
   else

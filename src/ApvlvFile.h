@@ -39,7 +39,12 @@
 namespace apvlv
 {
 
-using namespace std;
+using std::function;
+using std::initializer_list;
+using std::map;
+using std::optional;
+using std::string;
+
 enum DISPLAY_TYPE
 {
   DISPLAY_TYPE_IMAGE = 0,
@@ -61,7 +66,7 @@ struct ApvlvCover
   string mime_type;
 };
 
-typedef vector<ApvlvLink> ApvlvLinks;
+using ApvlvLinks = vector<ApvlvLink>;
 
 struct ApvlvPoint
 {
@@ -252,7 +257,7 @@ public:
   virtual optional<vector<Rectangle> >
   pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb)
   {
-    return nullopt;
+    return std::nullopt;
   }
 
   // path methods

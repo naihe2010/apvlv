@@ -42,6 +42,7 @@
 namespace apvlv
 {
 
+using namespace std::filesystem;
 using namespace Qt;
 
 ApvlvFrame::ApvlvFrame (ApvlvView *view)
@@ -190,7 +191,7 @@ ApvlvFrame::setActive (bool act)
 
   if (mActive && filename ())
     {
-      auto path = filesystem::path (filename ());
+      auto path = std::filesystem::path (filename ());
       auto base = path.filename ();
       mView->settitle (base.string ());
     }
@@ -306,7 +307,7 @@ ApvlvStatus::showMessages (const vector<string> &msgs)
     }
 }
 
-ReturnType
+CmdReturn
 ApvlvFrame::subprocess (int ct, uint key)
 {
   auto zoomrate = mWidget->zoomrate ();
@@ -350,14 +351,14 @@ ApvlvFrame::subprocess (int ct, uint key)
       break;
 
     default:
-      return NO_MATCH;
+      return CmdReturn::NO_MATCH;
       break;
     }
 
-  return MATCH;
+  return CmdReturn::MATCH;
 }
 
-ReturnType
+CmdReturn
 ApvlvFrame::process (int has, int ct, uint key)
 {
   if (mProCmd != 0)
@@ -391,7 +392,7 @@ ApvlvFrame::process (int has, int ct, uint key)
     case '?':
     case 'F':
       mView->promptcommand (char (key));
-      return NEED_MORE;
+      return CmdReturn::NEED_MORE;
     case 'H':
       mWidget->scrollTo (0.0, 0.0);
       break;
@@ -510,7 +511,7 @@ ApvlvFrame::process (int has, int ct, uint key)
     case '\'':
     case 'z':
       mProCmd = key;
-      return NEED_MORE;
+      return CmdReturn::NEED_MORE;
       break;
     case 'n':
       if (mSearchCmd == SEARCH)
@@ -567,11 +568,11 @@ ApvlvFrame::process (int has, int ct, uint key)
       // mCurrentImage->comment_cb ();
       break;
     default:
-      return NO_MATCH;
+      return CmdReturn::NO_MATCH;
       break;
     }
 
-  return MATCH;
+  return CmdReturn::MATCH;
 }
 
 ApvlvFrame *
@@ -617,7 +618,7 @@ ApvlvFrame::setzoom (const char *z)
 
   if (mFile != nullptr)
     {
-      int pn = max (0, pageNumber () - 1);
+      int pn = std::max (0, pageNumber () - 1);
       auto size = mFile->pageSizeF (pn, 0);
 
       if (size.width > 0 && size.height > 0)
@@ -737,15 +738,16 @@ ApvlvFrame::loadfile (const string &filename, bool check, bool show_content)
 
       if (gParams->getIntOrDefault ("autoreload") > 0)
         {
-          mWatcher = make_unique<QFileSystemWatcher> ();
+          mWatcher = std::make_unique<QFileSystemWatcher> ();
           // QObject::connect(mWatcher, SIGNAL(fileChanged()), this,
           // SLOT(changed_cb()));
 
-          auto systempath = filesystem::path (filename);
-          if (filesystem::is_symlink (systempath))
+          auto systempath = std::filesystem::path (filename);
+          if (std::filesystem::is_symlink (systempath))
             {
-              auto realname = filesystem::read_symlink (systempath).string ();
-              if (filesystem::is_regular_file (realname))
+              auto realname
+                  = std::filesystem::read_symlink (systempath).string ();
+              if (std::filesystem::is_regular_file (realname))
                 {
                   mWatcher->addPath (QString::fromLocal8Bit (realname));
                 }
@@ -1088,12 +1090,12 @@ ApvlvFrame::setWidget (DISPLAY_TYPE type)
 {
   if (type == DISPLAY_TYPE_IMAGE)
     {
-      mWidget = make_unique<ImageWidget> ();
+      mWidget = std::make_unique<ImageWidget> ();
       mWidget->setFile (mFile);
     }
   else if (type == DISPLAY_TYPE_HTML)
     {
-      mWidget = make_unique<WebViewWidget> ();
+      mWidget = std::make_unique<WebViewWidget> ();
       mWidget->setFile (mFile);
     }
   else
@@ -1153,7 +1155,7 @@ ApvlvFrame::updateStatus ()
       // int tmprtimes = 0;
 
       char temp[256];
-      auto systempath = filesystem::path (filename ());
+      auto systempath = std::filesystem::path (filename ());
       auto bn = systempath.filename ();
       snprintf (temp, sizeof temp, "%s", bn.string ().c_str ());
       labels.emplace_back (temp);

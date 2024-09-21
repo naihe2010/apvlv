@@ -43,8 +43,6 @@
 
 namespace apvlv
 {
-using namespace std;
-
 struct ApvlvDocPosition
 {
   int pagenum;
@@ -159,7 +157,7 @@ public:
 
   virtual bool isControlledContent ();
 
-  virtual ReturnType process (int has, int times, uint keyval);
+  virtual CmdReturn process (int has, int times, uint keyval);
 
   ApvlvView *mView;
 
@@ -219,7 +217,7 @@ protected:
   void unsetHighlight ();
   void setHighlightAndIndex (const WordListRectangle &poses, int sel);
   bool needsearch (const string &str, bool reverse);
-  ReturnType subprocess (int ct, uint key);
+  CmdReturn subprocess (int ct, uint key);
 
 signals:
   void indexGenerited (const FileIndex &);

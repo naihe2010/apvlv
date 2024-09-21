@@ -63,10 +63,10 @@ WebView::WebView ()
 {
   auto profile = new QWebEngineProfile ();
   profile->setHttpCacheType (QWebEngineProfile::NoCache);
-  mSchemeHandler = make_unique<ApvlvSchemeHandler> ();
+  mSchemeHandler = std::make_unique<ApvlvSchemeHandler> ();
   profile->installUrlSchemeHandler ("apvlv", mSchemeHandler.get ());
 
-  mPage = make_unique<QWebEnginePage> (profile);
+  mPage = std::make_unique<QWebEnginePage> (profile);
   setPage (mPage.get ());
 }
 
@@ -106,7 +106,7 @@ WebViewWidget::scroll (int times, int h, int v)
   if (!mFile)
     return;
 
-  stringstream scripts;
+  std::stringstream scripts;
   scripts << "window.scrollBy(" << times * h << "," << times * v << ")";
   auto widget = dynamic_cast<WebView *> (mWidget);
   auto page = widget->page ();
@@ -119,7 +119,7 @@ WebViewWidget::scrollTo (double xrate, double yrate)
   if (!mFile)
     return;
 
-  stringstream scripts;
+  std::stringstream scripts;
   scripts << "window.scroll(window.screenX * " << xrate << ",";
   scripts << " (document.body.offsetHeight - window.innerHeight) * " << yrate
           << ");";
@@ -216,7 +216,7 @@ WebViewWidget::webview_load_finished (bool suc)
         {
           auto view = dynamic_cast<WebView *> (mWidget);
           auto page = view->page ();
-          stringstream javasrc;
+          std::stringstream javasrc;
           javasrc << "document.getElementById('";
           javasrc << mAnchor.substr (1);
           javasrc << "').scrollIntoView();";

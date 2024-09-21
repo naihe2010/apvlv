@@ -32,8 +32,6 @@
 
 #include "ApvlvFrame.h"
 
-using namespace std;
-
 namespace apvlv
 {
 class ApvlvFrame;
@@ -79,7 +77,7 @@ public:
 
   ApvlvWindow *getNext ();
 
-  ReturnType process (int times, uint keyval);
+  CmdReturn process (int times, uint keyval);
 
   ApvlvWindow *m_parent, *m_child_1, *m_child_2;
 

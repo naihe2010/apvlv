@@ -36,6 +36,10 @@
 
 namespace apvlv
 {
+using std::pair;
+using std::string;
+using std::string_view;
+
 ApvlvParams *gParams = nullptr;
 
 ApvlvParams::ApvlvParams ()
@@ -72,7 +76,7 @@ ApvlvParams::loadfile (const string &filename)
 {
   //    debug ("load debug: %s", filename);
   string str;
-  fstream os (filename, ios::in);
+  std::fstream os (filename, std::ios::in);
 
   if (!os.is_open ())
     {
@@ -83,7 +87,7 @@ ApvlvParams::loadfile (const string &filename)
   while ((getline (os, str)))
     {
       string argu, data, crap;
-      stringstream is (str);
+      std::stringstream is (str);
       // avoid commet line, continue next
       is >> crap;
       if (crap[0] == '\"' || crap.empty ())

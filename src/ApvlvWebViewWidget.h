@@ -42,8 +42,6 @@
 
 namespace apvlv
 {
-using namespace std;
-
 class File;
 class ApvlvSchemeHandler : public QWebEngineUrlSchemeHandler
 {

@@ -35,8 +35,8 @@
 #include <filesystem>
 #include <fstream>
 
-#include "../ApvlvUtil.h"
 #include "ApvlvQtPdf.h"
+#include "ApvlvUtil.h"
 
 namespace apvlv
 {
@@ -157,7 +157,8 @@ ApvlvPDF::pageRender (int pn, double zm, int rot, QImage *pix)
   if (mDoc == nullptr)
     return false;
 
-  QSize image_size{ int (ix * zm), int (iy * zm) };
+  auto sizeF = pageSizeF (pn, rot);
+  QSize image_size{ int (sizeF.width * zm), int (sizeF.height * zm) };
   auto prot = QPdfDocumentRenderOptions::Rotation::None;
   if (rot == 90)
     prot = QPdfDocumentRenderOptions::Rotation::Clockwise90;

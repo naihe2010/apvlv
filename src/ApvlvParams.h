@@ -34,26 +34,25 @@
 
 namespace apvlv
 {
-using namespace std;
-
 class ApvlvParams final
 {
 public:
   ApvlvParams ();
   ~ApvlvParams ();
 
-  bool loadfile (const string &filename);
+  bool loadfile (const std::string &filename);
 
-  bool push (string_view ch, string_view str);
+  bool push (std::string_view ch, std::string_view str);
 
-  string getStringOrDefault (string_view key, const string &defs = "");
+  std::string getStringOrDefault (std::string_view key,
+                                  const std::string &defs = "");
 
-  int getIntOrDefault (string_view key, int defi = 0);
+  int getIntOrDefault (std::string_view key, int defi = 0);
 
-  bool getBoolOrDefault (string_view key, bool defb = false);
+  bool getBoolOrDefault (std::string_view key, bool defb = false);
 
 private:
-  map<string, string> mParamMap;
+  std::map<std::string, std::string> mParamMap;
 };
 
 extern ApvlvParams *gParams;

@@ -103,7 +103,7 @@ ApvlvFB2::ApvlvFB2 (const string &filename, bool check)
   QFile file (QString::fromLocal8Bit (filename));
   if (!file.open (QFile::ReadOnly | QFile::Text))
     {
-      throw bad_alloc ();
+      throw std::bad_alloc ();
     }
 
   auto bytes = file.readAll ();
@@ -146,7 +146,7 @@ ApvlvFB2::parse_body (const char *content, size_t length)
     {
       if (xml->isStartElement () && xml->name () == QString ("title"))
         {
-          stringstream ss;
+          std::stringstream ss;
           while (!xml->atEnd ()
                  && !(xml->isEndElement ()
                       && xml->name ().toString () == "title"))
@@ -177,7 +177,7 @@ ApvlvFB2::parse_body (const char *content, size_t length)
         }
       else if (xml->isStartElement () && xml->name ().toString () == "section")
         {
-          stringstream ss;
+          std::stringstream ss;
           string title;
           while (!xml->atEnd ()
                  && !(xml->isEndElement ()

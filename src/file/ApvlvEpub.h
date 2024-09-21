@@ -32,7 +32,7 @@
 #include <memory>
 #include <quazip.h>
 
-#include "../ApvlvFile.h"
+#include "ApvlvFile.h"
 
 namespace apvlv
 {

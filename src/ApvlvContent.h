@@ -37,8 +37,6 @@
 #include "ApvlvFile.h"
 #include "ApvlvUtil.h"
 
-using namespace std;
-
 namespace apvlv
 {
 class ApvlvFrame;

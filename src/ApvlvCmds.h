@@ -33,19 +33,24 @@
 #include <map>
 #include <vector>
 
-using namespace std;
-
 namespace apvlv
 {
-enum CmdType
+enum class CmdType
 {
   CT_CMD,
   CT_STRING,
   CT_STRING_RETURN
 };
 
+enum class CmdState
+{
+  GETTING_COUNT,
+  GETTING_CMD,
+  CMD_OK,
+};
+
 // command type
-enum
+enum class CmdStatusType
 {
   CMD_NONE,
   CMD_MESSAGE,
@@ -53,7 +58,7 @@ enum
 };
 
 // function return type
-enum ReturnType
+enum class CmdReturn
 {
   MATCH,
   NEED_MORE,
@@ -65,11 +70,11 @@ enum ReturnType
 // Ctrl+char, Shift+char
 #define CTRL(c) ((c) + 256)
 
-using StringKeyMap = map<string, int>;
+using StringKeyMap = std::map<std::string, int>;
 
 class Command;
-using CommandKeyList = vector<int>;
-using CommandMap = map<CommandKeyList, Command *>;
+using CommandKeyList = std::vector<int>;
+using CommandMap = std::map<CommandKeyList, Command *>;
 
 class ApvlvView;
 class Command
@@ -77,11 +82,11 @@ class Command
 public:
   Command ();
 
-  ~Command ();
+  ~Command () = default;
 
   void process (ApvlvView *);
 
-  void push (string_view s, CmdType type = CT_CMD);
+  void push (std::string_view s, CmdType type = CmdType::CT_CMD);
 
   bool append (QKeyEvent *key);
 
@@ -118,7 +123,7 @@ private:
 
   // how to describe this command in .apvlvrc
   // like <C-d><C-w>, <S-b>s, or :run, :vsp, ...
-  string mStrCommand;
+  std::string mStrCommand;
 
   // key's value list
   CommandKeyList mKeyVals;
@@ -127,7 +132,7 @@ private:
   int mPreCount;
 
   // next command
-  Command *mNext;
+  std::unique_ptr<Command> mNext;
 
   // when a key is map to other, this is the origin cmd.
   // after a mapped key was processed, return to this cmds
@@ -144,30 +149,25 @@ public:
 
   void append (QKeyEvent *gev);
 
-  static void buildCommandMap (string_view os, string_view ms);
+  static void buildCommandMap (std::string_view os, std::string_view ms);
 
 private:
   Command *process (Command *cmd);
 
-  static ReturnType isMapCommand (CommandKeyList *ack);
+  static CmdReturn isMapCommand (CommandKeyList *ack);
 
   static Command *getMapCommand (Command *cmd);
 
-  Command *mCmdHead;
+  std::unique_ptr<Command> mCmdHead;
 
   // command view
   ApvlvView *mView;
 
-  enum cmdState
-  {
-    GETTING_COUNT,
-    GETTING_CMD,
-    CMD_OK,
-  } mState;
+  CmdState mState;
 
-  unique_ptr<QTimer> mTimeoutTimer;
+  std::unique_ptr<QTimer> mTimeoutTimer;
 
-  string mCountString;
+  std::string mCountString;
 
 private slots:
   void timeout_cb ();

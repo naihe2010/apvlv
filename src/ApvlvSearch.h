@@ -37,6 +37,13 @@
 namespace apvlv
 {
 
+using std::atomic;
+using std::pair;
+using std::string;
+using std::thread;
+using std::unique_ptr;
+using std::vector;
+
 struct SearchMatch
 {
   string match;

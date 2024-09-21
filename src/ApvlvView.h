@@ -104,11 +104,11 @@ public:
 
   void regloaded (ApvlvFrame *);
 
-  ReturnType process (int hastimes, int times, uint keyval);
+  CmdReturn process (int hastimes, int times, uint keyval);
 
-  ReturnType subprocess (int times, uint keyval);
+  CmdReturn subprocess (int times, uint keyval);
 
-  void cmd_show (int ct);
+  void cmd_show (CmdStatusType ct);
 
   void cmd_hide ();
 
@@ -177,8 +177,8 @@ private:
 
   void updatetabname ();
 
-  int mCmdType;
-  chrono::time_point<chrono::steady_clock> mCmdTime;
+  CmdStatusType mCmdType;
+  std::chrono::time_point<std::chrono::steady_clock> mCmdTime;
 
   uint mProCmd;
   int mProCmdCnt;

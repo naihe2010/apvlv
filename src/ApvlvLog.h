@@ -35,8 +35,6 @@
 
 namespace apvlv
 {
-using namespace std;
-
 class ApvlvLog
 {
 public:
@@ -53,7 +51,7 @@ private:
 
   QFile mFile;
   QTextStream mTextStream;
-  mutex mMutex;
+  std::mutex mMutex;
 
   static ApvlvLog *mInstance;
 };

@@ -45,6 +45,9 @@
 
 namespace apvlv
 {
+using namespace std;
+using namespace std::filesystem;
+
 static bool
 isalt_escape (QKeyEvent *event)
 {
@@ -98,7 +101,7 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
       mParent->append_child (this);
     }
 
-  mCmdType = CMD_NONE;
+  mCmdType = CmdStatusType::CMD_NONE;
 
   mProCmd = 0;
   mProCmdCnt = 0;
@@ -595,14 +598,14 @@ ApvlvView::promptcommand (char ch)
   char s[2] = { 0 };
   s[0] = ch;
   mCommandBar->setText (s);
-  cmd_show (CMD_CMD);
+  cmd_show (CmdStatusType::CMD_CMD);
 }
 
 void
 ApvlvView::promptcommand (const char *s)
 {
   mCommandBar->setText (s);
-  cmd_show (CMD_CMD);
+  cmd_show (CmdStatusType::CMD_CMD);
 }
 
 void
@@ -614,7 +617,7 @@ ApvlvView::errormessage (const char *str, ...)
   vsnprintf (estr, sizeof estr, str, vap);
   va_end (vap);
   mCommandBar->setText (QString ("ERROR: ") + estr);
-  cmd_show (CMD_MESSAGE);
+  cmd_show (CmdStatusType::CMD_MESSAGE);
 }
 
 void
@@ -626,7 +629,7 @@ ApvlvView::infomessage (const char *str, ...)
   vsnprintf (estr, sizeof estr, str, vap);
   va_end (vap);
   mCommandBar->setText (QString ("INFO: ") + estr);
-  cmd_show (CMD_MESSAGE);
+  cmd_show (CmdStatusType::CMD_MESSAGE);
 }
 
 char *
@@ -638,7 +641,7 @@ ApvlvView::input (const char *str, int width, int height,
 }
 
 void
-ApvlvView::cmd_show (int cmdtype)
+ApvlvView::cmd_show (CmdStatusType cmdtype)
 {
   mCmdType = cmdtype;
 
@@ -650,7 +653,7 @@ ApvlvView::cmd_show (int cmdtype)
 void
 ApvlvView::cmd_hide ()
 {
-  mCmdType = CMD_NONE;
+  mCmdType = CmdStatusType::CMD_NONE;
   mCmdTime = chrono::steady_clock::now ();
 
   mCommandBar->hide ();
@@ -811,7 +814,7 @@ ApvlvView::crtadoc ()
   return curwin->getCore ();
 }
 
-ReturnType
+CmdReturn
 ApvlvView::subprocess (int ct, uint key)
 {
   uint procmd = mProCmd;
@@ -837,7 +840,7 @@ ApvlvView::subprocess (int ct, uint key)
         }
       else
         {
-          ReturnType rv = currentWindow ()->process (ct, key);
+          CmdReturn rv = currentWindow ()->process (ct, key);
           updatetabname ();
           return rv;
         }
@@ -867,19 +870,19 @@ ApvlvView::subprocess (int ct, uint key)
       break;
 
     default:
-      return NO_MATCH;
+      return CmdReturn::NO_MATCH;
     }
 
-  return MATCH;
+  return CmdReturn::MATCH;
 }
 
-ReturnType
+CmdReturn
 ApvlvView::process (int has, int ct, uint key)
 {
   if (mProCmd != 0)
     {
-      ReturnType ret = subprocess (mProCmdCnt, key);
-      if (ret == MATCH)
+      auto ret = subprocess (mProCmdCnt, key);
+      if (ret == CmdReturn::MATCH)
         {
           saveKey (has, ct, key, true);
         }
@@ -890,13 +893,13 @@ ApvlvView::process (int has, int ct, uint key)
     {
     case 'Z':
       mProCmd = 'Z';
-      return NEED_MORE;
+      return CmdReturn::NEED_MORE;
 
     case CTRL ('w'):
       mProCmd = CTRL ('w');
       mProCmdCnt = has ? ct : 1;
       saveKey (has, ct, key, false);
-      return NEED_MORE;
+      return CmdReturn::NEED_MORE;
     case 'q':
       quit (true);
       break;
@@ -910,20 +913,20 @@ ApvlvView::process (int has, int ct, uint key)
       mProCmd = 'g';
       mProCmdCnt = has ? ct : 0;
       saveKey (has, ct, key, false);
-      return NEED_MORE;
+      return CmdReturn::NEED_MORE;
     default:
-      ReturnType ret = crtadoc ()->process (has, ct, key);
-      if (ret == NEED_MORE)
+      CmdReturn ret = crtadoc ()->process (has, ct, key);
+      if (ret == CmdReturn::NEED_MORE)
         {
           saveKey (has, ct, key, false);
         }
-      else if (ret == MATCH)
+      else if (ret == CmdReturn::MATCH)
         {
           saveKey (has, ct, key, true);
         }
     }
 
-  return MATCH;
+  return CmdReturn::MATCH;
 }
 
 bool
@@ -1153,15 +1156,14 @@ ApvlvView::runcmd (const char *str)
 void
 ApvlvView::keyPressEvent (QKeyEvent *evt)
 {
-  if (mCmdType != CMD_NONE)
+  if (mCmdType != CmdStatusType::CMD_NONE)
     {
       return;
     }
 
   auto now = chrono::steady_clock::now ();
   auto millis
-      = std::chrono::duration_cast<std::chrono::milliseconds> (now - mCmdTime)
-            .count ();
+      = chrono::duration_cast<chrono::milliseconds> (now - mCmdTime).count ();
   if (millis < 1000L)
     return;
 
@@ -1176,7 +1178,7 @@ ApvlvView::commandbar_edit_cb (const QString &str)
 void
 ApvlvView::commandbar_return_cb ()
 {
-  if (mCmdType == CMD_CMD)
+  if (mCmdType == CmdStatusType::CMD_CMD)
     {
       auto str = mCommandBar->text ();
       if (!str.isEmpty ())
@@ -1196,7 +1198,7 @@ ApvlvView::commandbar_return_cb ()
           cmd_hide ();
         }
     }
-  else if (mCmdType == CMD_MESSAGE)
+  else if (mCmdType == CmdStatusType::CMD_MESSAGE)
     {
       cmd_hide ();
     }

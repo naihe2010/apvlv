@@ -31,8 +31,6 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 namespace apvlv
 {
 struct InfoFile
@@ -40,25 +38,26 @@ struct InfoFile
   int page;
   int skip;
   double rate;
-  string file;
+  std::string file;
 };
 
 class ApvlvInfo
 {
 public:
-  explicit ApvlvInfo (const string &file);
+  explicit ApvlvInfo (const std::string &file);
   ~ApvlvInfo () = default;
 
   bool update ();
 
-  optional<InfoFile *> file (int);
-  optional<InfoFile *> file (const string &filename);
-  bool updateFile (int page, int skip, double rate, const string &filename);
+  std::optional<InfoFile *> file (int);
+  std::optional<InfoFile *> file (const std::string &filename);
+  bool updateFile (int page, int skip, double rate,
+                   const std::string &filename);
 
 private:
-  string mFileName;
+  std::string mFileName;
 
-  vector<InfoFile> mInfoFiles;
+  std::vector<InfoFile> mInfoFiles;
   int mFileMax;
 
   bool ini_add_position (const char *);

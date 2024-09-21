@@ -35,6 +35,9 @@ namespace apvlv
 {
 FILE_TYPE_DEFINITION (ApvlvOFFICE, { ".doc", ".docx", ".xls", ".xlsx" });
 
+using std::mutex;
+using std::unique_ptr;
+
 unique_ptr<lok::Office> ApvlvOFFICE::mOffice;
 mutex ApvlvOFFICE::mLokMutex;
 
@@ -46,7 +49,7 @@ ApvlvOFFICE::ApvlvOFFICE (const string &filename, bool check)
   mDoc
       = unique_ptr<lok::Document>{ mOffice->documentLoad (filename.c_str ()) };
   if (mDoc == nullptr)
-    throw bad_alloc ();
+    throw std::bad_alloc ();
 
   mDoc->initializeForRendering ();
 }
@@ -107,7 +110,7 @@ ApvlvOFFICE::initLokInstance ()
   if (mOffice)
     return;
 
-  lock_guard<mutex> lock (mLokMutex);
+  std::lock_guard<std::mutex> lock (mLokMutex);
 
   if (mOffice)
     return;

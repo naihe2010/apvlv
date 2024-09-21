@@ -34,8 +34,6 @@
 namespace apvlv
 {
 
-using namespace std;
-
 template <class T> class LockQueue
 {
 public:
@@ -47,25 +45,25 @@ public:
   void
   push (const T &node)
   {
-    lock_guard<mutex> lock (mMutex);
+    std::lock_guard<std::mutex> lock (mMutex);
     mQueueInternal.push (node);
   }
 
   void
   push (T &&node)
   {
-    lock_guard<mutex> lock (mMutex);
-    mQueueInternal.push (move (node));
+    std::lock_guard<std::mutex> lock (mMutex);
+    mQueueInternal.push (std::move (node));
   }
 
   bool
   pop (T &node)
   {
-    lock_guard<mutex> lock (mMutex);
+    std::lock_guard<std::mutex> lock (mMutex);
     if (mQueueInternal.empty ())
       return false;
 
-    node = move (mQueueInternal.front ());
+    node = std::move (mQueueInternal.front ());
     mQueueInternal.pop ();
     return true;
   }
@@ -73,20 +71,20 @@ public:
   void
   empty ()
   {
-    lock_guard<mutex> lock (mMutex);
+    std::lock_guard<std::mutex> lock (mMutex);
     return mQueueInternal.empty ();
   }
 
   void
   clear ()
   {
-    lock_guard<mutex> lock (mMutex);
+    std::lock_guard<std::mutex> lock (mMutex);
     mQueueInternal = {};
   }
 
 private:
-  queue<T> mQueueInternal;
-  mutex mMutex;
+  std::queue<T> mQueueInternal;
+  std::mutex mMutex;
 };
 
 }

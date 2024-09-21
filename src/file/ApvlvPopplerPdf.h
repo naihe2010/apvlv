@@ -29,12 +29,11 @@
 
 #include <qt6/poppler-qt6.h>
 
-#include "../ApvlvFile.h"
+#include "ApvlvFile.h"
 
 namespace apvlv
 {
 
-using namespace Poppler;
 class ApvlvPDF : public File
 {
   FILE_TYPE_DECLARATION (ApvlvPDF);
@@ -48,26 +47,17 @@ public:
 
   int sum () override;
 
-  bool pageRender (int, int, int, double, int, QImage *) override;
+  bool pageRender (int page, double zoom, int rot, QImage *img) override;
 
-  bool pageAnnotUnderline (int, double, double, double, double) override;
-
-  bool pageAnnotText (int, double, double, double, double,
-                      const char *text) override;
-
-  bool pageAnnotUpdate (int pn, ApvlvAnnotText *text) override;
-
-  unique_ptr<ApvlvPoses> pageSearch (int pn, const char *s,
-                                     bool reverse) override;
-
-  ApvlvAnnotTexts pageAnnotTexts (int pn) override;
+  std::unique_ptr<WordListRectangle> pageSearch (int pn,
+                                                 const char *s) override;
 
 private:
   bool pdf_get_index ();
   void pdf_get_children_index (FileIndex &root_index,
-                               QVector<OutlineItem> &outlines);
+                               QVector<Poppler::OutlineItem> &outlines);
 
-  unique_ptr<Document> mDoc;
+  unique_ptr<Poppler::Document> mDoc;
 };
 }
 #endif

@@ -29,7 +29,7 @@
 
 #include <QUrl>
 
-#include "../ApvlvFile.h"
+#include "ApvlvFile.h"
 
 namespace apvlv
 {

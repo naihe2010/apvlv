@@ -37,6 +37,8 @@ namespace apvlv
 {
 FILE_TYPE_DEFINITION (ApvlvEPUB, { ".epub" });
 
+using namespace std;
+
 ApvlvEPUB::ApvlvEPUB (const string &filename, bool check)
     : File (filename, check),
       mQuaZip (make_unique<QuaZip> (QString::fromLocal8Bit (filename)))

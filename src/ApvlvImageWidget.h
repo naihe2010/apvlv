@@ -40,8 +40,6 @@
 namespace apvlv
 {
 
-using namespace std;
-
 class ImageWidget;
 class ImageContainer : public QLabel
 {

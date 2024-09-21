@@ -33,7 +33,10 @@
 
 namespace apvlv
 {
-using namespace std;
+using std::optional;
+using std::string;
+using std::unique_ptr;
+using std::vector;
 
 // Global files
 extern string helppdf;
