@@ -141,11 +141,11 @@ public:
   const static map<string, vector<string> > &supportMimeTypes ();
   static vector<string> supportFileExts ();
 
-  static File *newFile (const string &filename, bool check = false);
-
-  File (const string &filename, bool check);
+  static File *loadFile (const string &filename, bool check = false);
 
   virtual ~File ();
+
+  virtual bool load (const string &filename) = 0;
 
   // File methods
   [[nodiscard]] virtual DISPLAY_TYPE
@@ -268,8 +268,9 @@ public:
   virtual int pathPageNumber (const string &path);
 
 protected:
-  static int registerClass (const string &mime,
-                            function<File *(const string &)> fun,
+  File () = default;
+
+  static int registerClass (const string &mime, function<File *()> fun,
                             initializer_list<string> exts);
 
   string mFilename;
@@ -281,7 +282,7 @@ protected:
 
 private:
   static map<string, std::vector<string> > mSupportMimeTypes;
-  static map<string, function<File *(const string &)> > mSupportClass;
+  static map<string, function<File *()> > mSupportClass;
 
   optional<QByteArray> pathContentHtml (int, double, int);
   optional<QByteArray> pathContentPng (int, double, int);
@@ -292,9 +293,7 @@ private:                                                                      \
   static int class_id_of_##cls
 #define FILE_TYPE_DEFINITION(cls, ...)                                        \
   int cls::class_id_of_##cls = registerClass (                                \
-      #cls,                                                                   \
-      [] (const string &filename) -> File * { return new cls (filename); },   \
-      __VA_ARGS__)
+      #cls, [] () -> File * { return new cls (); }, __VA_ARGS__)
 
 };
 

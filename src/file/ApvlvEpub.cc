@@ -39,40 +39,41 @@ FILE_TYPE_DEFINITION (ApvlvEPUB, { ".epub" });
 
 using namespace std;
 
-ApvlvEPUB::ApvlvEPUB (const string &filename, bool check)
-    : File (filename, check),
-      mQuaZip (make_unique<QuaZip> (QString::fromLocal8Bit (filename)))
+bool
+ApvlvEPUB::load (const string &filename)
 {
+  mQuaZip = make_unique<QuaZip> (QString::fromLocal8Bit (filename));
   if (mQuaZip->open (QuaZip::mdUnzip) == false)
     {
-      throw std::bad_alloc ();
+      return false;
     }
 
   auto filenames = mQuaZip->getFileNameList ();
   if (!filenames.contains ("META-INF/container.xml"))
     {
-      throw std::bad_alloc ();
+      return false;
     }
 
   auto optcontainer = get_zip_file_contents ("META-INF/container.xml");
   if (!optcontainer)
     {
-      throw std::bad_alloc ();
+      return false;
     }
 
   string contentfile = container_get_contentfile (optcontainer->constData (),
                                                   optcontainer->length ());
   if (contentfile.empty ())
     {
-      throw std::bad_alloc ();
+      return false;
     }
 
   if (content_get_media (contentfile) == false)
     {
-      throw std::bad_alloc ();
+      return false;
     }
 
   ncx_set_index (idSrcs["ncx"]);
+  return true;
 }
 
 ApvlvEPUB::~ApvlvEPUB () { mQuaZip->close (); }

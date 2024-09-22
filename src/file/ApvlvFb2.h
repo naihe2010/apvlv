@@ -38,7 +38,7 @@ class ApvlvFB2 : public File
   FILE_TYPE_DECLARATION (ApvlvFB2);
 
 public:
-  explicit ApvlvFB2 (const string &filename, bool check = true);
+  bool load (const string &filename) override;
 
   ~ApvlvFB2 () override = default;
 

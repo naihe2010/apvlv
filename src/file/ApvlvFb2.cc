@@ -97,17 +97,18 @@ const string section_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
 
 FILE_TYPE_DEFINITION (ApvlvFB2, { ".fb2" });
 
-ApvlvFB2::ApvlvFB2 (const string &filename, bool check)
-    : File (filename, check)
+bool
+ApvlvFB2::load (const string &filename)
 {
   QFile file (QString::fromLocal8Bit (filename));
   if (!file.open (QFile::ReadOnly | QFile::Text))
     {
-      throw std::bad_alloc ();
+      return false;
     }
 
   auto bytes = file.readAll ();
   parse_fb2 (bytes.constData (), bytes.length ());
+  return true;
 }
 
 bool

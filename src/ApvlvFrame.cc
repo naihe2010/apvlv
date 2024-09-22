@@ -285,7 +285,7 @@ ApvlvStatus::showMessages (const vector<string> &msgs)
 {
   auto children = findChildren<QLabel *> ();
   vector<QWidget *> newlabels;
-  for (size_t ind = 0; ind < msgs.size (); ++ind)
+  for (std::size_t ind = 0; ind < msgs.size (); ++ind)
     {
       if (children.size () > (qsizetype)ind)
         {
@@ -326,16 +326,12 @@ ApvlvFrame::subprocess (int ct, uint key)
     case 'z':
       if (key == 'i')
         {
-          char temp[0x10];
-          snprintf (temp, sizeof temp, "%f", zoomrate * 1.1);
-          setzoom (temp);
+          setzoom (zoomrate * 1.1);
           updateStatus ();
         }
       else if (key == 'o')
         {
-          char temp[0x10];
-          snprintf (temp, sizeof temp, "%f", zoomrate / 1.1);
-          setzoom (temp);
+          setzoom (zoomrate / 1.1);
           updateStatus ();
         }
       else if (key == 'h')
@@ -547,24 +543,24 @@ ApvlvFrame::process (int has, int ct, uint key)
     case 'v':
       // togglevisual (char (key));
       break;
-    case ('y'):
+    case 'y':
       // yank (mCurrentImage, ct);
       // mInVisual = ApvlvVisualMode::VISUAL_NONE;
       // blank (mCurrentImage);
       break;
-    case ('s'):
+    case 's':
       setskip (ct);
       break;
-    case ('c'):
+    case 'c':
       toggleContent ();
       break;
-    case ('A'):
+    case 'A':
       // mCurrentImage->annotate_cb ();
       break;
-    case ('U'):
+    case 'U':
       // mCurrentImage->underline_cb ();
       break;
-    case ('C'):
+    case 'C':
       // mCurrentImage->comment_cb ();
       break;
     default:
@@ -578,12 +574,17 @@ ApvlvFrame::process (int has, int ct, uint key)
 ApvlvFrame *
 ApvlvFrame::copy ()
 {
-  char rate[16];
-  snprintf (rate, sizeof rate, "%f", mWidget->zoomrate ());
   auto *ndoc = new ApvlvFrame (mView);
   ndoc->loadfile (mFilestr, false, false);
   ndoc->showpage (mWidget->pageNumber (), mWidget->scrollRate ());
   return ndoc;
+}
+
+void
+ApvlvFrame::setzoom (double zm)
+{
+  mZoommode = CUSTOM;
+  mWidget->setZoomrate (zm);
 }
 
 void
@@ -711,7 +712,7 @@ ApvlvFrame::loadfile (const string &filename, bool check, bool show_content)
       mFile = nullptr;
     }
 
-  mFile = File::newFile (filename, false);
+  mFile = File::loadFile (filename, false);
 
   // qDebug ("mFile = %p", mFile);
   if (mFile != nullptr)
@@ -1150,22 +1151,25 @@ ApvlvFrame::updateStatus ()
 
       int pn = pageNumber () + 1;
       int totpn = mFile->sum ();
-      double sr = mWidget->scrollRate ();
+      auto zm = mWidget->zoomrate ();
+      auto sr = mWidget->scrollRate ();
       string anchor = mWidget->anchor ();
-      // int tmprtimes = 0;
 
-      char temp[256];
       auto systempath = std::filesystem::path (filename ());
       auto bn = systempath.filename ();
-      snprintf (temp, sizeof temp, "%s", bn.string ().c_str ());
-      labels.emplace_back (temp);
-      snprintf (temp, sizeof temp, "%d/%d", pn, totpn);
-      labels.emplace_back (temp);
-      snprintf (temp, sizeof temp, "%d%%", (int)(mWidget->zoomrate () * 100));
-      labels.emplace_back (temp);
-      snprintf (temp, sizeof temp, "%d%%",
-                (int)((sr + pn - 1.0) / totpn * 100));
-      labels.emplace_back (temp);
+      labels.emplace_back (bn.string ());
+
+      std::ostringstream ss;
+      ss << pn << "/" << totpn;
+      labels.emplace_back (ss.str ());
+
+      ss.str ("");
+      ss << static_cast<int> (zm * 100) << "%";
+      labels.emplace_back (ss.str ());
+
+      ss.str ("");
+      ss << static_cast<int> (sr * 100) << "%";
+      labels.emplace_back (ss.str ());
 
       mStatus->showMessages (labels);
 

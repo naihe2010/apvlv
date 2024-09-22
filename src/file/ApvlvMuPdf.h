@@ -39,7 +39,7 @@ class ApvlvPDF : public File
   FILE_TYPE_DECLARATION (ApvlvPDF);
 
 public:
-  explicit ApvlvPDF (const string &filename, bool check = true);
+  bool load (const string &filename) override;
 
   ~ApvlvPDF () override = default;
 

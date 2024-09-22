@@ -41,17 +41,18 @@ using std::unique_ptr;
 unique_ptr<lok::Office> ApvlvOFFICE::mOffice;
 mutex ApvlvOFFICE::mLokMutex;
 
-ApvlvOFFICE::ApvlvOFFICE (const string &filename, bool check)
-    : File (filename, check)
+bool
+ApvlvOFFICE::load (const string &filename)
 {
   initLokInstance ();
 
   mDoc
       = unique_ptr<lok::Document>{ mOffice->documentLoad (filename.c_str ()) };
   if (mDoc == nullptr)
-    throw std::bad_alloc ();
+    return false;
 
   mDoc->initializeForRendering ();
+  return true;
 }
 
 ApvlvOFFICE::~ApvlvOFFICE () { mDoc = nullptr; }

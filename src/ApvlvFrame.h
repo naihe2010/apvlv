@@ -121,6 +121,8 @@ public:
 
   virtual void markposition (char s);
 
+  virtual void setzoom (double zm);
+
   virtual void setzoom (const char *z);
 
   virtual void jump (char s);

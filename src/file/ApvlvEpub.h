@@ -41,7 +41,7 @@ class ApvlvEPUB : public File
   FILE_TYPE_DECLARATION (ApvlvEPUB);
 
 public:
-  explicit ApvlvEPUB (const string &filename, bool check = true);
+  bool load (const string &filename) override;
   ~ApvlvEPUB () override;
 
   int sum () override;

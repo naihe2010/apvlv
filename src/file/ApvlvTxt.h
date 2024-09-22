@@ -36,8 +36,11 @@ class ApvlvTXT : public ApvlvHTML
   FILE_TYPE_DECLARATION (ApvlvTXT);
 
 public:
-  explicit ApvlvTXT (const string &filename, bool check = true)
-      : ApvlvHTML (filename, check){};
+  bool
+  load (const string &filename) override
+  {
+    return true;
+  }
 
   bool pageText (int pn, const Rectangle &rect, string &text) override;
 

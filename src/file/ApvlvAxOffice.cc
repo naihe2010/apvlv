@@ -41,8 +41,8 @@ FILE_TYPE_DEFINITION (ApvlvOfficeWord, { ".doc", ".docx" });
 FILE_TYPE_DEFINITION (ApvlvPowerPoint, { ".ppt", ".pptx" });
 FILE_TYPE_DEFINITION (ApvlvExcel, { ".xls", ".xlsx" });
 
-ApvlvOfficeWord::ApvlvOfficeWord (const string &filename, bool check)
-    : File (filename, check)
+bool
+ApvlvOfficeWord::load (const string &filename)
 {
   auto qname = QString::fromLocal8Bit (filename);
   mApp = new QAxWidget ("Word.Application");
@@ -224,8 +224,8 @@ ApvlvOfficeWord::pathContent (const string &path)
   return QByteArray::fromStdString (mime->html ().toStdString ());
 }
 
-ApvlvPowerPoint::ApvlvPowerPoint (const string &filename, bool check)
-    : File (filename, check)
+bool
+ApvlvPowerPoint::load (const string &filename)
 {
   auto qname = QString::fromLocal8Bit (filename);
   mApp = new QAxWidget ("PowerPoint.Application");
@@ -237,8 +237,9 @@ ApvlvPowerPoint::ApvlvPowerPoint (const string &filename, bool check)
     {
       mApp->dynamicCall ("Quit()");
       delete mApp;
-      throw bad_alloc ();
+      return false;
     }
+  return true;
 }
 
 int
@@ -324,8 +325,8 @@ ExcelWidget::showPage (int p, const string &anchor)
   mScrollValue = 0;
 }
 
-ApvlvExcel::ApvlvExcel (const string &filename, bool check)
-    : File (filename, check)
+bool
+ApvlvExcel::load (const string &filename)
 {
   auto qname = QString::fromLocal8Bit (filename);
   mApp = new QAxWidget ("Excel.Workbook");
@@ -333,6 +334,7 @@ ApvlvExcel::ApvlvExcel (const string &filename, bool check)
   mApp->setProperty ("ReadOnly", true);
   mApp->setControl (qname);
   mDoc = nullptr;
+  return true;
 }
 
 int

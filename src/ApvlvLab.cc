@@ -91,8 +91,10 @@ const string section_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
                                 "    %s\n"
                                 "  </body>\n"
                                 "</html>\n";
-ApvlvLab::ApvlvLab (const char *filename, bool check) : File (filename, check)
+bool
+ApvlvLab::load (const string &filename)
 {
+  return false;
 }
 
 ApvlvLab::~ApvlvLab () {}

@@ -41,20 +41,17 @@ using namespace mupdf;
 FILE_TYPE_DEFINITION (ApvlvPDF, { ".pdf", ".xps", ".epub", ".mobi", ".fb2",
                                   ".cbz", ".svg", ".txt" });
 
-ApvlvPDF::ApvlvPDF (const string &filename, bool check)
-    : File (filename, check)
+bool
+ApvlvPDF::load (const string &filename)
 {
   mDoc = make_unique<FzDocument> (filename.c_str ());
   if (mDoc == nullptr)
     {
-    }
-
-  if (mDoc == nullptr)
-    {
-      throw std::bad_alloc ();
+      return false;
     }
 
   mupdf_get_index ();
+  return true;
 }
 
 SizeF

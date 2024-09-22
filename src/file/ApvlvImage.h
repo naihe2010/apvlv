@@ -36,9 +36,10 @@ class ApvlvIMAGE : public ApvlvHTML
   FILE_TYPE_DECLARATION (ApvlvIMAGE);
 
 public:
-  explicit ApvlvIMAGE (const string &filename, bool check = true)
-      : ApvlvHTML (filename, check)
+  bool
+  load (const string &filename) override
   {
+    return true;
   }
 };
 

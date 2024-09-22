@@ -33,11 +33,12 @@ namespace apvlv
 {
 FILE_TYPE_DEFINITION (ApvlvHTML, { ".htm", ".html" });
 
-ApvlvHTML::ApvlvHTML (const string &filename, bool check)
-    : File (filename, check)
+bool
+ApvlvHTML::load (const string &filename)
 {
   mUrl.setScheme ("file");
   mUrl.setPath (QString::fromLocal8Bit (filename));
+  return true;
 }
 
 bool

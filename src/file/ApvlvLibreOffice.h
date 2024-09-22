@@ -42,7 +42,7 @@ class ApvlvOFFICE : public File
   FILE_TYPE_DECLARATION (ApvlvOFFICE);
 
 public:
-  explicit ApvlvOFFICE (const string &filename, bool check = true);
+  bool load (const string &filename) override;
   ~ApvlvOFFICE ();
 
   int sum () override;

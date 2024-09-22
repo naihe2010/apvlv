@@ -47,8 +47,7 @@ FileWidget::scrollRate ()
   if (mValScrollBar == nullptr)
     return mScrollValue;
 
-  double maxv = mValScrollBar->maximum () - mValScrollBar->minimum ()
-                - mValScrollBar->height ();
+  double maxv = mValScrollBar->maximum () - mValScrollBar->minimum ();
   double val = mValScrollBar->value () / maxv;
   if (val > 1.0)
     {

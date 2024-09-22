@@ -58,7 +58,7 @@ class ApvlvOfficeWord : public File, public AxOffice
   FILE_TYPE_DECLARATION (ApvlvOfficeWord);
 
 public:
-  explicit ApvlvOfficeWord (const string &filename, bool check = true);
+  bool load (const string &filename) override;
 
   int sum () override;
 
@@ -78,7 +78,7 @@ class ApvlvPowerPoint : public File, public AxOffice
   FILE_TYPE_DECLARATION (ApvlvPowerPoint);
 
 public:
-  explicit ApvlvPowerPoint (const string &filename, bool check = true);
+  bool load (const string &filename) override;
 
   int sum () override;
 
@@ -106,7 +106,7 @@ class ApvlvExcel : public File, public AxOffice
   FILE_TYPE_DECLARATION (ApvlvExcel);
 
 public:
-  explicit ApvlvExcel (const string &filename, bool check = true);
+  bool load (const string &filename) override;
 
   [[nodiscard]] virtual DISPLAY_TYPE
   getDisplayType () const override

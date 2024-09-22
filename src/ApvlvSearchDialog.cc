@@ -163,7 +163,7 @@ SearchDialog::previewItem (QListWidgetItem *item)
     mPreviewFile = nullptr;
 
   if (mPreviewFile == nullptr)
-    mPreviewFile = unique_ptr<File>{ File::newFile (path, false) };
+    mPreviewFile = unique_ptr<File>{ File::loadFile (path, false) };
 
   if (mPreviewFile)
     {

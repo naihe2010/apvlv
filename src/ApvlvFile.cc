@@ -76,9 +76,7 @@ File::supportFileExts ()
 }
 
 map<string, vector<string> > File::mSupportMimeTypes{};
-map<string, function<File *(const string &)> > File::mSupportClass{};
-
-File::File (const string &filename, bool check) : mFilename (filename) {}
+map<string, function<File *()> > File::mSupportClass{};
 
 File::~File ()
 {
@@ -88,7 +86,7 @@ File::~File ()
 }
 
 int
-File::registerClass (const string &mime, function<File *(const string &)> fun,
+File::registerClass (const string &mime, function<File *()> fun,
                      initializer_list<string> exts)
 {
   mSupportMimeTypes.insert ({ mime, exts });
@@ -98,7 +96,7 @@ File::registerClass (const string &mime, function<File *(const string &)> fun,
 }
 
 File *
-File::newFile (const string &filename, bool check)
+File::loadFile (const string &filename, bool check)
 {
   File *file;
 
@@ -107,17 +105,19 @@ File::newFile (const string &filename, bool check)
     return nullptr;
 
   file = nullptr;
-  try
+  if (mSupportClass.find (ext) != mSupportClass.end ())
     {
-      if (mSupportClass.find (ext) != mSupportClass.end ())
-        file = mSupportClass[ext](filename);
+      file = mSupportClass[ext]();
+      if (file->load (filename) == false)
+        {
+          delete file;
+          file = nullptr;
+        }
     }
 
-  catch (const bad_alloc &e)
+  if (file == nullptr)
     {
-      qCritical ("open %s error: %s", filename.c_str (), e.what ());
-      delete file;
-      file = nullptr;
+      qCritical ("open %s error.", filename.c_str ());
     }
 
   return file;

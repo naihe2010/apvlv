@@ -44,10 +44,11 @@ using namespace std;
 
 FILE_TYPE_DEFINITION (ApvlvPDF, { ".pdf" });
 
-ApvlvPDF::ApvlvPDF (const string &filename, bool check)
-    : File (filename, check), mDoc (make_unique<QPdfDocument> ()),
-      mView (nullptr)
+bool
+ApvlvPDF::load (const string &filename)
 {
+  mDoc = make_unique<QPdfDocument> ();
+  mView = nullptr;
   auto res = mDoc->load (QString::fromLocal8Bit (filename));
   if (res == QPdfDocument::Error::IncorrectPassword)
     {
@@ -56,7 +57,7 @@ ApvlvPDF::ApvlvPDF (const string &filename, bool check)
           auto text
               = QInputDialog::getText (nullptr, "password", "input password");
           if (text.isEmpty ())
-            throw bad_alloc ();
+            return false;
 
           auto pass = QByteArray::fromStdString (text.toStdString ());
           mDoc->setPassword (pass);
@@ -70,13 +71,14 @@ ApvlvPDF::ApvlvPDF (const string &filename, bool check)
 
   if (res != QPdfDocument::Error::None)
     {
-      throw std::bad_alloc ();
+      return false;
     }
 
   mSearchModel = make_unique<QPdfSearchModel> ();
   mSearchModel->setDocument (mDoc.get ());
 
   pdf_get_index ();
+  return true;
 }
 
 QWidget *

@@ -57,8 +57,8 @@ handle_ddjvu_messages (ddjvu_context_t *ctx, int wait)
 
 FILE_TYPE_DEFINITION (ApvlvDJVU, { ".djv", ".djvu" });
 
-ApvlvDJVU::ApvlvDJVU (const string &filename, bool check)
-    : File (filename, check)
+bool
+ApvlvDJVU::load (const string &filename)
 {
   mContext = ddjvu_context_create ("apvlv");
   if (mContext)
@@ -82,12 +82,13 @@ ApvlvDJVU::ApvlvDJVU (const string &filename, bool check)
             mContext = nullptr;
             throw std::bad_alloc (); */
         }
+      return true;
     }
   else
     {
       ddjvu_context_release (mContext);
       mContext = nullptr;
-      throw std::bad_alloc ();
+      return false;
     }
 }
 

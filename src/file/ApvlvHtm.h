@@ -38,7 +38,7 @@ class ApvlvHTML : public File
   FILE_TYPE_DECLARATION (ApvlvHTML);
 
 public:
-  explicit ApvlvHTML (const string &filename, bool check = true);
+  bool load (const string &filename) override;
 
   bool pageRender (int pn, double zm, int rot, WebView *webview) override;
 

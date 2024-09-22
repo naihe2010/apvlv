@@ -35,7 +35,7 @@ namespace apvlv
 class ApvlvLab : public File
 {
 public:
-  explicit ApvlvLab (const char *filename, bool check = true);
+  bool load (const string &filename) override;
 
   ~ApvlvLab () override;
 

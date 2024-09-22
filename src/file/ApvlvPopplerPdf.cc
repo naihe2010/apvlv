@@ -39,8 +39,8 @@ FILE_TYPE_DEFINITION (ApvlvPDF, { ".pdf" });
 
 using namespace Poppler;
 
-ApvlvPDF::ApvlvPDF (const string &filename, bool check)
-    : File (filename, check)
+bool
+ApvlvPDF::load (const string &filename)
 {
   mDoc = Document::load (QString::fromLocal8Bit (filename));
   if (mDoc == nullptr)
@@ -53,10 +53,11 @@ ApvlvPDF::ApvlvPDF (const string &filename, bool check)
 
   if (mDoc == nullptr)
     {
-      throw std::bad_alloc ();
+      return false;
     }
 
   pdf_get_index ();
+  return true;
 }
 
 SizeF
