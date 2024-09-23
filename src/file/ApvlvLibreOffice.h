@@ -42,12 +42,12 @@ class ApvlvOFFICE : public File
   FILE_TYPE_DECLARATION (ApvlvOFFICE);
 
 public:
-  bool load (const string &filename) override;
+  bool load (const std::string &filename) override;
   ~ApvlvOFFICE ();
 
   int sum () override;
 
-  bool pageText (int pn, const Rectangle &rect, string &text) override;
+  bool pageText (int pn, const Rectangle &rect, std::string &text) override;
 
   bool pageRender (int pn, double zm, int rot, QImage *pix) override;
 

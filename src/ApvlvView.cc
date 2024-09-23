@@ -46,7 +46,6 @@
 namespace apvlv
 {
 using namespace std;
-using namespace std::filesystem;
 
 static bool
 isalt_escape (QKeyEvent *event)
@@ -444,7 +443,7 @@ ApvlvView::loadFileOnPage (const string &filename, int pn)
 }
 
 optional<ApvlvFrame *>
-ApvlvView::hasloaded (const string &abpath)
+ApvlvView::hasloaded (string_view abpath)
 {
   for (auto &core : mDocs)
     {

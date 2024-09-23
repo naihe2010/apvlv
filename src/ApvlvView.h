@@ -34,6 +34,7 @@
 #include <QTabWidget>
 #include <iostream>
 #include <list>
+#include <string_view>
 
 #include "ApvlvCmds.h"
 #include "ApvlvCompletion.h"
@@ -79,7 +80,7 @@ public:
 
   void delCurrentWindow ();
 
-  bool newtab (const string &filename, bool disable_content = false);
+  bool newtab (const std::string &filename, bool disable_content = false);
 
   bool newtab (ApvlvFrame *core);
 
@@ -92,15 +93,15 @@ public:
   void infomessage (const char *str, ...);
 
   static char *input (const char *str, int width = 400, int height = 150,
-                      const string &content = "");
+                      const std::string &content = "");
 
   bool run (const char *str);
 
-  bool loadfile (const string &filename);
+  bool loadfile (const std::string &filename);
 
-  bool loaddir (const string &path);
+  bool loaddir (const std::string &path);
 
-  optional<ApvlvFrame *> hasloaded (const string &abpath);
+  std::optional<ApvlvFrame *> hasloaded (std::string_view abpath);
 
   void regloaded (ApvlvFrame *);
 
@@ -114,7 +115,7 @@ public:
 
   void cmd_auto (const char *);
 
-  void settitle (const string &title);
+  void settitle (const std::string &title);
 
   ApvlvFrame *crtadoc ();
 
@@ -123,7 +124,7 @@ public:
   void erase_child (ApvlvView *);
 
 public slots:
-  void loadFileOnPage (const string &filename, int pn);
+  void loadFileOnPage (const std::string &filename, int pn);
 
   void open ();
 
@@ -205,7 +206,7 @@ private:
   };
   bool keyLastEnd;
   bool processInLast;
-  vector<keyNode> keySquence;
+  std::vector<keyNode> keySquence;
 
   void saveKey (int has, int ct, uint key, bool end);
 
@@ -216,9 +217,9 @@ private:
 
   ApvlvCmds mCmds;
 
-  std::vector<unique_ptr<ApvlvFrame> > mDocs;
+  std::vector<std::unique_ptr<ApvlvFrame> > mDocs;
 
-  std::vector<string> mCmdHistroy;
+  std::vector<std::string> mCmdHistroy;
   size_t mCurrHistroy;
 
   ApvlvView *mParent;

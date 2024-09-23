@@ -39,7 +39,7 @@ class ApvlvPDF : public File
   FILE_TYPE_DECLARATION (ApvlvPDF);
 
 public:
-  bool load (const string &filename) override;
+  bool load (const std::string &filename) override;
 
   ~ApvlvPDF () override = default;
 
@@ -57,7 +57,7 @@ private:
   void pdf_get_children_index (FileIndex &root_index,
                                QVector<Poppler::OutlineItem> &outlines);
 
-  unique_ptr<Poppler::Document> mDoc;
+  std::unique_ptr<Poppler::Document> mDoc;
 };
 }
 #endif

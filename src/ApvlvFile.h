@@ -39,12 +39,6 @@
 namespace apvlv
 {
 
-using std::function;
-using std::initializer_list;
-using std::map;
-using std::optional;
-using std::string;
-
 enum DISPLAY_TYPE
 {
   DISPLAY_TYPE_IMAGE = 0,
@@ -62,11 +56,11 @@ struct ApvlvLink
 
 struct ApvlvCover
 {
-  string content;
-  string mime_type;
+  std::string content;
+  std::string mime_type;
 };
 
-using ApvlvLinks = vector<ApvlvLink>;
+using ApvlvLinks = std::vector<ApvlvLink>;
 
 struct ApvlvPoint
 {
@@ -97,11 +91,11 @@ using CharRectangle = Rectangle;
 
 struct WordRectangle
 {
-  string word;
-  vector<CharRectangle> rect_list;
+  std::string word;
+  std::vector<CharRectangle> rect_list;
 };
 
-using WordListRectangle = vector<WordRectangle>;
+using WordListRectangle = std::vector<WordRectangle>;
 
 enum FileIndexType
 {
@@ -115,37 +109,39 @@ class FileIndex
 {
 public:
   FileIndex () : page (0), type (FILE_INDEX_PAGE){};
-  FileIndex (const string &title, int page, const string &path,
+  FileIndex (const std::string &title, int page, const std::string &path,
              FileIndexType type);
-  FileIndex (string &&title, int page, string &&path, FileIndexType type);
+  FileIndex (std::string &&title, int page, std::string &&path,
+             FileIndexType type);
   ~FileIndex ();
 
-  void loadDirectory (const string &path1);
+  void loadDirectory (const std::string &path1);
   void appendChild (const FileIndex &child);
   [[nodiscard]] const FileIndex *findIndex (const FileIndex &tmp_index) const;
 
   bool operator== (const FileIndex &) const;
 
-  string title;
+  std::string title;
   int page;
-  string path;
-  string anchor;
+  std::string path;
+  std::string anchor;
   FileIndexType type;
-  vector<FileIndex> mChildrenIndex;
+  std::vector<FileIndex> mChildrenIndex;
 };
 
 class WebView;
 class File
 {
 public:
-  const static map<string, vector<string> > &supportMimeTypes ();
-  static vector<string> supportFileExts ();
+  const static std::map<std::string, std::vector<std::string> > &
+  supportMimeTypes ();
+  static std::vector<std::string> supportFileExts ();
 
-  static File *loadFile (const string &filename, bool check = false);
+  static std::unique_ptr<File> loadFile (const std::string &filename);
 
   virtual ~File ();
 
-  virtual bool load (const string &filename) = 0;
+  virtual bool load (const std::string &filename) = 0;
 
   // File methods
   [[nodiscard]] virtual DISPLAY_TYPE
@@ -160,7 +156,7 @@ public:
     return nullptr;
   }
 
-  const string &
+  const std::string &
   getFilename ()
   {
     return mFilename;
@@ -178,9 +174,9 @@ public:
     return mIndex;
   }
 
-  virtual unique_ptr<SearchFileMatch> grepFile (const string &seq,
-                                                bool is_case, bool is_regex,
-                                                atomic<bool> &is_abort);
+  virtual std::unique_ptr<SearchFileMatch>
+  grepFile (const std::string &seq, bool is_case, bool is_regex,
+            std::atomic<bool> &is_abort);
 
   virtual int
   sum ()
@@ -236,56 +232,57 @@ public:
 
   virtual bool pageRender (int pn, double zm, int rot, WebView *webview);
 
-  virtual unique_ptr<ApvlvLinks>
+  virtual std::unique_ptr<ApvlvLinks>
   pageLinks (int pn)
   {
     return nullptr;
   }
 
   virtual bool
-  pageText (int pn, const Rectangle &rect, string &text)
+  pageText (int pn, const Rectangle &rect, std::string &text)
   {
     return false;
   }
 
-  virtual unique_ptr<WordListRectangle>
+  virtual std::unique_ptr<WordListRectangle>
   pageSearch (int pn, const char *str)
   {
     return nullptr;
   }
 
-  virtual optional<vector<Rectangle> >
+  virtual std::optional<std::vector<Rectangle> >
   pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb)
   {
     return std::nullopt;
   }
 
   // path methods
-  virtual optional<QByteArray> pathContent (const string &path);
+  virtual std::optional<QByteArray> pathContent (const std::string &path);
 
-  virtual string pathMimeType (const string &path);
+  virtual std::string pathMimeType (const std::string &path);
 
-  virtual int pathPageNumber (const string &path);
+  virtual int pathPageNumber (const std::string &path);
 
 protected:
   File () = default;
 
-  static int registerClass (const string &mime, function<File *()> fun,
-                            initializer_list<string> exts);
+  static int registerClass (const std::string &mime,
+                            std::function<File *()> fun,
+                            std::initializer_list<std::string> exts);
 
-  string mFilename;
+  std::string mFilename;
   FileIndex mIndex;
-  std::vector<string> mPages;
-  std::map<string, int> srcPages;
-  std::map<string, string> srcMimeTypes;
+  std::vector<std::string> mPages;
+  std::map<std::string, int> srcPages;
+  std::map<std::string, std::string> srcMimeTypes;
   ApvlvCover mCover;
 
 private:
-  static map<string, std::vector<string> > mSupportMimeTypes;
-  static map<string, function<File *()> > mSupportClass;
+  static std::map<std::string, std::vector<std::string> > mSupportMimeTypes;
+  static std::map<std::string, std::function<File *()> > mSupportClass;
 
-  optional<QByteArray> pathContentHtml (int, double, int);
-  optional<QByteArray> pathContentPng (int, double, int);
+  std::optional<QByteArray> pathContentHtml (int, double, int);
+  std::optional<QByteArray> pathContentPng (int, double, int);
 };
 
 #define FILE_TYPE_DECLARATION(cls)                                            \

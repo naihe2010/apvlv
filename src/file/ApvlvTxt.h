@@ -37,16 +37,16 @@ class ApvlvTXT : public ApvlvHTML
 
 public:
   bool
-  load (const string &filename) override
+  load (const std::string &filename) override
   {
     return true;
   }
 
-  bool pageText (int pn, const Rectangle &rect, string &text) override;
+  bool pageText (int pn, const Rectangle &rect, std::string &text) override;
 
   bool pageRender (int pn, double zm, int rot, WebView *webview) override;
-  string
-  pathMimeType (const string &path) override
+  std::string
+  pathMimeType (const std::string &path) override
   {
     return "text/plain";
   };

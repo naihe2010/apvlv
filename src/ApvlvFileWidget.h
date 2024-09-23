@@ -81,7 +81,7 @@ public:
     return mPageNumber;
   }
 
-  virtual string
+  virtual std::string
   anchor ()
   {
     return mAnchor;
@@ -101,7 +101,7 @@ public:
   }
 
   virtual void
-  showPage (int pn, const string &anchor)
+  showPage (int pn, const std::string &anchor)
   {
     mPageNumber = pn;
     mAnchor = anchor;
@@ -140,7 +140,7 @@ public:
   }
 
   void
-  setAnchor (const string &anchor)
+  setAnchor (const std::string &anchor)
   {
     mAnchor = anchor;
   }
@@ -158,12 +158,12 @@ public:
   }
 
   virtual void
-  setSearchStr (const string &str)
+  setSearchStr (const std::string &str)
   {
     mSearchStr = str;
   }
 
-  [[nodiscard]] virtual string
+  [[nodiscard]] virtual std::string
   searchStr () const
   {
     return mSearchStr;
@@ -182,12 +182,12 @@ public:
   }
 
   virtual void
-  setSelects (const vector<Rectangle> &rect_list)
+  setSelects (const std::vector<Rectangle> &rect_list)
   {
     mSelects = rect_list;
   }
 
-  virtual const vector<Rectangle> &
+  virtual const std::vector<Rectangle> &
   selects ()
   {
     return mSelects;
@@ -203,15 +203,15 @@ protected:
 
   int mPageNumber{ INVALID_PAGENUM };
   double mScrollValue{ 0.0f };
-  string mAnchor;
+  std::string mAnchor;
   double mZoomrate{ DEFAULT_ZOOMRATE };
   int mRotate{ 0 };
 
-  string mSearchStr;
+  std::string mSearchStr;
   WordListRectangle mSearchResults;
   int mSearchSelect{ 0 };
 
-  vector<Rectangle> mSelects;
+  std::vector<Rectangle> mSelects;
 };
 }
 

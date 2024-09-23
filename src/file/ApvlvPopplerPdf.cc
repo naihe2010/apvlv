@@ -37,6 +37,7 @@ namespace apvlv
 {
 FILE_TYPE_DEFINITION (ApvlvPDF, { ".pdf" });
 
+using namespace std;
 using namespace Poppler;
 
 bool
@@ -81,7 +82,7 @@ ApvlvPDF::sum ()
   return mDoc ? mDoc->numPages () : 0;
 }
 
-std::unique_ptr<WordListRectangle>
+unique_ptr<WordListRectangle>
 ApvlvPDF::pageSearch (int pn, const char *str)
 {
   if (mDoc == nullptr)
@@ -92,7 +93,7 @@ ApvlvPDF::pageSearch (int pn, const char *str)
   if (results.empty ())
     return nullptr;
 
-  auto poses = std::make_unique<WordListRectangle> ();
+  auto poses = make_unique<WordListRectangle> ();
   for (auto const &res : results)
     {
       WordRectangle wr;

@@ -36,7 +36,7 @@ namespace apvlv
 FILE_TYPE_DEFINITION (ApvlvTXT, { ".txt", ".text" });
 
 bool
-ApvlvTXT::pageText (int pn, const Rectangle &rect, string &text)
+ApvlvTXT::pageText (int pn, const Rectangle &rect, std::string &text)
 {
   QFile file (mUrl.path ());
   if (file.open (QIODeviceBase::ReadOnly) == false)

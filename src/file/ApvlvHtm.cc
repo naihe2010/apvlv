@@ -33,6 +33,8 @@ namespace apvlv
 {
 FILE_TYPE_DEFINITION (ApvlvHTML, { ".htm", ".html" });
 
+using namespace std;
+
 bool
 ApvlvHTML::load (const string &filename)
 {

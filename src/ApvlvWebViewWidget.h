@@ -60,7 +60,7 @@ private:
   QBuffer mBuffer;
 
 signals:
-  void webpageUpdated (const string &key);
+  void webpageUpdated (const std::string &key);
 };
 
 class WebView : public QWebEngineView
@@ -75,8 +75,8 @@ public:
   }
 
 private:
-  unique_ptr<QWebEnginePage> mPage;
-  unique_ptr<ApvlvSchemeHandler> mSchemeHandler;
+  std::unique_ptr<QWebEnginePage> mPage;
+  std::unique_ptr<ApvlvSchemeHandler> mSchemeHandler;
 
   bool isScrolledToTop ();
   bool isScrolledToBottom ();
@@ -101,7 +101,7 @@ public:
   }
 
   void showPage (int, double s) override;
-  void showPage (int, const string &anchor) override;
+  void showPage (int, const std::string &anchor) override;
 
   void scroll (int times, int w, int h) override;
   void scrollTo (double x, double y) override;
@@ -111,7 +111,7 @@ public:
   void scrollLeft (int times) override;
   void scrollRight (int times) override;
 
-  void setSearchStr (const string &str) override;
+  void setSearchStr (const std::string &str) override;
   void setSearchSelect (int select) override;
 
 private:
@@ -119,11 +119,11 @@ private:
   QWebEngineFindTextResult mSearchResult;
 
 signals:
-  void webpageUpdated (const string &msg);
+  void webpageUpdated (const std::string &msg);
 
 private slots:
   void
-  webview_update (const string &msg)
+  webview_update (const std::string &msg)
   {
     emit webpageUpdated (msg);
   };

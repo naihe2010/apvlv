@@ -33,6 +33,7 @@
 
 namespace apvlv
 {
+
 struct InfoFile
 {
   int page;

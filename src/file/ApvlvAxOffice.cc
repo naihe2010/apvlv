@@ -37,6 +37,8 @@
 
 namespace apvlv
 {
+using namespace std;
+
 FILE_TYPE_DEFINITION (ApvlvOfficeWord, { ".doc", ".docx" });
 FILE_TYPE_DEFINITION (ApvlvPowerPoint, { ".ppt", ".pptx" });
 FILE_TYPE_DEFINITION (ApvlvExcel, { ".xls", ".xlsx" });
@@ -55,8 +57,9 @@ ApvlvOfficeWord::load (const string &filename)
     {
       mApp->dynamicCall ("Quit()");
       delete mApp;
-      throw bad_alloc ();
+      return false;
     }
+  return true;
 }
 
 int

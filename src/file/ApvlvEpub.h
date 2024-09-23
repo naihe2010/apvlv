@@ -41,31 +41,34 @@ class ApvlvEPUB : public File
   FILE_TYPE_DECLARATION (ApvlvEPUB);
 
 public:
-  bool load (const string &filename) override;
+  bool load (const std::string &filename) override;
   ~ApvlvEPUB () override;
 
   int sum () override;
 
   bool pageRender (int pn, double zm, int rot, WebView *widget) override;
 
-  unique_ptr<WordListRectangle> pageSearch (int pn, const char *s) override;
+  std::unique_ptr<WordListRectangle> pageSearch (int pn,
+                                                 const char *s) override;
 
-  optional<QByteArray> pathContent (const string &path) override;
+  std::optional<QByteArray> pathContent (const std::string &path) override;
 
 private:
-  optional<QByteArray> get_zip_file_contents (const QString &name);
+  std::optional<QByteArray> get_zip_file_contents (const QString &name);
 
-  static string container_get_contentfile (const char *container, int len);
+  static std::string container_get_contentfile (const char *container,
+                                                int len);
 
-  bool content_get_media (const string &contentfile);
+  bool content_get_media (const std::string &contentfile);
 
-  bool ncx_set_index (const string &ncxfile);
+  bool ncx_set_index (const std::string &ncxfile);
 
-  void ncx_node_set_index (QXmlStreamReader *xml, const string &element_name,
-                           const string &ncxfile, FileIndex &index);
+  void ncx_node_set_index (QXmlStreamReader *xml,
+                           const std::string &element_name,
+                           const std::string &ncxfile, FileIndex &index);
 
-  unique_ptr<QuaZip> mQuaZip;
-  std::map<string, string> idSrcs;
+  std::unique_ptr<QuaZip> mQuaZip;
+  std::map<std::string, std::string> idSrcs;
 };
 
 }

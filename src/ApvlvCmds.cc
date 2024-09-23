@@ -35,9 +35,24 @@ namespace apvlv
 using namespace std;
 using namespace Qt;
 
-StringKeyMap SK;
+StringKeyMap Command::mKeyMap = {
+  { "<BS>", Key_Backspace },      { "<Tab>", Key_Tab },
+  { "<CR>", Key_Return },         { "<Esc>", Key_Escape },
+  { "<Space>", Key_Space },       { "<lt>", Key_Less },
+  { "<Bslash>", Key_Backslash },  { "<Bar>", Key_Bar },
+  { "<Del>", Key_Delete },        { "<Up>", Key_Up },
+  { "<Down>", Key_Down },         { "<Left>", Key_Left },
+  { "<Right>", Key_Right },       { "<Help>", Key_Help },
+  { "<Insert>", Key_Insert },     { "<Home>", Key_Home },
+  { "<End>", Key_End },           { "<PageUp>", Key_PageUp },
+  { "<PageDown>", Key_PageDown }, { "<KP_Up>", Key_Up },
+  { "<KP_Down>", Key_Down },      { "<KP_Left>", Key_Left },
+  { "<KP_Right>", Key_Right },    { "<KP_Prior>", Key_MediaPrevious },
+  { "<KP_Next>", Key_MediaNext }, { "<KP_Home>", Key_Home },
+  { "<KP_End>", Key_End },
+};
 
-static CommandMap mMaps;
+CommandMap ApvlvCmds::mMaps;
 
 static int
 keyToControlChar (QKeyEvent *key)
@@ -108,7 +123,7 @@ Command::push (string_view sv, CmdType type)
   mHasPreCount = false;
   mPreCount = 1;
 
-  auto s = sv.begin ();
+  auto s = sv.data ();
   if (isdigit (*s))
     {
       mHasPreCount = true;
@@ -192,7 +207,7 @@ Command::append (const char *s)
   if (len >= 4 && *s == '<' && (*e != '\0' && *(s + 2) != '-'))
     {
       e++;
-      for (auto &it : SK)
+      for (const auto &it : mKeyMap)
         {
           if (it.first.compare (0, e - s, s) == 0)
             {
@@ -310,37 +325,6 @@ ApvlvCmds::ApvlvCmds (ApvlvView *view)
   mView = view;
 
   mState = CmdState::CMD_OK;
-
-  if (SK.empty ())
-    {
-      SK["<BS>"] = Key_Backspace;
-      SK["<Tab>"] = Key_Tab;
-      SK["<CR>"] = Key_Return;
-      SK["<Esc>"] = Key_Escape;
-      SK["<Space>"] = Key_Space;
-      SK["<lt>"] = Key_Less;
-      SK["<Bslash>"] = Key_Backslash;
-      SK["<Bar>"] = Key_Bar;
-      SK["<Del>"] = Key_Delete;
-      SK["<Up>"] = Key_Up;
-      SK["<Down>"] = Key_Down;
-      SK["<Left>"] = Key_Left;
-      SK["<Right>"] = Key_Right;
-      SK["<Help>"] = Key_Help;
-      SK["<Insert>"] = Key_Insert;
-      SK["<Home>"] = Key_Home;
-      SK["<End>"] = Key_End;
-      SK["<PageUp>"] = Key_PageUp;
-      SK["<PageDown>"] = Key_PageDown;
-      SK["<KP_Up>"] = Key_Up;
-      SK["<KP_Down>"] = Key_Down;
-      SK["<KP_Left>"] = Key_Left;
-      SK["<KP_Right>"] = Key_Right;
-      SK["<KP_Prior>"] = Key_MediaPrevious;
-      SK["<KP_Next>"] = Key_MediaNext;
-      SK["<KP_Home>"] = Key_Home;
-      SK["<KP_End>"] = Key_End;
-    }
 
   mTimeoutTimer = make_unique<QTimer> (this);
   QObject::connect (mTimeoutTimer.get (), SIGNAL (timeout ()), this,

@@ -58,19 +58,19 @@ class ApvlvOfficeWord : public File, public AxOffice
   FILE_TYPE_DECLARATION (ApvlvOfficeWord);
 
 public:
-  bool load (const string &filename) override;
+  bool load (const std::string &filename) override;
 
   int sum () override;
 
-  Size pageSize (int page, int rot) override;
+  SizeF pageSizeF (int page, int rot) override;
 
-  bool pageText (int pn, const Rectangle &rect, string &text) override;
+  bool pageText (int pn, const Rectangle &rect, std::string &text) override;
 
   bool pageRender (int pn, double zm, int rot, QImage *pix) override;
 
   bool pageRender (int pn, double zm, int rot, WebView *webview) override;
 
-  optional<QByteArray> pathContent (const string &path) override;
+  std::optional<QByteArray> pathContent (const std::string &path) override;
 };
 
 class ApvlvPowerPoint : public File, public AxOffice
@@ -78,13 +78,13 @@ class ApvlvPowerPoint : public File, public AxOffice
   FILE_TYPE_DECLARATION (ApvlvPowerPoint);
 
 public:
-  bool load (const string &filename) override;
+  bool load (const std::string &filename) override;
 
   int sum () override;
 
-  Size pageSize (int page, int rot) override;
+  SizeF pageSizeF (int page, int rot) override;
 
-  bool pageText (int pn, const Rectangle &rect, string &text) override;
+  bool pageText (int pn, const Rectangle &rect, std::string &text) override;
 
   bool pageRender (int pn, double zm, int rot, QImage *pix) override;
 };
@@ -95,7 +95,7 @@ public:
   QWidget *createWidget () override;
 
   void showPage (int, double s) override;
-  void showPage (int, const string &anchor) override;
+  void showPage (int, const std::string &anchor) override;
 
 private:
   QAxWidget *mAxWidget;
@@ -106,7 +106,7 @@ class ApvlvExcel : public File, public AxOffice
   FILE_TYPE_DECLARATION (ApvlvExcel);
 
 public:
-  bool load (const string &filename) override;
+  bool load (const std::string &filename) override;
 
   [[nodiscard]] virtual DISPLAY_TYPE
   getDisplayType () const override
@@ -118,7 +118,7 @@ public:
 
   int sum () override;
 
-  bool pageText (int pn, const Rectangle &rect, string &text) override;
+  bool pageText (int pn, const Rectangle &rect, std::string &text) override;
 };
 
 }

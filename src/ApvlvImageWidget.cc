@@ -37,6 +37,8 @@
 
 namespace apvlv
 {
+using namespace std;
+
 ImageContainer::ImageContainer (QWidget *parent) : QLabel (parent)
 {
   auto copy = new QAction ("Copy");

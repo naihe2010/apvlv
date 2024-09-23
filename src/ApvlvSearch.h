@@ -37,21 +37,14 @@
 namespace apvlv
 {
 
-using std::atomic;
-using std::pair;
-using std::string;
-using std::thread;
-using std::unique_ptr;
-using std::vector;
-
 struct SearchMatch
 {
-  string match;
-  string line;
+  std::string match;
+  std::string line;
   size_t pos, length;
 };
 
-using SearchMatchList = vector<SearchMatch>;
+using SearchMatchList = std::vector<SearchMatch>;
 
 struct SearchPageMatch
 {
@@ -61,8 +54,8 @@ struct SearchPageMatch
 
 struct SearchFileMatch
 {
-  string filename;
-  vector<SearchPageMatch> page_matches;
+  std::string filename;
+  std::vector<SearchPageMatch> page_matches;
 };
 
 class SearchOptions
@@ -70,11 +63,11 @@ class SearchOptions
 public:
   bool operator== (const SearchOptions &other) const;
 
-  string mText;
+  std::string mText;
   bool mCaseSensitive;
   bool mRegex;
-  string mFromDir;
-  vector<string> mTypes;
+  std::string mFromDir;
+  std::vector<std::string> mTypes;
 };
 
 class Searcher
@@ -84,25 +77,26 @@ public:
   ~Searcher ();
 
   void submit (const SearchOptions &options);
-  unique_ptr<SearchFileMatch> get ();
+  std::unique_ptr<SearchFileMatch> get ();
 
 private:
   void dispatch ();
   void dirFunc ();
   void fileLoopFunc ();
-  void fileFunc (const string &path);
+  void fileFunc (const std::string &path);
 
-  vector<thread> mTasks;
+  std::vector<std::thread> mTasks;
 
   SearchOptions mOptions;
-  LockQueue<string> mFilenameQueue;
-  LockQueue<unique_ptr<SearchFileMatch> > mResults;
-  atomic<bool> mRestart;
-  atomic<bool> mQuit;
+  LockQueue<std::string> mFilenameQueue;
+  LockQueue<std::unique_ptr<SearchFileMatch> > mResults;
+  std::atomic<bool> mRestart;
+  std::atomic<bool> mQuit;
 };
 
-vector<pair<size_t, size_t> > grep (const string &source, const string &text,
-                                    bool is_case, bool is_regex);
+std::vector<std::pair<size_t, size_t> > grep (const std::string &source,
+                                              const std::string &text,
+                                              bool is_case, bool is_regex);
 
 }
 

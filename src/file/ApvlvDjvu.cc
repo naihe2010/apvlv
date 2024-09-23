@@ -31,6 +31,8 @@
 
 namespace apvlv
 {
+using namespace std;
+
 void
 handle_ddjvu_messages (ddjvu_context_t *ctx, int wait)
 {
@@ -157,7 +159,7 @@ ApvlvDJVU::pageRender (int pn, double zm, int rot, QImage *pix)
   ddjvu_format_set_row_order (format, true);
 
   auto psize = 3 * ix * iy;
-  auto buffer = std::make_unique<char[]> (psize);
+  auto buffer = make_unique<char[]> (psize);
 
   int retry = 0;
   while (retry <= 20

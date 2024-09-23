@@ -32,6 +32,8 @@
 
 namespace apvlv
 {
+using namespace std;
+
 const string stylesheet_content = ".block_c {\n"
                                   "  display: block;\n"
                                   "  font-size: 2.5em;\n"

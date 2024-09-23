@@ -38,7 +38,7 @@ class ApvlvFB2 : public File
   FILE_TYPE_DECLARATION (ApvlvFB2);
 
 public:
-  bool load (const string &filename) override;
+  bool load (const std::string &filename) override;
 
   ~ApvlvFB2 () override = default;
 
@@ -46,22 +46,22 @@ public:
 
   bool pageRender (int pn, double zm, int rot, WebView *webview) override;
 
-  optional<QByteArray> pathContent (const string &path) override;
+  std::optional<QByteArray> pathContent (const std::string &path) override;
 
 private:
-  map<string, pair<string, string> > titleSections;
-  string mCoverHref;
+  std::map<std::string, std::pair<std::string, std::string> > titleSections;
+  std::string mCoverHref;
 
   bool parse_fb2 (const char *content, size_t length);
   bool parse_description (const char *content, size_t length);
   bool parse_body (const char *content, size_t length);
   bool parse_binary (const char *content, size_t length);
-  void appendCoverpage (const string &section, const string &mime);
-  void appendTitle (const string &section, const string &mime);
-  void appendSection (const string &title, const string &section,
-                      const string &mime);
-  void appendPage (const string &uri, const string &title,
-                   const string &section, const string &mime);
+  void appendCoverpage (const std::string &section, const std::string &mime);
+  void appendTitle (const std::string &section, const std::string &mime);
+  void appendSection (const std::string &title, const std::string &section,
+                      const std::string &mime);
+  void appendPage (const std::string &uri, const std::string &title,
+                   const std::string &section, const std::string &mime);
   bool fb2_get_index ();
 };
 

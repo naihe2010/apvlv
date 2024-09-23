@@ -31,23 +31,24 @@
 
 namespace apvlv
 {
-using std::string;
-using std::vector;
 
 class ApvlvCompletion
 {
 public:
-  explicit ApvlvCompletion (const vector<string> &items) : mItems (items) {}
+  explicit ApvlvCompletion (const std::vector<std::string> &items)
+      : mItems (items)
+  {
+  }
   ApvlvCompletion () = default;
   ~ApvlvCompletion () = default;
 
-  void addItems (const vector<string> &items);
-  void addPath (const string &path);
+  void addItems (const std::vector<std::string> &items);
+  void addPath (const std::string &path);
 
-  string complete (const string &np);
+  std::string complete (const std::string &np);
 
 private:
-  vector<string> mItems;
+  std::vector<std::string> mItems;
 };
 
 };

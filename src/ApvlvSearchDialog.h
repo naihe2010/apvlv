@@ -51,10 +51,10 @@ class SearchDialog : public QDialog
   Q_OBJECT
 public:
   explicit SearchDialog (QWidget *parent = nullptr);
-  ~SearchDialog () {}
+  ~SearchDialog () override = default;
 
 signals:
-  void loadFile (const string &path, int pn);
+  void loadFile (const std::string &path, int pn);
 
 private slots:
   void search ();
@@ -64,7 +64,7 @@ private slots:
   void loadFinish (bool ret);
 
 private:
-  void displayResult (unique_ptr<SearchFileMatch> result);
+  void displayResult (std::unique_ptr<SearchFileMatch> result);
 
   SearchOptions mOptions;
 
@@ -75,12 +75,12 @@ private:
   QLineEdit mSearchEdit;
   QCheckBox mCaseSensitive;
   QCheckBox mRegex;
-  vector<QCheckBox *> mTypes;
+  std::vector<QCheckBox *> mTypes;
   QLineEdit mFromDir;
   QListWidget mResults;
   WebView mPreview;
 
-  unique_ptr<File> mPreviewFile;
+  std::unique_ptr<File> mPreviewFile;
   bool mPreviewIsFinished;
 };
 

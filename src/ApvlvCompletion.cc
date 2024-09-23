@@ -34,7 +34,6 @@
 namespace apvlv
 {
 using namespace std;
-using namespace std::filesystem;
 
 string
 ApvlvCompletion::complete (const string &prefix)

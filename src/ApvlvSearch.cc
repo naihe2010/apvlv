@@ -205,7 +205,7 @@ Searcher::fileLoopFunc ()
 void
 Searcher::fileFunc (const string &path)
 {
-  unique_ptr<File> file{ File::loadFile (path, false) };
+  auto file = File::loadFile (path);
   if (file)
     {
       auto result = file->grepFile (mOptions.mText, mOptions.mCaseSensitive,

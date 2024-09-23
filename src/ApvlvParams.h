@@ -34,6 +34,7 @@
 
 namespace apvlv
 {
+
 class ApvlvParams final
 {
 public:

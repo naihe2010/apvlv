@@ -40,6 +40,9 @@
 
 namespace apvlv
 {
+
+using namespace std;
+
 const string html_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
                              "<html xmlns=\"http://www.w3.org/1999/xhtml\" "
                              "lang=\"en\" xml:lang=\"en\">\n"
@@ -54,9 +57,6 @@ const string html_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
                              "    </div>"
                              "  </body>\n"
                              "</html>\n";
-
-using namespace std;
-using namespace std::filesystem;
 
 const map<string, vector<string> > &
 File::supportMimeTypes ()
@@ -95,32 +95,22 @@ File::registerClass (const string &mime, function<File *()> fun,
   return static_cast<int> (mSupportMimeTypes.size ());
 }
 
-File *
-File::loadFile (const string &filename, bool check)
+unique_ptr<File>
+File::loadFile (const string &filename)
 {
-  File *file;
-
   auto ext = filename_ext (filename);
   if (ext.empty ())
     return nullptr;
 
-  file = nullptr;
   if (mSupportClass.find (ext) != mSupportClass.end ())
     {
-      file = mSupportClass[ext]();
-      if (file->load (filename) == false)
-        {
-          delete file;
-          file = nullptr;
-        }
+      auto file = unique_ptr<File> (mSupportClass[ext]());
+      if (file->load (filename))
+        return file;
     }
 
-  if (file == nullptr)
-    {
-      qCritical ("open %s error.", filename.c_str ());
-    }
-
-  return file;
+  qCritical ("open %s error.", filename.c_str ());
+  return nullptr;
 }
 
 unique_ptr<SearchFileMatch>
@@ -250,8 +240,8 @@ FileIndex::loadDirectory (const string &path1)
 
   try
     {
-      for (auto &entry : directory_iterator (
-               path1, directory_options::follow_directory_symlink))
+      for (auto &entry : filesystem::directory_iterator (
+               path1, filesystem::directory_options::follow_directory_symlink))
         {
           if (entry.is_directory ())
             {
@@ -277,7 +267,7 @@ FileIndex::loadDirectory (const string &path1)
             }
         }
     }
-  catch (filesystem_error &err)
+  catch (filesystem::filesystem_error &err)
     {
       qWarning ("file system error: %s", err.what ());
     }

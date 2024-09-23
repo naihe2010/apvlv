@@ -35,6 +35,7 @@
 
 namespace apvlv
 {
+
 class ApvlvLog
 {
 public:

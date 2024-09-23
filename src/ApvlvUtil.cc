@@ -30,6 +30,7 @@
 #include <QDir>
 #include <QProcessEnvironment>
 #include <QXmlStreamReader>
+#include <filesystem>
 #include <memory>
 #include <optional>
 #include <string>
@@ -38,6 +39,8 @@
 
 namespace apvlv
 {
+
+using namespace std;
 
 string helppdf;
 string iniexam;
@@ -71,7 +74,7 @@ get_xdg_or_home_ini (const QString &appdir)
   else if (!homedir.empty ())
     {
       inifile = homedir + "/.config/apvlv/apvlvrc";
-      if (!std::filesystem::is_regular_file (inifile))
+      if (!filesystem::is_regular_file (inifile))
         {
           inifile = homedir + "/.apvlvrc";
         }
@@ -129,7 +132,7 @@ xml_content_get_element (const char *content, size_t length,
                          const vector<string> &names)
 {
   auto bytes = QByteArray{ content, (qsizetype)length };
-  auto xml = std::make_unique<QXmlStreamReader> (bytes);
+  auto xml = make_unique<QXmlStreamReader> (bytes);
   std::ptrdiff_t state = 0;
   while (!xml->atEnd ())
     {
@@ -159,7 +162,7 @@ xml_content_get_element (const char *content, size_t length,
       xml->readNextStartElement ();
     }
 
-  return std::nullopt;
+  return nullopt;
 }
 
 string

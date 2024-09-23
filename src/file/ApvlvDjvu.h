@@ -38,7 +38,7 @@ class ApvlvDJVU : public File
   FILE_TYPE_DECLARATION (ApvlvDJVU);
 
 public:
-  bool load (const string &filename) override;
+  bool load (const std::string &filename) override;
 
   ~ApvlvDJVU () override;
 

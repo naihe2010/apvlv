@@ -34,6 +34,8 @@
 
 namespace apvlv
 {
+using namespace std;
+
 ApvlvContent::ApvlvContent ()
 {
   setHeaderHidden (true);
@@ -55,7 +57,7 @@ ApvlvContent::ApvlvContent ()
   QObject::connect (this, SIGNAL (itemDoubleClicked (QTreeWidgetItem *, int)),
                     this, SLOT (on_row_doubleclicked ()));
 
-  mFirstTimer = std::make_unique<QTimer> ();
+  mFirstTimer = make_unique<QTimer> ();
   QObject::connect (mFirstTimer.get (), SIGNAL (timeout ()), this,
                     SLOT (first_select_cb ()));
 }

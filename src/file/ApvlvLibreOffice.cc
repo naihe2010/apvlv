@@ -35,8 +35,7 @@ namespace apvlv
 {
 FILE_TYPE_DEFINITION (ApvlvOFFICE, { ".doc", ".docx", ".xls", ".xlsx" });
 
-using std::mutex;
-using std::unique_ptr;
+using namespace std;
 
 unique_ptr<lok::Office> ApvlvOFFICE::mOffice;
 mutex ApvlvOFFICE::mLokMutex;
@@ -111,7 +110,7 @@ ApvlvOFFICE::initLokInstance ()
   if (mOffice)
     return;
 
-  std::lock_guard<std::mutex> lock (mLokMutex);
+  lock_guard<mutex> lock (mLokMutex);
 
   if (mOffice)
     return;

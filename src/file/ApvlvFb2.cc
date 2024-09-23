@@ -35,6 +35,9 @@
 
 namespace apvlv
 {
+
+using namespace std;
+
 const string stylesheet_content = ".block_c {\n"
                                   "  display: block;\n"
                                   "  font-size: 2.5em;\n"
@@ -147,7 +150,7 @@ ApvlvFB2::parse_body (const char *content, size_t length)
     {
       if (xml->isStartElement () && xml->name () == QString ("title"))
         {
-          std::stringstream ss;
+          stringstream ss;
           while (!xml->atEnd ()
                  && !(xml->isEndElement ()
                       && xml->name ().toString () == "title"))
@@ -178,7 +181,7 @@ ApvlvFB2::parse_body (const char *content, size_t length)
         }
       else if (xml->isStartElement () && xml->name ().toString () == "section")
         {
-          std::stringstream ss;
+          stringstream ss;
           string title;
           while (!xml->atEnd ()
                  && !(xml->isEndElement ()

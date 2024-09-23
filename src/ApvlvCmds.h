@@ -65,10 +65,13 @@ enum class CmdReturn
   NO_MATCH,
 };
 
-// char macro
 // because every unsigned char is < 256, so use this marco to stand for
 // Ctrl+char, Shift+char
-#define CTRL(c) ((c) + 256)
+constexpr unsigned int
+CTRL (unsigned int c)
+{
+  return c + 256;
+}
 
 using StringKeyMap = std::map<std::string, int>;
 
@@ -115,6 +118,8 @@ public:
   Command *origin ();
 
 private:
+  static StringKeyMap mKeyMap;
+
   // command type
   CmdType mType;
 
@@ -157,6 +162,8 @@ private:
   static CmdReturn isMapCommand (CommandKeyList *ack);
 
   static Command *getMapCommand (Command *cmd);
+
+  static CommandMap mMaps;
 
   std::unique_ptr<Command> mCmdHead;
 

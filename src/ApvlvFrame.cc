@@ -42,7 +42,7 @@
 namespace apvlv
 {
 
-using namespace std::filesystem;
+using namespace std;
 using namespace Qt;
 
 ApvlvFrame::ApvlvFrame (ApvlvView *view)
@@ -191,7 +191,7 @@ ApvlvFrame::setActive (bool act)
 
   if (mActive && filename ())
     {
-      auto path = std::filesystem::path (filename ());
+      auto path = filesystem::path (filename ());
       auto base = path.filename ();
       mView->settitle (base.string ());
     }
@@ -593,16 +593,17 @@ ApvlvFrame::setzoom (const char *z)
   auto zoomrate = mWidget->zoomrate ();
   if (z != nullptr)
     {
-      if (strcasecmp (z, "normal") == 0)
+      string_view sv (z);
+      if (sv == "normal")
         {
           mZoommode = NORMAL;
           zoomrate = 1.2;
         }
-      else if (strcasecmp (z, "fitwidth") == 0)
+      else if (sv == "fitwidth")
         {
           mZoommode = FITWIDTH;
         }
-      else if (strcasecmp (z, "fitheight") == 0)
+      else if (sv == "fitheight")
         {
           mZoommode = FITHEIGHT;
         }
@@ -617,7 +618,7 @@ ApvlvFrame::setzoom (const char *z)
         }
     }
 
-  if (mFile != nullptr)
+  if (mFile)
     {
       int pn = std::max (0, pageNumber () - 1);
       auto size = mFile->pageSizeF (pn, 0);
@@ -698,24 +699,14 @@ ApvlvFrame::pageNumber ()
 bool
 ApvlvFrame::loadfile (const string &filename, bool check, bool show_content)
 {
-  if (check)
+  if (check && filename == mFilestr)
     {
-      if (filename == mFilestr)
-        {
-          return false;
-        }
+      return false;
     }
+
+  mFile = File::loadFile (filename);
 
   if (mFile)
-    {
-      delete mFile;
-      mFile = nullptr;
-    }
-
-  mFile = File::loadFile (filename, false);
-
-  // qDebug ("mFile = %p", mFile);
-  if (mFile != nullptr)
     {
       emit indexGenerited (mFile->getIndex ());
 
@@ -725,8 +716,6 @@ ApvlvFrame::loadfile (const string &filename, bool check, bool show_content)
         {
           qDebug ("sum () = %d", mFile->sum ());
         }
-
-      // qDebug ("pagesum () = %d", mFile->sum ());
 
       setWidget (mFile->getDisplayType ());
 
@@ -739,16 +728,15 @@ ApvlvFrame::loadfile (const string &filename, bool check, bool show_content)
 
       if (gParams->getIntOrDefault ("autoreload") > 0)
         {
-          mWatcher = std::make_unique<QFileSystemWatcher> ();
+          mWatcher = make_unique<QFileSystemWatcher> ();
           // QObject::connect(mWatcher, SIGNAL(fileChanged()), this,
           // SLOT(changed_cb()));
 
-          auto systempath = std::filesystem::path (filename);
-          if (std::filesystem::is_symlink (systempath))
+          auto systempath = filesystem::path (filename);
+          if (filesystem::is_symlink (systempath))
             {
-              auto realname
-                  = std::filesystem::read_symlink (systempath).string ();
-              if (std::filesystem::is_regular_file (realname))
+              auto realname = filesystem::read_symlink (systempath).string ();
+              if (filesystem::is_regular_file (realname))
                 {
                   mWatcher->addPath (QString::fromLocal8Bit (realname));
                 }
@@ -1091,13 +1079,13 @@ ApvlvFrame::setWidget (DISPLAY_TYPE type)
 {
   if (type == DISPLAY_TYPE_IMAGE)
     {
-      mWidget = std::make_unique<ImageWidget> ();
-      mWidget->setFile (mFile);
+      mWidget = make_unique<ImageWidget> ();
+      mWidget->setFile (mFile.get ());
     }
   else if (type == DISPLAY_TYPE_HTML)
     {
-      mWidget = std::make_unique<WebViewWidget> ();
-      mWidget->setFile (mFile);
+      mWidget = make_unique<WebViewWidget> ();
+      mWidget->setFile (mFile.get ());
     }
   else
     {
@@ -1155,21 +1143,18 @@ ApvlvFrame::updateStatus ()
       auto sr = mWidget->scrollRate ();
       string anchor = mWidget->anchor ();
 
-      auto systempath = std::filesystem::path (filename ());
+      auto systempath = filesystem::path (filename ());
       auto bn = systempath.filename ();
       labels.emplace_back (bn.string ());
 
-      std::ostringstream ss;
-      ss << pn << "/" << totpn;
-      labels.emplace_back (ss.str ());
+      auto ss = QString ("%1/%2").arg (pn).arg (totpn);
+      labels.emplace_back (ss.toStdString ());
 
-      ss.str ("");
-      ss << static_cast<int> (zm * 100) << "%";
-      labels.emplace_back (ss.str ());
+      ss = QString ("%1%").arg (static_cast<int> (zm * 100));
+      labels.emplace_back (ss.toStdString ());
 
-      ss.str ("");
-      ss << static_cast<int> (sr * 100) << "%";
-      labels.emplace_back (ss.str ());
+      ss = QString ("%1%").arg (static_cast<int> (sr * 100));
+      labels.emplace_back (ss.toStdString ());
 
       mStatus->showMessages (labels);
 

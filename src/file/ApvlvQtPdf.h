@@ -42,7 +42,7 @@ class PDFWidget : public FileWidget
 public:
   QWidget *createWidget () override;
   void showPage (int, double s) override;
-  void showPage (int, const string &anchor) override;
+  void showPage (int, const std::string &anchor) override;
 
   void setSearchSelect (int select) override;
 
@@ -54,7 +54,7 @@ class ApvlvPDF : public File
   FILE_TYPE_DECLARATION (ApvlvPDF);
 
 public:
-  bool load (const string &filename) override;
+  bool load (const std::string &filename) override;
 
   ~ApvlvPDF () override = default;
 
@@ -72,17 +72,18 @@ public:
 
   bool pageRender (int, double, int, QImage *) override;
 
-  bool pageText (int, const Rectangle &rect, string &text) override;
+  bool pageText (int, const Rectangle &rect, std::string &text) override;
 
-  unique_ptr<WordListRectangle> pageSearch (int pn, const char *s) override;
+  std::unique_ptr<WordListRectangle> pageSearch (int pn,
+                                                 const char *s) override;
 
 private:
   bool pdf_get_index ();
   void pdf_get_index_iter (FileIndex &, const QPdfBookmarkModel *,
                            const QModelIndex &);
 
-  unique_ptr<QPdfDocument> mDoc;
-  unique_ptr<QPdfSearchModel> mSearchModel;
+  std::unique_ptr<QPdfDocument> mDoc;
+  std::unique_ptr<QPdfSearchModel> mSearchModel;
 
   QWidget *mView;
 

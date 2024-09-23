@@ -39,7 +39,7 @@ class ApvlvPDF : public File
   FILE_TYPE_DECLARATION (ApvlvPDF);
 
 public:
-  bool load (const string &filename) override;
+  bool load (const std::string &filename) override;
 
   ~ApvlvPDF () override = default;
 
@@ -55,15 +55,16 @@ public:
 
   bool pageRender (int, double, int, QImage *) override;
 
-  optional<vector<Rectangle> > pageHighlight (int pn, const ApvlvPoint &pa,
-                                              const ApvlvPoint &pb) override;
+  std::optional<std::vector<Rectangle> >
+  pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb) override;
 
-  bool pageText (int pn, const Rectangle &rect, string &text) override;
+  bool pageText (int pn, const Rectangle &rect, std::string &text) override;
 
-  unique_ptr<WordListRectangle> pageSearch (int pn, const char *str) override;
+  std::unique_ptr<WordListRectangle> pageSearch (int pn,
+                                                 const char *str) override;
 
 private:
-  unique_ptr<mupdf::FzDocument> mDoc;
+  std::unique_ptr<mupdf::FzDocument> mDoc;
 
   void mupdf_get_index ();
   void mupdf_get_index_recursively (FileIndex &index,

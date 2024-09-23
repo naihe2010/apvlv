@@ -37,7 +37,7 @@ class ApvlvIMAGE : public ApvlvHTML
 
 public:
   bool
-  load (const string &filename) override
+  load (const std::string &filename) override
   {
     return true;
   }

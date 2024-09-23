@@ -33,22 +33,18 @@
 
 namespace apvlv
 {
-using std::optional;
-using std::string;
-using std::unique_ptr;
-using std::vector;
 
 // Global files
-extern string helppdf;
-extern string iniexam;
-extern string icondir;
-extern string iconfile;
-extern string iconpage;
-extern string translations;
+extern std::string helppdf;
+extern std::string iniexam;
+extern std::string icondir;
+extern std::string iconfile;
+extern std::string iconpage;
+extern std::string translations;
 
-extern string inifile;
-extern string sessionfile;
-extern string logfile;
+extern std::string inifile;
+extern std::string sessionfile;
+extern std::string logfile;
 
 void getRuntimePaths ();
 
@@ -64,18 +60,19 @@ void getRuntimePaths ();
 #define PATH_SEP_S "/"
 #endif
 
-optional<unique_ptr<QXmlStreamReader> >
+std::optional<std::unique_ptr<QXmlStreamReader> >
 xml_content_get_element (const char *content, size_t length,
-                         const vector<string> &names);
+                         const std::vector<std::string> &names);
 
-string xml_stream_get_attribute_value (QXmlStreamReader *xml,
-                                       const string &key);
+std::string xml_stream_get_attribute_value (QXmlStreamReader *xml,
+                                            const std::string &key);
 
-string xml_content_get_attribute_value (const char *content, size_t length,
-                                        const vector<string> &names,
-                                        const string &key);
+std::string
+xml_content_get_attribute_value (const char *content, size_t length,
+                                 const std::vector<std::string> &names,
+                                 const std::string &key);
 
-string filename_ext (const string &filename);
+std::string filename_ext (const std::string &filename);
 
 void imageArgb32ToRgb32 (QImage &image, int left, int top, int right,
                          int bottom);

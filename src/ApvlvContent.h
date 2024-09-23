@@ -61,12 +61,13 @@ public:
 
   const FileIndex *currentFileIndex ();
 
-  bool find_index_and_select (QTreeWidgetItem *itr, const string &path, int pn,
-                              const string &anchor);
+  bool find_index_and_select (QTreeWidgetItem *itr, const std::string &path,
+                              int pn, const std::string &anchor);
   bool find_index_and_append (FileIndex &root, const QString &path,
                               const FileIndex &index);
 
-  void setCurrentIndex (const string &path, int pn, const string &anchor);
+  void setCurrentIndex (const std::string &path, int pn,
+                        const std::string &anchor);
 
   void
   setFrame (ApvlvFrame *frame)
@@ -95,7 +96,7 @@ public:
   }
 
 private:
-  map<FileIndexType, QIcon> mTypeIcons;
+  std::map<FileIndexType, QIcon> mTypeIcons;
 
   bool mIsFocused;
 
@@ -103,7 +104,7 @@ private:
 
   ApvlvFrame *mFrame{ nullptr };
 
-  unique_ptr<QTimer> mFirstTimer;
+  std::unique_ptr<QTimer> mFirstTimer;
 
   QTreeWidgetItem *mCurrentItem{ nullptr };
 

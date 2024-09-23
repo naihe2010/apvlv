@@ -72,9 +72,9 @@ private:
 
   QImage mImage;
 
-  pair<ApvlvPoint, ApvlvPoint> selectionRange ();
-  vector<Rectangle> selectionArea ();
-  string selectionText ();
+  std::pair<ApvlvPoint, ApvlvPoint> selectionRange ();
+  std::vector<Rectangle> selectionArea ();
+  std::string selectionText ();
 
 private slots:
   void copy ();
@@ -102,7 +102,7 @@ public:
   QWidget *createWidget () override;
 
   void showPage (int, double s) override;
-  void showPage (int, const string &anchor) override;
+  void showPage (int, const std::string &anchor) override;
 
   void setSearchResults (const WordListRectangle &wlr) override;
   void setZoomrate (double zm) override;
@@ -112,9 +112,10 @@ public:
 bool imageSelectSearch (QImage *pix, double zm, int select,
                         const WordListRectangle &poses);
 
-bool imageSelect (QImage *pix, double zm, const vector<Rectangle> &poses);
+bool imageSelect (QImage *pix, double zm, const std::vector<Rectangle> &poses);
 
-bool imageUnderline (QImage *pix, double zm, const vector<Rectangle> &poses);
+bool imageUnderline (QImage *pix, double zm,
+                     const std::vector<Rectangle> &poses);
 
 }
 

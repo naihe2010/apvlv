@@ -32,10 +32,11 @@
 
 namespace apvlv
 {
+
 class ApvlvLab : public File
 {
 public:
-  bool load (const string &filename) override;
+  bool load (const std::string &filename) override;
 
   ~ApvlvLab () override;
 

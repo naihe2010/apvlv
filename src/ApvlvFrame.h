@@ -43,24 +43,25 @@
 
 namespace apvlv
 {
+
 struct ApvlvDocPosition
 {
   int pagenum;
   double scrollrate;
 };
 
-using ApvlvDocPositionMap = map<char, ApvlvDocPosition>;
+using ApvlvDocPositionMap = std::map<char, ApvlvDocPosition>;
 
 struct ApvlvWord
 {
   CharRectangle pos;
-  string word;
+  std::string word;
 };
 
 struct ApvlvLine
 {
   CharRectangle pos;
-  vector<ApvlvWord> mWords;
+  std::vector<ApvlvWord> mWords;
 };
 
 class ApvlvFrame;
@@ -74,7 +75,7 @@ public:
 
   void setActive (bool act);
 
-  void showMessages (const vector<string> &msgs);
+  void showMessages (const std::vector<std::string> &msgs);
 };
 
 const int DEFAULT_CONTENT_WIDTH = 30;
@@ -87,7 +88,7 @@ class ApvlvFrame : public QFrame
 public:
   explicit ApvlvFrame (ApvlvView *);
 
-  virtual ~ApvlvFrame ();
+  ~ApvlvFrame () override;
 
   virtual bool reload ();
 
@@ -97,16 +98,17 @@ public:
 
   virtual ApvlvFrame *copy ();
 
-  virtual void setDirIndex (const string &path);
+  virtual void setDirIndex (const std::string &path);
 
-  virtual bool loadfile (const string &file, bool check, bool show_content);
+  virtual bool loadfile (const std::string &file, bool check,
+                         bool show_content);
 
   virtual const char *filename ();
 
   virtual int pageNumber ();
 
   virtual void showpage (int pn, double s);
-  virtual void showpage (int pn, const string &anchor);
+  virtual void showpage (int pn, const std::string &anchor);
   virtual void refresh (int pn, double s);
 
   virtual void setActive (bool act);
@@ -141,8 +143,8 @@ public:
 
   virtual void returnlink (int ct);
 
-  bool loadLastPosition (const string &filename);
-  bool saveLastPosition (const string &filename);
+  bool loadLastPosition (const std::string &filename);
+  bool saveLastPosition (const std::string &filename);
 
   void contentShowPage (const FileIndex *index, bool force);
 
@@ -166,21 +168,21 @@ public:
   static ApvlvFrame *findByWidget (QWidget *widget);
 
 protected:
-  File *mFile{};
+  std::unique_ptr<File> mFile;
 
   FileIndex mDirIndex{};
 
   bool mInuse;
 
-  unique_ptr<QFileSystemWatcher> mWatcher;
+  std::unique_ptr<QFileSystemWatcher> mWatcher;
 
-  string mFilestr;
+  std::string mFilestr;
 
   uint mProCmd;
 
   char mSearchCmd{};
-  unique_ptr<WordListRectangle> mSearchResults;
-  string mSearchStr;
+  std::unique_ptr<WordListRectangle> mSearchResults;
+  std::string mSearchStr;
 
   enum
   {
@@ -207,7 +209,7 @@ protected:
   ApvlvContent *mContent;
 
   // the custom widget
-  unique_ptr<FileWidget> mWidget;
+  std::unique_ptr<FileWidget> mWidget;
 
   // if active
   bool mActive{};
@@ -218,7 +220,7 @@ protected:
   void setWidget (DISPLAY_TYPE type);
   void unsetHighlight ();
   void setHighlightAndIndex (const WordListRectangle &poses, int sel);
-  bool needsearch (const string &str, bool reverse);
+  bool needsearch (const std::string &str, bool reverse);
   CmdReturn subprocess (int ct, uint key);
 
 signals:
