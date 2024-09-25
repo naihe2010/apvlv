@@ -27,7 +27,7 @@
 #ifndef _APVLV_FILE_H_
 #define _APVLV_FILE_H_
 
-#include <QPrinter>
+#include <QImage>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -39,11 +39,11 @@
 namespace apvlv
 {
 
-enum DISPLAY_TYPE
+enum class DISPLAY_TYPE
 {
-  DISPLAY_TYPE_IMAGE = 0,
-  DISPLAY_TYPE_HTML = 1,
-  DISPLAY_TYPE_CUSTOM = 2,
+  IMAGE,
+  HTML,
+  CUSTOM,
 };
 
 //
@@ -147,7 +147,7 @@ public:
   [[nodiscard]] virtual DISPLAY_TYPE
   getDisplayType () const
   {
-    return DISPLAY_TYPE_HTML;
+    return DISPLAY_TYPE::HTML;
   }
 
   virtual FileWidget *

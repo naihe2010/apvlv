@@ -211,6 +211,29 @@
         <source>Back Search</source>
         <translation>反向查找</translation>
     </message>
+    <message>
+        <source>StatusBar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Dired</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>apvlv::DiredDialog</name>
+    <message>
+        <source>Regular expression</source>
+        <translation type="obsolete">正则表达式</translation>
+    </message>
+    <message>
+        <source>Find Directory: </source>
+        <translation type="obsolete">查找目录：</translation>
+    </message>
+    <message>
+        <source>...</source>
+        <translation type="obsolete">……</translation>
+    </message>
 </context>
 <context>
     <name>apvlv::SearchDialog</name>

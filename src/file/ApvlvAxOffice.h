@@ -111,7 +111,7 @@ public:
   [[nodiscard]] virtual DISPLAY_TYPE
   getDisplayType () const override
   {
-    return DISPLAY_TYPE_CUSTOM;
+    return DISPLAY_TYPE::CUSTOM;
   }
 
   ExcelWidget *getWidget () override;

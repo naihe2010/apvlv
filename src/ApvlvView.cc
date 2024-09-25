@@ -38,6 +38,7 @@
 #include <filesystem>
 #include <sstream>
 
+#include "ApvlvDired.h"
 #include "ApvlvInfo.h"
 #include "ApvlvParams.h"
 #include "ApvlvSearchDialog.h"
@@ -100,6 +101,11 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
       mParent->append_child (this);
     }
 
+  auto guiopt = gParams->getStringOrDefault ("guioptions", "mTS");
+  isMenuBarShow = guiopt.find ('m') != string::npos;
+  isToolBarShow = guiopt.find ('T') != string::npos;
+  isStatusShow = guiopt.find ('S') != string::npos;
+
   mCmdType = CmdStatusType::CMD_NONE;
 
   mProCmd = 0;
@@ -130,22 +136,20 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
   setCentralWidget (mCentral);
 
   mMenuBar = new QMenuBar ();
+  setupMenuBar ();
   setMenuBar (mMenuBar);
   mToolBar = new QToolBar ();
+  setupToolBar ();
   addToolBar (Qt::TopToolBarArea, mToolBar);
 
-  auto guiopt = gParams->getStringOrDefault ("guioptions", "mT");
-  if (guiopt.find ('m') == string::npos)
+  if (!isMenuBarShow)
     {
       mMenuBar->hide ();
     }
-  if (guiopt.find ('T') == string::npos)
+  if (!isToolBarShow)
     {
       mToolBar->hide ();
     }
-
-  setupMenuBar ();
-  setupToolBar ();
 
   auto box = new QVBoxLayout ();
   mCentral->setLayout (box);
@@ -238,7 +242,7 @@ ApvlvView::open ()
 
   // qDebug ("lastfile: [%s], dirname: [%s]", fp ? fp->file.c_str () : "",
   // dirname);
-  auto mimes = File::supportMimeTypes ();
+  auto const mimes = File::supportMimeTypes ();
   QString filters;
   for (const auto &m : mimes)
     {
@@ -322,6 +326,15 @@ void
 ApvlvView::advancedSearch ()
 {
   auto diag = SearchDialog (this);
+  QObject::connect (&diag, SIGNAL (loadFile (const string &, int)), this,
+                    SLOT (loadFileOnPage (const string &, int)));
+  diag.exec ();
+}
+
+void
+ApvlvView::dired ()
+{
+  auto diag = DiredDialog (this);
   QObject::connect (&diag, SIGNAL (loadFile (const string &, int)), this,
                     SLOT (loadFileOnPage (const string &, int)));
   diag.exec ();
@@ -510,25 +523,23 @@ ApvlvView::setupMenuBar ()
   action = medit->addAction (tr ("Back Search"));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (backSearch ()));
-  action = medit->addAction (tr ("Advanced Search"));
-  QObject::connect (action, SIGNAL (triggered (bool)), this,
-                    SLOT (advancedSearch ()));
 
   // View ->
   auto mview = new QMenu (tr ("View"));
   mMenuBar->addMenu (mview);
+
   action = mview->addAction (tr ("ToolBar"));
   action->setCheckable (true);
-  if (mToolBar->isHidden ())
-    {
-      action->setChecked (false);
-    }
-  else
-    {
-      action->setChecked (true);
-    }
+  action->setChecked (isToolBarShow);
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (toggleToolBar ()));
+
+  action = mview->addAction (tr ("StatusBar"));
+  action->setCheckable (true);
+  action->setChecked (isStatusShow);
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (toggleStatus ()));
+
   action = mview->addAction (tr ("Horizontal Split"));
   QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (hsplit ()));
   action = mview->addAction (tr ("Vertical Split"));
@@ -550,6 +561,11 @@ ApvlvView::setupMenuBar ()
   // Tools
   auto mtools = new QMenu (tr ("Tools"));
   mMenuBar->addMenu (mtools);
+  action = mtools->addAction (tr ("Advanced Search"));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (advancedSearch ()));
+  action = mtools->addAction (tr ("Dired"));
+  QObject::connect (action, SIGNAL (trigged (bool)), this, SLOT (dired ()));
 
   // Help -> about
   auto mhelp = new QMenu (tr ("Help"));
@@ -762,6 +778,22 @@ ApvlvView::toggleToolBar ()
   else
     {
       mToolBar->hide ();
+    }
+}
+
+void
+ApvlvView::toggleStatus ()
+{
+  for (auto &doc : mDocs)
+    {
+      if (doc->isStatusHidden ())
+        {
+          doc->statusShow ();
+        }
+      else
+        {
+          doc->statusHide ();
+        }
     }
 }
 

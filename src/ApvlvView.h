@@ -74,7 +74,7 @@ class ApvlvView : public QMainWindow
 public:
   explicit ApvlvView (ApvlvView *view = nullptr);
 
-  virtual ~ApvlvView ();
+  ~ApvlvView () override;
 
   ApvlvWindow *currentWindow ();
 
@@ -138,6 +138,8 @@ public slots:
 
   void advancedSearch ();
 
+  void dired ();
+
   void fullscreen ();
 
   void nextPage ();
@@ -147,6 +149,8 @@ public slots:
   void toggleContent ();
 
   void toggleToolBar ();
+
+  void toggleStatus ();
 
   void newtab ();
 
@@ -188,6 +192,10 @@ private:
 
   QTabWidget *mTabContainer;
   ApvlvCommandBar *mCommandBar;
+
+  bool isMenuBarShow;
+  bool isToolBarShow;
+  bool isStatusShow;
 
   QMenuBar *mMenuBar;
   QToolBar *mToolBar;

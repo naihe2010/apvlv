@@ -61,7 +61,7 @@ public:
   [[nodiscard]] DISPLAY_TYPE
   getDisplayType () const override
   {
-    return DISPLAY_TYPE_IMAGE;
+    return DISPLAY_TYPE::IMAGE;
   }
 
   PDFWidget *getWidget () override;

@@ -90,6 +90,11 @@ ApvlvFrame::ApvlvFrame (ApvlvView *view)
 
   mStatus = new ApvlvStatus ();
   mVbox->addWidget (mStatus, 0);
+  auto guiopt = gParams->getStringOrDefault ("guioptions");
+  if (guiopt.find ("S") == string::npos)
+    {
+      mStatus->hide ();
+    }
   qDebug ("ApvlvFrame: %p be created", this);
 }
 
@@ -1077,12 +1082,12 @@ ApvlvFrame::contentShowPage (const FileIndex *index, bool force)
 void
 ApvlvFrame::setWidget (DISPLAY_TYPE type)
 {
-  if (type == DISPLAY_TYPE_IMAGE)
+  if (type == DISPLAY_TYPE::IMAGE)
     {
       mWidget = make_unique<ImageWidget> ();
       mWidget->setFile (mFile.get ());
     }
-  else if (type == DISPLAY_TYPE_HTML)
+  else if (type == DISPLAY_TYPE::HTML)
     {
       mWidget = make_unique<WebViewWidget> ();
       mWidget->setFile (mFile.get ());
@@ -1161,6 +1166,24 @@ ApvlvFrame::updateStatus ()
       mContent->setCurrentIndex (mFilestr, mWidget->pageNumber (),
                                  mWidget->anchor ());
     }
+}
+
+bool
+ApvlvFrame::isStatusHidden ()
+{
+  return mStatus->isHidden ();
+}
+
+void
+ApvlvFrame::statusShow ()
+{
+  mStatus->show ();
+}
+
+void
+ApvlvFrame::statusHide ()
+{
+  mStatus->hide ();
 }
 
 }

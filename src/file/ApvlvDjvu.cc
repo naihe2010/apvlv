@@ -24,8 +24,6 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
-#include <QThread>
-
 #include "ApvlvDjvu.h"
 #include "ApvlvUtil.h"
 
@@ -167,7 +165,7 @@ ApvlvDJVU::pageRender (int pn, double zm, int rot, QImage *pix)
                                3 * ix, buffer.get ())
                 == false)
     {
-      QThread::msleep (50);
+      this_thread::sleep_for (50ms);
       ++retry;
       qDebug ("fender failed, retry %d", retry);
     }

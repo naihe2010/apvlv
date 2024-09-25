@@ -115,6 +115,12 @@ public:
 
   virtual void updateStatus ();
 
+  virtual bool isStatusHidden ();
+
+  virtual void statusShow ();
+
+  virtual void statusHide ();
+
   virtual bool print (int ct);
 
   virtual bool totext (const char *name);

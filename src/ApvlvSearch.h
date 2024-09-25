@@ -28,6 +28,7 @@
 #ifndef _APVLV_SEARCH_H_
 #define _APVLV_SEARCH_H_
 
+#include <atomic>
 #include <string>
 #include <thread>
 #include <vector>

@@ -25,13 +25,8 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
-#include <QCheckBox>
-#include <QFileDialog>
-#include <QFileSystemModel>
-#include <QPushButton>
-#include <QSplitter>
-#include <QVBoxLayout>
 #include <algorithm>
+#include <filesystem>
 #include <regex>
 #include <stack>
 

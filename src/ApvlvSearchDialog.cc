@@ -43,7 +43,8 @@ namespace apvlv
 {
 using namespace std;
 
-SearchDialog::SearchDialog (QWidget *parent) : mPreviewIsFinished (true)
+SearchDialog::SearchDialog (QWidget *parent)
+    : QDialog (parent), mPreviewIsFinished (true)
 {
   auto vbox = new QVBoxLayout;
   setLayout (vbox);

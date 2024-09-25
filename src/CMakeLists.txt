@@ -78,6 +78,7 @@ SET(HEADERS
         ApvlvLog.h
         ApvlvSearch.h
         ApvlvSearchDialog.h
+        ApvlvDired.h
         ApvlvQueue.h
         ApvlvImageWidget.h
         ApvlvWebViewWidget.h
@@ -101,6 +102,7 @@ SET(SOURCES
         ApvlvLog.cc
         ApvlvSearch.cc
         ApvlvSearchDialog.cc
+        ApvlvDired.cc
         ApvlvImageWidget.cc
         ApvlvWebViewWidget.cc
         file/ApvlvHtm.cc
