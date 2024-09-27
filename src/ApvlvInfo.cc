@@ -134,7 +134,8 @@ ApvlvInfo::updateFile (int page, int skip, double rate, const string &filename)
 bool
 ApvlvInfo::ini_add_position (const char *str)
 {
-  const char *p, *s;
+  const char *p;
+  const char *s;
 
   p = strchr (str + 2, '\t'); /* Skip the ' and the digit */
   if (p == nullptr)

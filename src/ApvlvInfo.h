@@ -25,7 +25,7 @@
  */
 
 #ifndef _APVLV_INFO_H_
-#define _APVLV_INFO_H_ 1
+#define _APVLV_INFO_H_
 
 #include <optional>
 #include <string>

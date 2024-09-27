@@ -42,7 +42,8 @@ struct SearchMatch
 {
   std::string match;
   std::string line;
-  size_t pos, length;
+  size_t pos;
+  size_t length;
 };
 
 using SearchMatchList = std::vector<SearchMatch>;
@@ -62,7 +63,14 @@ struct SearchFileMatch
 class SearchOptions
 {
 public:
-  bool operator== (const SearchOptions &other) const;
+  friend bool
+  operator== (SearchOptions const &opt, SearchOptions const &other)
+  {
+    return opt.mText == other.mText
+           && opt.mCaseSensitive != other.mCaseSensitive
+           && opt.mRegex != other.mRegex && opt.mTypes != other.mTypes
+           && opt.mFromDir != other.mFromDir;
+  }
 
   std::string mText;
   bool mCaseSensitive;

@@ -90,7 +90,7 @@ ApvlvOfficeWord::pageText (int pn, const Rectangle &rect, string &text)
 }
 
 bool
-ApvlvOfficeWord::pageRender (int pn, double zm, int rot, QImage *pix)
+ApvlvOfficeWord::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 {
   char szFormatName[1024];
   const char *lpFormatName;
@@ -182,7 +182,8 @@ ApvlvOfficeWord::pageRender (int pn, double zm, int rot, QImage *pix)
 }
 
 bool
-ApvlvOfficeWord::pageRender (int pn, double zm, int rot, WebView *webview)
+ApvlvOfficeWord::pageRenderToWebView (int pn, double zm, int rot,
+                                      WebView *webview)
 {
   webview->setZoomFactor (zm);
   QUrl url = QString ("apvlv:///%1").arg (pn);
@@ -270,7 +271,7 @@ ApvlvPowerPoint::pageText (int pn, const Rectangle &rect, string &text)
 }
 
 bool
-ApvlvPowerPoint::pageRender (int pn, double zm, int rot, QImage *pix)
+ApvlvPowerPoint::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 {
   auto slides = mDoc->querySubObject ("Slides");
   auto slide = slides->querySubObject ("Item(int)", pn + 1);

@@ -70,7 +70,7 @@ ApvlvPDF::sum ()
 }
 
 bool
-ApvlvPDF::pageRender (int pn, double zm, int rot, QImage *pix)
+ApvlvPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 {
   auto matrix
       = FzMatrix::fz_scale (static_cast<float> (zm), static_cast<float> (zm));
@@ -146,7 +146,7 @@ ApvlvPDF::pageSearch (int pn, const char *str)
 void
 ApvlvPDF::mupdf_get_index ()
 {
-  mIndex = { "", 0, "", FILE_INDEX_FILE };
+  mIndex = { "", 0, "", FileIndexType::FILE };
   auto toc = mDoc->fz_load_outline ();
   while (toc.m_internal != nullptr)
     {
@@ -161,7 +161,7 @@ void
 ApvlvPDF::mupdf_get_index_recursively (FileIndex &index,
                                        mupdf::FzOutline &outline)
 {
-  index.type = FILE_INDEX_PAGE;
+  index.type = FileIndexType::PAGE;
   index.title = outline.title ();
   index.page = mDoc->fz_page_number_from_location (outline.page ());
   index.path = outline.uri ();

@@ -39,6 +39,7 @@ using namespace std;
 void
 FileWidget::scroll (int times, int w, int h)
 {
+  // need impl in child
 }
 
 double

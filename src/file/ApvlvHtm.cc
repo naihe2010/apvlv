@@ -44,7 +44,7 @@ ApvlvHTML::load (const string &filename)
 }
 
 bool
-ApvlvHTML::pageRender (int pn, double zm, int rot, WebView *webview)
+ApvlvHTML::pageRenderToWebView (int pn, double zm, int rot, WebView *webview)
 {
   webview->setZoomFactor (zm);
   webview->load (mUrl);

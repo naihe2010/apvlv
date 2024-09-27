@@ -85,7 +85,7 @@ ApvlvEPUB::sum ()
 }
 
 bool
-ApvlvEPUB::pageRender (int pn, double zm, int rot, WebView *webview)
+ApvlvEPUB::pageRenderToWebView (int pn, double zm, int rot, WebView *webview)
 {
   webview->setZoomFactor (zm);
   QUrl epuburi = QString ("apvlv:///") + QString::fromLocal8Bit (mPages[pn]);
@@ -264,7 +264,7 @@ ApvlvEPUB::ncx_set_index (const string &ncxfile)
       return false;
     }
 
-  mIndex = { "__cover__", 0, getFilename (), FILE_INDEX_FILE };
+  mIndex = { "__cover__", 0, getFilename (), FileIndexType::FILE };
 
   auto xml = optxml->get ();
   ncx_node_set_index (xml, "navMap", ncxfile, mIndex);

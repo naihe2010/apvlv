@@ -83,16 +83,8 @@ ApvlvOFFICE::pageText (int pn, const Rectangle &rect, string &text)
 }
 
 bool
-ApvlvOFFICE::pageRender (int pn, double zm, int rot, QImage *pix)
+ApvlvOFFICE::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 {
-  /*
-  auto width = static_cast<int>(ix * zm);
-  auto height = static_cast<int>(iy * zm);
-  auto size = static_cast<size_t>(width) * height * 4;
-  auto buffer = make_unique<unsigned char>(size);
-  mFrame->paintPartTile (buffer.get(), pn, 0, width, height, 0, 0, ix, iy);
-  *pix = QImage(buffer.get(), width, height, QImage::Format_ARGB32);
-   */
   mDoc->setPart (pn);
   QTemporaryFile file;
   if (file.open ())

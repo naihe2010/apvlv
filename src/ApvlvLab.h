@@ -25,7 +25,7 @@
  */
 
 #ifndef _APVLV_LAB_H_
-#define _APVLV_LAB_H_ 1
+#define _APVLV_LAB_H_
 
 #include "ApvlvFile.h"
 #include <QWebEngineView>
@@ -40,7 +40,8 @@ public:
 
   ~ApvlvLab () override;
 
-  bool pageRender (int pn, double zm, int rot, WebView *webview) override;
+  bool pageRenderToWebView (int pn, double zm, int rot,
+                            WebView *webview) override;
 
 private:
 };

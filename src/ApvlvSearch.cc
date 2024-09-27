@@ -38,22 +38,6 @@ namespace apvlv
 {
 using namespace std;
 
-bool
-SearchOptions::operator== (const SearchOptions &other) const
-{
-  if (mText != other.mText)
-    return false;
-  if (mCaseSensitive != other.mCaseSensitive)
-    return false;
-  if (mRegex != other.mRegex)
-    return false;
-  if (mTypes != other.mTypes)
-    return false;
-  if (mFromDir != other.mFromDir)
-    return false;
-  return true;
-}
-
 Searcher::Searcher () : mRestart (false), mQuit (false)
 {
   auto task = thread (&Searcher::dispatch, this);

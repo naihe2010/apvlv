@@ -66,9 +66,10 @@ public:
 
   bool pageText (int pn, const Rectangle &rect, std::string &text) override;
 
-  bool pageRender (int pn, double zm, int rot, QImage *pix) override;
+  bool pageRenderToImage (int pn, double zm, int rot, QImage *pix) override;
 
-  bool pageRender (int pn, double zm, int rot, WebView *webview) override;
+  bool pageRenderToWebView (int pn, double zm, int rot,
+                            WebView *webview) override;
 
   std::optional<QByteArray> pathContent (const std::string &path) override;
 };
@@ -86,7 +87,7 @@ public:
 
   bool pageText (int pn, const Rectangle &rect, std::string &text) override;
 
-  bool pageRender (int pn, double zm, int rot, QImage *pix) override;
+  bool pageRenderToImage (int pn, double zm, int rot, QImage *pix) override;
 };
 
 class ExcelWidget : public FileWidget

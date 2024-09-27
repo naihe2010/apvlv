@@ -65,7 +65,6 @@ ImageContainer::mousePressEvent (QMouseEvent *event)
     return;
 
   redraw ();
-  // qDebug () << "mouse press at " << event->position ();
   mIsSelected = true;
   mPressPosition = event->position ();
 }
@@ -76,7 +75,6 @@ ImageContainer::mouseMoveEvent (QMouseEvent *event)
   if (!mIsSelected)
     return;
 
-  // qDebug () << "mouse move to " << event->position ();
   mMovePosition = event->position ();
 
   auto range = selectionRange ();
@@ -99,7 +97,7 @@ ImageContainer::mouseReleaseEvent (QMouseEvent *event)
 bool
 ImageContainer::renderImage (int pn, double zm, int rot)
 {
-  return mImageWidget->file ()->pageRender (pn, zm, rot, &mImage);
+  return mImageWidget->file ()->pageRenderToImage (pn, zm, rot, &mImage);
 }
 
 void

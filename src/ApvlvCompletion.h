@@ -24,7 +24,7 @@
  *  Author: Alf <naihe2010@126.com>
  */
 #ifndef _APVLV_COMPLETION_H_
-#define _APVLV_COMPLETION_H_ 1
+#define _APVLV_COMPLETION_H_
 
 #include <string>
 #include <vector>

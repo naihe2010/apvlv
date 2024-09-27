@@ -99,10 +99,10 @@ ApvlvLab::load (const string &filename)
   return false;
 }
 
-ApvlvLab::~ApvlvLab () {}
+ApvlvLab::~ApvlvLab () = default;
 
 bool
-ApvlvLab::pageRender (int pn, double zm, int rot, WebView *webview)
+ApvlvLab::pageRenderToWebView (int pn, double zm, int rot, WebView *webview)
 {
   webview->setZoomFactor (zm);
   QUrl url = QString ("apvlv:///") + QString::number (pn);

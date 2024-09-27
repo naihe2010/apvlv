@@ -25,7 +25,7 @@
  */
 
 #ifndef _APVLV_QTPDF_H_
-#define _APVLV_QTPDF_H_ 1
+#define _APVLV_QTPDF_H_
 
 #include <QPdfBookmarkModel>
 #include <QPdfDocument>
@@ -70,7 +70,7 @@ public:
 
   int sum () override;
 
-  bool pageRender (int, double, int, QImage *) override;
+  bool pageRenderToImage (int pn, double zm, int rot, QImage *img) override;
 
   bool pageText (int, const Rectangle &rect, std::string &text) override;
 

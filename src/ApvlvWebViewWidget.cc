@@ -88,7 +88,7 @@ void
 WebViewWidget::showPage (int p, double s)
 {
   auto widget = dynamic_cast<WebView *> (mWidget);
-  mFile->pageRender (p, mZoomrate, 0, widget);
+  mFile->pageRenderToWebView (p, mZoomrate, 0, widget);
   mPageNumber = p;
 }
 
@@ -96,7 +96,7 @@ void
 WebViewWidget::showPage (int p, const string &anchor)
 {
   auto widget = dynamic_cast<WebView *> (mWidget);
-  mFile->pageRender (p, mZoomrate, 0, widget);
+  mFile->pageRenderToWebView (p, mZoomrate, 0, widget);
   mPageNumber = p;
   mAnchor = anchor;
 }

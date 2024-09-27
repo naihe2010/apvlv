@@ -46,7 +46,8 @@ public:
 
   int sum () override;
 
-  bool pageRender (int pn, double zm, int rot, WebView *widget) override;
+  bool pageRenderToWebView (int pn, double zm, int rot,
+                            WebView *widget) override;
 
   std::unique_ptr<WordListRectangle> pageSearch (int pn,
                                                  const char *s) override;

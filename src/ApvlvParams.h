@@ -26,7 +26,7 @@
  */
 
 #ifndef _APVLV_PARAMS_H_
-#define _APVLV_PARAMS_H_ 1
+#define _APVLV_PARAMS_H_
 
 #include <map>
 #include <string>

@@ -29,6 +29,7 @@
 #include <QMessageBox>
 #include <QSplitter>
 #include <filesystem>
+#include <fstream>
 #include <memory>
 
 #include "ApvlvFileWidget.h"
@@ -44,6 +45,7 @@ namespace apvlv
 
 using namespace std;
 using namespace Qt;
+using namespace CommandModeType;
 
 ApvlvFrame::ApvlvFrame (ApvlvView *view)
 {
@@ -53,7 +55,7 @@ ApvlvFrame::ApvlvFrame (ApvlvView *view)
 
   mProCmd = 0;
 
-  mZoommode = NORMAL;
+  mZoommode = ZoomMode::NORMAL;
 
   mSearchResults = nullptr;
   mSearchStr = "";
@@ -206,7 +208,7 @@ ApvlvFrame::setActive (bool act)
 void
 ApvlvFrame::setDirIndex (const string &path)
 {
-  mDirIndex = { "", 0, path, FILE_INDEX_DIR };
+  mDirIndex = { "", 0, path, FileIndexType::DIR };
   mDirIndex.loadDirectory (path);
   emit indexGenerited (mDirIndex);
   toggleContent (true);
@@ -220,9 +222,7 @@ ApvlvFrame::toggledControlContent (bool is_right)
       return false;
     }
 
-  auto controlled = isControlledContent ();
-
-  if (!controlled && !is_right)
+  if (auto controlled = isControlledContent (); !controlled && !is_right)
     {
       mContent->setIsFocused (true);
       return true;
@@ -415,7 +415,7 @@ ApvlvFrame::process (int has, int ct, uint key)
       if (isControlledContent ())
         {
           mContent->scrollUp (ct);
-          contentShowPage (mContent->currentIndex (), false);
+          contentShowPage (mContent->currentItemFileIndex (), false);
         }
       else
         {
@@ -430,7 +430,7 @@ ApvlvFrame::process (int has, int ct, uint key)
       if (isControlledContent ())
         {
           mContent->scrollDown (ct);
-          contentShowPage (mContent->currentIndex (), false);
+          contentShowPage (mContent->currentItemFileIndex (), false);
         }
       else
         {
@@ -445,7 +445,7 @@ ApvlvFrame::process (int has, int ct, uint key)
       if (isControlledContent ())
         {
           mContent->scrollLeft (ct);
-          contentShowPage (mContent->currentIndex (), false);
+          contentShowPage (mContent->currentItemFileIndex (), false);
         }
       else
         {
@@ -460,7 +460,7 @@ ApvlvFrame::process (int has, int ct, uint key)
       if (isControlledContent ())
         {
           mContent->scrollRight (ct);
-          contentShowPage (mContent->currentIndex (), false);
+          contentShowPage (mContent->currentItemFileIndex (), false);
         }
       else
         {
@@ -469,7 +469,7 @@ ApvlvFrame::process (int has, int ct, uint key)
         }
       break;
     case Key_Return:
-      contentShowPage (mContent->currentIndex (), true);
+      contentShowPage (mContent->currentItemFileIndex (), true);
       break;
     case 'R':
       reload ();
@@ -525,9 +525,6 @@ ApvlvFrame::process (int has, int ct, uint key)
           markposition ('\'');
           search ("", true);
         }
-      else
-        {
-        }
       break;
     case 'N':
       if (mSearchCmd == SEARCH)
@@ -540,33 +537,12 @@ ApvlvFrame::process (int has, int ct, uint key)
           markposition ('\'');
           search ("", false);
         }
-      else
-        {
-        }
-      break;
-    case CTRL ('v'):
-    case 'v':
-      // togglevisual (char (key));
-      break;
-    case 'y':
-      // yank (mCurrentImage, ct);
-      // mInVisual = ApvlvVisualMode::VISUAL_NONE;
-      // blank (mCurrentImage);
       break;
     case 's':
       setskip (ct);
       break;
     case 'c':
       toggleContent ();
-      break;
-    case 'A':
-      // mCurrentImage->annotate_cb ();
-      break;
-    case 'U':
-      // mCurrentImage->underline_cb ();
-      break;
-    case 'C':
-      // mCurrentImage->comment_cb ();
       break;
     default:
       return CmdReturn::NO_MATCH;
@@ -588,7 +564,7 @@ ApvlvFrame::copy ()
 void
 ApvlvFrame::setzoom (double zm)
 {
-  mZoommode = CUSTOM;
+  mZoommode = ZoomMode::CUSTOM;
   mWidget->setZoomrate (zm);
 }
 
@@ -601,23 +577,23 @@ ApvlvFrame::setzoom (const char *z)
       string_view sv (z);
       if (sv == "normal")
         {
-          mZoommode = NORMAL;
+          mZoommode = ZoomMode::NORMAL;
           zoomrate = 1.2;
         }
       else if (sv == "fitwidth")
         {
-          mZoommode = FITWIDTH;
+          mZoommode = ZoomMode::FITWIDTH;
         }
       else if (sv == "fitheight")
         {
-          mZoommode = FITHEIGHT;
+          mZoommode = ZoomMode::FITHEIGHT;
         }
       else
         {
           double d = strtod (z, nullptr);
           if (d > 0)
             {
-              mZoommode = CUSTOM;
+              mZoommode = ZoomMode::CUSTOM;
               zoomrate = d;
             }
         }
@@ -631,12 +607,12 @@ ApvlvFrame::setzoom (const char *z)
       if (size.width > 0 && size.height > 0)
         {
           auto wid = mWidget->widget ();
-          if (mZoommode == FITWIDTH)
+          if (mZoommode == ZoomMode::FITWIDTH)
             {
               auto x_root = wid->width ();
               zoomrate = x_root / size.width;
             }
-          else if (mZoommode == FITHEIGHT)
+          else if (mZoommode == ZoomMode::FITHEIGHT)
             {
               auto y_root = wid->height ();
               zoomrate = y_root / size.height;
@@ -734,8 +710,8 @@ ApvlvFrame::loadfile (const string &filename, bool check, bool show_content)
       if (gParams->getIntOrDefault ("autoreload") > 0)
         {
           mWatcher = make_unique<QFileSystemWatcher> ();
-          // QObject::connect(mWatcher, SIGNAL(fileChanged()), this,
-          // SLOT(changed_cb()));
+          QObject::connect (mWatcher.get (), SIGNAL (fileChanged ()), this,
+                            SLOT (changed_cb ()));
 
           auto systempath = filesystem::path (filename);
           if (filesystem::is_symlink (systempath))
@@ -944,7 +920,8 @@ ApvlvFrame::search (const char *str, bool reverse)
 
   if (*str)
     {
-      mSearchCmd = (reverse ? BACKSEARCH : SEARCH);
+      mSearchCmd
+          = (reverse ? CommandModeType::BACKSEARCH : CommandModeType::SEARCH);
     }
 
   if (!needsearch (str, reverse))
@@ -957,8 +934,9 @@ ApvlvFrame::search (const char *str, bool reverse)
 
   auto wrap = gParams->getBoolOrDefault ("wrapscan");
 
-  int i = mWidget->pageNumber ();
-  int sum = mFile->sum (), from = i;
+  auto i = mWidget->pageNumber ();
+  auto sum = mFile->sum ();
+  auto from = i;
   bool search = false;
   while (true)
     {
@@ -983,17 +961,15 @@ ApvlvFrame::search (const char *str, bool reverse)
 
       if (!reverse && i < (wrap ? (from + sum) : (sum - 1)))
         {
-          // qDebug ("wrap: %d, i++:", wrap, i, i + 1);
           i++;
         }
       else if (reverse && i > (wrap ? (from - sum) : 0))
         {
-          // qDebug ("wrap: %d, i--: %d", wrap, i - 1);
           i--;
         }
       else
         {
-          mView->errormessage ("can't find word: '%s'", mSearchStr.c_str ());
+          mView->errorMessage (string ("can't find word: "), mSearchStr);
           return false;
         }
     }
@@ -1011,8 +987,13 @@ ApvlvFrame::totext (const char *file)
   bool ret = mFile->pageText (pn, { 0, 0, size.width, size.height }, txt);
   if (ret)
     {
-      // need impl g_file_set_contents (file, txt, -1, nullptr);
-      return true;
+      fstream fs{ filename (), ios::out };
+      if (fs.is_open ())
+        {
+          fs.write (txt.c_str (), txt.length ());
+          fs.close ();
+          return true;
+        }
     }
   return false;
 }
@@ -1026,7 +1007,7 @@ ApvlvFrame::rotate (int ct)
 
   if (ct % 90 != 0)
     {
-      mView->errormessage ("Not a 90 times value: %d", ct);
+      mView->errorMessage ("Not a 90 times value: ", ct);
       return false;
     }
 
@@ -1048,11 +1029,13 @@ ApvlvFrame::rotate (int ct)
 void
 ApvlvFrame::gotolink (int ct)
 {
+  // need impl
 }
 
 void
 ApvlvFrame::returnlink (int ct)
 {
+  // need impl
 }
 
 void
@@ -1061,17 +1044,17 @@ ApvlvFrame::contentShowPage (const FileIndex *index, bool force)
   if (index == nullptr)
     return;
 
-  if (index->type == FileIndexType::FILE_INDEX_FILE)
+  if (index->type == FileIndexType::FILE)
     {
       loadfile (index->path, true, true);
       return;
     }
 
-  auto file = mContent->currentFileIndex ();
+  auto file = mContent->currentFileFileIndex ();
   if (file && file->path != mFilestr)
     loadfile (file->path, true, true);
 
-  if (index->type == FileIndexType::FILE_INDEX_PAGE)
+  if (index->type == FileIndexType::PAGE)
     {
       if (index->page != mWidget->pageNumber ()
           || index->anchor != mWidget->anchor ())

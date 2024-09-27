@@ -44,7 +44,8 @@ public:
 
   bool pageText (int pn, const Rectangle &rect, std::string &text) override;
 
-  bool pageRender (int pn, double zm, int rot, WebView *webview) override;
+  bool pageRenderToWebView (int pn, double zm, int rot,
+                            WebView *webview) override;
   std::string
   pathMimeType (const std::string &path) override
   {

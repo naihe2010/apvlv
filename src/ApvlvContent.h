@@ -26,7 +26,7 @@
  */
 
 #ifndef _APVLV_CONTENT_H_
-#define _APVLV_CONTENT_H_ 1
+#define _APVLV_CONTENT_H_
 
 #include <QTimer>
 #include <QTreeWidget>
@@ -57,9 +57,9 @@ public:
 
   bool isReady ();
 
-  const FileIndex *currentIndex ();
+  const FileIndex *currentItemFileIndex ();
 
-  const FileIndex *currentFileIndex ();
+  const FileIndex *currentFileFileIndex ();
 
   bool find_index_and_select (QTreeWidgetItem *itr, const std::string &path,
                               int pn, const std::string &anchor);
@@ -117,7 +117,7 @@ private:
 
 private slots:
   void on_changed ();
-  void on_row_activated (QTreeWidgetItem *item, int column);
+  void on_row_activated (const QTreeWidgetItem *item, int column);
   void on_row_doubleclicked ();
   void first_select_cb ();
   void set_index (const FileIndex &index);

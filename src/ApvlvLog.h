@@ -24,7 +24,7 @@
  *  Author: Alf <naihe2010@126.com>
  */
 #ifndef _APVLV_LOG_H_
-#define _APVLV_LOG_H_ 1
+#define _APVLV_LOG_H_
 
 #include <QFile>
 #include <QString>

@@ -46,9 +46,9 @@ ApvlvContent::ApvlvContent ()
 
   setFocusPolicy (Qt::NoFocus);
 
-  mTypeIcons[FILE_INDEX_DIR] = QIcon (icondir.c_str ());
-  mTypeIcons[FILE_INDEX_FILE] = QIcon (iconfile.c_str ());
-  mTypeIcons[FILE_INDEX_PAGE] = QIcon (iconpage.c_str ());
+  mTypeIcons[FileIndexType::DIR] = QIcon (icondir.c_str ());
+  mTypeIcons[FileIndexType::FILE] = QIcon (iconfile.c_str ());
+  mTypeIcons[FileIndexType::PAGE] = QIcon (iconpage.c_str ());
 
   QObject::connect (this, SIGNAL (itemSelectionChanged ()), this,
                     SLOT (on_changed ()));
@@ -71,16 +71,16 @@ ApvlvContent::isReady ()
 void
 ApvlvContent::set_index (const FileIndex &index)
 {
-  auto cur_index = currentIndex ();
-  if (cur_index == nullptr || index.type == FILE_INDEX_DIR)
+  auto cur_index = currentItemFileIndex ();
+  if (cur_index == nullptr || index.type == FileIndexType::DIR)
     {
       refreshIndex (index);
       return;
     }
 
-  if (mIndex.type == FileIndexType::FILE_INDEX_DIR
-      && cur_index->type == FileIndexType::FILE_INDEX_FILE
-      && index.type == FileIndexType::FILE_INDEX_FILE)
+  if (mIndex.type == FileIndexType::DIR
+      && cur_index->type == FileIndexType::FILE
+      && index.type == FileIndexType::FILE)
     {
       if (cur_index->mChildrenIndex.empty ())
         appendIndex (index);
@@ -98,7 +98,8 @@ ApvlvContent::setIndex (const FileIndex &index, QTreeWidgetItem *root_itr)
   itr->setText (CONTENT_COL_PAGE, QString::number (index.page));
   itr->setText (CONTENT_COL_ANCHOR, QString::fromLocal8Bit (index.anchor));
   itr->setText (CONTENT_COL_PATH, QString::fromLocal8Bit (index.path));
-  itr->setText (CONTENT_COL_TYPE, QString::number (index.type));
+  itr->setText (CONTENT_COL_TYPE,
+                QString::number (static_cast<int> (index.type)));
   if (root_itr == nullptr)
     {
       addTopLevelItem (itr);
@@ -161,12 +162,12 @@ ApvlvContent::treeItemToIndex (QTreeWidgetItem *item) const
 const FileIndex *
 ApvlvContent::treeItemToFileIndex (QTreeWidgetItem *item) const
 {
-  auto type = FILE_INDEX_PAGE;
+  auto type = FileIndexType::PAGE;
   while (item != nullptr)
     {
       type = static_cast<FileIndexType> (
           item->text (CONTENT_COL_TYPE).toInt ());
-      if (type == FILE_INDEX_FILE)
+      if (type == FileIndexType::FILE)
         break;
       else
         item = item->parent ();
@@ -218,8 +219,7 @@ bool
 ApvlvContent::find_index_and_append (FileIndex &root, const QString &path,
                                      const FileIndex &index)
 {
-  if (root.type == FileIndexType::FILE_INDEX_FILE
-      && root.path == path.toStdString ())
+  if (root.type == FileIndexType::FILE && root.path == path.toStdString ())
     {
       root.appendChild (index);
       return true;
@@ -238,7 +238,7 @@ void
 ApvlvContent::setCurrentIndex (const string &path, int pn,
                                const string &anchor)
 {
-  if (mIndex.type == FILE_INDEX_DIR)
+  if (mIndex.type == FileIndexType::DIR)
     return;
 
   for (auto ind = 0; ind < topLevelItemCount (); ++ind)
@@ -348,9 +348,10 @@ ApvlvContent::on_changed ()
 }
 
 void
-ApvlvContent::on_row_activated (QTreeWidgetItem *item, int column)
+ApvlvContent::on_row_activated ([[maybe_unused]] const QTreeWidgetItem *item,
+                                [[maybe_unused]] int column)
 {
-  mFrame->contentShowPage (currentIndex (), true);
+  mFrame->contentShowPage (currentItemFileIndex (), true);
   mFrame->toggledControlContent (true);
 }
 
@@ -364,7 +365,7 @@ ApvlvContent::on_row_doubleclicked ()
 void
 ApvlvContent::first_select_cb ()
 {
-  if (mIndex.type == FILE_INDEX_DIR)
+  if (mIndex.type == FileIndexType::DIR)
     return;
 
   if (topLevelItemCount () > 0)
@@ -384,14 +385,14 @@ ApvlvContent::first_select_cb ()
 }
 
 const FileIndex *
-ApvlvContent::currentIndex ()
+ApvlvContent::currentItemFileIndex ()
 {
   auto index = treeItemToIndex (mCurrentItem);
   return index;
 }
 
 const FileIndex *
-ApvlvContent::currentFileIndex ()
+ApvlvContent::currentFileFileIndex ()
 {
   auto index = treeItemToFileIndex (mCurrentItem);
   return index;

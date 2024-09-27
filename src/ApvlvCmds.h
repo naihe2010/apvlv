@@ -67,8 +67,8 @@ enum class CmdReturn
 
 // because every unsigned char is < 256, so use this marco to stand for
 // Ctrl+char, Shift+char
-constexpr unsigned int
-CTRL (unsigned int c)
+constexpr int
+CTRL (int c)
 {
   return c + 256;
 }

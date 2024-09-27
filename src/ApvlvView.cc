@@ -47,6 +47,7 @@
 namespace apvlv
 {
 using namespace std;
+using namespace CommandModeType;
 
 static bool
 isalt_escape (QKeyEvent *event)
@@ -64,8 +65,6 @@ isalt_escape (QKeyEvent *event)
 void
 ApvlvCommandBar::keyPressEvent (QKeyEvent *evt)
 {
-  // qDebug ("command bar key press: %d, modifiers: %d", evt->key (),
-  // evt->modifiers ().toInt ());
   if (evt->key () == Qt::Key_Escape || isalt_escape (evt)
       || evt->key () == Qt::Key_Tab || evt->key () == Qt::Key_Up
       || evt->key () == Qt::Key_Down)
@@ -219,8 +218,7 @@ ApvlvView::currentWindow ()
 void
 ApvlvView::delCurrentWindow ()
 {
-  auto win = currentWindow ();
-  if (win)
+  if (auto win = currentWindow (); win)
     win->unbirth ();
   updatetabname ();
 }
@@ -610,8 +608,7 @@ ApvlvView::setupToolBar ()
 void
 ApvlvView::promptcommand (char ch)
 {
-  char s[2] = { 0 };
-  s[0] = ch;
+  QString s{ ch };
   mCommandBar->setText (s);
   cmd_show (CmdStatusType::CMD_CMD);
 }
@@ -621,30 +618,6 @@ ApvlvView::promptcommand (const char *s)
 {
   mCommandBar->setText (s);
   cmd_show (CmdStatusType::CMD_CMD);
-}
-
-void
-ApvlvView::errormessage (const char *str, ...)
-{
-  char estr[512];
-  va_list vap;
-  va_start (vap, str);
-  vsnprintf (estr, sizeof estr, str, vap);
-  va_end (vap);
-  mCommandBar->setText (QString ("ERROR: ") + estr);
-  cmd_show (CmdStatusType::CMD_MESSAGE);
-}
-
-void
-ApvlvView::infomessage (const char *str, ...)
-{
-  char estr[512];
-  va_list vap;
-  va_start (vap, str);
-  vsnprintf (estr, sizeof estr, str, vap);
-  va_end (vap);
-  mCommandBar->setText (QString ("INFO: ") + estr);
-  cmd_show (CmdStatusType::CMD_MESSAGE);
 }
 
 char *
@@ -679,7 +652,10 @@ void
 ApvlvView::cmd_auto (const char *ps)
 {
   stringstream ss (ps);
-  string cmd, np, argu;
+  string cmd;
+  string np;
+  string argu;
+
   ss >> cmd >> np >> argu;
 
   if (np.empty ())
@@ -813,13 +789,13 @@ ApvlvView::closetab ()
 void
 ApvlvView::hsplit ()
 {
-  currentWindow ()->birth (ApvlvWindow::AW_SP, nullptr);
+  currentWindow ()->birth (ApvlvWindow::WindowType::AW_SP, nullptr);
 }
 
 void
 ApvlvView::vsplit ()
 {
-  currentWindow ()->birth (ApvlvWindow::AW_VSP, nullptr);
+  currentWindow ()->birth (ApvlvWindow::WindowType::AW_VSP, nullptr);
 }
 
 void
@@ -831,12 +807,9 @@ ApvlvView::unbirth ()
 ApvlvFrame *
 ApvlvView::crtadoc ()
 {
-  auto widget = QApplication::focusWidget ();
-  if (widget)
+  if (auto widget = QApplication::focusWidget (); widget)
     {
-      // qDebug ("now focus in a %s widget", meta->className ());
-      auto doc = ApvlvFrame::findByWidget (widget);
-      if (doc)
+      if (auto doc = ApvlvFrame::findByWidget (widget); doc)
         return doc;
     }
 
@@ -1011,7 +984,9 @@ ApvlvView::runcmd (const char *str)
   else
     {
       stringstream ss (str);
-      string cmd, subcmd, argu;
+      string cmd;
+      string subcmd;
+      string argu;
       ss >> cmd >> subcmd >> argu;
 
       if (subcmd.length () > 0 && subcmd[subcmd.length () - 1] == '\\')
@@ -1061,7 +1036,7 @@ ApvlvView::runcmd (const char *str)
             }
           else
             {
-              errormessage ("no file '%s'", subcmd.c_str ());
+              errorMessage (string ("no file: "), subcmd);
               ret = false;
             }
         }
@@ -1077,14 +1052,16 @@ ApvlvView::runcmd (const char *str)
         }
       else if (cmd == "sp")
         {
-          if (currentWindow ()->birth (ApvlvWindow::AW_SP, nullptr))
+          if (currentWindow ()->birth (ApvlvWindow::WindowType::AW_SP,
+                                       nullptr))
             {
               windowadded ();
             }
         }
       else if (cmd == "vsp")
         {
-          if (currentWindow ()->birth (ApvlvWindow::AW_VSP, nullptr))
+          if (currentWindow ()->birth (ApvlvWindow::WindowType::AW_VSP,
+                                       nullptr))
             {
               windowadded ();
             }
@@ -1175,7 +1152,7 @@ ApvlvView::runcmd (const char *str)
             }
           else
             {
-              errormessage ("no command: '%s'", cmd.c_str ());
+              errorMessage (string ("no command: "), cmd.c_str ());
               ret = false;
             }
         }
@@ -1202,8 +1179,9 @@ ApvlvView::keyPressEvent (QKeyEvent *evt)
 }
 
 void
-ApvlvView::commandbar_edit_cb (const QString &str)
+ApvlvView::commandbar_edit_cb ([[maybe_unused]] const QString &str)
 {
+  // need impl
 }
 
 void
@@ -1219,9 +1197,6 @@ ApvlvView::commandbar_return_cb ()
               mCmdHistroy.emplace_back (str.toStdString ());
               mCurrHistroy = mCmdHistroy.size () - 1;
               cmd_hide ();
-            }
-          else
-            {
             }
         }
       else
@@ -1309,15 +1284,12 @@ void
 ApvlvView::notebook_close_cb (int ind)
 {
   qDebug ("tabwidget will close %d", ind);
-  if (mTabContainer->currentIndex () == -1)
-    {
-      if (mTabContainer->count () > 0)
-        mTabContainer->setCurrentIndex (0);
-    }
+  if (mTabContainer->currentIndex () == -1 && mTabContainer->count () > 0)
+    mTabContainer->setCurrentIndex (0);
 }
 
 void
-ApvlvView::switchtab (long tabPos)
+ApvlvView::switchtab (int tabPos)
 {
   int ntabs = int (mTabList.size ());
   while (tabPos < 0)
@@ -1338,8 +1310,6 @@ ApvlvView::windowadded ()
 void
 ApvlvView::updatetabname ()
 {
-  char tagname[26];
-
   const char *filename = currentWindow ()->getCore ()->filename ();
   string gfilename;
 
@@ -1352,11 +1322,11 @@ ApvlvView::updatetabname ()
 
   auto index = mTabContainer->currentIndex ();
   Q_ASSERT (index != -1);
+  auto tagname = QString::fromLocal8Bit (gfilename);
   if (mTabList[index]->getWindowCount () > 1)
-    snprintf (tagname, sizeof tagname, "[%d] %s",
-              mTabList[index]->getWindowCount (), gfilename.c_str ());
-  else
-    snprintf (tagname, sizeof tagname, "%s", gfilename.c_str ());
+    tagname = QString ("[%1] %2")
+                  .arg (mTabList[index]->getWindowCount ())
+                  .arg (gfilename.c_str ());
 
   mTabContainer->setTabText (index, tagname);
 }

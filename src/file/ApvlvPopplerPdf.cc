@@ -105,14 +105,13 @@ ApvlvPDF::pageSearch (int pn, const char *str)
 }
 
 bool
-ApvlvPDF::pageRender (int pn, double zm, int rot, QImage *pix)
+ApvlvPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 {
   if (mDoc == nullptr)
     return false;
 
-  auto xres = 72.0, yres = 72.0;
-  xres *= zm;
-  yres *= zm;
+  auto xres = 72.0 * zm;
+  auto yres = 72.0 * zm;
 
   auto prot = Poppler::Page::Rotate0;
   if (rot == 90)
@@ -137,20 +136,20 @@ ApvlvPDF::pdf_get_index ()
   if (outlines.empty ())
     return false;
 
-  mIndex = { "", 0, getFilename (), FILE_INDEX_FILE };
+  mIndex = { "", 0, getFilename (), FileIndexType::FILE };
   pdf_get_children_index (mIndex, outlines);
   return true;
 }
 
 void
 ApvlvPDF::pdf_get_children_index (FileIndex &root_index,
-                                  QVector<OutlineItem> &outlines)
+                                  const QVector<OutlineItem> &outlines)
 {
   for (auto const &outline : outlines)
     {
       FileIndex index{ outline.name ().toStdString (),
                        outline.destination ()->pageNumber () - 1, "",
-                       FILE_INDEX_PAGE };
+                       FileIndexType::PAGE };
       auto child_outlines = outline.children ();
       pdf_get_children_index (index, child_outlines);
       root_index.mChildrenIndex.emplace_back (index);

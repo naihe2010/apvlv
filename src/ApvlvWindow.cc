@@ -37,11 +37,9 @@ namespace apvlv
 {
 ApvlvWindowContext::ApvlvWindowContext (ApvlvView *view, ApvlvWindow *root,
                                         ApvlvWindow *active, int count)
+    : mView (view), mRootWindow (root), mActiveWindow (active),
+      mWindowCount (count)
 {
-  mView = view;
-  mRootWindow = root;
-  mActiveWindow = active;
-  mWindowCount = count;
 }
 
 void
@@ -65,7 +63,7 @@ ApvlvWindowContext::unregisterWindow (ApvlvWindow *win)
   if (mActiveWindow == win)
     {
       auto awin = mRootWindow;
-      while (awin && awin->mType != ApvlvWindow::AW_CORE)
+      while (awin && awin->mType != ApvlvWindow::WindowType::AW_CORE)
         {
           awin = awin->m_child_1;
         }
@@ -74,16 +72,18 @@ ApvlvWindowContext::unregisterWindow (ApvlvWindow *win)
     }
   if (mRootWindow == win)
     {
-      mRootWindow->widget ()->setParent (nullptr);
+      if (mRootWindow && mRootWindow->widget ())
+        {
+          mRootWindow->widget ()->setParent (nullptr);
+        }
       mRootWindow = nullptr;
     }
 }
 
 ApvlvWindow::ApvlvWindow (ApvlvWindowContext *context, ApvlvFrame *core)
+    : mPaned (nullptr)
 {
-  mPaned = nullptr;
-
-  mType = AW_CORE;
+  mType = WindowType::AW_CORE;
   if (core == nullptr)
     {
       auto ndoc = new ApvlvFrame (context->getView ());
@@ -104,7 +104,7 @@ ApvlvWindow::~ApvlvWindow ()
   mContext->unregisterWindow (this);
   mContext = nullptr;
 
-  if (mType == AW_CORE)
+  if (mType == WindowType::AW_CORE)
     {
       qDebug ("release doc: %p", mCore);
       if (mCore)
@@ -115,7 +115,7 @@ ApvlvWindow::~ApvlvWindow ()
 QWidget *
 ApvlvWindow::widget ()
 {
-  if (mType == AW_CORE)
+  if (mType == WindowType::AW_CORE)
     {
       return mCore;
     }
@@ -172,7 +172,7 @@ ApvlvWindowContext::findWindowByWidget (QWidget *widget)
     {
       auto win = winstack.top ();
       winstack.pop ();
-      if (win->mType == ApvlvWindow::AW_CORE)
+      if (win->mType == ApvlvWindow::WindowType::AW_CORE)
         {
           if (win->widget () == doc)
             return win;
@@ -238,7 +238,8 @@ ApvlvWindow::getLeft ()
 
   while (fwin->m_parent)
     {
-      if (fwin->m_parent->mType == AW_SP && fwin->m_parent->m_child_2 == fwin)
+      if (fwin->m_parent->mType == WindowType::AW_SP
+          && fwin->m_parent->m_child_2 == fwin)
         {
           twin = fwin->m_parent->m_child_1;
           break;
@@ -248,7 +249,7 @@ ApvlvWindow::getLeft ()
   if (twin == nullptr)
     return nullptr;
 
-  while (twin->mType != AW_CORE)
+  while (twin->mType != WindowType::AW_CORE)
     {
       twin = twin->m_child_2;
     }
@@ -268,7 +269,8 @@ ApvlvWindow::getRight ()
 
   while (fwin->m_parent)
     {
-      if (fwin->m_parent->mType == AW_SP && fwin->m_parent->m_child_1 == fwin)
+      if (fwin->m_parent->mType == WindowType::AW_SP
+          && fwin->m_parent->m_child_1 == fwin)
         {
           twin = fwin->m_parent->m_child_2;
           break;
@@ -278,7 +280,7 @@ ApvlvWindow::getRight ()
   if (twin == nullptr)
     return nullptr;
 
-  while (twin->mType != AW_CORE)
+  while (twin->mType != WindowType::AW_CORE)
     {
       twin = twin->m_child_1;
     }
@@ -293,7 +295,8 @@ ApvlvWindow::getTop ()
 
   while (fwin->m_parent)
     {
-      if (fwin->m_parent->mType == AW_VSP && fwin->m_parent->m_child_2 == fwin)
+      if (fwin->m_parent->mType == WindowType::AW_VSP
+          && fwin->m_parent->m_child_2 == fwin)
         {
           twin = fwin->m_parent->m_child_1;
           break;
@@ -303,7 +306,7 @@ ApvlvWindow::getTop ()
   if (twin == nullptr)
     return nullptr;
 
-  while (twin->mType != AW_CORE)
+  while (twin->mType != WindowType::AW_CORE)
     {
       twin = twin->m_child_2;
     }
@@ -318,7 +321,8 @@ ApvlvWindow::getBottom ()
 
   while (fwin->m_parent)
     {
-      if (fwin->m_parent->mType == AW_VSP && fwin->m_parent->m_child_1 == fwin)
+      if (fwin->m_parent->mType == WindowType::AW_VSP
+          && fwin->m_parent->m_child_1 == fwin)
         {
           twin = fwin->m_parent->m_child_2;
           break;
@@ -328,7 +332,7 @@ ApvlvWindow::getBottom ()
   if (twin == nullptr)
     return nullptr;
 
-  while (twin->mType != AW_CORE)
+  while (twin->mType != WindowType::AW_CORE)
     {
       twin = twin->m_child_1;
     }
@@ -341,7 +345,8 @@ ApvlvWindow::splitWidget (WindowType type, QWidget *one, QWidget *other)
   mType = type;
 
   mPaned = new QSplitter ();
-  mPaned->setOrientation (type == AW_SP ? Qt::Horizontal : Qt::Vertical);
+  mPaned->setOrientation (type == WindowType::AW_SP ? Qt::Horizontal
+                                                    : Qt::Vertical);
   mPaned->setHandleWidth (10);
   mPaned->setStretchFactor (0, 1);
   mPaned->setStretchFactor (1, 1);
@@ -394,7 +399,7 @@ ApvlvWindow::birth (WindowType type, ApvlvFrame *doc)
 
   if (doc == nullptr)
     {
-      mCore->mView->errormessage ("can't split");
+      mCore->mView->errorMessage ("can't split");
       return false;
     }
 
@@ -416,7 +421,7 @@ ApvlvWindow::birth (WindowType type, ApvlvFrame *doc)
 void
 ApvlvWindow::unbirth ()
 {
-  if (mType != AW_CORE)
+  if (mType != WindowType::AW_CORE)
     return;
   if (m_parent == nullptr)
     return;
@@ -441,7 +446,7 @@ ApvlvWindow::unbirth ()
   m_parent->m_child_2 = other_window->m_child_2;
 
   auto awin = m_parent;
-  while (awin->mType != AW_CORE)
+  while (awin->mType != WindowType::AW_CORE)
     {
       awin = awin->m_child_1;
     }
@@ -463,7 +468,7 @@ ApvlvWindow::unbirth ()
 void
 ApvlvWindow::setActive (bool act)
 {
-  if (mType != AW_CORE)
+  if (mType != WindowType::AW_CORE)
     return;
 
   if (act)
@@ -476,7 +481,7 @@ void
 ApvlvWindow::setCore (ApvlvFrame *doc)
 {
   qDebug ("widget (): %p, doc->widget (): %p", widget (), doc);
-  if (mType == AW_CORE)
+  if (mType == WindowType::AW_CORE)
     {
       mCore->inuse (false);
     }
@@ -487,7 +492,7 @@ ApvlvWindow::setCore (ApvlvFrame *doc)
   splitter->addWidget (doc);
   mCore->setParent (nullptr);
   doc->inuse (true);
-  mType = AW_CORE;
+  mType = WindowType::AW_CORE;
   mCore = doc;
 }
 
@@ -521,11 +526,10 @@ ApvlvWindow::bigger (int times)
   if (m_parent == nullptr)
     return;
 
-  int val
-      = 0; // need impl gtk_paned_get_position (GTK_PANED (m_parent->mPaned));
+  int val = m_parent->mPaned->width ();
   int len = 20 * times;
   m_parent->m_child_1 == this ? val += len : val -= len;
-  // gtk_paned_set_position (GTK_PANED (m_parent->mPaned), val);
+  m_parent->mPaned->setFixedWidth (val);
 }
 
 }

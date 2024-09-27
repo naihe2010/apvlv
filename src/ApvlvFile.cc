@@ -160,7 +160,13 @@ File::grepFile (const string &seq, bool is_case, bool is_regex,
 }
 
 bool
-File::pageRender (int pn, double zm, int rot, WebView *webview)
+File::pageRenderToImage (int pn, double zm, int rot, QImage *img)
+{
+  return false;
+}
+
+bool
+File::pageRenderToWebView (int pn, double zm, int rot, WebView *webview)
 {
   webview->setZoomFactor (zm);
   QUrl pdfuri = QString ("apvlv:///%1-%2-%3-%4.html")
@@ -222,7 +228,7 @@ optional<QByteArray>
 File::pathContentPng (int pn, double zm, int rot)
 {
   QImage image;
-  if (pageRender (pn, zm, rot, &image) == false)
+  if (pageRenderToImage (pn, zm, rot, &image) == false)
     return nullopt;
 
   QByteArray array;
@@ -245,8 +251,9 @@ FileIndex::loadDirectory (const string &path1)
         {
           if (entry.is_directory ())
             {
-              auto index = FileIndex (entry.path ().filename ().string (), 0,
-                                      entry.path ().string (), FILE_INDEX_DIR);
+              auto index
+                  = FileIndex (entry.path ().filename ().string (), 0,
+                               entry.path ().string (), FileIndexType::DIR);
               index.loadDirectory (entry.path ().string ());
               if (!index.mChildrenIndex.empty ())
                 {
@@ -259,9 +266,9 @@ FileIndex::loadDirectory (const string &path1)
               if (find (exts.cbegin (), exts.cend (), file_ext)
                   != exts.cend ())
                 {
-                  auto index
-                      = FileIndex (entry.path ().filename ().string (), 0,
-                                   entry.path ().string (), FILE_INDEX_FILE);
+                  auto index = FileIndex (entry.path ().filename ().string (),
+                                          0, entry.path ().string (),
+                                          FileIndexType::FILE);
                   mChildrenIndex.emplace_back (index);
                 }
             }
@@ -281,9 +288,8 @@ FileIndex::loadDirectory (const string &path1)
 void
 FileIndex::appendChild (const FileIndex &child_index)
 {
-  Q_ASSERT (type == FILE_INDEX_FILE);
-  Q_ASSERT (child_index.type == FILE_INDEX_FILE);
-  // Q_ASSERT (path == child_index.path);
+  Q_ASSERT (type == FileIndexType::FILE);
+  Q_ASSERT (child_index.type == FileIndexType::FILE);
   mChildrenIndex = child_index.mChildrenIndex;
 }
 
@@ -306,14 +312,6 @@ FileIndex::findIndex (const FileIndex &tmp_index) const
   return nullptr;
 }
 
-bool
-FileIndex::operator== (const FileIndex &tmp_index) const
-{
-  return title == tmp_index.title && page == tmp_index.page
-         && path == tmp_index.path && anchor == tmp_index.anchor
-         && type == tmp_index.type;
-}
-
 FileIndex::FileIndex (const string &title, int page, const string &path,
                       FileIndexType type)
 {
@@ -332,7 +330,7 @@ FileIndex::FileIndex (string &&title, int page, string &&path,
   this->type = type;
 }
 
-FileIndex::~FileIndex () {}
+FileIndex::~FileIndex () = default;
 }
 
 // Local Variables:

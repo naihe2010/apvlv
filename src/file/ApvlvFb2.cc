@@ -174,9 +174,7 @@ ApvlvFB2::parse_body (const char *content, size_t length)
               xml->readNext ();
             }
 
-          char htmlstr[1024];
-          snprintf (htmlstr, sizeof htmlstr, title_template.c_str (),
-                    ss.str ().c_str ());
+          auto htmlstr = templateBuild (title_template, "%s", ss.str ());
           appendTitle (htmlstr, "application/xhtml+xml");
         }
       else if (xml->isStartElement () && xml->name ().toString () == "section")
@@ -213,9 +211,7 @@ ApvlvFB2::parse_body (const char *content, size_t length)
               xml->readNext ();
             }
 
-          char htmlstr[102400];
-          snprintf (htmlstr, sizeof htmlstr, section_template.c_str (),
-                    ss.str ().c_str ());
+          auto htmlstr = templateBuild (section_template, "%s", ss.str ());
           appendSection (title, htmlstr, "application/xhtml+xml");
         }
 
@@ -267,9 +263,9 @@ void
 ApvlvFB2::appendSection (const string &title, const string &section,
                          const string &mime)
 {
-  char uri[10];
-  snprintf (uri, sizeof uri, "%zu", mPages.size ());
-  appendPage (uri, title, section, mime);
+  stringstream uri;
+  uri << mPages.size ();
+  appendPage (uri.str (), title, section, mime);
 }
 
 void
@@ -285,17 +281,17 @@ ApvlvFB2::appendPage (const string &uri, const string &title,
 bool
 ApvlvFB2::fb2_get_index ()
 {
-  char pagenum[16];
+  stringstream pagenum;
 
-  mIndex = { "", 0, getFilename (), FILE_INDEX_FILE };
+  mIndex = { "", 0, getFilename (), FileIndexType::FILE };
   for (int ind = 0; ind < (int)mPages.size (); ++ind)
     {
-      snprintf (pagenum, sizeof pagenum, "%d", ind);
+      pagenum << ind;
       if (mPages[ind] == "__cover__")
         continue;
 
       auto title = titleSections[mPages[ind]].first;
-      auto chap = FileIndex (title, ind, pagenum, FILE_INDEX_PAGE);
+      auto chap = FileIndex (title, ind, pagenum.str (), FileIndexType::PAGE);
       mIndex.mChildrenIndex.emplace_back (chap);
     }
 
@@ -309,7 +305,7 @@ ApvlvFB2::sum ()
 }
 
 bool
-ApvlvFB2::pageRender (int pn, double zm, int rot, WebView *webview)
+ApvlvFB2::pageRenderToWebView (int pn, double zm, int rot, WebView *webview)
 {
   webview->setZoomFactor (zm);
   QUrl url = QString ("apvlv:///") + QString::number (pn);

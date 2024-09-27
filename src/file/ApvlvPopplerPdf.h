@@ -47,7 +47,7 @@ public:
 
   int sum () override;
 
-  bool pageRender (int page, double zoom, int rot, QImage *img) override;
+  bool pageRenderToImage (int pn, double zm, int rot, QImage *img) override;
 
   std::unique_ptr<WordListRectangle> pageSearch (int pn,
                                                  const char *s) override;
@@ -55,7 +55,7 @@ public:
 private:
   bool pdf_get_index ();
   void pdf_get_children_index (FileIndex &root_index,
-                               QVector<Poppler::OutlineItem> &outlines);
+                               const QVector<Poppler::OutlineItem> &outlines);
 
   std::unique_ptr<Poppler::Document> mDoc;
 };

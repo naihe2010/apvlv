@@ -57,7 +57,6 @@ registerUrlScheme ()
 {
   QWebEngineUrlScheme scheme ("apvlv");
   scheme.setSyntax (QWebEngineUrlScheme::Syntax::Path);
-  // scheme.setFlags (QWebEngineUrlScheme::SecureScheme);
   QWebEngineUrlScheme::registerScheme (scheme);
 }
 
@@ -96,7 +95,8 @@ parse_options (int argc, char *argv[])
   gParams->loadfile (inifile);
   return 1;
 #else
-  int c, index;
+  int c;
+  int index;
   static struct option long_options[]
       = { { "config", required_argument, nullptr, 'c' },
           { "help", no_argument, nullptr, 'h' },

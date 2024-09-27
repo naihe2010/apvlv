@@ -35,7 +35,7 @@
 namespace apvlv
 {
 
-const char *DEFAULT_LOK_PATH = "/usr/lib64/libreoffice/program";
+const char *const DEFAULT_LOK_PATH = "/usr/lib64/libreoffice/program";
 
 class ApvlvOFFICE : public File
 {
@@ -43,13 +43,13 @@ class ApvlvOFFICE : public File
 
 public:
   bool load (const std::string &filename) override;
-  ~ApvlvOFFICE ();
+  ~ApvlvOFFICE () override;
 
   int sum () override;
 
   bool pageText (int pn, const Rectangle &rect, std::string &text) override;
 
-  bool pageRender (int pn, double zm, int rot, QImage *pix) override;
+  bool pageRenderToImage (int pn, double zm, int rot, QImage *pix) override;
 
 protected:
   std::unique_ptr<lok::Document> mDoc;

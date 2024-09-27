@@ -170,7 +170,7 @@ SearchDialog::previewItem (QListWidgetItem *item)
     {
       mPreview.setFile (mPreviewFile.get ());
       mPreviewIsFinished = false;
-      mPreviewFile->pageRender (pn, 1.0, 0, &mPreview);
+      mPreviewFile->pageRenderToWebView (pn, 1.0, 0, &mPreview);
     }
 }
 
@@ -204,7 +204,7 @@ SearchDialog::displayResult (unique_ptr<SearchFileMatch> result)
 }
 
 void
-SearchDialog::loadFinish (bool ret)
+SearchDialog::loadFinish ([[maybe_unused]] bool ret)
 {
   mPreviewIsFinished = true;
 }

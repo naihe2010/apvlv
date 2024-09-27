@@ -93,14 +93,9 @@ isModifierKey (uint k)
 }
 
 Command::Command ()
+    : mType (CmdType::CT_CMD), mHasPreCount (false), mPreCount (1),
+      mOrigin (nullptr)
 {
-  mType = CmdType::CT_CMD;
-
-  mHasPreCount = false;
-
-  mPreCount = 1;
-
-  mOrigin = nullptr;
 }
 
 void
@@ -200,7 +195,7 @@ const char *
 Command::append (const char *s)
 {
   size_t len;
-  char *e = strchr ((char *)s, '>');
+  const char *e = strchr (s, '>');
 
   len = strlen (s);
 
@@ -223,16 +218,9 @@ Command::append (const char *s)
         {
           mKeyVals.push_back (CTRL (s[3]));
         }
-      /* commet as above
-         else if (s[1] == 'S')
-         {
-         mKeyVals.push_back (SHIFT (s[3]));
-         } */
       else
         {
-          char ts[6];
-          snprintf (ts, 6, "%s", s);
-          qCritical ("Can't recognize the symbol: %s", ts);
+          qCritical ("Can't recognize the symbol: %s", s);
         }
       return s + 5;
     }
@@ -367,9 +355,8 @@ ApvlvCmds::append (QKeyEvent *gev)
     {
       if (isdigit (int (gev->key ())) && gev->key () != '0')
         {
-          char s[2] = { 0 };
-          s[0] = char (gev->key ());
-          mCountString += s;
+          auto c = char (gev->key ());
+          mCountString += c;
           mState = CmdState::GETTING_COUNT;
           mTimeoutTimer->start (3000);
           return;
@@ -380,9 +367,8 @@ ApvlvCmds::append (QKeyEvent *gev)
     {
       if (isdigit (int (gev->key ())))
         {
-          char s[2] = { 0 };
-          s[0] = char (gev->key ());
-          mCountString += s;
+          auto c = char (gev->key ());
+          mCountString += c;
           mTimeoutTimer->start (3000);
           return;
         }

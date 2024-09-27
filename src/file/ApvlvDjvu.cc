@@ -61,31 +61,31 @@ bool
 ApvlvDJVU::load (const string &filename)
 {
   mContext = ddjvu_context_create ("apvlv");
-  if (mContext)
+  if (mContext == nullptr)
     {
-      mDoc = ddjvu_document_create_by_filename (mContext, filename.c_str (),
-                                                false);
+      qCritical ("djvu context error");
+      return false;
     }
 
-  if (mDoc != nullptr)
+  mDoc
+      = ddjvu_document_create_by_filename (mContext, filename.c_str (), false);
+  if (mDoc == nullptr)
     {
-      if (ddjvu_document_get_type (mDoc) == DDJVU_DOCTYPE_SINGLEPAGE)
-        {
-          qDebug ("djvu type: %d", ddjvu_document_get_type (mDoc));
-        }
-      else
-        {
-          /*
-            ddjvu_document_release (mFrame);
-            mFrame = nullptr;
-            ddjvu_context_release (mContext);
-            mContext = nullptr;
-            throw std::bad_alloc (); */
-        }
+      qCritical ("djvu create document error");
+      ddjvu_context_release (mContext);
+      mContext = nullptr;
+      return false;
+    }
+
+  if (ddjvu_document_get_type (mDoc) == DDJVU_DOCTYPE_SINGLEPAGE)
+    {
+      qDebug ("djvu type: %d", ddjvu_document_get_type (mDoc));
       return true;
     }
   else
     {
+      ddjvu_document_release (mDoc);
+      mDoc = nullptr;
       ddjvu_context_release (mContext);
       mContext = nullptr;
       return false;
@@ -109,8 +109,8 @@ SizeF
 ApvlvDJVU::pageSizeF (int pn, int rot)
 {
   ddjvu_status_t t;
-  ddjvu_pageinfo_t info[1];
-  while ((t = ddjvu_document_get_pageinfo (mDoc, 0, info)) < DDJVU_JOB_OK)
+  ddjvu_pageinfo_t info;
+  while ((t = ddjvu_document_get_pageinfo (mDoc, 0, &info)) < DDJVU_JOB_OK)
     {
       handle_ddjvu_messages (mContext, true);
     }
@@ -118,8 +118,8 @@ ApvlvDJVU::pageSizeF (int pn, int rot)
   SizeF sizef{ 0.0f, 0.0f };
   if (t == DDJVU_JOB_OK)
     {
-      sizef.width = static_cast<double> (info->width);
-      sizef.height = static_cast<double> (info->height);
+      sizef.width = static_cast<double> (info.width);
+      sizef.height = static_cast<double> (info.height);
     }
   return sizef;
 }
@@ -131,7 +131,7 @@ ApvlvDJVU::sum ()
 }
 
 bool
-ApvlvDJVU::pageRender (int pn, double zm, int rot, QImage *pix)
+ApvlvDJVU::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 {
   ddjvu_page_t *tpage;
 
@@ -148,10 +148,10 @@ ApvlvDJVU::pageRender (int pn, double zm, int rot, QImage *pix)
 
   auto ix = static_cast<int> (dx);
   auto iy = static_cast<int> (dy);
-  ddjvu_rect_t prect[1] = { { 0, 0, static_cast<unsigned int> (ix),
-                              static_cast<unsigned int> (iy) } };
-  ddjvu_rect_t rrect[1] = { { 0, 0, static_cast<unsigned int> (ix),
-                              static_cast<unsigned int> (iy) } };
+  ddjvu_rect_t prect = { 0, 0, static_cast<unsigned int> (ix),
+                         static_cast<unsigned int> (iy) };
+  ddjvu_rect_t rrect = { 0, 0, static_cast<unsigned int> (ix),
+                         static_cast<unsigned int> (iy) };
   ddjvu_format_t *format
       = ddjvu_format_create (DDJVU_FORMAT_RGB24, 0, nullptr);
   ddjvu_format_set_row_order (format, true);
@@ -161,8 +161,8 @@ ApvlvDJVU::pageRender (int pn, double zm, int rot, QImage *pix)
 
   int retry = 0;
   while (retry <= 20
-         && ddjvu_page_render (tpage, DDJVU_RENDER_COLOR, prect, rrect, format,
-                               3 * ix, buffer.get ())
+         && ddjvu_page_render (tpage, DDJVU_RENDER_COLOR, &prect, &rrect,
+                               format, 3 * ix, buffer.get ())
                 == false)
     {
       this_thread::sleep_for (50ms);

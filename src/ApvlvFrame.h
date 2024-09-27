@@ -190,13 +190,14 @@ protected:
   std::unique_ptr<WordListRectangle> mSearchResults;
   std::string mSearchStr;
 
-  enum
+  enum class ZoomMode
   {
     NORMAL,
     FITWIDTH,
     FITHEIGHT,
     CUSTOM
-  } mZoommode;
+  };
+  ZoomMode mZoommode;
 
   bool mZoominit{};
 

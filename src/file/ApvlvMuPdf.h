@@ -53,7 +53,7 @@ public:
 
   int sum () override;
 
-  bool pageRender (int, double, int, QImage *) override;
+  bool pageRenderToImage (int, double, int, QImage *) override;
 
   std::optional<std::vector<Rectangle> >
   pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb) override;

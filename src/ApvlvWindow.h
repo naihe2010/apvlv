@@ -49,12 +49,13 @@ public:
    * AW_NONE is an empty window, need free
    * So, ANY user interface function can only get the AW_DOC window
    * */
-  enum WindowType
+  enum class WindowType
   {
     AW_SP,
     AW_VSP,
     AW_CORE
-  } mType;
+  };
+  WindowType mType;
 
   bool birth (WindowType type, ApvlvFrame *doc);
 
@@ -79,7 +80,9 @@ public:
 
   CmdReturn process (int times, uint keyval);
 
-  ApvlvWindow *m_parent, *m_child_1, *m_child_2;
+  ApvlvWindow *m_parent;
+  ApvlvWindow *m_child_1;
+  ApvlvWindow *m_child_2;
 
 private:
   ApvlvWindow *getLeft ();

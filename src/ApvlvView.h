@@ -32,8 +32,10 @@
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QTabWidget>
+#include <iosfwd>
 #include <iostream>
 #include <list>
+#include <sstream>
 #include <string_view>
 
 #include "ApvlvCmds.h"
@@ -43,13 +45,14 @@
 
 namespace apvlv
 {
-enum CmdModeType
+
+namespace CommandModeType
 {
-  SEARCH = '/',
-  BACKSEARCH = '?',
-  COMMANDMODE = ':',
-  FIND = 'F'
-};
+const char SEARCH = '/';
+const char BACKSEARCH = '?';
+const char COMMANDMODE = ':';
+const char FIND = 'F';
+}
 
 class ApvlvFrame;
 class ApvlvWindow;
@@ -88,9 +91,16 @@ public:
 
   void promptcommand (const char *str);
 
-  void errormessage (const char *str, ...);
-
-  void infomessage (const char *str, ...);
+  template <typename... T>
+  void
+  errorMessage (T... args)
+  {
+    std::stringstream msg;
+    msg << "ERROR: ";
+    msg << (... + args);
+    mCommandBar->setText (QString::fromLocal8Bit (msg.str ()));
+    cmd_show (CmdStatusType::CMD_MESSAGE);
+  }
 
   static char *input (const char *str, int width = 400, int height = 150,
                       const std::string &content = "");
@@ -175,7 +185,7 @@ private:
 
   void delete_tabcontext (int tabPos);
 
-  void switchtab (long tabPos);
+  void switchtab (int tabPos);
 
   // Update the tab's context and update tab label.
   void windowadded ();

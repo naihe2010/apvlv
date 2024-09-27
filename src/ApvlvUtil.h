@@ -26,7 +26,7 @@
  */
 
 #ifndef _APVLV_UTIL_H_
-#define _APVLV_UTIL_H_ 1
+#define _APVLV_UTIL_H_
 
 #include <QImage>
 #include <QXmlStreamReader>
@@ -48,16 +48,12 @@ extern std::string logfile;
 
 void getRuntimePaths ();
 
-#ifndef PATH_MAX
-#define PATH_MAX 4096
-#endif
-
 #ifdef WIN32
-#define PATH_SEP_C '\\'
-#define PATH_SEP_S "\\"
+const char PATH_SEP_C = '\\';
+const char *const PATH_SEP_S = "\\";
 #else
-#define PATH_SEP_C '/'
-#define PATH_SEP_S "/"
+const char PATH_SEP_C = '/';
+const char *const PATH_SEP_S = "/";
 #endif
 
 std::optional<std::unique_ptr<QXmlStreamReader> >
@@ -76,6 +72,9 @@ std::string filename_ext (const std::string &filename);
 
 void imageArgb32ToRgb32 (QImage &image, int left, int top, int right,
                          int bottom);
+
+std::string templateBuild (std::string_view temp, std::string_view token,
+                           std::string_view real);
 
 }
 #endif

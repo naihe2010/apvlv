@@ -40,7 +40,8 @@ class ApvlvHTML : public File
 public:
   bool load (const std::string &filename) override;
 
-  bool pageRender (int pn, double zm, int rot, WebView *webview) override;
+  bool pageRenderToWebView (int pn, double zm, int rot,
+                            WebView *webview) override;
 
 protected:
   QUrl mUrl;

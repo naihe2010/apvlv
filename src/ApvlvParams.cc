@@ -72,7 +72,6 @@ ApvlvParams::~ApvlvParams () = default;
 bool
 ApvlvParams::loadfile (const string &filename)
 {
-  //    debug ("load debug: %s", filename);
   string str;
   fstream os (filename, ios::in);
 
@@ -84,16 +83,18 @@ ApvlvParams::loadfile (const string &filename)
 
   while ((getline (os, str)))
     {
-      string argu, data, crap;
+      string argu;
+      string data;
+      string crap;
       stringstream is (str);
-      // avoid commet line, continue next
+
       is >> crap;
       if (crap[0] == '\"' || crap.empty ())
         {
           continue;
         }
-      // parse the line like "set fullscreen=yes" or set "set zoom=1.5"
-      else if (crap == "set")
+
+      if (crap == "set")
         {
           is >> argu;
           size_t off = argu.find ('=');
@@ -106,33 +107,16 @@ ApvlvParams::loadfile (const string &filename)
                   continue;
                 }
             }
-          else if (off < 32)
+          else
             {
-              char k[32], v[32], *p;
-              memcpy (k, argu.c_str (), off);
-              k[off] = '\0';
-
-              p = (char *)argu.c_str () + off + 1;
-              while (isspace (*p))
-                {
-                  p++;
-                }
-
-              snprintf (v, sizeof v, "%s", *p ? p : "");
-
-              p = (char *)v + strlen (v) - 1;
-              while (isspace (*p) && p >= v)
-                {
-                  p--;
-                }
-              *(p + 1) = '\0';
-
-              push (k, v);
+              argu[off] = ' ';
+              stringstream ass{ argu };
+              ass >> argu >> data;
+              push (argu, data);
               continue;
             }
-
-          qCritical ("Syntax error: set: %s", str.c_str ());
         }
+
       // like "map n next-page"
       else if (crap == "map")
         {
@@ -151,7 +135,7 @@ ApvlvParams::loadfile (const string &filename)
 
           if (!argu.empty () && !data.empty ())
             {
-              ApvlvCmds::buildCommandMap (argu.c_str (), data.c_str ());
+              ApvlvCmds::buildCommandMap (argu, data);
             }
           else
             {

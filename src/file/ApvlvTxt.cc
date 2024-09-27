@@ -49,11 +49,11 @@ ApvlvTXT::pageText (int pn, const Rectangle &rect, std::string &text)
 }
 
 bool
-ApvlvTXT::pageRender (int pn, double zm, int rot, WebView *webview)
+ApvlvTXT::pageRenderToWebView (int pn, double zm, int rot, WebView *webview)
 {
   auto settings = webview->settings ();
   settings->setDefaultTextEncoding ("UTF-8");
-  return ApvlvHTML::pageRender (pn, zm, rot, webview);
+  return ApvlvHTML::pageRenderToWebView (pn, zm, rot, webview);
 }
 
 }

@@ -46,7 +46,7 @@ public:
 
   int sum () override;
 
-  bool pageRender (int, double, int, QImage *) override;
+  bool pageRenderToImage (int pn, double zm, int rot, QImage *img) override;
 
 private:
   ddjvu_context_t *mContext;

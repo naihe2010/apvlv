@@ -45,7 +45,7 @@ class ImageContainer : public QLabel
 {
   Q_OBJECT
 public:
-  ImageContainer (QWidget *parent = nullptr);
+  explicit ImageContainer (QWidget *parent = nullptr);
 
   void mousePressEvent (QMouseEvent *event) override;
   void mouseMoveEvent (QMouseEvent *event) override;

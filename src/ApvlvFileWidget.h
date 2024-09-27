@@ -197,7 +197,8 @@ protected:
   virtual QWidget *createWidget () = 0;
 
   QWidget *mWidget{ nullptr };
-  QScrollBar *mValScrollBar{ nullptr }, *mHalScrollBar{ nullptr };
+  QScrollBar *mValScrollBar{ nullptr };
+  QScrollBar *mHalScrollBar{ nullptr };
 
   File *mFile{ nullptr };
 

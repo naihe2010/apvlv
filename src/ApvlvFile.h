@@ -64,7 +64,8 @@ using ApvlvLinks = std::vector<ApvlvLink>;
 
 struct ApvlvPoint
 {
-  double x, y;
+  double x;
+  double y;
 };
 
 struct Size
@@ -84,7 +85,10 @@ struct SizeF
 //
 struct Rectangle
 {
-  double p1x, p1y, p2x, p2y;
+  double p1x;
+  double p1y;
+  double p2x;
+  double p2y;
 };
 
 using CharRectangle = Rectangle;
@@ -97,18 +101,18 @@ struct WordRectangle
 
 using WordListRectangle = std::vector<WordRectangle>;
 
-enum FileIndexType
+enum class FileIndexType
 {
-  FILE_INDEX_PAGE,
-  FILE_INDEX_FILE,
-  FILE_INDEX_DIR
+  PAGE,
+  FILE,
+  DIR
 };
 
 class FileWidget;
 class FileIndex
 {
 public:
-  FileIndex () : page (0), type (FILE_INDEX_PAGE){};
+  FileIndex () : page (0), type (FileIndexType::PAGE){};
   FileIndex (const std::string &title, int page, const std::string &path,
              FileIndexType type);
   FileIndex (std::string &&title, int page, std::string &&path,
@@ -119,7 +123,15 @@ public:
   void appendChild (const FileIndex &child);
   [[nodiscard]] const FileIndex *findIndex (const FileIndex &tmp_index) const;
 
-  bool operator== (const FileIndex &) const;
+  friend bool
+  operator== (const FileIndex &this_index, const FileIndex &tmp_index)
+  {
+    return this_index.title == tmp_index.title
+           && this_index.page == tmp_index.page
+           && this_index.path == tmp_index.path
+           && this_index.anchor == tmp_index.anchor
+           && this_index.type == tmp_index.type;
+  }
 
   std::string title;
   int page;
@@ -224,13 +236,10 @@ public:
       }
   }
 
-  virtual bool
-  pageRender (int page, double zm, int rot, QImage *pix)
-  {
-    return false;
-  }
+  virtual bool pageRenderToImage (int pn, double zm, int rot, QImage *img);
 
-  virtual bool pageRender (int pn, double zm, int rot, WebView *webview);
+  virtual bool pageRenderToWebView (int pn, double zm, int rot,
+                                    WebView *webview);
 
   virtual std::unique_ptr<ApvlvLinks>
   pageLinks (int pn)

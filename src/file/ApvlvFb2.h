@@ -44,7 +44,8 @@ public:
 
   int sum () override;
 
-  bool pageRender (int pn, double zm, int rot, WebView *webview) override;
+  bool pageRenderToWebView (int pn, double zm, int rot,
+                            WebView *webview) override;
 
   std::optional<QByteArray> pathContent (const std::string &path) override;
 

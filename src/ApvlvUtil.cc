@@ -139,7 +139,6 @@ xml_content_get_element (const char *content, size_t length,
       if (xml->isStartElement ())
         {
           auto name = xml->name ().toString ().toStdString ();
-          // qDebug ("xml element name: %s", name.c_str ());
           auto iter = find (names.begin (), names.end (), name);
           if (iter == names.end ())
             {
@@ -212,13 +211,29 @@ imageArgb32ToRgb32 (QImage &image, int left, int top, int right, int bottom)
         {
           auto c = image.pixelColor (x, y);
           double ra = double (c.alpha ()) / 255.0;
-          int nr = static_cast<int> (c.red () * ra + 255 * (1.0 - ra));
-          int ng = static_cast<int> (c.green () * ra + 255 * (1.0 - ra));
-          int nb = static_cast<int> (c.blue () * ra + 255 * (1.0 - ra));
+          auto nr = static_cast<int> (c.red () * ra + 255 * (1.0 - ra));
+          auto ng = static_cast<int> (c.green () * ra + 255 * (1.0 - ra));
+          auto nb = static_cast<int> (c.blue () * ra + 255 * (1.0 - ra));
           auto pc = QColor::fromRgb (nr, ng, nb, 255);
           image.setPixelColor (x, y, pc);
         }
     }
+}
+
+std::string
+templateBuild (std::string_view temp, std::string_view token,
+               std::string_view real)
+{
+  auto pos = temp.find (token);
+  if (pos == string::npos)
+    return string (temp);
+
+  auto first = temp.substr (0, pos);
+  auto second = temp.substr (pos + token.length ());
+  auto outstr = string (first);
+  outstr += string (real);
+  outstr += string (second);
+  return outstr;
 }
 
 }
