@@ -84,6 +84,29 @@
     </message>
 </context>
 <context>
+    <name>QObject</name>
+    <message>
+        <source>config file</source>
+        <translation>配置文件</translation>
+    </message>
+    <message>
+        <source>log file</source>
+        <translation>日志文件</translation>
+    </message>
+    <message>
+        <source>document path</source>
+        <translation>文档路径</translation>
+    </message>
+    <message>
+        <source>version number</source>
+        <translation>版本号</translation>
+    </message>
+    <message>
+        <source>help information</source>
+        <translation>帮助信息</translation>
+    </message>
+</context>
+<context>
     <name>apvlv::ApvlvCore</name>
     <message>
         <source>no content</source>
@@ -213,11 +236,11 @@
     </message>
     <message>
         <source>StatusBar</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>Dired</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>

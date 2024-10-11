@@ -339,7 +339,7 @@ ApvlvView::dired ()
 }
 
 bool
-ApvlvView::newtab (const string &filename, bool disable_content)
+ApvlvView::newtab (const string &filename)
 {
   auto optndoc = hasloaded (filename);
   if (!optndoc)

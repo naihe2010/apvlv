@@ -27,12 +27,10 @@
 
 #include <filesystem>
 
-#ifndef WIN32
-#include <getopt.h>
-#endif
 #include <QApplication>
+#include <QCommandLineOption>
+#include <QCommandLineParser>
 #include <QDir>
-#include <QFile>
 #include <QLocale>
 #include <QMessageBox>
 #include <QTranslator>
@@ -60,19 +58,24 @@ registerUrlScheme ()
   QWebEngineUrlScheme::registerScheme (scheme);
 }
 
-#ifndef WIN32
 static void
 usage_exit ()
 {
   fprintf (stdout,
-           "%s Usage:\n"
+           "%s [options] paths\n"
+           "\n"
+           "Options: \n"
            "%s\n"
+           "\n"
+           "Arguments: \n"
+           "%s\n"
+           "\n"
            "Please send bug report to %s\n",
            PACKAGE_NAME,
            "\t-h                display this and exit\n"
            "\t-v                display version info and exit\n"
            "\t-c [file]         set user configuration file\n",
-           PACKAGE_BUGREPORT);
+           "\t paths            document path list", PACKAGE_BUGREPORT);
   exit (0);
 }
 
@@ -86,52 +89,51 @@ version_exit ()
            PACKAGE_NAME, PACKAGE_VERSION, RELEASE, PACKAGE_BUGREPORT);
   exit (0);
 }
-#endif
 
-static int
-parse_options (int argc, char *argv[])
+static list<string>
+parseCommandLine (const QCoreApplication &app)
 {
-#ifdef WIN32
-  gParams->loadfile (inifile);
-  return 1;
-#else
-  int c;
-  int index;
-  static struct option long_options[]
-      = { { "config", required_argument, nullptr, 'c' },
-          { "help", no_argument, nullptr, 'h' },
-          { "log-file", required_argument, nullptr, 'l' },
-          { "version", no_argument, nullptr, 'v' },
-          { nullptr, 0, nullptr, 0 } };
+  QCommandLineParser parser;
 
-  index = 0;
-  while ((c = getopt_long (argc, argv, "c:hl:v", long_options, &index)) != -1)
+  auto versionOption = QCommandLineOption (QStringList () << "v" << "version",
+                                           QObject::tr ("version number"));
+  parser.addOption (versionOption);
+
+  auto helpOption = QCommandLineOption (QStringList () << "h" << "help",
+                                        QObject::tr ("help information"));
+  parser.addOption (helpOption);
+
+  auto configFileOption
+      = QCommandLineOption (QStringList () << "c" << "config-file",
+                            QObject::tr ("config file"), "config");
+  parser.addOption (configFileOption);
+
+  auto logFileOption = QCommandLineOption (QStringList () << "l" << "log-file",
+                                           QObject::tr ("log file"), "log");
+  parser.addOption (logFileOption);
+
+  parser.addPositionalArgument ("path", QObject::tr ("document path"));
+
+  parser.process (app);
+
+  if (parser.isSet (helpOption))
     {
-      switch (c)
-        {
-        case 'c':
-          inifile = filesystem::absolute (optarg).string ();
-          break;
-
-        case 'l':
-          logfile = filesystem::absolute (optarg).string ();
-          break;
-
-        case 'h':
-          usage_exit ();
-          return -1;
-
-        case 'v':
-          version_exit ();
-          return -1;
-
-        default:
-          qCritical ("no command line options");
-          return -1;
-        }
+      usage_exit ();
     }
-
-  qDebug ("using config: %s", inifile.c_str ());
+  if (parser.isSet (versionOption))
+    {
+      version_exit ();
+    }
+  if (parser.isSet (configFileOption))
+    {
+      auto value = parser.value (configFileOption);
+      inifile = filesystem::absolute (value.toStdString ()).string ();
+    }
+  if (parser.isSet (logFileOption))
+    {
+      auto value = parser.value (logFileOption);
+      logfile = filesystem::absolute (value.toStdString ()).string ();
+    }
 
   /*
    * load the global sys conf file
@@ -142,10 +144,17 @@ parse_options (int argc, char *argv[])
   /*
    * load the user conf file
    * */
+  qDebug () << "using config: " << inifile;
   gParams->loadfile (inifile);
 
-  return optind;
-#endif
+  list<string> paths;
+  auto pathlist = parser.positionalArguments ();
+  for (const auto &path : pathlist)
+    {
+      paths.emplace_back (path.toStdString ());
+    }
+
+  return paths;
 }
 
 static void
@@ -187,26 +196,16 @@ main (int argc, char *argv[])
   ApvlvInfo sInfo (sessionfile);
   gInfo = &sInfo;
 
-  int opt = parse_options (argc, argv);
-  if (opt < 0)
-    {
-      qCritical ("Parse options failed.\n");
-      return 1;
-    }
+  auto paths = parseCommandLine (app);
 
   ApvlvLog sLog (QString::fromLocal8Bit (logfile));
 
-  string path;
-  if (opt > 0 && argc > opt)
+  string path = helppdf;
+  if (!paths.empty ())
     {
-      path = argv[opt];
-      opt++;
+      path = paths.front ();
+      paths.pop_front ();
     }
-  else
-    {
-      path = helppdf;
-    }
-
   if (!filesystem::is_regular_file (path))
     {
       qFatal ("File '%s' is not readable.\n", path.c_str ());
@@ -219,10 +218,12 @@ main (int argc, char *argv[])
       exit (1);
     }
 
-  while (opt < argc)
+  while (!paths.empty ())
     {
-      auto apath = filesystem::absolute (argv[opt++]).string ();
-      if (!sView.loadfile (apath))
+      path = paths.front ();
+      paths.pop_front ();
+      auto apath = filesystem::absolute (path).string ();
+      if (!sView.newtab (apath))
         {
           qCritical ("Can't open document: %s", apath.c_str ());
         }

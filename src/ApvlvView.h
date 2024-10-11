@@ -83,7 +83,7 @@ public:
 
   void delCurrentWindow ();
 
-  bool newtab (const std::string &filename, bool disable_content = false);
+  bool newtab (const std::string &filename);
 
   bool newtab (ApvlvFrame *core);
 
