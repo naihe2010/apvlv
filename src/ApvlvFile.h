@@ -213,7 +213,7 @@ public:
   virtual int
   pageNumberWrap (int page)
   {
-    auto scrdoc = gParams->getBoolOrDefault ("autoscrolldoc");
+    auto scrdoc = ApvlvParams::instance ()->getBoolOrDefault ("autoscrolldoc");
     int c = sum ();
 
     if (page >= 0 && page < c)

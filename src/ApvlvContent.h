@@ -117,7 +117,7 @@ private:
 
 private slots:
   void on_changed ();
-  void on_row_activated (const QTreeWidgetItem *item, int column);
+  void on_row_activated (QTreeWidgetItem *item, int column);
   void on_row_doubleclicked ();
   void first_select_cb ();
   void set_index (const FileIndex &index);

@@ -38,8 +38,6 @@ namespace apvlv
 {
 using namespace std;
 
-ApvlvParams *gParams = nullptr;
-
 ApvlvParams::ApvlvParams ()
 {
   push ("inverted", "no");
@@ -70,7 +68,7 @@ ApvlvParams::ApvlvParams ()
 ApvlvParams::~ApvlvParams () = default;
 
 bool
-ApvlvParams::loadfile (const string &filename)
+ApvlvParams::loadFile (const std::string &filename)
 {
   string str;
   fstream os (filename, ios::in);

@@ -42,12 +42,12 @@ struct InfoFile
   std::string file;
 };
 
-class ApvlvInfo
+class ApvlvInfo final
 {
 public:
-  explicit ApvlvInfo (const std::string &file);
-  ~ApvlvInfo () = default;
-
+  ApvlvInfo (const ApvlvInfo &) = delete;
+  ApvlvInfo &operator= (const ApvlvInfo &) = delete;
+  void loadFile (std::string_view file);
   bool update ();
 
   std::optional<InfoFile *> file (int);
@@ -55,16 +55,24 @@ public:
   bool updateFile (int page, int skip, double rate,
                    const std::string &filename);
 
-private:
-  std::string mFileName;
+  static ApvlvInfo *
+  instance ()
+  {
+    static ApvlvInfo inst;
+    return &inst;
+  }
 
-  std::vector<InfoFile> mInfoFiles;
-  int mFileMax;
+private:
+  ApvlvInfo () = default;
+  ~ApvlvInfo () = default;
+
+  std::string mFileName{};
+
+  std::vector<InfoFile> mInfoFiles{};
+  int mFileMax{ 0 };
 
   bool ini_add_position (const char *);
 };
-
-extern ApvlvInfo *gInfo;
 };
 
 #endif

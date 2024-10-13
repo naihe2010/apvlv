@@ -348,7 +348,7 @@ ApvlvContent::on_changed ()
 }
 
 void
-ApvlvContent::on_row_activated ([[maybe_unused]] const QTreeWidgetItem *item,
+ApvlvContent::on_row_activated ([[maybe_unused]] QTreeWidgetItem *item,
                                 [[maybe_unused]] int column)
 {
   mFrame->contentShowPage (currentItemFileIndex (), true);

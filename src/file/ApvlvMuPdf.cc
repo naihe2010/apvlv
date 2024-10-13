@@ -164,17 +164,20 @@ ApvlvPDF::mupdf_get_index_recursively (FileIndex &index,
   index.type = FileIndexType::PAGE;
   index.title = outline.title ();
   index.page = mDoc->fz_page_number_from_location (outline.page ());
-  index.path = outline.uri ();
-  auto pos = index.path.find ('#');
-  if (pos != string::npos)
+  if (outline.m_internal->uri != nullptr)
     {
-      index.anchor = index.path.substr (pos);
-      index.path = index.path.substr (0, pos);
-    }
-  if (index.page == -1)
-    {
-      auto dest = mDoc->fz_resolve_link (outline.uri (), nullptr, nullptr);
-      index.page = mDoc->fz_page_number_from_location (dest);
+      index.path = outline.uri ();
+      auto pos = index.path.find ('#');
+      if (pos != string::npos)
+        {
+          index.anchor = index.path.substr (pos);
+          index.path = index.path.substr (0, pos);
+        }
+      if (index.page == -1)
+        {
+          auto dest = mDoc->fz_resolve_link (outline.uri (), nullptr, nullptr);
+          index.page = mDoc->fz_page_number_from_location (dest);
+        }
     }
 
   auto toc = outline.down ();

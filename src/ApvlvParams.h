@@ -38,10 +38,12 @@ namespace apvlv
 class ApvlvParams final
 {
 public:
-  ApvlvParams ();
-  ~ApvlvParams ();
+  ApvlvParams (const ApvlvParams &) = delete;
+  const ApvlvParams &operator= (const ApvlvParams &) = delete;
+  ApvlvParams (const ApvlvParams &&) = delete;
+  const ApvlvParams &&operator= (const ApvlvParams &&) = delete;
 
-  bool loadfile (const std::string &filename);
+  bool loadFile (const std::string &filename);
 
   bool push (std::string_view ch, std::string_view str);
 
@@ -52,11 +54,20 @@ public:
 
   bool getBoolOrDefault (std::string_view key, bool defb = false);
 
+  static ApvlvParams *
+  instance ()
+  {
+    static ApvlvParams inst;
+    return &inst;
+  }
+
 private:
+  ApvlvParams ();
+  ~ApvlvParams ();
+
   std::map<std::string, std::string> mParamMap;
 };
 
-extern ApvlvParams *gParams;
 }
 
 #endif

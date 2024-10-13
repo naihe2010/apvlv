@@ -139,13 +139,14 @@ parseCommandLine (const QCoreApplication &app)
    * load the global sys conf file
    * */
   auto sysIni = string (SYSCONFDIR) + "/apvlvrc";
-  gParams->loadfile (sysIni);
+  auto params = ApvlvParams::instance ();
+  params->loadFile (sysIni);
 
   /*
    * load the user conf file
    * */
   qDebug () << "using config: " << inifile;
-  gParams->loadfile (inifile);
+  ApvlvParams::instance ()->loadFile (inifile);
 
   list<string> paths;
   auto pathlist = parser.positionalArguments ();
@@ -190,11 +191,7 @@ main (int argc, char *argv[])
   QTranslator translator;
   loadTranslator (translator);
 
-  ApvlvParams sParams;
-  gParams = &sParams;
-
-  ApvlvInfo sInfo (sessionfile);
-  gInfo = &sInfo;
+  ApvlvInfo::instance ()->loadFile (sessionfile);
 
   auto paths = parseCommandLine (app);
 

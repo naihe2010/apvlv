@@ -38,7 +38,6 @@ FILE_TYPE_DEFINITION (ApvlvOFFICE, { ".doc", ".docx", ".xls", ".xlsx" });
 using namespace std;
 
 unique_ptr<lok::Office> ApvlvOFFICE::mOffice;
-mutex ApvlvOFFICE::mLokMutex;
 
 bool
 ApvlvOFFICE::load (const string &filename)
@@ -99,16 +98,12 @@ ApvlvOFFICE::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 void
 ApvlvOFFICE::initLokInstance ()
 {
-  if (mOffice)
-    return;
-
-  lock_guard<mutex> lock (mLokMutex);
-
-  if (mOffice)
-    return;
-
-  auto lok_path = gParams->getStringOrDefault ("lok_path", DEFAULT_LOK_PATH);
-  mOffice = unique_ptr<lok::Office>{ lok::lok_cpp_init (lok_path.c_str ()) };
+  static std::once_flag flag;
+  std::call_once (flag, [] () {
+    auto lok_path = ApvlvParams::instance ()->getStringOrDefault (
+        "lok_path", DEFAULT_LOK_PATH);
+    mOffice = unique_ptr<lok::Office>{ lok::lok_cpp_init (lok_path.c_str ()) };
+  });
 }
 
 }

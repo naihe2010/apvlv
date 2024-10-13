@@ -100,7 +100,8 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
       mParent->append_child (this);
     }
 
-  auto guiopt = gParams->getStringOrDefault ("guioptions", "mTS");
+  auto guiopt
+      = ApvlvParams::instance ()->getStringOrDefault ("guioptions", "mTS");
   isMenuBarShow = guiopt.find ('m') != string::npos;
   isToolBarShow = guiopt.find ('T') != string::npos;
   isStatusShow = guiopt.find ('S') != string::npos;
@@ -118,10 +119,10 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
 
   processInLast = false;
 
-  int w = gParams->getIntOrDefault ("width");
-  int h = gParams->getIntOrDefault ("height");
+  int w = ApvlvParams::instance ()->getIntOrDefault ("width");
+  int h = ApvlvParams::instance ()->getIntOrDefault ("height");
 
-  if (gParams->getBoolOrDefault ("fullscreen"))
+  if (ApvlvParams::instance ()->getBoolOrDefault ("fullscreen"))
     {
       fullscreen ();
     }
@@ -227,7 +228,7 @@ void
 ApvlvView::open ()
 {
   QString dirname;
-  auto fp = gInfo->file (0);
+  auto fp = ApvlvInfo::instance ()->file (0);
   if (fp)
     {
       dirname = QString::fromLocal8Bit (
@@ -266,7 +267,7 @@ void
 ApvlvView::opendir ()
 {
   QString dirname;
-  auto fp = gInfo->file (0);
+  auto fp = ApvlvInfo::instance ()->file (0);
   if (fp)
     {
       dirname = QString::fromLocal8Bit (
@@ -470,7 +471,8 @@ ApvlvView::hasloaded (string_view abpath)
 void
 ApvlvView::regloaded (ApvlvFrame *core)
 {
-  auto cache_count = gParams->getIntOrDefault ("cache_count", 10);
+  auto cache_count
+      = ApvlvParams::instance ()->getIntOrDefault ("cache_count", 10);
   if (mDocs.size () >= static_cast<size_t> (cache_count))
     {
       auto found_itr = mDocs.end ();
@@ -1004,7 +1006,7 @@ ApvlvView::runcmd (const char *str)
             }
           else
             {
-              gParams->push (subcmd, argu);
+              ApvlvParams::instance ()->push (subcmd, argu);
             }
         }
       else if (cmd == "map" && !subcmd.empty ())

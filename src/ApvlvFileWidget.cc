@@ -92,11 +92,12 @@ FileWidget::scrollUp (int times)
     }
   else
     {
-      if (gParams->getBoolOrDefault ("autoscrollpage"))
+      auto params = ApvlvParams::instance ();
+      if (params->getBoolOrDefault ("autoscrollpage"))
         {
           if (mPageNumber == 0)
             {
-              if (gParams->getBoolOrDefault ("autoscrolldoc"))
+              if (params->getBoolOrDefault ("autoscrolldoc"))
                 {
                   showPage (mFile->sum () - 1, 1.0);
                 }
@@ -126,11 +127,12 @@ FileWidget::scrollDown (int times)
     }
   else
     {
-      if (gParams->getBoolOrDefault ("autoscrollpage"))
+      auto params = ApvlvParams::instance ();
+      if (params->getBoolOrDefault ("autoscrollpage"))
         {
           if (mPageNumber == mFile->sum () - 1)
             {
-              if (gParams->getBoolOrDefault ("autoscrolldoc"))
+              if (params->getBoolOrDefault ("autoscrolldoc"))
                 {
                   showPage (0, 0.0);
                 }

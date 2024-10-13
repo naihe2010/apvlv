@@ -36,10 +36,10 @@ namespace apvlv
 {
 using namespace std;
 
-ApvlvInfo *gInfo = nullptr;
-
-ApvlvInfo::ApvlvInfo (const string &filename) : mFileName (filename)
+void
+ApvlvInfo::loadFile (std::string_view file)
 {
+  mFileName = file;
   mFileMax = 10;
 
   ifstream is (mFileName.c_str (), ios::in);
