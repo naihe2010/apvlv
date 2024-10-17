@@ -103,6 +103,8 @@ public:
   virtual bool loadfile (const std::string &file, bool check,
                          bool show_content);
 
+  virtual bool loadUri (const std::string &uri);
+
   virtual const char *filename ();
 
   virtual int pageNumber ();

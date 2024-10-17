@@ -38,6 +38,7 @@
 #include "ApvlvInfo.h"
 #include "ApvlvParams.h"
 #include "ApvlvView.h"
+#include "ApvlvWeb.h"
 #include "ApvlvWebViewWidget.h"
 
 namespace apvlv
@@ -112,6 +113,16 @@ bool
 ApvlvFrame::inuse ()
 {
   return mInuse;
+}
+
+bool
+ApvlvFrame::loadUri (const string &uri)
+{
+  mFile = make_unique<ApvlvWEB> ();
+  mFile->load (uri);
+  setWidget (mFile->getDisplayType ());
+  refresh (0, 0.0);
+  return true;
 }
 
 const char *

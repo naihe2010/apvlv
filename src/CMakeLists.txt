@@ -67,6 +67,7 @@ SET(HEADERS
         ApvlvFrame.h
         ApvlvFile.h
         ApvlvFileWidget.h
+        ApvlvWeb.h
         ApvlvInfo.h
         ApvlvParams.h
         ApvlvUtil.h
@@ -91,6 +92,7 @@ SET(SOURCES
         ApvlvFrame.cc
         ApvlvFile.cc
         ApvlvFileWidget.cc
+        ApvlvWeb.cc
         ApvlvInfo.cc
         ApvlvParams.cc
         ApvlvUtil.cc

@@ -114,7 +114,19 @@ public:
   void setSearchStr (const std::string &str) override;
   void setSearchSelect (int select) override;
 
+  void
+  setInternalScroll (bool internal)
+  {
+    mIsInternalScroll = internal;
+  }
+  bool
+  internalScroll ()
+  {
+    return mIsInternalScroll;
+  }
+
 private:
+  bool mIsInternalScroll{ false };
   bool mIsScrollUp{ false };
   QWebEngineFindTextResult mSearchResult;
 

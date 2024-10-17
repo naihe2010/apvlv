@@ -27,11 +27,13 @@
 
 #include <QApplication>
 #include <QFileDialog>
+#include <QInputDialog>
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QMenu>
 #include <QMenuBar>
+#include <QMessageBox>
 #include <QToolBar>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -286,6 +288,16 @@ ApvlvView::opendir ()
     }
 }
 
+void
+ApvlvView::openurl ()
+{
+  auto res = QInputDialog::getText (this, "url", tr ("input url: "));
+  if (!res.isEmpty ())
+    {
+      crtadoc ()->loadUri (res.toStdString ());
+    }
+}
+
 bool
 ApvlvView::loaddir (const string &path)
 {
@@ -506,6 +518,9 @@ ApvlvView::setupMenuBar ()
   action = mfile->addAction (tr ("OpenDir"));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (opendir ()));
+  action = mfile->addAction (tr ("OpenUrl"));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (openurl ()));
   action = mfile->addAction (tr ("New Tab"));
   QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (newtab ()));
   action = mfile->addAction (tr ("Close Tab"));

@@ -83,6 +83,9 @@ ApvlvLog::writeMessage (const QString &msg)
 
 ApvlvLog::~ApvlvLog ()
 {
+  if (this == mInstance)
+    mInstance = nullptr;
+
   if (mFile.isOpen ())
     {
       mFile.close ();
@@ -111,7 +114,9 @@ ApvlvLog::logMessage (QtMsgType type, const QMessageLogContext &context,
     }
   log += msg;
 
-  ApvlvLog::instance ()->writeMessage (log);
+  auto instance = ApvlvLog::instance ();
+  if (instance)
+    instance->writeMessage (log);
 }
 }
 

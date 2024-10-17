@@ -137,11 +137,30 @@ WebViewWidget::scrollUp (int times)
   auto widget = dynamic_cast<WebView *> (mWidget);
   if (widget->isScrolledToTop ())
     {
-      auto p = mFile->pageNumberWrap (mPageNumber - 1);
-      if (p >= 0)
+      if (mIsInternalScroll)
         {
-          mIsScrollUp = true;
-          showPage (p, 0.0);
+          // clang-format off
+          auto rs = R"(
+            var event = document.createEvent ('Event');
+            event.initEvent('keydown', true, true);
+            event.keyCode = 37;
+            document.dispatchEvent(event);
+          )";
+          // clang-format on
+
+          auto page = widget->page ();
+          page->runJavaScript (
+              QString::fromLocal8Bit (rs),
+              [] (const QVariant &v) { qDebug () << v.toString (); });
+        }
+      else
+        {
+          auto p = mFile->pageNumberWrap (mPageNumber - 1);
+          if (p >= 0)
+            {
+              mIsScrollUp = true;
+              showPage (p, 0.0);
+            }
         }
     }
 }
@@ -154,9 +173,27 @@ WebViewWidget::scrollDown (int times)
   auto widget = dynamic_cast<WebView *> (mWidget);
   if (widget->isScrolledToBottom ())
     {
-      auto p = mFile->pageNumberWrap (mPageNumber + 1);
-      if (p >= 0)
-        showPage (p, 0.0);
+      if (mIsInternalScroll)
+        {
+          // clang-format off
+          auto rs = R"(
+              var event = document.createEvent ('Event');
+              event.initEvent('keydown', true, true);
+              event.keyCode = 39;
+              document.dispatchEvent(event);
+          )";
+          // clang-format on
+          auto page = widget->page ();
+          page->runJavaScript (
+              QString::fromLocal8Bit (rs),
+              [] (const QVariant &v) { qDebug () << v.toString (); });
+        }
+      else
+        {
+          auto p = mFile->pageNumberWrap (mPageNumber + 1);
+          if (p >= 0)
+            showPage (p, 0.0);
+        }
     }
 }
 

@@ -242,6 +242,14 @@
         <source>Dired</source>
         <translation></translation>
     </message>
+    <message>
+        <source>input url: </source>
+        <translation>输入网址：</translation>
+    </message>
+    <message>
+        <source>OpenUrl</source>
+        <translation>打开网址</translation>
+    </message>
 </context>
 <context>
     <name>apvlv::DiredDialog</name>

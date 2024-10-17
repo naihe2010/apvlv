@@ -140,6 +140,8 @@ public slots:
 
   void opendir ();
 
+  void openurl ();
+
   void quit (bool only_tab = true);
 
   void search ();
