@@ -87,7 +87,7 @@ ApvlvFrame::ApvlvFrame (ApvlvView *view)
   mContent = new ApvlvContent ();
   mContent->setFrame (this);
   QObject::connect (this, SIGNAL (indexGenerited (const FileIndex &)),
-                    mContent, SLOT (set_index (const FileIndex &)));
+                    mContent, SLOT (setIndex (const FileIndex &)));
 
   mPaned->addWidget (mContent);
 
@@ -132,7 +132,7 @@ ApvlvFrame::filename ()
 }
 
 bool
-ApvlvFrame::print (int ct)
+ApvlvFrame::print ([[maybe_unused]] int ct)
 {
   return false;
 }
@@ -211,7 +211,7 @@ ApvlvFrame::setActive (bool act)
     {
       auto path = filesystem::path (filename ());
       auto base = path.filename ();
-      mView->settitle (base.string ());
+      mView->setTitle (base.string ());
     }
 
   mStatus->setActive (act);
@@ -386,24 +386,24 @@ ApvlvFrame::process (int has, int ct, uint key)
   switch (key)
     {
     case Key_PageDown:
-    case CTRL ('f'):
+    case ctrlValue ('f'):
       nextpage (ct);
       break;
     case Key_PageUp:
-    case CTRL ('b'):
+    case ctrlValue ('b'):
       prepage (ct);
       break;
-    case CTRL ('d'):
+    case ctrlValue ('d'):
       halfnextpage (ct);
       break;
-    case CTRL ('u'):
+    case ctrlValue ('u'):
       halfprepage (ct);
       break;
     case ':':
     case '/':
     case '?':
     case 'F':
-      mView->promptcommand (char (key));
+      mView->promptCommand (char (key));
       return CmdReturn::NEED_MORE;
     case 'H':
       mWidget->scrollTo (0.0, 0.0);
@@ -420,7 +420,7 @@ ApvlvFrame::process (int has, int ct, uint key)
     case '$':
       mWidget->scrollRight (INT_MAX);
       break;
-    case CTRL ('p'):
+    case ctrlValue ('p'):
     case Key_Up:
     case 'k':
       if (isControlledContent ())
@@ -434,8 +434,8 @@ ApvlvFrame::process (int has, int ct, uint key)
           updateStatus ();
         }
       break;
-    case CTRL ('n'):
-    case CTRL ('j'):
+    case ctrlValue ('n'):
+    case ctrlValue ('j'):
     case Key_Down:
     case 'j':
       if (isControlledContent ())
@@ -451,7 +451,7 @@ ApvlvFrame::process (int has, int ct, uint key)
       break;
     case Key_Backspace:
     case Key_Left:
-    case CTRL ('h'):
+    case ctrlValue ('h'):
     case 'h':
       if (isControlledContent ())
         {
@@ -466,7 +466,7 @@ ApvlvFrame::process (int has, int ct, uint key)
       break;
     case Key_Space:
     case Key_Right:
-    case CTRL ('l'):
+    case ctrlValue ('l'):
     case 'l':
       if (isControlledContent ())
         {
@@ -485,25 +485,25 @@ ApvlvFrame::process (int has, int ct, uint key)
     case 'R':
       reload ();
       break;
-    case CTRL (']'):
-      gotolink (ct);
+    case ctrlValue (']'):
+      gotoLink (ct);
       break;
-    case CTRL ('t'):
-      returnlink (ct);
+    case ctrlValue ('t'):
+      returnLink (ct);
       break;
     case 't':
-      mView->newtab (helppdf);
+      mView->newTab (helppdf);
       mView->open ();
       break;
     case 'T':
-      mView->newtab (helppdf);
-      mView->opendir ();
+      mView->newTab (helppdf);
+      mView->openDir ();
       break;
     case 'o':
       mView->open ();
       break;
     case 'O':
-      mView->opendir ();
+      mView->openDir ();
       break;
     case 'r':
       rotate (ct);
@@ -1039,13 +1039,13 @@ ApvlvFrame::rotate (int ct)
 }
 
 void
-ApvlvFrame::gotolink (int ct)
+ApvlvFrame::gotoLink ([[maybe_unused]] int ct)
 {
   // need impl
 }
 
 void
-ApvlvFrame::returnlink (int ct)
+ApvlvFrame::returnLink ([[maybe_unused]] int ct)
 {
   // need impl
 }

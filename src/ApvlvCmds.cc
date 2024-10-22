@@ -26,6 +26,8 @@
  */
 
 #include <Qt>
+#include <cctype>
+#include <cstring>
 
 #include "ApvlvCmds.h"
 #include "ApvlvView.h"
@@ -67,7 +69,7 @@ keyToControlChar (QKeyEvent *key)
       char_key = tolower (char_key);
     }
   if (key->modifiers () & ControlModifier)
-    char_key = CTRL (char_key);
+    char_key = ctrlValue (char_key);
 
   return char_key;
 }
@@ -158,15 +160,15 @@ Command::process (ApvlvView *view)
 {
   if (type () == CmdType::CT_STRING)
     {
-      view->promptcommand (c_str ());
+      view->promptCommand (mStrCommand.c_str ());
     }
   else if (type () == CmdType::CT_STRING_RETURN)
     {
-      view->run (c_str ());
+      view->run (mStrCommand.c_str ());
     }
   else
     {
-      for (uint k = 0; k < keyvalv_p ()->size (); ++k)
+      for (uint k = 0; k < keyVals ()->size (); ++k)
         {
           int key = keyval (k);
           if (key > 0)
@@ -216,7 +218,7 @@ Command::append (const char *s)
     {
       if (s[1] == 'C')
         {
-          mKeyVals.push_back (CTRL (s[3]));
+          mKeyVals.push_back (ctrlValue (s[3]));
         }
       else
         {
@@ -256,14 +258,8 @@ Command::origin ()
   return mOrigin;
 }
 
-const char *
-Command::c_str ()
-{
-  return mStrCommand.c_str ();
-}
-
 CommandKeyList *
-Command::keyvalv_p ()
+Command::keyVals ()
 {
   return &mKeyVals;
 }
@@ -316,7 +312,7 @@ ApvlvCmds::ApvlvCmds (ApvlvView *view)
 
   mTimeoutTimer = make_unique<QTimer> (this);
   QObject::connect (mTimeoutTimer.get (), SIGNAL (timeout ()), this,
-                    SLOT (timeout_cb ()));
+                    SLOT (timeoutCallback ()));
 }
 
 ApvlvCmds::~ApvlvCmds ()
@@ -391,7 +387,7 @@ ApvlvCmds::append (QKeyEvent *gev)
     }
 
   mState = CmdState::GETTING_CMD;
-  CmdReturn ret = isMapCommand (mCmdHead->keyvalv_p ());
+  CmdReturn ret = isMapCommand (mCmdHead->keyVals ());
   if (ret == CmdReturn::NEED_MORE)
     {
       mTimeoutTimer->start (3000);
@@ -464,12 +460,12 @@ ApvlvCmds::isMapCommand (CommandKeyList *ack)
 Command *
 ApvlvCmds::getMapCommand (Command *cmd)
 {
-  auto it = mMaps.find (*cmd->keyvalv_p ());
+  auto it = mMaps.find (*cmd->keyVals ());
   return it != mMaps.end () ? it->second : nullptr;
 }
 
 void
-ApvlvCmds::timeout_cb ()
+ApvlvCmds::timeoutCallback ()
 {
   if (mCmdHead != nullptr)
     {

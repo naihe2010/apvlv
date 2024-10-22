@@ -30,6 +30,8 @@
 
 #include <QImage>
 #include <QXmlStreamReader>
+#include <string>
+#include <vector>
 
 namespace apvlv
 {
@@ -57,18 +59,17 @@ const char *const PATH_SEP_S = "/";
 #endif
 
 std::optional<std::unique_ptr<QXmlStreamReader> >
-xml_content_get_element (const char *content, size_t length,
-                         const std::vector<std::string> &names);
+xmlContentGetElement (const char *content, size_t length,
+                      const std::vector<std::string> &names);
 
-std::string xml_stream_get_attribute_value (QXmlStreamReader *xml,
-                                            const std::string &key);
+std::string xmlStreamGetAttributeValue (QXmlStreamReader *xml,
+                                        const std::string &key);
 
-std::string
-xml_content_get_attribute_value (const char *content, size_t length,
-                                 const std::vector<std::string> &names,
-                                 const std::string &key);
+std::string xmlContentGetAttributeValue (const char *content, size_t length,
+                                         const std::vector<std::string> &names,
+                                         const std::string &key);
 
-std::string filename_ext (const std::string &filename);
+std::string filenameExtension (const std::string &filename);
 
 void imageArgb32ToRgb32 (QImage &image, int left, int top, int right,
                          int bottom);

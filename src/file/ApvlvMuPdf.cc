@@ -50,7 +50,7 @@ ApvlvPDF::load (const string &filename)
       return false;
     }
 
-  mupdf_get_index ();
+  generateIndex ();
   return true;
 }
 
@@ -144,22 +144,22 @@ ApvlvPDF::pageSearch (int pn, const char *str)
 }
 
 void
-ApvlvPDF::mupdf_get_index ()
+ApvlvPDF::generateIndex ()
 {
   mIndex = { "", 0, "", FileIndexType::FILE };
   auto toc = mDoc->fz_load_outline ();
   while (toc.m_internal != nullptr)
     {
       auto child_index = FileIndex{};
-      mupdf_get_index_recursively (child_index, toc);
+      generateIndexRecursively (child_index, toc);
       mIndex.mChildrenIndex.push_back (child_index);
       toc = toc.next ();
     }
 }
 
 void
-ApvlvPDF::mupdf_get_index_recursively (FileIndex &index,
-                                       mupdf::FzOutline &outline)
+ApvlvPDF::generateIndexRecursively (FileIndex &index,
+                                    mupdf::FzOutline &outline)
 {
   index.type = FileIndexType::PAGE;
   index.title = outline.title ();
@@ -184,7 +184,7 @@ ApvlvPDF::mupdf_get_index_recursively (FileIndex &index,
   while (toc.m_internal != nullptr)
     {
       auto child_index = FileIndex{};
-      mupdf_get_index_recursively (child_index, toc);
+      generateIndexRecursively (child_index, toc);
       index.mChildrenIndex.push_back (child_index);
       toc = toc.next ();
     }

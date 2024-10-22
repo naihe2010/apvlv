@@ -53,9 +53,9 @@ public:
                                                  const char *s) override;
 
 private:
-  bool pdf_get_index ();
-  void pdf_get_children_index (FileIndex &root_index,
-                               const QVector<Poppler::OutlineItem> &outlines);
+  bool generateIndex ();
+  void generateChildrenIndex (FileIndex &root_index,
+                              const QVector<Poppler::OutlineItem> &outlines);
 
   std::unique_ptr<Poppler::Document> mDoc;
 };

@@ -76,10 +76,10 @@ WebViewWidget::createWidget ()
 {
   auto view = new WebView ();
   QObject::connect (view, SIGNAL (loadFinished (bool)), this,
-                    SLOT (webview_load_finished (bool)));
+                    SLOT (webviewLoadFinished (bool)));
   QObject::connect (view->mSchemeHandler.get (),
                     SIGNAL (webpageUpdated (const string &)), this,
-                    SLOT (webview_update (const string &)));
+                    SLOT (webviewUpdate (const string &)));
   mWidget = view;
   return mWidget;
 }
@@ -246,7 +246,7 @@ WebView::isScrolledToBottom ()
 }
 
 void
-WebViewWidget::webview_load_finished (bool suc)
+WebViewWidget::webviewLoadFinished (bool suc)
 {
   if (suc)
     {
@@ -269,8 +269,7 @@ WebViewWidget::webview_load_finished (bool suc)
 }
 
 void
-WebViewWidget::webview_find_text_finished (
-    const QWebEngineFindTextResult &result)
+WebViewWidget::webviewFindTextFinished (const QWebEngineFindTextResult &result)
 {
   mSearchResult = result;
 }

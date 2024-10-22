@@ -63,7 +63,7 @@ public:
     return mWidget;
   }
 
-  File *
+  [[nodiscard]] File *
   file () const
   {
     return mFile;

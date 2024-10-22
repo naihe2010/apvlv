@@ -34,13 +34,6 @@ namespace apvlv
 class ApvlvIMAGE : public ApvlvHTML
 {
   FILE_TYPE_DECLARATION (ApvlvIMAGE);
-
-public:
-  bool
-  load (const std::string &filename) override
-  {
-    return true;
-  }
 };
 
 }

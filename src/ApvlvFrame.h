@@ -82,94 +82,93 @@ const int DEFAULT_CONTENT_WIDTH = 30;
 
 class FileWidget;
 class ApvlvView;
-class ApvlvFrame : public QFrame
+class ApvlvFrame final : public QFrame
 {
   Q_OBJECT
 public:
-  explicit ApvlvFrame (ApvlvView *);
+  explicit ApvlvFrame (ApvlvView *view);
 
   ~ApvlvFrame () override;
 
-  virtual bool reload ();
+  bool reload ();
 
-  virtual void inuse (bool use);
+  void inuse (bool use);
 
-  virtual bool inuse ();
+  bool inuse ();
 
-  virtual ApvlvFrame *copy ();
+  ApvlvFrame *copy ();
 
-  virtual void setDirIndex (const std::string &path);
+  void setDirIndex (const std::string &path);
 
-  virtual bool loadfile (const std::string &file, bool check,
-                         bool show_content);
+  bool loadfile (const std::string &file, bool check, bool show_content);
 
-  virtual bool loadUri (const std::string &uri);
+  bool loadUri (const std::string &uri);
 
-  virtual const char *filename ();
+  const char *filename ();
 
-  virtual int pageNumber ();
+  int pageNumber ();
 
-  virtual void showpage (int pn, double s);
-  virtual void showpage (int pn, const std::string &anchor);
-  virtual void refresh (int pn, double s);
+  void showpage (int pn, double s);
+  void showpage (int pn, const std::string &anchor);
+  void refresh (int pn, double s);
 
-  virtual void setActive (bool act);
+  void setActive (bool act);
 
-  virtual void updateStatus ();
+  void updateStatus ();
 
-  virtual bool isStatusHidden ();
+  bool isStatusHidden ();
 
-  virtual void statusShow ();
+  void statusShow ();
 
-  virtual void statusHide ();
+  void statusHide ();
 
-  virtual bool print (int ct);
+  bool print (int ct);
 
-  virtual bool totext (const char *name);
+  bool totext (const char *name);
 
-  virtual bool rotate (int ct);
+  bool rotate (int ct);
 
-  virtual void markposition (char s);
+  void markposition (char s);
 
-  virtual void setzoom (double zm);
+  void setzoom (double zm);
 
-  virtual void setzoom (const char *z);
+  void setzoom (const char *z);
 
-  virtual void jump (char s);
+  void jump (char s);
 
-  virtual void nextpage (int times);
+  void nextpage (int times);
 
-  virtual void prepage (int times);
+  void prepage (int times);
 
-  virtual void halfnextpage (int times);
+  void halfnextpage (int times);
 
-  virtual void halfprepage (int times);
+  void halfprepage (int times);
 
-  virtual bool search (const char *str, bool reverse);
+  bool search (const char *str, bool reverse);
 
-  virtual void gotolink (int ct);
+  void gotoLink (int ct);
 
-  virtual void returnlink (int ct);
+  void returnLink (int ct);
 
   bool loadLastPosition (const std::string &filename);
   bool saveLastPosition (const std::string &filename);
 
   void contentShowPage (const FileIndex *index, bool force);
 
-  virtual int getskip ();
-  virtual void setskip (int ct);
+  int getskip ();
+  void setskip (int ct);
 
-  virtual void toggleContent ();
+  void toggleContent ();
 
-  virtual void toggleContent (bool enabled);
+  void toggleContent (bool enabled);
 
-  virtual bool toggledControlContent (bool is_right);
+  bool toggledControlContent (bool is_right);
 
-  virtual bool isShowContent ();
+  bool isShowContent ();
 
-  virtual bool isControlledContent ();
+  bool isControlledContent ();
 
-  virtual CmdReturn process (int has, int times, uint keyval);
+  CmdReturn process (int has, int times, uint keyval);
 
   ApvlvView *mView;
 
@@ -233,7 +232,7 @@ protected:
   CmdReturn subprocess (int ct, uint key);
 
 signals:
-  void indexGenerited (const FileIndex &);
+  void indexGenerited (const FileIndex &index);
 };
 }
 

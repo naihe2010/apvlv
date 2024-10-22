@@ -100,8 +100,8 @@ public:
     widget->setFile (mFile);
   }
 
-  void showPage (int, double s) override;
-  void showPage (int, const std::string &anchor) override;
+  void showPage (int pn, double s) override;
+  void showPage (int pn, const std::string &anchor) override;
 
   void scroll (int times, int w, int h) override;
   void scrollTo (double x, double y) override;
@@ -135,13 +135,13 @@ signals:
 
 private slots:
   void
-  webview_update (const std::string &msg)
+  webviewUpdate (const std::string &msg)
   {
     emit webpageUpdated (msg);
   };
 
-  void webview_load_finished (bool suc);
-  void webview_find_text_finished (const QWebEngineFindTextResult &result);
+  void webviewLoadFinished (bool suc);
+  void webviewFindTextFinished (const QWebEngineFindTextResult &result);
 };
 
 }

@@ -54,7 +54,7 @@ string sessionfile;
 string logfile;
 
 static void
-get_xdg_or_home_ini (const QString &appdir)
+getXdgOrHomeIni (const QString &appdir)
 {
   auto sysenv = QProcessEnvironment::systemEnvironment ();
   auto xdgdir = sysenv.value ("XDG_CONFIG_DIR").toStdString ();
@@ -82,7 +82,7 @@ get_xdg_or_home_ini (const QString &appdir)
 }
 
 static void
-get_xdg_or_cache_sessionpath (const QString &appdir)
+getXdgOrCachePath (const QString &appdir)
 {
   auto sysenv = QProcessEnvironment::systemEnvironment ();
   auto xdgdir = sysenv.value ("XDG_CACHE_HOME").toStdString ();
@@ -123,13 +123,13 @@ getRuntimePaths ()
   iniexam = apvlvdir + "/apvlvrc.example";
 #endif
 
-  get_xdg_or_home_ini (dirpath.path ());
-  get_xdg_or_cache_sessionpath (dirpath.path ());
+  getXdgOrHomeIni (dirpath.path ());
+  getXdgOrCachePath (dirpath.path ());
 }
 
 optional<unique_ptr<QXmlStreamReader> >
-xml_content_get_element (const char *content, size_t length,
-                         const vector<string> &names)
+xmlContentGetElement (const char *content, size_t length,
+                      const vector<string> &names)
 {
   auto bytes = QByteArray{ content, (qsizetype)length };
   auto xml = make_unique<QXmlStreamReader> (bytes);
@@ -165,7 +165,7 @@ xml_content_get_element (const char *content, size_t length,
 }
 
 string
-xml_stream_get_attribute_value (QXmlStreamReader *xml, const string &key)
+xmlStreamGetAttributeValue (QXmlStreamReader *xml, const string &key)
 {
   auto attrs = xml->attributes ();
   for (auto &attr : attrs)
@@ -178,20 +178,19 @@ xml_stream_get_attribute_value (QXmlStreamReader *xml, const string &key)
 }
 
 string
-xml_content_get_attribute_value (const char *content, size_t length,
-                                 const vector<string> &names,
-                                 const string &key)
+xmlContentGetAttributeValue (const char *content, size_t length,
+                             const vector<string> &names, const string &key)
 {
-  auto optxml = xml_content_get_element (content, length, names);
+  auto optxml = xmlContentGetElement (content, length, names);
   if (!optxml)
     return "";
 
   auto xml = optxml->get ();
-  return xml_stream_get_attribute_value (xml, key);
+  return xmlStreamGetAttributeValue (xml, key);
 }
 
 string
-filename_ext (const string &filename)
+filenameExtension (const string &filename)
 {
   auto pointp = filename.rfind ('.');
   if (pointp == string::npos)
@@ -220,9 +219,8 @@ imageArgb32ToRgb32 (QImage &image, int left, int top, int right, int bottom)
     }
 }
 
-std::string
-templateBuild (std::string_view temp, std::string_view token,
-               std::string_view real)
+string
+templateBuild (string_view temp, string_view token, string_view real)
 {
   auto pos = temp.find (token);
   if (pos == string::npos)

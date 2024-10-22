@@ -37,7 +37,7 @@ namespace apvlv
 class ApvlvFrame;
 class ApvlvWindowContext;
 
-class ApvlvWindow : public QObject
+class ApvlvWindow final : public QObject
 {
   Q_OBJECT
 public:
@@ -106,8 +106,8 @@ public:
                                ApvlvWindow *active = nullptr, int count = 0);
   ~ApvlvWindowContext () override = default;
 
-  void registerWindow (ApvlvWindow *);
-  void unregisterWindow (ApvlvWindow *);
+  void registerWindow (ApvlvWindow *win);
+  void unregisterWindow (ApvlvWindow *win);
 
   ApvlvView *
   getView () const

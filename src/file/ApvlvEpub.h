@@ -31,6 +31,7 @@
 #include <map>
 #include <memory>
 #include <quazip.h>
+#include <string>
 
 #include "ApvlvFile.h"
 
@@ -55,18 +56,16 @@ public:
   std::optional<QByteArray> pathContent (const std::string &path) override;
 
 private:
-  std::optional<QByteArray> get_zip_file_contents (const QString &name);
+  std::optional<QByteArray> getZipFileContents (const QString &name);
 
-  static std::string container_get_contentfile (const char *container,
-                                                int len);
+  static std::string containerGetContentfile (const char *container, int len);
 
-  bool content_get_media (const std::string &contentfile);
+  bool contentGetMedia (const std::string &contentfile);
 
-  bool ncx_set_index (const std::string &ncxfile);
+  bool ncxSetIndex (const std::string &ncxfile);
 
-  void ncx_node_set_index (QXmlStreamReader *xml,
-                           const std::string &element_name,
-                           const std::string &ncxfile, FileIndex &index);
+  void ncxNodeSetIndex (QXmlStreamReader *xml, const std::string &element_name,
+                        const std::string &ncxfile, FileIndex &index);
 
   std::unique_ptr<QuaZip> mQuaZip;
   std::map<std::string, std::string> idSrcs;

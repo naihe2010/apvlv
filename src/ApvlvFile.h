@@ -31,6 +31,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "ApvlvParams.h"
@@ -80,9 +81,9 @@ struct SizeF
   double height;
 };
 
-//
-// position of a search result, or just an area
-//
+/*
+ * position of a search result, or just an area
+ */
 struct Rectangle
 {
   double p1x;
@@ -155,7 +156,7 @@ public:
 
   virtual bool load (const std::string &filename) = 0;
 
-  // File methods
+  /* File methods */
   [[nodiscard]] virtual DISPLAY_TYPE
   getDisplayType () const
   {

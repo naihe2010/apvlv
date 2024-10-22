@@ -41,8 +41,8 @@ class PDFWidget : public FileWidget
 {
 public:
   QWidget *createWidget () override;
-  void showPage (int, double s) override;
-  void showPage (int, const std::string &anchor) override;
+  void showPage (int pn, double s) override;
+  void showPage (int pn, const std::string &anchor) override;
 
   void setSearchSelect (int select) override;
 
@@ -78,9 +78,10 @@ public:
                                                  const char *s) override;
 
 private:
-  bool pdf_get_index ();
-  void pdf_get_index_iter (FileIndex &, const QPdfBookmarkModel *,
-                           const QModelIndex &);
+  bool generateIndex ();
+  void getIndexIter (FileIndex &file_index,
+                     const QPdfBookmarkModel *bookmark_model,
+                     const QModelIndex &parent);
 
   std::unique_ptr<QPdfDocument> mDoc;
   std::unique_ptr<QPdfSearchModel> mSearchModel;

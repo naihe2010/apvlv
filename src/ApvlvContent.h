@@ -33,6 +33,7 @@
 #include <QTreeWidgetItem>
 #include <iostream>
 #include <map>
+#include <string>
 
 #include "ApvlvFile.h"
 #include "ApvlvUtil.h"
@@ -47,7 +48,7 @@ const int CONTENT_COL_ANCHOR = 2;
 const int CONTENT_COL_PATH = 3;
 const int CONTENT_COL_TYPE = 4;
 
-class ApvlvContent : public QTreeWidget
+class ApvlvContent final : public QTreeWidget
 {
   Q_OBJECT
 public:
@@ -61,10 +62,10 @@ public:
 
   const FileIndex *currentFileFileIndex ();
 
-  bool find_index_and_select (QTreeWidgetItem *itr, const std::string &path,
-                              int pn, const std::string &anchor);
-  bool find_index_and_append (FileIndex &root, const QString &path,
-                              const FileIndex &index);
+  bool findIndexAndSelect (QTreeWidgetItem *itr, const std::string &path,
+                           int pn, const std::string &anchor);
+  bool findIndexAndAppend (FileIndex &root, const QString &path,
+                           const FileIndex &index);
 
   void setCurrentIndex (const std::string &path, int pn,
                         const std::string &anchor);
@@ -116,11 +117,11 @@ private:
   const FileIndex *treeItemToFileIndex (QTreeWidgetItem *item) const;
 
 private slots:
-  void on_changed ();
-  void on_row_activated (QTreeWidgetItem *item, int column);
-  void on_row_doubleclicked ();
-  void first_select_cb ();
-  void set_index (const FileIndex &index);
+  void onChanged ();
+  void onRowActivated (QTreeWidgetItem *item, int column);
+  void onRowDoubleClicked ();
+  void firstSelected ();
+  void setIndex (const FileIndex &index);
 };
 }
 

@@ -32,7 +32,7 @@
 namespace apvlv
 {
 
-class ApvlvCompletion
+class ApvlvCompletion final
 {
 public:
   explicit ApvlvCompletion (const std::vector<std::string> &items)

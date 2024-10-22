@@ -53,17 +53,17 @@ private:
   std::map<std::string, std::pair<std::string, std::string> > titleSections;
   std::string mCoverHref;
 
-  bool parse_fb2 (const char *content, size_t length);
-  bool parse_description (const char *content, size_t length);
-  bool parse_body (const char *content, size_t length);
-  bool parse_binary (const char *content, size_t length);
+  bool parseFb2 (const char *content, size_t length);
+  bool parseDescription (const char *content, size_t length);
+  bool parseBody (const char *content, size_t length);
+  bool parseBinary (const char *content, size_t length);
   void appendCoverpage (const std::string &section, const std::string &mime);
   void appendTitle (const std::string &section, const std::string &mime);
   void appendSection (const std::string &title, const std::string &section,
                       const std::string &mime);
   void appendPage (const std::string &uri, const std::string &title,
                    const std::string &section, const std::string &mime);
-  bool fb2_get_index ();
+  bool generateIndex ();
 };
 
 }

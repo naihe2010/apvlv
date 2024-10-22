@@ -77,7 +77,7 @@ ApvlvPDF::load (const string &filename)
   mSearchModel = make_unique<QPdfSearchModel> ();
   mSearchModel->setDocument (mDoc.get ());
 
-  pdf_get_index ();
+  generateIndex ();
   return true;
 }
 
@@ -188,19 +188,19 @@ ApvlvPDF::pageText (int pn, const Rectangle &rect, string &text)
 }
 
 bool
-ApvlvPDF::pdf_get_index ()
+ApvlvPDF::generateIndex ()
 {
   auto bookmark_model = make_unique<QPdfBookmarkModel> ();
   bookmark_model->setDocument (mDoc.get ());
   mIndex = { "", 0, getFilename (), FileIndexType::FILE };
-  pdf_get_index_iter (mIndex, bookmark_model.get (), QModelIndex ());
+  getIndexIter (mIndex, bookmark_model.get (), QModelIndex ());
   return true;
 }
 
 void
-ApvlvPDF::pdf_get_index_iter (FileIndex &file_index,
-                              const QPdfBookmarkModel *bookmark_model,
-                              const QModelIndex &parent)
+ApvlvPDF::getIndexIter (FileIndex &file_index,
+                        const QPdfBookmarkModel *bookmark_model,
+                        const QModelIndex &parent)
 {
   for (auto row = 0; row < bookmark_model->rowCount (parent); ++row)
     {
@@ -214,7 +214,7 @@ ApvlvPDF::pdf_get_index_iter (FileIndex &file_index,
                              "", FileIndexType::PAGE);
       if (bookmark_model->hasChildren (index))
         {
-          pdf_get_index_iter (child_index, bookmark_model, index);
+          getIndexIter (child_index, bookmark_model, index);
         }
 
       file_index.mChildrenIndex.emplace_back (child_index);

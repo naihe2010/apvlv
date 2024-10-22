@@ -98,7 +98,7 @@ File::registerClass (const string &mime, function<File *()> fun,
 unique_ptr<File>
 File::loadFile (const string &filename)
 {
-  auto ext = filename_ext (filename);
+  auto ext = filenameExtension (filename);
   if (ext.empty ())
     return nullptr;
 
@@ -262,7 +262,7 @@ FileIndex::loadDirectory (const string &path1)
             }
           else if (entry.file_size () > 0)
             {
-              auto file_ext = filename_ext (entry.path ().string ());
+              auto file_ext = filenameExtension (entry.path ().string ());
               if (find (exts.cbegin (), exts.cend (), file_ext)
                   != exts.cend ())
                 {

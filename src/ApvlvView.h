@@ -71,7 +71,7 @@ signals:
   void keyPressed (QKeyEvent *evt);
 };
 
-class ApvlvView : public QMainWindow
+class ApvlvView final : public QMainWindow
 {
   Q_OBJECT
 public:
@@ -83,13 +83,13 @@ public:
 
   void delCurrentWindow ();
 
-  bool newtab (const std::string &filename);
+  bool newTab (const std::string &filename);
 
-  bool newtab (ApvlvFrame *core);
+  bool newTab (ApvlvFrame *core);
 
-  void promptcommand (char ch);
+  void promptCommand (char ch);
 
-  void promptcommand (const char *str);
+  void promptCommand (const char *str);
 
   template <typename... T>
   void
@@ -99,7 +99,7 @@ public:
     msg << "ERROR: ";
     msg << (... + args);
     mCommandBar->setText (QString::fromLocal8Bit (msg.str ()));
-    cmd_show (CmdStatusType::CMD_MESSAGE);
+    cmdShow (CmdStatusType::CMD_MESSAGE);
   }
 
   static char *input (const char *str, int width = 400, int height = 150,
@@ -107,40 +107,40 @@ public:
 
   bool run (const char *str);
 
-  bool loadfile (const std::string &filename);
+  bool loadFile (const std::string &filename);
 
-  bool loaddir (const std::string &path);
+  bool loadDir (const std::string &path);
 
-  std::optional<ApvlvFrame *> hasloaded (std::string_view abpath);
+  std::optional<ApvlvFrame *> hasLoaded (std::string_view abpath);
 
-  void regloaded (ApvlvFrame *);
+  void regLoaded (ApvlvFrame *doc);
 
   CmdReturn process (int hastimes, int times, uint keyval);
 
-  CmdReturn subprocess (int times, uint keyval);
+  CmdReturn subProcess (int times, uint keyval);
 
-  void cmd_show (CmdStatusType ct);
+  void cmdShow (CmdStatusType cmdtype);
 
-  void cmd_hide ();
+  void cmdHide ();
 
-  void cmd_auto (const char *);
+  void cmdAuto (const char *str);
 
-  void settitle (const std::string &title);
+  void setTitle (const std::string &title);
 
-  ApvlvFrame *crtadoc ();
+  ApvlvFrame *currentFrame ();
 
-  void append_child (ApvlvView *);
+  void appendChild (ApvlvView *view);
 
-  void erase_child (ApvlvView *);
+  void eraseChild (ApvlvView *view);
 
 public slots:
   void loadFileOnPage (const std::string &filename, int pn);
 
   void open ();
 
-  void opendir ();
+  void openDir ();
 
-  void openurl ();
+  void openRrl ();
 
   void quit (bool only_tab = true);
 
@@ -152,7 +152,7 @@ public slots:
 
   void dired ();
 
-  void fullscreen ();
+  void fullScreen ();
 
   void nextPage ();
 
@@ -164,35 +164,35 @@ public slots:
 
   void toggleStatus ();
 
-  void newtab ();
+  void newTab ();
 
-  void closetab ();
+  void closeTab ();
 
-  void hsplit ();
+  void horizontalSplit ();
 
-  void vsplit ();
+  void verticalSplit ();
 
-  void unbirth ();
+  void unBirth ();
 
 private:
-  void setupMenuBar ();
+  void setupMenuBar (const std::string &guiopt);
 
   void setupToolBar ();
 
   static ApvlvCompletion *getFileCompleteItems (const char *s);
 
-  bool runcmd (const char *cmd);
+  bool runCommand (const char *cmd);
 
-  int new_tabcontext (ApvlvFrame *core);
+  int newTabContext (ApvlvFrame *core);
 
-  void delete_tabcontext (int tabPos);
+  void deleteTabContext (int tabPos);
 
-  void switchtab (int tabPos);
+  void switchTab (int tabPos);
 
   // Update the tab's context and update tab label.
-  void windowadded ();
+  void windowAdded ();
 
-  void updatetabname ();
+  void updateTabName ();
 
   CmdStatusType mCmdType;
   std::chrono::time_point<std::chrono::steady_clock> mCmdTime;
@@ -204,10 +204,6 @@ private:
 
   QTabWidget *mTabContainer;
   ApvlvCommandBar *mCommandBar;
-
-  bool isMenuBarShow;
-  bool isToolBarShow;
-  bool isStatusShow;
 
   QMenuBar *mMenuBar;
   QToolBar *mToolBar;
@@ -246,11 +242,11 @@ private:
   std::vector<ApvlvView *> mChildren;
 
 private slots:
-  void commandbar_edit_cb (const QString &str);
-  void commandbar_return_cb ();
-  void commandbar_keypress_cb (QKeyEvent *gek);
-  void notebook_switch_cb (int ind);
-  void notebook_close_cb (int ind);
+  void commandbarEdited (const QString &str);
+  void commandbarReturn ();
+  void commandbarKeyPressed (QKeyEvent *gek);
+  void notebookSwitched (int ind);
+  void notebookClosed (int ind);
 };
 
 }

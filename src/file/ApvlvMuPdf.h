@@ -53,7 +53,7 @@ public:
 
   int sum () override;
 
-  bool pageRenderToImage (int, double, int, QImage *) override;
+  bool pageRenderToImage (int pn, double zm, int rot, QImage *img) override;
 
   std::optional<std::vector<Rectangle> >
   pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb) override;
@@ -66,9 +66,8 @@ public:
 private:
   std::unique_ptr<mupdf::FzDocument> mDoc;
 
-  void mupdf_get_index ();
-  void mupdf_get_index_recursively (FileIndex &index,
-                                    mupdf::FzOutline &outline);
+  void generateIndex ();
+  void generateIndexRecursively (FileIndex &index, mupdf::FzOutline &outline);
 };
 }
 #endif

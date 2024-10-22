@@ -71,7 +71,7 @@ private:
   std::vector<InfoFile> mInfoFiles{};
   int mFileMax{ 0 };
 
-  bool ini_add_position (const char *);
+  bool addPosition (const char *str);
 };
 };
 

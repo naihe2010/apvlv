@@ -57,7 +57,7 @@ ApvlvPDF::load (const string &filename)
       return false;
     }
 
-  pdf_get_index ();
+  generateIndex ();
   return true;
 }
 
@@ -130,20 +130,20 @@ ApvlvPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 }
 
 bool
-ApvlvPDF::pdf_get_index ()
+ApvlvPDF::generateIndex ()
 {
   auto outlines = mDoc->outline ();
   if (outlines.empty ())
     return false;
 
   mIndex = { "", 0, getFilename (), FileIndexType::FILE };
-  pdf_get_children_index (mIndex, outlines);
+  generateChildrenIndex (mIndex, outlines);
   return true;
 }
 
 void
-ApvlvPDF::pdf_get_children_index (FileIndex &root_index,
-                                  const QVector<OutlineItem> &outlines)
+ApvlvPDF::generateChildrenIndex (FileIndex &root_index,
+                                 const QVector<OutlineItem> &outlines)
 {
   for (auto const &outline : outlines)
     {
@@ -151,7 +151,7 @@ ApvlvPDF::pdf_get_children_index (FileIndex &root_index,
                        outline.destination ()->pageNumber () - 1, "",
                        FileIndexType::PAGE };
       auto child_outlines = outline.children ();
-      pdf_get_children_index (index, child_outlines);
+      generateChildrenIndex (index, child_outlines);
       root_index.mChildrenIndex.emplace_back (index);
     }
 }

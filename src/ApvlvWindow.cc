@@ -133,7 +133,7 @@ ApvlvWindow::process (int ct, uint key)
 
   switch (key)
     {
-    case CTRL ('w'):
+    case ctrlValue ('w'):
     case 'k':
     case 'j':
     case 'h':
@@ -197,7 +197,7 @@ ApvlvWindow::getNeighbor (int count, uint key)
     {
       switch (key)
         {
-        case CTRL ('w'):
+        case ctrlValue ('w'):
           win = win->getNext ();
           break;
         case 'k':
@@ -394,7 +394,7 @@ ApvlvWindow::birth (WindowType type, ApvlvFrame *doc)
   if (doc == nullptr)
     {
       doc = mCore->copy ();
-      mCore->mView->regloaded (doc);
+      mCore->mView->regLoaded (doc);
     }
 
   if (doc == nullptr)
@@ -462,7 +462,7 @@ ApvlvWindow::unbirth ()
   m_parent = nullptr;
   deleteLater ();
 
-  qDebug ("%p unbirth %p -> %p", this, other, m_parent);
+  qDebug ("%p unBirth %p -> %p", this, other, m_parent);
 }
 
 void

@@ -36,25 +36,25 @@
 namespace apvlv
 {
 
-class ApvlvLog
+class ApvlvLog final
 {
 public:
-  explicit ApvlvLog (const QString &path = "");
   ApvlvLog (const ApvlvLog &) = delete;
+  const ApvlvLog &operator= (const ApvlvLog &) = delete;
+  void setLogFile (const std::string &path);
   ~ApvlvLog ();
 
   static ApvlvLog *instance ();
-  static void logMessage (QtMsgType, const QMessageLogContext &,
-                          const QString &);
+  static void logMessage (QtMsgType type, const QMessageLogContext &context,
+                          const QString &msg);
 
 private:
+  ApvlvLog () = default;
   void writeMessage (const QString &log);
 
   QFile mFile;
   QTextStream mTextStream;
   std::mutex mMutex;
-
-  static ApvlvLog *mInstance;
 };
 
 };

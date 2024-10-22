@@ -51,15 +51,15 @@ ApvlvContent::ApvlvContent ()
   mTypeIcons[FileIndexType::PAGE] = QIcon (iconpage.c_str ());
 
   QObject::connect (this, SIGNAL (itemSelectionChanged ()), this,
-                    SLOT (on_changed ()));
+                    SLOT (onChanged ()));
   QObject::connect (this, SIGNAL (itemActivated (QTreeWidgetItem *, int)),
-                    this, SLOT (on_row_activated (QTreeWidgetItem *, int)));
+                    this, SLOT (onRowActivated (QTreeWidgetItem *, int)));
   QObject::connect (this, SIGNAL (itemDoubleClicked (QTreeWidgetItem *, int)),
-                    this, SLOT (on_row_doubleclicked ()));
+                    this, SLOT (onRowDoubleClicked ()));
 
   mFirstTimer = make_unique<QTimer> ();
   QObject::connect (mFirstTimer.get (), SIGNAL (timeout ()), this,
-                    SLOT (first_select_cb ()));
+                    SLOT (firstSelected ()));
 }
 
 bool
@@ -69,7 +69,7 @@ ApvlvContent::isReady ()
 }
 
 void
-ApvlvContent::set_index (const FileIndex &index)
+ApvlvContent::setIndex (const FileIndex &index)
 {
   auto cur_index = currentItemFileIndex ();
   if (cur_index == nullptr || index.type == FileIndexType::DIR)
@@ -135,7 +135,7 @@ void
 ApvlvContent::appendIndex (const FileIndex &index)
 {
   auto path = mCurrentItem->text (CONTENT_COL_PATH);
-  find_index_and_append (mIndex, path, index);
+  findIndexAndAppend (mIndex, path, index);
   for (const auto &child : index.mChildrenIndex)
     {
       setIndex (child, mCurrentItem);
@@ -183,8 +183,8 @@ ApvlvContent::treeItemToFileIndex (QTreeWidgetItem *item) const
 }
 
 bool
-ApvlvContent::find_index_and_select (QTreeWidgetItem *itr, const string &path,
-                                     int pn, const string &anchor)
+ApvlvContent::findIndexAndSelect (QTreeWidgetItem *itr, const string &path,
+                                  int pn, const string &anchor)
 {
   auto index = treeItemToIndex (itr);
   auto file_index = treeItemToFileIndex (itr);
@@ -208,7 +208,7 @@ ApvlvContent::find_index_and_select (QTreeWidgetItem *itr, const string &path,
   for (auto ind = 0; ind < itr->childCount (); ++ind)
     {
       auto child_itr = itr->child (ind);
-      if (find_index_and_select (child_itr, path, pn, anchor))
+      if (findIndexAndSelect (child_itr, path, pn, anchor))
         return true;
     }
 
@@ -216,8 +216,8 @@ ApvlvContent::find_index_and_select (QTreeWidgetItem *itr, const string &path,
 }
 
 bool
-ApvlvContent::find_index_and_append (FileIndex &root, const QString &path,
-                                     const FileIndex &index)
+ApvlvContent::findIndexAndAppend (FileIndex &root, const QString &path,
+                                  const FileIndex &index)
 {
   if (root.type == FileIndexType::FILE && root.path == path.toStdString ())
     {
@@ -227,7 +227,7 @@ ApvlvContent::find_index_and_append (FileIndex &root, const QString &path,
 
   for (auto &child : root.mChildrenIndex)
     {
-      if (find_index_and_append (child, path, index))
+      if (findIndexAndAppend (child, path, index))
         return true;
     }
 
@@ -244,7 +244,7 @@ ApvlvContent::setCurrentIndex (const string &path, int pn,
   for (auto ind = 0; ind < topLevelItemCount (); ++ind)
     {
       auto itr = topLevelItem (ind);
-      if (find_index_and_select (itr, path, pn, anchor))
+      if (findIndexAndSelect (itr, path, pn, anchor))
         return;
     }
 }
@@ -338,7 +338,7 @@ ApvlvContent::scrollRight (int times)
 }
 
 void
-ApvlvContent::on_changed ()
+ApvlvContent::onChanged ()
 {
   auto selects = selectedItems ();
   if (!selects.isEmpty ())
@@ -348,22 +348,22 @@ ApvlvContent::on_changed ()
 }
 
 void
-ApvlvContent::on_row_activated ([[maybe_unused]] QTreeWidgetItem *item,
-                                [[maybe_unused]] int column)
+ApvlvContent::onRowActivated ([[maybe_unused]] QTreeWidgetItem *item,
+                              [[maybe_unused]] int column)
 {
   mFrame->contentShowPage (currentItemFileIndex (), true);
   mFrame->toggledControlContent (true);
 }
 
 void
-ApvlvContent::on_row_doubleclicked ()
+ApvlvContent::onRowDoubleClicked ()
 {
   setIsFocused (true);
   parentWidget ()->setFocus ();
 }
 
 void
-ApvlvContent::first_select_cb ()
+ApvlvContent::firstSelected ()
 {
   if (mIndex.type == FileIndexType::DIR)
     return;

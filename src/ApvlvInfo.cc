@@ -57,7 +57,7 @@ ApvlvInfo::loadFile (std::string_view file)
               continue;
             }
 
-          ini_add_position (p);
+          addPosition (p);
         }
 
       is.close ();
@@ -132,7 +132,7 @@ ApvlvInfo::updateFile (int page, int skip, double rate, const string &filename)
 }
 
 bool
-ApvlvInfo::ini_add_position (const char *str)
+ApvlvInfo::addPosition (const char *str)
 {
   const char *p;
   const char *s;

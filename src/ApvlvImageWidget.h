@@ -101,8 +101,8 @@ class ImageWidget : public FileWidget
 public:
   QWidget *createWidget () override;
 
-  void showPage (int, double s) override;
-  void showPage (int, const std::string &anchor) override;
+  void showPage (int pn, double s) override;
+  void showPage (int pn, const std::string &anchor) override;
 
   void setSearchResults (const WordListRectangle &wlr) override;
   void setZoomrate (double zm) override;

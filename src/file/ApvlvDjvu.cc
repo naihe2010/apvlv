@@ -32,7 +32,7 @@ namespace apvlv
 using namespace std;
 
 void
-handle_ddjvu_messages (ddjvu_context_t *ctx, int wait)
+handleDdjvuMessages (ddjvu_context_t *ctx, int wait)
 {
   const ddjvu_message_t *msg;
   if (wait)
@@ -112,7 +112,7 @@ ApvlvDJVU::pageSizeF (int pn, int rot)
   ddjvu_pageinfo_t info;
   while ((t = ddjvu_document_get_pageinfo (mDoc, 0, &info)) < DDJVU_JOB_OK)
     {
-      handle_ddjvu_messages (mContext, true);
+      handleDdjvuMessages (mContext, true);
     }
 
   SizeF sizef{ 0.0f, 0.0f };

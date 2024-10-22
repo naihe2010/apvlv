@@ -110,37 +110,37 @@ ApvlvFB2::load (const string &filename)
     }
 
   auto bytes = file.readAll ();
-  parse_fb2 (bytes.constData (), bytes.length ());
+  parseFb2 (bytes.constData (), bytes.length ());
   return true;
 }
 
 bool
-ApvlvFB2::parse_fb2 (const char *content, size_t length)
+ApvlvFB2::parseFb2 (const char *content, size_t length)
 {
-  parse_description (content, length);
-  parse_binary (content, length);
-  parse_body (content, length);
+  parseDescription (content, length);
+  parseBinary (content, length);
+  parseBody (content, length);
 
-  fb2_get_index ();
+  generateIndex ();
 
   return true;
 }
 
 bool
-ApvlvFB2::parse_description (const char *content, size_t length)
+ApvlvFB2::parseDescription (const char *content, size_t length)
 {
   vector<string> keys{ "FictionBook", "description", "title-info", "coverpage",
                        "image" };
-  auto value = xml_content_get_attribute_value (content, length, keys, "href");
+  auto value = xmlContentGetAttributeValue (content, length, keys, "href");
   mCoverHref = value;
   return true;
 }
 
 bool
-ApvlvFB2::parse_body (const char *content, size_t length)
+ApvlvFB2::parseBody (const char *content, size_t length)
 {
   vector<string> keys = { "FictionBook", "body" };
-  auto optxml = xml_content_get_element (content, length, keys);
+  auto optxml = xmlContentGetElement (content, length, keys);
   if (!optxml)
     return false;
 
@@ -222,20 +222,20 @@ ApvlvFB2::parse_body (const char *content, size_t length)
 }
 
 bool
-ApvlvFB2::parse_binary (const char *content, size_t length)
+ApvlvFB2::parseBinary (const char *content, size_t length)
 {
   string idstr;
   vector<string> keys = { "FictionBook", "binary" };
-  auto optxml = xml_content_get_element (content, length, keys);
+  auto optxml = xmlContentGetElement (content, length, keys);
   if (!optxml)
     return false;
 
   auto xml = optxml->get ();
-  idstr = xml_stream_get_attribute_value (xml, "id");
+  idstr = xmlStreamGetAttributeValue (xml, "id");
 
   if (mCoverHref.empty () || idstr == mCoverHref.substr (1))
     {
-      string mimetype = xml_stream_get_attribute_value (xml, "content-type");
+      string mimetype = xmlStreamGetAttributeValue (xml, "content-type");
       auto contents = xml->readElementText ().toStdString ();
       QByteArray b64contents{ contents.c_str (),
                               (qsizetype)contents.length () };
@@ -279,7 +279,7 @@ ApvlvFB2::appendPage (const string &uri, const string &title,
 }
 
 bool
-ApvlvFB2::fb2_get_index ()
+ApvlvFB2::generateIndex ()
 {
   stringstream pagenum;
 

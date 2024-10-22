@@ -54,25 +54,25 @@ ApvlvEPUB::load (const string &filename)
       return false;
     }
 
-  auto optcontainer = get_zip_file_contents ("META-INF/container.xml");
+  auto optcontainer = getZipFileContents ("META-INF/container.xml");
   if (!optcontainer)
     {
       return false;
     }
 
-  string contentfile = container_get_contentfile (optcontainer->constData (),
-                                                  optcontainer->length ());
+  string contentfile = containerGetContentfile (optcontainer->constData (),
+                                                optcontainer->length ());
   if (contentfile.empty ())
     {
       return false;
     }
 
-  if (content_get_media (contentfile) == false)
+  if (contentGetMedia (contentfile) == false)
     {
       return false;
     }
 
-  ncx_set_index (idSrcs["ncx"]);
+  ncxSetIndex (idSrcs["ncx"]);
   return true;
 }
 
@@ -97,7 +97,7 @@ unique_ptr<WordListRectangle>
 ApvlvEPUB::pageSearch (int pn, const char *s)
 {
   auto qpath = QString::fromLocal8Bit (mPages[pn]);
-  auto content = get_zip_file_contents (qpath);
+  auto content = getZipFileContents (qpath);
   auto html = content->toStdString ();
   auto pos = html.find (s);
   if (pos == string::npos)
@@ -119,12 +119,12 @@ ApvlvEPUB::pageSearch (int pn, const char *s)
 optional<QByteArray>
 ApvlvEPUB::pathContent (const string &path)
 {
-  auto optcontent = get_zip_file_contents (QString::fromLocal8Bit (path));
+  auto optcontent = getZipFileContents (QString::fromLocal8Bit (path));
   return optcontent;
 }
 
 optional<QByteArray>
-ApvlvEPUB::get_zip_file_contents (const QString &name)
+ApvlvEPUB::getZipFileContents (const QString &name)
 {
   if (mQuaZip->setCurrentFile (name) == false)
     return nullopt;
@@ -137,27 +137,26 @@ ApvlvEPUB::get_zip_file_contents (const QString &name)
 }
 
 string
-ApvlvEPUB::container_get_contentfile (const char *container, int len)
+ApvlvEPUB::containerGetContentfile (const char *container, int len)
 {
   vector<string> names{ "container", "rootfiles", "rootfile" };
-  return xml_content_get_attribute_value (container, len, names, "full-path");
+  return xmlContentGetAttributeValue (container, len, names, "full-path");
 }
 
 bool
-ApvlvEPUB::content_get_media (const string &contentfile)
+ApvlvEPUB::contentGetMedia (const string &contentfile)
 {
   string cover_id = "cover";
 
-  auto optcontent
-      = get_zip_file_contents (QString::fromLocal8Bit (contentfile));
+  auto optcontent = getZipFileContents (QString::fromLocal8Bit (contentfile));
   if (!optcontent)
     {
       return false;
     }
 
   vector<string> metas{ "package", "metadata" };
-  auto optcover = xml_content_get_element (optcontent->constData (),
-                                           optcontent->length (), metas);
+  auto optcover = xmlContentGetElement (optcontent->constData (),
+                                        optcontent->length (), metas);
   if (optcover)
     {
       auto xml = optcover->get ();
@@ -185,8 +184,8 @@ ApvlvEPUB::content_get_media (const string &contentfile)
     }
 
   vector<string> items = { "package", "manifest", "item" };
-  auto optxml = xml_content_get_element (optcontent->constData (),
-                                         optcontent->length (), items);
+  auto optxml = xmlContentGetElement (optcontent->constData (),
+                                      optcontent->length (), items);
   if (!optxml)
     return false;
 
@@ -195,7 +194,7 @@ ApvlvEPUB::content_get_media (const string &contentfile)
     {
       if (xml->isStartElement ())
         {
-          string href = xml_stream_get_attribute_value (xml, "href");
+          string href = xmlStreamGetAttributeValue (xml, "href");
           if (href.empty ())
             {
               xml->readNextStartElement ();
@@ -208,8 +207,8 @@ ApvlvEPUB::content_get_media (const string &contentfile)
               href = dirname + "/" + href;
             }
 
-          string id = xml_stream_get_attribute_value (xml, "id");
-          string type = xml_stream_get_attribute_value (xml, "media-type");
+          string id = xmlStreamGetAttributeValue (xml, "id");
+          string type = xmlStreamGetAttributeValue (xml, "media-type");
           if (id == cover_id)
             {
               idSrcs["cover"] = href;
@@ -226,8 +225,8 @@ ApvlvEPUB::content_get_media (const string &contentfile)
     }
 
   vector<string> names{ "package", "spine", "itemref" };
-  optxml = xml_content_get_element (optcontent->constData (),
-                                    optcontent->length (), names);
+  optxml = xmlContentGetElement (optcontent->constData (),
+                                 optcontent->length (), names);
   if (!optxml)
     return false;
 
@@ -236,7 +235,7 @@ ApvlvEPUB::content_get_media (const string &contentfile)
     {
       if (xml->isStartElement ())
         {
-          string id = xml_stream_get_attribute_value (xml, "idref");
+          string id = xmlStreamGetAttributeValue (xml, "idref");
           mPages.push_back (idSrcs[id]);
           srcPages[idSrcs[id]] = static_cast<int> (mPages.size () - 1);
         }
@@ -247,17 +246,17 @@ ApvlvEPUB::content_get_media (const string &contentfile)
 }
 
 bool
-ApvlvEPUB::ncx_set_index (const string &ncxfile)
+ApvlvEPUB::ncxSetIndex (const string &ncxfile)
 {
-  auto opttoc = get_zip_file_contents (QString::fromLocal8Bit (ncxfile));
+  auto opttoc = getZipFileContents (QString::fromLocal8Bit (ncxfile));
   if (!opttoc)
     {
       return false;
     }
 
   vector<string> names{ "ncx", "navMap" };
-  auto optxml = xml_content_get_element (opttoc->constData (),
-                                         opttoc->length (), names);
+  auto optxml
+      = xmlContentGetElement (opttoc->constData (), opttoc->length (), names);
 
   if (!optxml)
     {
@@ -267,15 +266,14 @@ ApvlvEPUB::ncx_set_index (const string &ncxfile)
   mIndex = { "__cover__", 0, getFilename (), FileIndexType::FILE };
 
   auto xml = optxml->get ();
-  ncx_node_set_index (xml, "navMap", ncxfile, mIndex);
+  ncxNodeSetIndex (xml, "navMap", ncxfile, mIndex);
 
   return true;
 }
 
 void
-ApvlvEPUB::ncx_node_set_index (QXmlStreamReader *xml,
-                               const string &element_name,
-                               const string &ncxfile, FileIndex &index)
+ApvlvEPUB::ncxNodeSetIndex (QXmlStreamReader *xml, const string &element_name,
+                            const string &ncxfile, FileIndex &index)
 {
   while (!xml->atEnd ()
          && !(xml->isEndElement ()
@@ -304,7 +302,7 @@ ApvlvEPUB::ncx_node_set_index (QXmlStreamReader *xml,
 
           if (xml->name ().toString () == "content")
             {
-              string srcstr = xml_stream_get_attribute_value (xml, "src");
+              string srcstr = xmlStreamGetAttributeValue (xml, "src");
               if (srcstr.empty ())
                 continue;
 
@@ -341,7 +339,7 @@ ApvlvEPUB::ncx_node_set_index (QXmlStreamReader *xml,
             {
               xml->readNextStartElement ();
               auto childindex = FileIndex{};
-              ncx_node_set_index (xml, "navPoint", ncxfile, childindex);
+              ncxNodeSetIndex (xml, "navPoint", ncxfile, childindex);
               index.mChildrenIndex.emplace_back (childindex);
             }
         }

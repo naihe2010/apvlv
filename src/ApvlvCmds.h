@@ -68,7 +68,7 @@ enum class CmdReturn
 // because every unsigned char is < 256, so use this marco to stand for
 // Ctrl+char, Shift+char
 constexpr int
-CTRL (int c)
+ctrlValue (int c)
 {
   return c + 256;
 }
@@ -80,14 +80,14 @@ using CommandKeyList = std::vector<int>;
 using CommandMap = std::map<CommandKeyList, Command *>;
 
 class ApvlvView;
-class Command
+class Command final
 {
 public:
   Command ();
 
   ~Command () = default;
 
-  void process (ApvlvView *);
+  void process (ApvlvView *view);
 
   void push (std::string_view s, CmdType type = CmdType::CT_CMD);
 
@@ -99,9 +99,7 @@ public:
 
   CmdType type ();
 
-  const char *c_str ();
-
-  CommandKeyList *keyvalv_p ();
+  CommandKeyList *keyVals ();
 
   CommandKeyList keyvalv ();
 
@@ -177,7 +175,7 @@ private:
   std::string mCountString;
 
 private slots:
-  void timeout_cb ();
+  void timeoutCallback ();
 };
 }
 

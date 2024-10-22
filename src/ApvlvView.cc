@@ -52,7 +52,7 @@ using namespace std;
 using namespace CommandModeType;
 
 static bool
-isalt_escape (QKeyEvent *event)
+isAltEscape (QKeyEvent *event)
 {
   if (event->key () == Qt::Key_BracketLeft &&
       /* ...so we can ignore mod keys like numlock and capslock. */
@@ -67,7 +67,7 @@ isalt_escape (QKeyEvent *event)
 void
 ApvlvCommandBar::keyPressEvent (QKeyEvent *evt)
 {
-  if (evt->key () == Qt::Key_Escape || isalt_escape (evt)
+  if (evt->key () == Qt::Key_Escape || isAltEscape (evt)
       || evt->key () == Qt::Key_Tab || evt->key () == Qt::Key_Up
       || evt->key () == Qt::Key_Down)
     {
@@ -99,14 +99,11 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
   mParent = parent;
   if (mParent)
     {
-      mParent->append_child (this);
+      mParent->appendChild (this);
     }
 
   auto guiopt
       = ApvlvParams::instance ()->getStringOrDefault ("guioptions", "mTS");
-  isMenuBarShow = guiopt.find ('m') != string::npos;
-  isToolBarShow = guiopt.find ('T') != string::npos;
-  isStatusShow = guiopt.find ('S') != string::npos;
 
   mCmdType = CmdStatusType::CMD_NONE;
 
@@ -126,7 +123,7 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
 
   if (ApvlvParams::instance ()->getBoolOrDefault ("fullscreen"))
     {
-      fullscreen ();
+      fullScreen ();
     }
   else
     {
@@ -138,16 +135,18 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
   setCentralWidget (mCentral);
 
   mMenuBar = new QMenuBar ();
-  setupMenuBar ();
+  setupMenuBar (guiopt);
   setMenuBar (mMenuBar);
   mToolBar = new QToolBar ();
   setupToolBar ();
   addToolBar (Qt::TopToolBarArea, mToolBar);
 
+  bool isMenuBarShow = guiopt.find ('m') != string::npos;
   if (!isMenuBarShow)
     {
       mMenuBar->hide ();
     }
+  bool isToolBarShow = guiopt.find ('T') != string::npos;
   if (!isToolBarShow)
     {
       mToolBar->hide ();
@@ -161,28 +160,28 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
   box->addWidget (mTabContainer, 1);
 
   QObject::connect (mTabContainer, SIGNAL (currentChanged (int)), this,
-                    SLOT (notebook_switch_cb (int)));
+                    SLOT (notebookSwitched (int)));
   QObject::connect (mTabContainer, SIGNAL (tabCloseRequested (int)), this,
-                    SLOT (notebook_close_cb (int)));
+                    SLOT (notebookClosed (int)));
 
   mCommandBar = new ApvlvCommandBar ();
   box->addWidget (mCommandBar, 0);
 
   QObject::connect (mCommandBar, SIGNAL (textEdited (const QString &)), this,
-                    SLOT (commandbar_edit_cb (const QString &)));
+                    SLOT (commandbarEdited (const QString &)));
   QObject::connect (mCommandBar, SIGNAL (returnPressed ()), this,
-                    SLOT (commandbar_return_cb ()));
+                    SLOT (commandbarReturn ()));
   QObject::connect (mCommandBar, SIGNAL (keyPressed (QKeyEvent *)), this,
-                    SLOT (commandbar_keypress_cb (QKeyEvent *)));
+                    SLOT (commandbarKeyPressed (QKeyEvent *)));
 
-  cmd_hide ();
+  cmdHide ();
 }
 
 ApvlvView::~ApvlvView ()
 {
   if (mParent)
     {
-      mParent->erase_child (this);
+      mParent->eraseChild (this);
     }
 
   auto itr = mChildren.begin ();
@@ -223,7 +222,7 @@ ApvlvView::delCurrentWindow ()
 {
   if (auto win = currentWindow (); win)
     win->unbirth ();
-  updatetabname ();
+  updateTabName ();
 }
 
 void
@@ -261,12 +260,12 @@ ApvlvView::open ()
                                                 filters, &selected);
   if (!filename.isEmpty ())
     {
-      loadfile (string (filename.toLocal8Bit ().constData ()));
+      loadFile (string (filename.toLocal8Bit ().constData ()));
     }
 }
 
 void
-ApvlvView::opendir ()
+ApvlvView::openDir ()
 {
   QString dirname;
   auto fp = ApvlvInfo::instance ()->file (0);
@@ -284,24 +283,24 @@ ApvlvView::opendir ()
       this, "open dir", dirname, QFileDialog::ShowDirsOnly);
   if (!filename.isEmpty ())
     {
-      loaddir (filename.toStdString ());
+      loadDir (filename.toStdString ());
     }
 }
 
 void
-ApvlvView::openurl ()
+ApvlvView::openRrl ()
 {
   auto res = QInputDialog::getText (this, "url", tr ("input url: "));
   if (!res.isEmpty ())
     {
-      crtadoc ()->loadUri (res.toStdString ());
+      currentFrame ()->loadUri (res.toStdString ());
     }
 }
 
 bool
-ApvlvView::loaddir (const string &path)
+ApvlvView::loadDir (const std::string &path)
 {
-  crtadoc ()->setDirIndex (path);
+  currentFrame ()->setDirIndex (path);
   return true;
 }
 
@@ -317,20 +316,20 @@ ApvlvView::quit (bool only_tab)
 
   auto index = mTabContainer->currentIndex ();
   Q_ASSERT (index != -1);
-  delete_tabcontext (index);
+  deleteTabContext (index);
   mTabContainer->removeTab (index);
 }
 
 void
 ApvlvView::search ()
 {
-  promptcommand ('/');
+  promptCommand ('/');
 }
 
 void
 ApvlvView::backSearch ()
 {
-  promptcommand ('?');
+  promptCommand ('?');
 }
 
 void
@@ -352,9 +351,9 @@ ApvlvView::dired ()
 }
 
 bool
-ApvlvView::newtab (const string &filename)
+ApvlvView::newTab (const std::string &filename)
 {
-  auto optndoc = hasloaded (filename);
+  auto optndoc = hasLoaded (filename);
   if (!optndoc)
     {
       auto ndoc = new ApvlvFrame (this);
@@ -366,14 +365,14 @@ ApvlvView::newtab (const string &filename)
 
       if (ndoc)
         {
-          regloaded (ndoc);
+          regLoaded (ndoc);
           optndoc = make_optional<ApvlvFrame *> (ndoc);
         }
     }
 
   if (optndoc)
     {
-      newtab (optndoc.value ());
+      newTab (optndoc.value ());
       return true;
     }
   else
@@ -383,9 +382,9 @@ ApvlvView::newtab (const string &filename)
 }
 
 bool
-ApvlvView::newtab (ApvlvFrame *core)
+ApvlvView::newTab (ApvlvFrame *core)
 {
-  auto pos = new_tabcontext (core);
+  auto pos = newTabContext (core);
 
   auto basename
       = core->filename ()
@@ -399,7 +398,7 @@ ApvlvView::newtab (ApvlvFrame *core)
 }
 
 int
-ApvlvView::new_tabcontext (ApvlvFrame *core)
+ApvlvView::newTabContext (ApvlvFrame *core)
 {
   auto context = new ApvlvWindowContext (this);
 
@@ -413,7 +412,7 @@ ApvlvView::new_tabcontext (ApvlvFrame *core)
 }
 
 void
-ApvlvView::delete_tabcontext (int tabPos)
+ApvlvView::deleteTabContext (int tabPos)
 {
   auto iter = mTabList.begin () + tabPos;
   delete (*iter)->getRootWindow ();
@@ -421,14 +420,14 @@ ApvlvView::delete_tabcontext (int tabPos)
 }
 
 bool
-ApvlvView::loadfile (const string &filename)
+ApvlvView::loadFile (const std::string &filename)
 {
   auto abpath = filesystem::absolute (filename).string ();
 
   ApvlvWindow *win = currentWindow ();
   ApvlvFrame *ndoc = nullptr;
 
-  auto optndoc = hasloaded (abpath);
+  auto optndoc = hasLoaded (abpath);
   if (!optndoc)
     {
       ndoc = new ApvlvFrame (this);
@@ -439,7 +438,7 @@ ApvlvView::loadfile (const string &filename)
         }
       else
         {
-          regloaded (ndoc);
+          regLoaded (ndoc);
           optndoc = make_optional<ApvlvFrame *> (ndoc);
         }
     }
@@ -447,7 +446,7 @@ ApvlvView::loadfile (const string &filename)
   if (optndoc)
     {
       win->setCore (optndoc.value ());
-      updatetabname ();
+      updateTabName ();
     }
 
   return ndoc != nullptr;
@@ -456,10 +455,10 @@ ApvlvView::loadfile (const string &filename)
 void
 ApvlvView::loadFileOnPage (const string &filename, int pn)
 {
-  auto cdoc = crtadoc ();
+  auto cdoc = currentFrame ();
   if (cdoc)
     {
-      if (loadfile (filename))
+      if (loadFile (filename))
         {
           cdoc->showpage (pn, 0.0);
         }
@@ -467,7 +466,7 @@ ApvlvView::loadFileOnPage (const string &filename, int pn)
 }
 
 optional<ApvlvFrame *>
-ApvlvView::hasloaded (string_view abpath)
+ApvlvView::hasLoaded (string_view abpath)
 {
   for (auto &core : mDocs)
     {
@@ -481,7 +480,7 @@ ApvlvView::hasloaded (string_view abpath)
 }
 
 void
-ApvlvView::regloaded (ApvlvFrame *core)
+ApvlvView::regLoaded (ApvlvFrame *doc)
 {
   auto cache_count
       = ApvlvParams::instance ()->getIntOrDefault ("cache_count", 10);
@@ -503,13 +502,13 @@ ApvlvView::regloaded (ApvlvFrame *core)
         }
     }
 
-  mDocs.push_back (unique_ptr<ApvlvFrame> (core));
+  mDocs.push_back (unique_ptr<ApvlvFrame> (doc));
 }
 
 void
-ApvlvView::setupMenuBar ()
+ApvlvView::setupMenuBar (const string &guiopt)
 {
-  // File -> open, opendir
+  // File -> open, openDir
   auto mfile = new QMenu (tr ("File"));
   mMenuBar->addMenu (mfile);
 
@@ -517,15 +516,15 @@ ApvlvView::setupMenuBar ()
   QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (open ()));
   action = mfile->addAction (tr ("OpenDir"));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
-                    SLOT (opendir ()));
+                    SLOT (openDir ()));
   action = mfile->addAction (tr ("OpenUrl"));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
-                    SLOT (openurl ()));
+                    SLOT (openRrl ()));
   action = mfile->addAction (tr ("New Tab"));
-  QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (newtab ()));
+  QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (newTab ()));
   action = mfile->addAction (tr ("Close Tab"));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
-                    SLOT (closetab ()));
+                    SLOT (closeTab ()));
   action = mfile->addAction (tr ("Quit"));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (quit (bool)));
@@ -545,23 +544,27 @@ ApvlvView::setupMenuBar ()
 
   action = mview->addAction (tr ("ToolBar"));
   action->setCheckable (true);
-  action->setChecked (isToolBarShow);
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (toggleToolBar ()));
+  bool isToolBarShow = guiopt.find ('T') != string::npos;
+  action->setChecked (isToolBarShow);
 
   action = mview->addAction (tr ("StatusBar"));
   action->setCheckable (true);
-  action->setChecked (isStatusShow);
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (toggleStatus ()));
+  bool isStatusShow = guiopt.find ('S') != string::npos;
+  action->setChecked (isStatusShow);
 
   action = mview->addAction (tr ("Horizontal Split"));
-  QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (hsplit ()));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (horizontalSplit ()));
   action = mview->addAction (tr ("Vertical Split"));
-  QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (vsplit ()));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (verticalSplit ()));
   action = mview->addAction (tr ("Close Split"));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
-                    SLOT (unbirth ()));
+                    SLOT (unBirth ()));
 
   // Navigate ->
   auto mnavigate = new QMenu (tr ("Navigate"));
@@ -599,7 +602,7 @@ ApvlvView::setupToolBar ()
   action->setIcon (
       QApplication::style ()->standardIcon (QStyle::SP_DirOpenIcon));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
-                    SLOT (opendir ()));
+                    SLOT (openDir ()));
 
   action = mToolBar->addAction (tr ("Previous Page"));
   action->setIcon (
@@ -623,18 +626,18 @@ ApvlvView::setupToolBar ()
 }
 
 void
-ApvlvView::promptcommand (char ch)
+ApvlvView::promptCommand (char ch)
 {
   QString s{ ch };
   mCommandBar->setText (s);
-  cmd_show (CmdStatusType::CMD_CMD);
+  cmdShow (CmdStatusType::CMD_CMD);
 }
 
 void
-ApvlvView::promptcommand (const char *s)
+ApvlvView::promptCommand (const char *str)
 {
-  mCommandBar->setText (s);
-  cmd_show (CmdStatusType::CMD_CMD);
+  mCommandBar->setText (str);
+  cmdShow (CmdStatusType::CMD_CMD);
 }
 
 char *
@@ -646,7 +649,7 @@ ApvlvView::input (const char *str, int width, int height,
 }
 
 void
-ApvlvView::cmd_show (CmdStatusType cmdtype)
+ApvlvView::cmdShow (CmdStatusType cmdtype)
 {
   mCmdType = cmdtype;
 
@@ -656,7 +659,7 @@ ApvlvView::cmd_show (CmdStatusType cmdtype)
 }
 
 void
-ApvlvView::cmd_hide ()
+ApvlvView::cmdHide ()
 {
   mCmdType = CmdStatusType::CMD_NONE;
   mCmdTime = chrono::steady_clock::now ();
@@ -666,7 +669,7 @@ ApvlvView::cmd_hide ()
 }
 
 void
-ApvlvView::cmd_auto (const char *ps)
+ApvlvView::cmdAuto (const char *ps)
 {
   stringstream ss (ps);
   string cmd;
@@ -725,11 +728,11 @@ ApvlvView::cmd_auto (const char *ps)
 }
 
 void
-ApvlvView::fullscreen ()
+ApvlvView::fullScreen ()
 {
   if (mHasFull == false)
     {
-      ApvlvFrame *core = crtadoc ();
+      ApvlvFrame *core = currentFrame ();
       if (core)
         core->toggleContent (false);
 
@@ -746,19 +749,19 @@ ApvlvView::fullscreen ()
 void
 ApvlvView::nextPage ()
 {
-  crtadoc ()->nextpage (1);
+  currentFrame ()->nextpage (1);
 }
 
 void
 ApvlvView::previousPage ()
 {
-  crtadoc ()->prepage (1);
+  currentFrame ()->prepage (1);
 }
 
 void
 ApvlvView::toggleContent ()
 {
-  crtadoc ()->toggleContent ();
+  currentFrame ()->toggleContent ();
 }
 
 void
@@ -791,38 +794,38 @@ ApvlvView::toggleStatus ()
 }
 
 void
-ApvlvView::newtab ()
+ApvlvView::newTab ()
 {
-  auto doc = crtadoc ()->copy ();
-  newtab (doc);
+  auto doc = currentFrame ()->copy ();
+  newTab (doc);
 }
 
 void
-ApvlvView::closetab ()
+ApvlvView::closeTab ()
 {
   quit (true);
 }
 
 void
-ApvlvView::hsplit ()
+ApvlvView::horizontalSplit ()
 {
   currentWindow ()->birth (ApvlvWindow::WindowType::AW_SP, nullptr);
 }
 
 void
-ApvlvView::vsplit ()
+ApvlvView::verticalSplit ()
 {
   currentWindow ()->birth (ApvlvWindow::WindowType::AW_VSP, nullptr);
 }
 
 void
-ApvlvView::unbirth ()
+ApvlvView::unBirth ()
 {
   currentWindow ()->unbirth ();
 }
 
 ApvlvFrame *
-ApvlvView::crtadoc ()
+ApvlvView::currentFrame ()
 {
   if (auto widget = QApplication::focusWidget (); widget)
     {
@@ -836,7 +839,7 @@ ApvlvView::crtadoc ()
 }
 
 CmdReturn
-ApvlvView::subprocess (int ct, uint key)
+ApvlvView::subProcess (int times, uint keyval)
 {
   uint procmd = mProCmd;
   mProCmd = 0;
@@ -844,11 +847,11 @@ ApvlvView::subprocess (int ct, uint key)
   switch (procmd)
     {
     case 'Z':
-      if (key == 'Z')
+      if (keyval == 'Z')
         quit (true);
 
-    case CTRL ('w'):
-      if (key == 'q' || key == CTRL ('Q'))
+    case ctrlValue ('w'):
+      if (keyval == 'q' || keyval == ctrlValue ('Q'))
         {
           if (currentWindow ()->isRoot ())
             {
@@ -861,32 +864,32 @@ ApvlvView::subprocess (int ct, uint key)
         }
       else
         {
-          CmdReturn rv = currentWindow ()->process (ct, key);
-          updatetabname ();
+          CmdReturn rv = currentWindow ()->process (times, keyval);
+          updateTabName ();
           return rv;
         }
       break;
 
     case 'g':
-      if (key == 't')
+      if (keyval == 't')
         {
-          if (ct == 0)
-            switchtab (mTabContainer->currentIndex () + 1);
+          if (times == 0)
+            switchTab (mTabContainer->currentIndex () + 1);
           else
-            switchtab (ct - 1);
+            switchTab (times - 1);
         }
-      else if (key == 'T')
+      else if (keyval == 'T')
         {
-          if (ct == 0)
-            switchtab (mTabContainer->currentIndex () - 1);
+          if (times == 0)
+            switchTab (mTabContainer->currentIndex () - 1);
           else
-            switchtab (ct - 1);
+            switchTab (times - 1);
         }
-      else if (key == 'g')
+      else if (keyval == 'g')
         {
-          if (ct == 0)
-            ct = 1;
-          crtadoc ()->showpage (ct - 1, 0.0);
+          if (times == 0)
+            times = 1;
+          currentFrame ()->showpage (times - 1, 0.0);
         }
       break;
 
@@ -902,7 +905,7 @@ ApvlvView::process (int has, int ct, uint key)
 {
   if (mProCmd != 0)
     {
-      auto ret = subprocess (mProCmdCnt, key);
+      auto ret = subProcess (mProCmdCnt, key);
       if (ret == CmdReturn::MATCH)
         {
           saveKey (has, ct, key, true);
@@ -916,8 +919,8 @@ ApvlvView::process (int has, int ct, uint key)
       mProCmd = 'Z';
       return CmdReturn::NEED_MORE;
 
-    case CTRL ('w'):
-      mProCmd = CTRL ('w');
+    case ctrlValue ('w'):
+      mProCmd = ctrlValue ('w');
       mProCmdCnt = has ? ct : 1;
       saveKey (has, ct, key, false);
       return CmdReturn::NEED_MORE;
@@ -925,7 +928,7 @@ ApvlvView::process (int has, int ct, uint key)
       quit (true);
       break;
     case 'f':
-      fullscreen ();
+      fullScreen ();
       break;
     case '.':
       processLastKey ();
@@ -936,7 +939,7 @@ ApvlvView::process (int has, int ct, uint key)
       saveKey (has, ct, key, false);
       return CmdReturn::NEED_MORE;
     default:
-      CmdReturn ret = crtadoc ()->process (has, ct, key);
+      CmdReturn ret = currentFrame ()->process (has, ct, key);
       if (ret == CmdReturn::NEED_MORE)
         {
           saveKey (has, ct, key, false);
@@ -958,21 +961,21 @@ ApvlvView::run (const char *str)
   switch (*str)
     {
     case SEARCH:
-      crtadoc ()->markposition ('\'');
-      ret = crtadoc ()->search (str + 1, false);
+      currentFrame ()->markposition ('\'');
+      ret = currentFrame ()->search (str + 1, false);
       break;
 
     case BACKSEARCH:
-      crtadoc ()->markposition ('\'');
-      ret = crtadoc ()->search (str + 1, true);
+      currentFrame ()->markposition ('\'');
+      ret = currentFrame ()->search (str + 1, true);
       break;
 
     case COMMANDMODE:
-      ret = runcmd (str + 1);
+      ret = runCommand (str + 1);
       break;
 
     case FIND:
-      ret = crtadoc ()->search (str + 1, false);
+      ret = currentFrame ()->search (str + 1, false);
       break;
 
     default:
@@ -984,13 +987,13 @@ ApvlvView::run (const char *str)
 }
 
 void
-ApvlvView::settitle (const string &title)
+ApvlvView::setTitle (const std::string &title)
 {
   setWindowTitle (QString::fromLocal8Bit (title));
 }
 
 bool
-ApvlvView::runcmd (const char *str)
+ApvlvView::runCommand (const char *str)
 {
   bool ret = true;
 
@@ -1006,7 +1009,7 @@ ApvlvView::runcmd (const char *str)
       string argu;
       ss >> cmd >> subcmd >> argu;
 
-      if (subcmd.length () > 0 && subcmd[subcmd.length () - 1] == '\\')
+      if (!subcmd.empty () && subcmd[subcmd.length () - 1] == '\\')
         {
           subcmd.replace (subcmd.length () - 1, 1, 1, ' ');
           subcmd += argu;
@@ -1017,7 +1020,8 @@ ApvlvView::runcmd (const char *str)
         {
           if (subcmd == "skip")
             {
-              crtadoc ()->setskip (int (strtol (argu.c_str (), nullptr, 10)));
+              currentFrame ()->setskip (
+                  int (strtol (argu.c_str (), nullptr, 10)));
             }
           else
             {
@@ -1026,7 +1030,7 @@ ApvlvView::runcmd (const char *str)
         }
       else if (cmd == "map" && !subcmd.empty ())
         {
-          ApvlvCmds::buildCommandMap (subcmd.c_str (), argu.c_str ());
+          ApvlvCmds::buildCommandMap (subcmd, argu);
         }
       else if ((cmd == "o" || cmd == "open" || cmd == "doc")
                && !subcmd.empty ())
@@ -1045,11 +1049,11 @@ ApvlvView::runcmd (const char *str)
 
           if (filesystem::is_directory (subcmd))
             {
-              ret = loaddir (subcmd);
+              ret = loadDir (subcmd);
             }
           else if (filesystem::is_regular_file (subcmd))
             {
-              ret = loadfile (subcmd);
+              ret = loadFile (subcmd);
             }
           else
             {
@@ -1059,11 +1063,11 @@ ApvlvView::runcmd (const char *str)
         }
       else if (cmd == "TOtext" && !subcmd.empty ())
         {
-          crtadoc ()->totext (subcmd.c_str ());
+          currentFrame ()->totext (subcmd.c_str ());
         }
       else if ((cmd == "pr" || cmd == "print"))
         {
-          crtadoc ()->print (
+          currentFrame ()->print (
               subcmd.empty () ? -1
                               : int (strtol (subcmd.c_str (), nullptr, 10)));
         }
@@ -1072,7 +1076,7 @@ ApvlvView::runcmd (const char *str)
           if (currentWindow ()->birth (ApvlvWindow::WindowType::AW_SP,
                                        nullptr))
             {
-              windowadded ();
+              windowAdded ();
             }
         }
       else if (cmd == "vsp")
@@ -1080,41 +1084,43 @@ ApvlvView::runcmd (const char *str)
           if (currentWindow ()->birth (ApvlvWindow::WindowType::AW_VSP,
                                        nullptr))
             {
-              windowadded ();
+              windowAdded ();
             }
         }
       else if ((cmd == "zoom" || cmd == "z") && !subcmd.empty ())
         {
-          crtadoc ()->setzoom (subcmd.c_str ());
+          currentFrame ()->setzoom (subcmd.c_str ());
         }
       else if (cmd == "forwardpage" || cmd == "fp")
         {
           if (subcmd.empty ())
-            crtadoc ()->nextpage (1);
+            currentFrame ()->nextpage (1);
           else
-            crtadoc ()->nextpage (int (strtol (subcmd.c_str (), nullptr, 10)));
+            currentFrame ()->nextpage (
+                int (strtol (subcmd.c_str (), nullptr, 10)));
         }
       else if (cmd == "prewardpage" || cmd == "bp")
         {
           if (subcmd.empty ())
-            crtadoc ()->prepage (1);
+            currentFrame ()->prepage (1);
           else
-            crtadoc ()->prepage (int (strtol (subcmd.c_str (), nullptr, 10)));
+            currentFrame ()->prepage (
+                int (strtol (subcmd.c_str (), nullptr, 10)));
         }
       else if (cmd == "content")
         {
-          crtadoc ()->toggleContent ();
+          currentFrame ()->toggleContent ();
         }
       else if (cmd == "goto" || cmd == "g")
         {
-          crtadoc ()->markposition ('\'');
+          currentFrame ()->markposition ('\'');
           auto p = strtol (subcmd.c_str (), nullptr, 10);
-          p += crtadoc ()->getskip ();
-          crtadoc ()->showpage (int (p - 1), 0.0);
+          p += currentFrame ()->getskip ();
+          currentFrame ()->showpage (int (p - 1), 0.0);
         }
       else if (cmd == "help" || cmd == "h")
         {
-          loadfile (helppdf);
+          loadFile (helppdf);
         }
       else if (cmd == "q" || cmd == "quit")
         {
@@ -1133,19 +1139,19 @@ ApvlvView::runcmd (const char *str)
         }
       else if (cmd == "tabnew")
         {
-          newtab (helppdf);
+          newTab (helppdf);
         }
       else if (cmd == "tabn" || cmd == "tabnext")
         {
-          switchtab (mTabContainer->currentIndex () + 1);
+          switchTab (mTabContainer->currentIndex () + 1);
         }
       else if (cmd == "tabp" || cmd == "tabprevious")
         {
-          switchtab (mTabContainer->currentIndex () - 1);
+          switchTab (mTabContainer->currentIndex () - 1);
         }
       else if (cmd == "toc")
         {
-          loadfile (crtadoc ()->filename ());
+          loadFile (currentFrame ()->filename ());
         }
       else
         {
@@ -1158,13 +1164,13 @@ ApvlvView::runcmd (const char *str)
                   break;
                 }
             }
-          if (isn && crtadoc ())
+          if (isn && currentFrame ())
             {
               auto p = strtol (cmd.c_str (), nullptr, 10);
-              p += crtadoc ()->getskip ();
-              if (p != crtadoc ()->pageNumber ())
+              p += currentFrame ()->getskip ();
+              if (p != currentFrame ()->pageNumber ())
                 {
-                  crtadoc ()->showpage (int (p - 1), 0.0);
+                  currentFrame ()->showpage (int (p - 1), 0.0);
                 }
             }
           else
@@ -1196,13 +1202,13 @@ ApvlvView::keyPressEvent (QKeyEvent *evt)
 }
 
 void
-ApvlvView::commandbar_edit_cb ([[maybe_unused]] const QString &str)
+ApvlvView::commandbarEdited ([[maybe_unused]] const QString &str)
 {
   // need impl
 }
 
 void
-ApvlvView::commandbar_return_cb ()
+ApvlvView::commandbarReturn ()
 {
   if (mCmdType == CmdStatusType::CMD_CMD)
     {
@@ -1213,29 +1219,29 @@ ApvlvView::commandbar_return_cb ()
             {
               mCmdHistroy.emplace_back (str.toStdString ());
               mCurrHistroy = mCmdHistroy.size () - 1;
-              cmd_hide ();
+              cmdHide ();
             }
         }
       else
         {
-          cmd_hide ();
+          cmdHide ();
         }
     }
   else if (mCmdType == CmdStatusType::CMD_MESSAGE)
     {
-      cmd_hide ();
+      cmdHide ();
     }
 }
 
 void
-ApvlvView::commandbar_keypress_cb (QKeyEvent *gek)
+ApvlvView::commandbarKeyPressed (QKeyEvent *gek)
 {
   if (gek->key () == Qt::Key_Tab)
     {
       auto str = mCommandBar->text ();
       if (!str.isEmpty ())
         {
-          cmd_auto (str.toStdString ().c_str () + 1);
+          cmdAuto (str.toStdString ().c_str () + 1);
         }
     }
   else if (gek->key () == Qt::Key_Backspace)
@@ -1243,13 +1249,13 @@ ApvlvView::commandbar_keypress_cb (QKeyEvent *gek)
       auto str = mCommandBar->text ();
       if (str.length () == 1)
         {
-          cmd_hide ();
+          cmdHide ();
           mCurrHistroy = mCmdHistroy.size () - 1;
         }
     }
-  else if (gek->key () == Qt::Key_Escape || isalt_escape (gek))
+  else if (gek->key () == Qt::Key_Escape || isAltEscape (gek))
     {
-      cmd_hide ();
+      cmdHide ();
       mCurrHistroy = mCmdHistroy.size () - 1;
     }
   else if (gek->key () == Qt::Key_Up)
@@ -1283,22 +1289,23 @@ ApvlvView::closeEvent (QCloseEvent *evt)
 }
 
 void
-ApvlvView::notebook_switch_cb (int pnum)
+ApvlvView::notebookSwitched (int pnum)
 {
   qDebug ("tabwidget switch to: %d", pnum);
   if (pnum == -1)
     return;
 
-  auto adoc = crtadoc ();
+  auto adoc = currentFrame ();
   if (adoc && adoc->filename ())
     {
-      auto filename = filesystem::path (crtadoc ()->filename ()).filename ();
-      settitle (filename.string ());
+      auto filename
+          = filesystem::path (currentFrame ()->filename ()).filename ();
+      setTitle (filename.string ());
     }
 }
 
 void
-ApvlvView::notebook_close_cb (int ind)
+ApvlvView::notebookClosed (int ind)
 {
   qDebug ("tabwidget will close %d", ind);
   if (mTabContainer->currentIndex () == -1 && mTabContainer->count () > 0)
@@ -1306,7 +1313,7 @@ ApvlvView::notebook_close_cb (int ind)
 }
 
 void
-ApvlvView::switchtab (int tabPos)
+ApvlvView::switchTab (int tabPos)
 {
   int ntabs = int (mTabList.size ());
   while (tabPos < 0)
@@ -1317,15 +1324,15 @@ ApvlvView::switchtab (int tabPos)
 }
 
 void
-ApvlvView::windowadded ()
+ApvlvView::windowAdded ()
 {
   auto index = mTabContainer->currentIndex ();
   Q_ASSERT (index != -1);
-  updatetabname ();
+  updateTabName ();
 }
 
 void
-ApvlvView::updatetabname ()
+ApvlvView::updateTabName ()
 {
   const char *filename = currentWindow ()->getCore ()->filename ();
   string gfilename;
@@ -1335,7 +1342,7 @@ ApvlvView::updatetabname ()
   else
     gfilename = filesystem::path (filename).filename ().string ();
 
-  settitle (gfilename);
+  setTitle (gfilename);
 
   auto index = mTabContainer->currentIndex ();
   Q_ASSERT (index != -1);
@@ -1349,13 +1356,13 @@ ApvlvView::updatetabname ()
 }
 
 void
-ApvlvView::append_child (ApvlvView *view)
+ApvlvView::appendChild (ApvlvView *view)
 {
   mChildren.push_back (view);
 }
 
 void
-ApvlvView::erase_child (ApvlvView *view)
+ApvlvView::eraseChild (ApvlvView *view)
 {
   auto itr = mChildren.begin ();
   while (*itr != view && itr != mChildren.end ())

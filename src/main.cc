@@ -59,7 +59,7 @@ registerUrlScheme ()
 }
 
 static void
-usage_exit ()
+usageExit ()
 {
   fprintf (stdout,
            "%s [options] paths\n"
@@ -80,7 +80,7 @@ usage_exit ()
 }
 
 static void
-version_exit ()
+versionExit ()
 {
   fprintf (stdout,
            "%s %s-%s\n"
@@ -118,11 +118,11 @@ parseCommandLine (const QCoreApplication &app)
 
   if (parser.isSet (helpOption))
     {
-      usage_exit ();
+      usageExit ();
     }
   if (parser.isSet (versionOption))
     {
-      version_exit ();
+      versionExit ();
     }
   if (parser.isSet (configFileOption))
     {
@@ -195,7 +195,7 @@ main (int argc, char *argv[])
 
   auto paths = parseCommandLine (app);
 
-  ApvlvLog sLog (QString::fromLocal8Bit (logfile));
+  ApvlvLog::instance ()->setLogFile (logfile);
 
   string path = helppdf;
   if (!paths.empty ())
@@ -210,7 +210,7 @@ main (int argc, char *argv[])
     }
 
   ApvlvView sView (nullptr);
-  if (!sView.newtab (path))
+  if (!sView.newTab (path))
     {
       exit (1);
     }
@@ -220,7 +220,7 @@ main (int argc, char *argv[])
       path = paths.front ();
       paths.pop_front ();
       auto apath = filesystem::absolute (path).string ();
-      if (!sView.newtab (apath))
+      if (!sView.newTab (apath))
         {
           qCritical ("Can't open document: %s", apath.c_str ());
         }
