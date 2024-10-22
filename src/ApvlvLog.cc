@@ -35,18 +35,17 @@
 
 namespace apvlv
 {
-ApvlvLog *ApvlvLog::mInstance = nullptr;
-
-ApvlvLog::ApvlvLog (const QString &path)
+void
+ApvlvLog::setLogFile (const std::string &path)
 {
   using FileFlag = QIODevice::OpenModeFlag;
-  if (!path.isEmpty ())
+  if (!path.empty ())
     {
-      mFile.setFileName (path);
+      mFile.setFileName (QString::fromLocal8Bit (path));
       if (mFile.open (FileFlag::Text | FileFlag::WriteOnly | FileFlag::Append)
           == false)
         {
-          std::cerr << "Open log file: " << path.toStdString ()
+          std::cerr << "Open log file: " << path
                     << "error: " << mFile.errorString ().toStdString ()
                     << std::endl;
           return;
@@ -54,8 +53,6 @@ ApvlvLog::ApvlvLog (const QString &path)
 
       mTextStream.setDevice (&mFile);
     }
-
-  mInstance = this;
 
   QLoggingCategory::setFilterRules ("qt.*=false\n"
                                     "default.debug=true\n"
@@ -83,9 +80,6 @@ ApvlvLog::writeMessage (const QString &msg)
 
 ApvlvLog::~ApvlvLog ()
 {
-  if (this == mInstance)
-    mInstance = nullptr;
-
   if (mFile.isOpen ())
     {
       mFile.close ();
@@ -95,7 +89,8 @@ ApvlvLog::~ApvlvLog ()
 ApvlvLog *
 ApvlvLog::instance ()
 {
-  return mInstance;
+  static ApvlvLog log;
+  return &log;
 }
 
 void
@@ -114,9 +109,7 @@ ApvlvLog::logMessage (QtMsgType type, const QMessageLogContext &context,
     }
   log += msg;
 
-  auto instance = ApvlvLog::instance ();
-  if (instance)
-    instance->writeMessage (log);
+  ApvlvLog::instance ()->writeMessage (log);
 }
 }
 

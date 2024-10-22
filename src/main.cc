@@ -195,7 +195,7 @@ main (int argc, char *argv[])
 
   auto paths = parseCommandLine (app);
 
-  ApvlvLog sLog (QString::fromLocal8Bit (logfile));
+  ApvlvLog::instance ()->setLogFile (logfile);
 
   string path = helppdf;
   if (!paths.empty ())

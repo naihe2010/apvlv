@@ -71,7 +71,7 @@ signals:
   void keyPressed (QKeyEvent *evt);
 };
 
-class ApvlvView : public QMainWindow
+class ApvlvView final : public QMainWindow
 {
   Q_OBJECT
 public:

@@ -80,7 +80,7 @@ using CommandKeyList = std::vector<int>;
 using CommandMap = std::map<CommandKeyList, Command *>;
 
 class ApvlvView;
-class Command
+class Command final
 {
 public:
   Command ();

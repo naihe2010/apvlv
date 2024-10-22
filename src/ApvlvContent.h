@@ -47,7 +47,7 @@ const int CONTENT_COL_ANCHOR = 2;
 const int CONTENT_COL_PATH = 3;
 const int CONTENT_COL_TYPE = 4;
 
-class ApvlvContent : public QTreeWidget
+class ApvlvContent final : public QTreeWidget
 {
   Q_OBJECT
 public:

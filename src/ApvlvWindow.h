@@ -37,7 +37,7 @@ namespace apvlv
 class ApvlvFrame;
 class ApvlvWindowContext;
 
-class ApvlvWindow : public QObject
+class ApvlvWindow final : public QObject
 {
   Q_OBJECT
 public:
