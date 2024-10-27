@@ -71,32 +71,17 @@ WebView::WebView ()
   setPage (mPage.get ());
 }
 
-QWidget *
-WebViewWidget::createWidget ()
-{
-  auto view = new WebView ();
-  QObject::connect (view, SIGNAL (loadFinished (bool)), this,
-                    SLOT (webviewLoadFinished (bool)));
-  QObject::connect (view->mSchemeHandler.get (),
-                    SIGNAL (webpageUpdated (const string &)), this,
-                    SLOT (webviewUpdate (const string &)));
-  mWidget = view;
-  return mWidget;
-}
-
 void
 WebViewWidget::showPage (int p, double s)
 {
-  auto widget = dynamic_cast<WebView *> (mWidget);
-  mFile->pageRenderToWebView (p, mZoomrate, 0, widget);
+  mFile->pageRenderToWebView (p, mZoomrate, 0, &mWebView);
   mPageNumber = p;
 }
 
 void
 WebViewWidget::showPage (int p, const string &anchor)
 {
-  auto widget = dynamic_cast<WebView *> (mWidget);
-  mFile->pageRenderToWebView (p, mZoomrate, 0, widget);
+  mFile->pageRenderToWebView (p, mZoomrate, 0, &mWebView);
   mPageNumber = p;
   mAnchor = anchor;
 }
@@ -109,8 +94,7 @@ WebViewWidget::scroll (int times, int h, int v)
 
   stringstream scripts;
   scripts << "window.scrollBy(" << times * h << "," << times * v << ")";
-  auto widget = dynamic_cast<WebView *> (mWidget);
-  auto page = widget->page ();
+  auto page = mWebView.page ();
   page->runJavaScript (QString::fromLocal8Bit (scripts.str ()));
 }
 
@@ -124,8 +108,7 @@ WebViewWidget::scrollTo (double xrate, double yrate)
   scripts << "window.scroll(window.screenX * " << xrate << ",";
   scripts << " (document.body.offsetHeight - window.innerHeight) * " << yrate
           << ");";
-  auto widget = dynamic_cast<WebView *> (mWidget);
-  auto page = widget->page ();
+  auto page = mWebView.page ();
   page->runJavaScript (QString::fromLocal8Bit (scripts.str ()));
 }
 
@@ -134,8 +117,7 @@ WebViewWidget::scrollUp (int times)
 {
   scroll (times, 0, -50);
 
-  auto widget = dynamic_cast<WebView *> (mWidget);
-  if (widget->isScrolledToTop ())
+  if (mWebView.isScrolledToTop ())
     {
       if (mIsInternalScroll)
         {
@@ -148,7 +130,7 @@ WebViewWidget::scrollUp (int times)
           )";
           // clang-format on
 
-          auto page = widget->page ();
+          auto page = mWebView.page ();
           page->runJavaScript (
               QString::fromLocal8Bit (rs),
               [] (const QVariant &v) { qDebug () << v.toString (); });
@@ -170,8 +152,7 @@ WebViewWidget::scrollDown (int times)
 {
   scroll (times, 0, 50);
 
-  auto widget = dynamic_cast<WebView *> (mWidget);
-  if (widget->isScrolledToBottom ())
+  if (mWebView.isScrolledToBottom ())
     {
       if (mIsInternalScroll)
         {
@@ -183,7 +164,7 @@ WebViewWidget::scrollDown (int times)
               document.dispatchEvent(event);
           )";
           // clang-format on
-          auto page = widget->page ();
+          auto page = mWebView.page ();
           page->runJavaScript (
               QString::fromLocal8Bit (rs),
               [] (const QVariant &v) { qDebug () << v.toString (); });
@@ -212,19 +193,17 @@ WebViewWidget::scrollRight (int times)
 void
 WebViewWidget::setSearchStr (const string &str)
 {
-  auto widget = dynamic_cast<WebView *> (mWidget);
   auto qstr = QString::fromLocal8Bit (str);
   QWebEnginePage::FindFlags flags{};
-  widget->findText (qstr, flags);
+  mWebView.findText (qstr, flags);
 }
 
 void
 WebViewWidget::setSearchSelect (int select)
 {
-  auto widget = dynamic_cast<WebView *> (mWidget);
-  auto text = widget->selectedText ();
+  auto text = mWebView.selectedText ();
   QWebEnginePage::FindFlags flags{};
-  widget->findText (text, flags);
+  mWebView.findText (text, flags);
   mSearchSelect = select;
 }
 
@@ -252,8 +231,7 @@ WebViewWidget::webviewLoadFinished (bool suc)
     {
       if (!mAnchor.empty ())
         {
-          auto view = dynamic_cast<WebView *> (mWidget);
-          auto page = view->page ();
+          auto page = mWebView.page ();
           stringstream javasrc;
           javasrc << "document.getElementById('";
           javasrc << mAnchor.substr (1);

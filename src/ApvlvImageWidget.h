@@ -99,7 +99,18 @@ private:
 class ImageWidget : public FileWidget
 {
 public:
-  QWidget *createWidget () override;
+  ImageWidget ()
+  {
+    mImage.mImageContainer.setImageWidget (this);
+    mHalScrollBar = mImage.horizontalScrollBar ();
+    mValScrollBar = mImage.verticalScrollBar ();
+  }
+
+  [[nodiscard]] QWidget *
+  widget () override
+  {
+    return &mImage;
+  }
 
   void showPage (int pn, double s) override;
   void showPage (int pn, const std::string &anchor) override;
@@ -107,6 +118,9 @@ public:
   void setSearchResults (const WordListRectangle &wlr) override;
   void setZoomrate (double zm) override;
   void setRotate (int rotate) override;
+
+private:
+  ApvlvImage mImage{};
 };
 
 bool imageSelectSearch (QImage *pix, double zm, int select,

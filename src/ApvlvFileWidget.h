@@ -49,21 +49,11 @@ class FileWidget : public QObject
 public:
   FileWidget () = default;
 
-  ~FileWidget () override
-  {
-    if (mWidget)
-      mWidget->deleteLater ();
-  };
+  ~FileWidget () override = default;
 
-  QWidget *
-  widget ()
-  {
-    if (mWidget == nullptr)
-      mWidget = createWidget ();
-    return mWidget;
-  }
+  [[nodiscard]] virtual QWidget *widget () = 0;
 
-  [[nodiscard]] File *
+  [[nodiscard]] virtual File *
   file () const
   {
     return mFile;
@@ -194,9 +184,6 @@ public:
   }
 
 protected:
-  virtual QWidget *createWidget () = 0;
-
-  QWidget *mWidget{ nullptr };
   QScrollBar *mValScrollBar{ nullptr };
   QScrollBar *mHalScrollBar{ nullptr };
 

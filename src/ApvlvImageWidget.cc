@@ -187,13 +187,12 @@ ApvlvImage::~ApvlvImage () { qDebug ("ApvlvImage: %p be freed", this); }
 void
 ImageWidget::showPage (int p, double s)
 {
-  auto widget = dynamic_cast<ApvlvImage *> (mWidget);
   if (p != mPageNumber)
     {
-      if (!widget->mImageContainer.renderImage (p, mZoomrate, mRotate))
+      if (!mImage.mImageContainer.renderImage (p, mZoomrate, mRotate))
         return;
     }
-  widget->mImageContainer.redraw ();
+  mImage.mImageContainer.redraw ();
   scrollTo (0.0, s);
   mPageNumber = p;
 }
@@ -209,8 +208,7 @@ void
 ImageWidget::setSearchResults (const WordListRectangle &wlr)
 {
   mSearchResults = wlr;
-  auto widget = dynamic_cast<ApvlvImage *> (mWidget);
-  widget->mImageContainer.redraw ();
+  mImage.mImageContainer.redraw ();
 }
 
 void
@@ -218,10 +216,9 @@ ImageWidget::setZoomrate (double zm)
 {
   if (mPageNumber != INVALID_PAGENUM)
     {
-      auto widget = dynamic_cast<ApvlvImage *> (mWidget);
-      if (widget->mImageContainer.renderImage (mPageNumber, zm, mRotate))
+      if (mImage.mImageContainer.renderImage (mPageNumber, zm, mRotate))
         {
-          widget->mImageContainer.redraw ();
+          mImage.mImageContainer.redraw ();
           mZoomrate = zm;
         }
     }
@@ -236,10 +233,9 @@ ImageWidget::setRotate (int rotate)
 {
   if (mPageNumber != INVALID_PAGENUM)
     {
-      auto widget = dynamic_cast<ApvlvImage *> (mWidget);
-      if (widget->mImageContainer.renderImage (mPageNumber, mZoomrate, rotate))
+      if (mImage.mImageContainer.renderImage (mPageNumber, mZoomrate, rotate))
         {
-          widget->mImageContainer.redraw ();
+          mImage.mImageContainer.redraw ();
           mRotate = rotate;
         }
     }
@@ -247,16 +243,6 @@ ImageWidget::setRotate (int rotate)
     {
       mRotate = rotate;
     }
-}
-
-QWidget *
-ImageWidget::createWidget ()
-{
-  auto widget = new ApvlvImage ();
-  widget->mImageContainer.setImageWidget (this);
-  mHalScrollBar = widget->horizontalScrollBar ();
-  mValScrollBar = widget->verticalScrollBar ();
-  return widget;
 }
 
 bool

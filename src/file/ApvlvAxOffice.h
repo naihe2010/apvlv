@@ -93,13 +93,25 @@ public:
 class ExcelWidget : public FileWidget
 {
 public:
-  QWidget *createWidget () override;
+  ExcelWidget ()
+  {
+    mAxWidget.setProperty ("Visible", true);
+    mAxWidget.setProperty ("ReadOnly", true);
+  }
+
+  [[nodiscard]] QWidget *
+  widget () override
+  {
+    return &mAxWidget;
+  }
+
+  void setFile (File *file) override;
 
   void showPage (int, double s) override;
   void showPage (int, const std::string &anchor) override;
 
 private:
-  QAxWidget *mAxWidget;
+  QAxWidget mAxWidget{ "Excel.Workbook" };
 };
 
 class ApvlvExcel : public File, public AxOffice

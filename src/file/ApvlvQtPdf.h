@@ -40,13 +40,29 @@ namespace apvlv
 class PDFWidget : public FileWidget
 {
 public:
-  QWidget *createWidget () override;
+  PDFWidget ()
+  {
+    mHalScrollBar = mPdfView.horizontalScrollBar ();
+    mValScrollBar = mPdfView.verticalScrollBar ();
+  }
+
+  [[nodiscard]] QWidget *
+  widget () override
+  {
+    return &mPdfView;
+  }
+
+  void setFile (File *file) override;
+
   void showPage (int pn, double s) override;
   void showPage (int pn, const std::string &anchor) override;
 
   void setSearchSelect (int select) override;
 
   void setZoomrate (double zm) override;
+
+private:
+  QPdfView mPdfView{};
 };
 
 class ApvlvPDF : public File

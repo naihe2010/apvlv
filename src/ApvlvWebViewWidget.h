@@ -88,16 +88,26 @@ class WebViewWidget : public FileWidget
 {
   Q_OBJECT
 public:
-  QWidget *createWidget () override;
+  WebViewWidget ()
+  {
+    QObject::connect (&mWebView, SIGNAL (loadFinished (bool)), this,
+                      SLOT (webviewLoadFinished (bool)));
+    QObject::connect (mWebView.mSchemeHandler.get (),
+                      SIGNAL (webpageUpdated (const string &)), this,
+                      SLOT (webviewUpdate (const string &)));
+  }
+
+  [[nodiscard]] QWidget *
+  widget () override
+  {
+    return &mWebView;
+  }
 
   void
   setFile (File *file) override
   {
     mFile = file;
-    if (mWidget == nullptr)
-      mWidget = createWidget ();
-    auto widget = dynamic_cast<WebView *> (mWidget);
-    widget->setFile (mFile);
+    mWebView.setFile (mFile);
   }
 
   void showPage (int pn, double s) override;
@@ -126,6 +136,7 @@ public:
   }
 
 private:
+  WebView mWebView{};
   bool mIsInternalScroll{ false };
   bool mIsScrollUp{ false };
   QWebEngineFindTextResult mSearchResult;

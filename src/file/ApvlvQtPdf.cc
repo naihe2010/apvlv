@@ -81,30 +81,11 @@ ApvlvPDF::load (const string &filename)
   return true;
 }
 
-QWidget *
-PDFWidget::createWidget ()
-{
-  if (mWidget == nullptr)
-    {
-      auto view = new QPdfView;
-
-      auto pdf = dynamic_cast<ApvlvPDF *> (mFile);
-      view->setDocument (pdf->mDoc.get ());
-      view->setSearchModel (pdf->mSearchModel.get ());
-
-      mHalScrollBar = view->horizontalScrollBar ();
-      mValScrollBar = view->verticalScrollBar ();
-      mWidget = view;
-    }
-  return mWidget;
-}
-
 PDFWidget *
 ApvlvPDF::getWidget ()
 {
   auto wid = new PDFWidget ();
   wid->setFile (this);
-  wid->createWidget ();
   return wid;
 }
 
@@ -222,20 +203,28 @@ ApvlvPDF::getIndexIter (FileIndex &file_index,
 }
 
 void
+PDFWidget::setFile (File *file)
+{
+  mFile = file;
+  auto pdf = dynamic_cast<ApvlvPDF *> (mFile);
+  mPdfView.setDocument (pdf->mDoc.get ());
+  mPdfView.setSearchModel (pdf->mSearchModel.get ());
+}
+
+void
 PDFWidget::showPage (int p, double s)
 {
-  auto *view = dynamic_cast<QPdfView *> (mWidget);
-  auto nav = view->pageNavigator ();
+  auto nav = mPdfView.pageNavigator ();
   nav->jump (p, { 0, 0 });
   scrollTo (s, 0.0);
   mPageNumber = p;
   mScrollValue = s;
 }
+
 void
 PDFWidget::showPage (int p, const string &anchor)
 {
-  auto *view = dynamic_cast<QPdfView *> (mWidget);
-  auto nav = view->pageNavigator ();
+  auto nav = mPdfView.pageNavigator ();
   nav->jump (p, { 0, 0 });
   mPageNumber = p;
   mScrollValue = 0;
@@ -244,7 +233,6 @@ PDFWidget::showPage (int p, const string &anchor)
 void
 PDFWidget::setSearchSelect (int select)
 {
-  auto view = dynamic_cast<QPdfView *> (mWidget);
   auto pdf = dynamic_cast<ApvlvPDF *> (mFile);
   auto model = pdf->mSearchModel.get ();
 
@@ -255,7 +243,7 @@ PDFWidget::setSearchSelect (int select)
       doc_select += static_cast<int> (res.size ());
     }
   doc_select += select;
-  view->setCurrentSearchResultIndex (doc_select);
+  mPdfView.setCurrentSearchResultIndex (doc_select);
 
   auto link = model->resultAtIndex (doc_select);
   auto scr = static_cast<int> (link.location ().y ());
@@ -270,8 +258,7 @@ void
 PDFWidget::setZoomrate (double zm)
 {
   mZoomrate = zm;
-  auto *view = dynamic_cast<QPdfView *> (mWidget);
-  view->setZoomFactor (zm);
+  mPdfView.setZoomFactor (zm);
 }
 }
 

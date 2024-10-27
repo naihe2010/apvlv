@@ -295,26 +295,21 @@ ApvlvExcel::getWidget ()
 {
   auto wid = new ExcelWidget ();
   wid->setFile (this);
-  wid->createWidget ();
   return wid;
 }
 
-QWidget *
-ExcelWidget::createWidget ()
+void
+ExcelWidget::setFile (File *file)
 {
+  mFile = file;
   auto qname = QString::fromLocal8Bit (mFile->getFilename ());
-  mAxWidget = new QAxWidget ("Excel.Workbook");
-  mAxWidget->setProperty ("Visible", true);
-  mAxWidget->setProperty ("ReadOnly", true);
-  mAxWidget->setControl (qname);
-  return mAxWidget;
+  mAxWidget.setControl (qname);
 }
 
 void
 ExcelWidget::showPage (int p, double s)
 {
-  auto widget = dynamic_cast<QAxWidget *> (mWidget);
-  auto sheets = widget->querySubObject ("Sheets");
+  auto sheets = mAxWidget.querySubObject ("Sheets");
   auto sheet = sheets->querySubObject ("Item(int)", p + 1);
   sheet->dynamicCall ("Activate()");
   mPageNumber = p;

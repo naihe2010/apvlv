@@ -40,7 +40,6 @@ public:
   ApvlvWEB () : mWebWidget (new WebViewWidget)
   {
     mWebWidget->setFile (this);
-    mWebWidget->createWidget ();
     mWebWidget->setInternalScroll (true);
   }
 
