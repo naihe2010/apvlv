@@ -25,6 +25,8 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
+#include <QHeaderView>
+#include <QTreeWidget>
 #include <filesystem>
 
 #include "ApvlvContent.h"
@@ -38,8 +40,16 @@ using namespace std;
 
 ApvlvContent::ApvlvContent ()
 {
-  setHeaderHidden (true);
   setColumnCount (1);
+  setHeaderHidden (false);
+  setHeaderLabels ({ tr ("title") });
+  setSortingEnabled (false);
+
+  auto headerview = header ();
+  headerview->setSectionsClickable (true);
+  QObject::connect (headerview, SIGNAL (sectionClicked (int)), this,
+                    SLOT (sortByTitle (int)));
+
   setVerticalScrollMode (QAbstractItemView::ScrollMode::ScrollPerItem);
   setSelectionBehavior (QAbstractItemView::SelectionBehavior::SelectRows);
   setSelectionMode (QAbstractItemView::SelectionMode::SingleSelection);
@@ -88,6 +98,13 @@ ApvlvContent::setIndex (const FileIndex &index)
 }
 
 void
+ApvlvContent::sortByTitle ([[maybe_unused]] int col)
+{
+  mTitleSortAscending = !mTitleSortAscending;
+  refreshIndex (mIndex);
+}
+
+void
 ApvlvContent::setIndex (const FileIndex &index, QTreeWidgetItem *root_itr)
 {
   auto itr = new QTreeWidgetItem ();
@@ -119,6 +136,7 @@ void
 ApvlvContent::refreshIndex (const FileIndex &index)
 {
   mIndex = index;
+  mIndex.sortByTitle (mTitleSortAscending);
 
   clear ();
   mCurrentItem = nullptr;

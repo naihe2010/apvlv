@@ -120,6 +120,7 @@ public:
              FileIndexType type);
   ~FileIndex ();
 
+  void sortByTitle (bool ascending);
   void loadDirectory (const std::string &path1);
   void appendChild (const FileIndex &child);
   [[nodiscard]] const FileIndex *findIndex (const FileIndex &tmp_index) const;

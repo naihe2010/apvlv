@@ -109,6 +109,8 @@ private:
 
   QTreeWidgetItem *mCurrentItem{ nullptr };
 
+  bool mTitleSortAscending{ true };
+
   void setIndex (const FileIndex &index, QTreeWidgetItem *root_itr);
   void refreshIndex (const FileIndex &index);
   void appendIndex (const FileIndex &index);
@@ -122,6 +124,7 @@ private slots:
   void onRowDoubleClicked ();
   void firstSelected ();
   void setIndex (const FileIndex &index);
+  void sortByTitle (int col);
 };
 }
 

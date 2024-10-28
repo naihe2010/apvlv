@@ -107,6 +107,13 @@
     </message>
 </context>
 <context>
+    <name>apvlv::ApvlvContent</name>
+    <message>
+        <source>title</source>
+        <translation>标题</translation>
+    </message>
+</context>
+<context>
     <name>apvlv::ApvlvCore</name>
     <message>
         <source>no content</source>

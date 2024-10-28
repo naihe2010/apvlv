@@ -240,6 +240,22 @@ File::pathContentPng (int pn, double zm, int rot)
 }
 
 void
+FileIndex::sortByTitle (bool ascending)
+{
+  if (type == FileIndexType::DIR)
+    {
+      std::sort (mChildrenIndex.begin (), mChildrenIndex.end (),
+                 [ascending] (const FileIndex &a, const FileIndex &b) {
+                   return ascending ? (a.title < b.title)
+                                    : (a.title > b.title);
+                 });
+      std::for_each (
+          mChildrenIndex.begin (), mChildrenIndex.end (),
+          [ascending] (FileIndex &a) { a.sortByTitle (ascending); });
+    }
+}
+
+void
 FileIndex::loadDirectory (const string &path1)
 {
   auto exts = File::supportFileExts ();
@@ -278,11 +294,6 @@ FileIndex::loadDirectory (const string &path1)
     {
       qWarning ("file system error: %s", err.what ());
     }
-
-  sort (mChildrenIndex.begin (), mChildrenIndex.end (),
-        [] (const FileIndex &a, const FileIndex &b) {
-          return a.title < b.title;
-        });
 }
 
 void

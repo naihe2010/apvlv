@@ -1077,6 +1077,8 @@ ApvlvFrame::contentShowPage (const FileIndex *index, bool force)
 void
 ApvlvFrame::setWidget (DISPLAY_TYPE type)
 {
+  auto sizes = mPaned->sizes ();
+
   if (type == DISPLAY_TYPE::IMAGE)
     {
       mWidget = make_unique<ImageWidget> ();
@@ -1095,6 +1097,8 @@ ApvlvFrame::setWidget (DISPLAY_TYPE type)
     mPaned->addWidget (mWidget->widget ());
   else
     mPaned->replaceWidget (1, mWidget->widget ());
+
+  mPaned->setSizes (sizes);
 }
 
 void
