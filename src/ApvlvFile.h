@@ -34,6 +34,7 @@
 #include <string>
 #include <vector>
 
+#include "ApvlvFileIndex.h"
 #include "ApvlvParams.h"
 #include "ApvlvSearch.h"
 
@@ -102,48 +103,8 @@ struct WordRectangle
 
 using WordListRectangle = std::vector<WordRectangle>;
 
-enum class FileIndexType
-{
-  PAGE,
-  FILE,
-  DIR
-};
-
-class FileWidget;
-class FileIndex
-{
-public:
-  FileIndex () : page (0), type (FileIndexType::PAGE){};
-  FileIndex (const std::string &title, int page, const std::string &path,
-             FileIndexType type);
-  FileIndex (std::string &&title, int page, std::string &&path,
-             FileIndexType type);
-  ~FileIndex ();
-
-  void sortByTitle (bool ascending);
-  void loadDirectory (const std::string &path1);
-  void appendChild (const FileIndex &child);
-  [[nodiscard]] const FileIndex *findIndex (const FileIndex &tmp_index) const;
-
-  friend bool
-  operator== (const FileIndex &this_index, const FileIndex &tmp_index)
-  {
-    return this_index.title == tmp_index.title
-           && this_index.page == tmp_index.page
-           && this_index.path == tmp_index.path
-           && this_index.anchor == tmp_index.anchor
-           && this_index.type == tmp_index.type;
-  }
-
-  std::string title;
-  int page;
-  std::string path;
-  std::string anchor;
-  FileIndexType type;
-  std::vector<FileIndex> mChildrenIndex;
-};
-
 class WebView;
+class FileWidget;
 class File
 {
 public:

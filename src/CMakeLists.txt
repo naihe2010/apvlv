@@ -66,6 +66,7 @@ SET(HEADERS
         ApvlvCmds.h
         ApvlvFrame.h
         ApvlvFile.h
+        ApvlvFileIndex.h
         ApvlvFileWidget.h
         ApvlvWeb.h
         ApvlvInfo.h
@@ -91,6 +92,7 @@ SET(SOURCES
         ApvlvCmds.cc
         ApvlvFrame.cc
         ApvlvFile.cc
+        ApvlvFileIndex.cc
         ApvlvFileWidget.cc
         ApvlvWeb.cc
         ApvlvInfo.cc

@@ -25,6 +25,9 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
+#include <QApplication>
+#include <QComboBox>
+#include <QDateTime>
 #include <QHeaderView>
 #include <QTreeWidget>
 #include <filesystem>
@@ -40,42 +43,89 @@ using namespace std;
 
 ApvlvContent::ApvlvContent ()
 {
-  setColumnCount (1);
-  setHeaderHidden (false);
-  setHeaderLabels ({ tr ("title") });
-  setSortingEnabled (false);
-
-  auto headerview = header ();
-  headerview->setSectionsClickable (true);
-  QObject::connect (headerview, SIGNAL (sectionClicked (int)), this,
-                    SLOT (sortByTitle (int)));
-
-  setVerticalScrollMode (QAbstractItemView::ScrollMode::ScrollPerItem);
-  setSelectionBehavior (QAbstractItemView::SelectionBehavior::SelectRows);
-  setSelectionMode (QAbstractItemView::SelectionMode::SingleSelection);
-
   setFocusPolicy (Qt::NoFocus);
 
-  mTypeIcons[FileIndexType::DIR] = QIcon (icondir.c_str ());
-  mTypeIcons[FileIndexType::FILE] = QIcon (iconfile.c_str ());
-  mTypeIcons[FileIndexType::PAGE] = QIcon (iconpage.c_str ());
-
-  QObject::connect (this, SIGNAL (itemSelectionChanged ()), this,
-                    SLOT (onChanged ()));
-  QObject::connect (this, SIGNAL (itemActivated (QTreeWidgetItem *, int)),
-                    this, SLOT (onRowActivated (QTreeWidgetItem *, int)));
-  QObject::connect (this, SIGNAL (itemDoubleClicked (QTreeWidgetItem *, int)),
-                    this, SLOT (onRowDoubleClicked ()));
+  setLayout (&mLayout);
+  mLayout.addWidget (&mToolBar, 0);
+  mLayout.addWidget (&mTreeWidget);
+  setupToolBar ();
+  setupTree ();
 
   mFirstTimer = make_unique<QTimer> ();
   QObject::connect (mFirstTimer.get (), SIGNAL (timeout ()), this,
                     SLOT (firstSelected ()));
 }
 
+void
+ApvlvContent::setupToolBar ()
+{
+  auto refresh = mToolBar.addAction (tr ("Refresh"));
+  refresh->setIcon (QIcon::fromTheme (QIcon::ThemeIcon::ViewRefresh));
+  QObject::connect (refresh, SIGNAL (triggered (bool)), this,
+                    SLOT (onRefresh ()));
+
+  auto csort = new QComboBox ();
+  mToolBar.addWidget (csort);
+  csort->addItems ({ tr ("Sort By Title"), tr ("Sort By Modified Time"),
+                     tr ("Sort By File Size") });
+  QObject::connect (csort, SIGNAL (activated (int)), this,
+                    SLOT (sortBy (int)));
+
+  auto filter = mToolBar.addAction (tr ("Filter"));
+  filter->setIcon (QIcon::fromTheme (QIcon::ThemeIcon::ToolsCheckSpelling));
+  QObject::connect (filter, SIGNAL (triggered (bool)), this,
+                    SLOT (onFilter ()));
+
+  auto expand_all = mToolBar.addAction (tr ("Expand All"));
+  expand_all->setIcon (QIcon::fromTheme (QIcon::ThemeIcon::ListAdd));
+  QObject::connect (expand_all, SIGNAL (triggered (bool)), &mTreeWidget,
+                    SLOT (expandAll ()));
+  auto collapse_all = mToolBar.addAction (tr ("Collapse All"));
+  collapse_all->setIcon (QIcon::fromTheme (QIcon::ThemeIcon::ListRemove));
+  QObject::connect (collapse_all, SIGNAL (triggered (bool)), &mTreeWidget,
+                    SLOT (collapseAll ()));
+}
+
+void
+ApvlvContent::setupTree ()
+{
+  mTreeWidget.setColumnCount (3);
+  mTreeWidget.setColumnWidth (CONTENT_COL_TITLE, 400);
+  mTreeWidget.setColumnWidth (CONTENT_COL_MTIME, 120);
+  mTreeWidget.setColumnWidth (CONTENT_COL_FILE_SIZE, 120);
+  mTreeWidget.setHeaderHidden (false);
+  mTreeWidget.setHeaderLabels (
+      { tr ("title"), tr ("modified time"), tr ("size") });
+  mTreeWidget.setSortingEnabled (false);
+
+  auto headerview = mTreeWidget.header ();
+  headerview->setSectionsClickable (true);
+  QObject::connect (headerview, SIGNAL (sectionClicked (int)), this,
+                    SLOT (sortBy (int)));
+
+  mTreeWidget.setVerticalScrollMode (
+      QAbstractItemView::ScrollMode::ScrollPerItem);
+  mTreeWidget.setSelectionBehavior (
+      QAbstractItemView::SelectionBehavior::SelectRows);
+  mTreeWidget.setSelectionMode (
+      QAbstractItemView::SelectionMode::SingleSelection);
+
+  mTypeIcons[FileIndexType::DIR] = QIcon (icondir.c_str ());
+  mTypeIcons[FileIndexType::FILE] = QIcon (iconfile.c_str ());
+  mTypeIcons[FileIndexType::PAGE] = QIcon (iconpage.c_str ());
+
+  QObject::connect (&mTreeWidget,
+                    SIGNAL (itemActivated (QTreeWidgetItem *, int)), this,
+                    SLOT (onRowActivated (QTreeWidgetItem *, int)));
+  QObject::connect (&mTreeWidget,
+                    SIGNAL (itemDoubleClicked (QTreeWidgetItem *, int)), this,
+                    SLOT (onRowDoubleClicked ()));
+}
+
 bool
 ApvlvContent::isReady ()
 {
-  return (topLevelItemCount () > 0);
+  return (mTreeWidget.topLevelItemCount () > 0);
 }
 
 void
@@ -93,40 +143,65 @@ ApvlvContent::setIndex (const FileIndex &index)
       && index.type == FileIndexType::FILE)
     {
       if (cur_index->mChildrenIndex.empty ())
-        appendIndex (index);
+        {
+          auto cur_item = selectedTreeItem ();
+          cur_index->appendChild (index);
+          for (auto &child : cur_index->mChildrenIndex)
+            {
+              setIndex (child, cur_item);
+            }
+        }
     }
 }
 
 void
-ApvlvContent::sortByTitle ([[maybe_unused]] int col)
+ApvlvContent::setItemSelected (QTreeWidgetItem *item)
 {
-  mTitleSortAscending = !mTitleSortAscending;
-  refreshIndex (mIndex);
+  auto selitems = mTreeWidget.selectedItems ();
+  for (auto selitem : selitems)
+    {
+      selitem->setSelected (false);
+      auto index = getFileIndexFromTreeItem (selitem);
+      if (index)
+        index->isSelected = false;
+    }
+
+  auto parent = item->parent ();
+  while (parent)
+    {
+      mTreeWidget.expandItem (parent);
+      parent = parent->parent ();
+    }
+
+  item->setSelected (true);
+  if (item->isExpanded ())
+    mTreeWidget.collapseItem (item);
+  mTreeWidget.scrollToItem (item);
+
+  auto index = getFileIndexFromTreeItem (item);
+  if (index)
+    {
+      index->isSelected = true;
+      index->isExpanded = false;
+    }
 }
 
 void
-ApvlvContent::setIndex (const FileIndex &index, QTreeWidgetItem *root_itr)
+ApvlvContent::setIndex (FileIndex &index, QTreeWidgetItem *root_itr)
 {
   auto itr = new QTreeWidgetItem ();
-  itr->setText (CONTENT_COL_TITLE,
-                QString::fromLocal8Bit (index.title.c_str ()));
-  itr->setIcon (CONTENT_COL_TITLE, mTypeIcons[index.type]);
-  itr->setToolTip (CONTENT_COL_TITLE, QString::fromLocal8Bit (index.path));
-  itr->setText (CONTENT_COL_PAGE, QString::number (index.page));
-  itr->setText (CONTENT_COL_ANCHOR, QString::fromLocal8Bit (index.anchor));
-  itr->setText (CONTENT_COL_PATH, QString::fromLocal8Bit (index.path));
-  itr->setText (CONTENT_COL_TYPE,
-                QString::number (static_cast<int> (index.type)));
+  setFileIndexToTreeItem (itr, &index);
+
   if (root_itr == nullptr)
     {
-      addTopLevelItem (itr);
+      mTreeWidget.addTopLevelItem (itr);
     }
   else
     {
       root_itr->addChild (itr);
     }
 
-  for (const auto &child : index.mChildrenIndex)
+  for (auto &child : index.mChildrenIndex)
     {
       setIndex (child, itr);
     }
@@ -135,11 +210,9 @@ ApvlvContent::setIndex (const FileIndex &index, QTreeWidgetItem *root_itr)
 void
 ApvlvContent::refreshIndex (const FileIndex &index)
 {
-  mIndex = index;
-  mIndex.sortByTitle (mTitleSortAscending);
+  mTreeWidget.clear ();
 
-  clear ();
-  mCurrentItem = nullptr;
+  mIndex = index;
 
   for (auto &child : mIndex.mChildrenIndex)
     {
@@ -150,148 +223,142 @@ ApvlvContent::refreshIndex (const FileIndex &index)
 }
 
 void
-ApvlvContent::appendIndex (const FileIndex &index)
+ApvlvContent::setFileIndexToTreeItem (QTreeWidgetItem *item, FileIndex *index)
 {
-  auto path = mCurrentItem->text (CONTENT_COL_PATH);
-  findIndexAndAppend (mIndex, path, index);
-  for (const auto &child : index.mChildrenIndex)
+  auto variant = QVariant::fromValue<FileIndex *> (index);
+  item->setData (CONTENT_COL_TITLE, Qt::UserRole, variant);
+  item->setText (CONTENT_COL_TITLE,
+                 QString::fromLocal8Bit (index->title.c_str ()));
+  item->setIcon (CONTENT_COL_TITLE, mTypeIcons[index->type]);
+  item->setToolTip (CONTENT_COL_TITLE, QString::fromLocal8Bit (index->path));
+  if (index->type == FileIndexType::FILE)
     {
-      setIndex (child, mCurrentItem);
+      item->setText (CONTENT_COL_FILE_SIZE, QString::number (index->size));
+      auto date
+          = QDateTime::fromSecsSinceEpoch (index->mtime, Qt::TimeSpec::UTC);
+      item->setText (CONTENT_COL_MTIME, date.toString ("yyyy-MM-dd HH:mm:ss"));
     }
 }
 
-const FileIndex *
-ApvlvContent::treeItemToIndex (QTreeWidgetItem *item) const
+FileIndex *
+ApvlvContent::getFileIndexFromTreeItem (QTreeWidgetItem *item)
 {
   if (item == nullptr)
     return nullptr;
 
-  FileIndex tmp_index;
-  tmp_index.title = item->text (CONTENT_COL_TITLE).toStdString ();
-  tmp_index.page = item->text (CONTENT_COL_PAGE).toInt ();
-  tmp_index.anchor = item->text (CONTENT_COL_ANCHOR).toStdString ();
-  tmp_index.path = item->text (CONTENT_COL_PATH).toStdString ();
-  tmp_index.type
-      = static_cast<FileIndexType> (item->text (CONTENT_COL_TYPE).toInt ());
-  auto index = mIndex.findIndex (tmp_index);
+  auto varaint = item->data (CONTENT_COL_TITLE, Qt::UserRole);
+  auto index = varaint.value<FileIndex *> ();
   return index;
 }
 
-const FileIndex *
-ApvlvContent::treeItemToFileIndex (QTreeWidgetItem *item) const
+FileIndex *
+ApvlvContent::treeItemToFileIndex (QTreeWidgetItem *item)
 {
-  auto type = FileIndexType::PAGE;
   while (item != nullptr)
     {
-      type = static_cast<FileIndexType> (
-          item->text (CONTENT_COL_TYPE).toInt ());
-      if (type == FileIndexType::FILE)
-        break;
+      auto index = getFileIndexFromTreeItem (item);
+      if (index->type == FileIndexType::FILE)
+        return index;
       else
         item = item->parent ();
-    }
-
-  if (item != nullptr)
-    {
-      auto index = treeItemToIndex (item);
-      return index;
     }
 
   return nullptr;
 }
 
-bool
-ApvlvContent::findIndexAndSelect (QTreeWidgetItem *itr, const string &path,
-                                  int pn, const string &anchor)
+QTreeWidgetItem *
+ApvlvContent::findTreeWidgetItem (QTreeWidgetItem *itr, FileIndexType type,
+                                  const string &path, int pn,
+                                  const string &anchor)
 {
-  auto index = treeItemToIndex (itr);
-  auto file_index = treeItemToFileIndex (itr);
-  if ((!file_index || file_index->path == path) && index->page == pn
-      && index->anchor == anchor)
-    {
-      if (mCurrentItem)
-        mCurrentItem->setSelected (false);
+  auto index = getFileIndexFromTreeItem (itr);
+  if (index == nullptr)
+    return nullptr;
 
-      auto parent = itr->parent ();
-      while (parent)
+  if (index->type != type)
+    {
+      for (auto ind = 0; ind < itr->childCount (); ++ind)
         {
-          expandItem (parent);
-          parent = parent->parent ();
+          auto child_itr = itr->child (ind);
+          auto citr = findTreeWidgetItem (child_itr, type, path, pn, anchor);
+          if (citr)
+            return citr;
         }
 
-      itr->setSelected (true);
-      return true;
+      return nullptr;
     }
 
-  for (auto ind = 0; ind < itr->childCount (); ++ind)
+  auto file_index = treeItemToFileIndex (itr);
+  if (file_index == nullptr)
     {
-      auto child_itr = itr->child (ind);
-      if (findIndexAndSelect (child_itr, path, pn, anchor))
-        return true;
+      if (index->page == pn && (anchor.empty () || index->anchor == anchor))
+        {
+          return itr;
+        }
+
+      return nullptr;
     }
 
-  return false;
-}
-
-bool
-ApvlvContent::findIndexAndAppend (FileIndex &root, const QString &path,
-                                  const FileIndex &index)
-{
-  if (root.type == FileIndexType::FILE && root.path == path.toStdString ())
+  if (file_index->path == path && index->page == pn
+      && (anchor.empty () || index->anchor == anchor))
     {
-      root.appendChild (index);
-      return true;
+      return itr;
     }
 
-  for (auto &child : root.mChildrenIndex)
-    {
-      if (findIndexAndAppend (child, path, index))
-        return true;
-    }
-
-  return false;
+  return nullptr;
 }
 
 void
 ApvlvContent::setCurrentIndex (const string &path, int pn,
                                const string &anchor)
 {
-  if (mIndex.type == FileIndexType::DIR)
-    return;
+  auto itr = selectedTreeItem ();
+  auto fitr = findTreeWidgetItem (itr, FileIndexType::PAGE, path, pn, anchor);
 
-  for (auto ind = 0; ind < topLevelItemCount (); ++ind)
+  for (auto ind = 0; fitr == nullptr && ind < mTreeWidget.topLevelItemCount ();
+       ++ind)
     {
-      auto itr = topLevelItem (ind);
-      if (findIndexAndSelect (itr, path, pn, anchor))
-        return;
+      itr = mTreeWidget.topLevelItem (ind);
+      fitr = findTreeWidgetItem (itr, FileIndexType::PAGE, path, pn, anchor);
     }
+
+  for (auto ind = 0; fitr == nullptr && ind < mTreeWidget.topLevelItemCount ();
+       ++ind)
+    {
+      itr = mTreeWidget.topLevelItem (ind);
+      fitr = findTreeWidgetItem (itr, FileIndexType::FILE, path, pn, anchor);
+    }
+
+  if (fitr)
+    setItemSelected (fitr);
 }
 
 void
 ApvlvContent::scrollUp (int times)
 {
-  if (mCurrentItem == nullptr)
+  auto item = selectedTreeItem ();
+  if (item == nullptr)
     return;
 
-  auto parent = mCurrentItem->parent ();
+  auto parent = item->parent ();
   if (parent == nullptr)
     {
-      auto index = indexOfTopLevelItem (mCurrentItem);
+      auto index = mTreeWidget.indexOfTopLevelItem (item);
       if (index > 0)
         {
-          auto itr = topLevelItem (index - 1);
-          mCurrentItem->setSelected (false);
-          itr->setSelected (true);
+          auto new_index = index > times ? index - times : 0;
+          auto itr = mTreeWidget.topLevelItem (new_index);
+          setItemSelected (itr);
         }
     }
   else
     {
-      auto index = parent->indexOfChild (mCurrentItem);
+      auto index = parent->indexOfChild (item);
       if (index > 0)
         {
-          auto itr = parent->child (index - 1);
-          mCurrentItem->setSelected (false);
-          itr->setSelected (true);
+          auto new_index = index > times ? index - times : 0;
+          auto itr = parent->child (new_index);
+          setItemSelected (itr);
         }
     }
 }
@@ -299,70 +366,77 @@ ApvlvContent::scrollUp (int times)
 void
 ApvlvContent::scrollDown (int times)
 {
-  if (mCurrentItem == nullptr)
+  auto item = selectedTreeItem ();
+  if (item == nullptr)
     return;
 
-  auto parent = mCurrentItem->parent ();
+  auto parent = item->parent ();
   if (parent == nullptr)
     {
-      auto index = indexOfTopLevelItem (mCurrentItem);
-      if (index + 1 < topLevelItemCount ())
-        {
-          auto itr = topLevelItem (index + 1);
-          mCurrentItem->setSelected (false);
-          itr->setSelected (true);
-        }
+      auto index = mTreeWidget.indexOfTopLevelItem (item);
+      auto count = mTreeWidget.topLevelItemCount ();
+      auto new_index = index + times < count ? index + times : count - 1;
+      auto itr = mTreeWidget.topLevelItem (new_index);
+      setItemSelected (itr);
     }
   else
     {
-      auto index = parent->indexOfChild (mCurrentItem);
-      if (index + 1 < parent->childCount ())
-        {
-          auto itr = parent->child (index + 1);
-          mCurrentItem->setSelected (false);
-          itr->setSelected (true);
-        }
+      auto index = parent->indexOfChild (item);
+      auto count = parent->childCount ();
+      auto new_index = index + times < count ? index + times : count - 1;
+      auto itr = parent->child (new_index);
+      setItemSelected (itr);
     }
 }
 
 void
 ApvlvContent::scrollLeft (int times)
 {
-  if (mCurrentItem == nullptr)
+  auto item = selectedTreeItem ();
+  if (item == nullptr)
     return;
 
-  auto parent = mCurrentItem->parent ();
-  if (parent == nullptr)
+  if (item->parent () == nullptr)
     return;
 
-  mCurrentItem->setSelected (false);
-  parent->setSelected (true);
-  collapseItem (parent);
+  auto parent = item->parent ();
+
+  while (--times > 0 && parent->parent ())
+    {
+      parent = parent->parent ();
+    }
+
+  setItemSelected (parent);
 }
 
 void
 ApvlvContent::scrollRight (int times)
 {
-  if (mCurrentItem == nullptr)
+  auto item = selectedTreeItem ();
+  if (item == nullptr)
     return;
 
-  if (mCurrentItem->childCount () > 0)
+  if (item->childCount () == 0)
+    return;
+
+  item = item->child (0);
+
+  while (--times > 0 && item->childCount () > 0)
     {
-      expandItem (mCurrentItem);
-      auto itr = mCurrentItem->child (0);
-      mCurrentItem->setSelected (false);
-      itr->setSelected (true);
+      item = item->child (0);
     }
+  setItemSelected (item);
 }
 
 void
-ApvlvContent::onChanged ()
+ApvlvContent::onRefresh ()
 {
-  auto selects = selectedItems ();
-  if (!selects.isEmpty ())
-    {
-      mCurrentItem = selects[0];
-    }
+  refreshIndex (mIndex);
+}
+
+void
+ApvlvContent::onFilter ()
+{
 }
 
 void
@@ -386,12 +460,12 @@ ApvlvContent::firstSelected ()
   if (mIndex.type == FileIndexType::DIR)
     return;
 
-  if (topLevelItemCount () > 0)
+  if (mTreeWidget.topLevelItemCount () > 0)
     {
       if (mFrame->pageNumber () <= 1)
         {
-          auto itr = topLevelItem (0);
-          itr->setSelected (true);
+          auto itr = mTreeWidget.topLevelItem (0);
+          setItemSelected (itr);
         }
       else
         {
@@ -402,17 +476,19 @@ ApvlvContent::firstSelected ()
   mFirstTimer->stop ();
 }
 
-const FileIndex *
+FileIndex *
 ApvlvContent::currentItemFileIndex ()
 {
-  auto index = treeItemToIndex (mCurrentItem);
+  auto item = selectedTreeItem ();
+  auto index = getFileIndexFromTreeItem (item);
   return index;
 }
 
-const FileIndex *
+FileIndex *
 ApvlvContent::currentFileFileIndex ()
 {
-  auto index = treeItemToFileIndex (mCurrentItem);
+  auto item = selectedTreeItem ();
+  auto index = treeItemToFileIndex (item);
   return index;
 }
 

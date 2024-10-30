@@ -29,8 +29,10 @@
 #define _APVLV_CONTENT_H_
 
 #include <QTimer>
+#include <QToolBar>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
+#include <QVBoxLayout>
 #include <iostream>
 #include <map>
 #include <string>
@@ -43,12 +45,10 @@ namespace apvlv
 class ApvlvFrame;
 
 const int CONTENT_COL_TITLE = 0;
-const int CONTENT_COL_PAGE = 1;
-const int CONTENT_COL_ANCHOR = 2;
-const int CONTENT_COL_PATH = 3;
-const int CONTENT_COL_TYPE = 4;
+const int CONTENT_COL_MTIME = 1;
+const int CONTENT_COL_FILE_SIZE = 2;
 
-class ApvlvContent final : public QTreeWidget
+class ApvlvContent final : public QFrame
 {
   Q_OBJECT
 public:
@@ -58,14 +58,14 @@ public:
 
   bool isReady ();
 
-  const FileIndex *currentItemFileIndex ();
+  FileIndex *currentItemFileIndex ();
 
-  const FileIndex *currentFileFileIndex ();
+  FileIndex *currentFileFileIndex ();
 
-  bool findIndexAndSelect (QTreeWidgetItem *itr, const std::string &path,
-                           int pn, const std::string &anchor);
-  bool findIndexAndAppend (FileIndex &root, const QString &path,
-                           const FileIndex &index);
+  QTreeWidgetItem *findTreeWidgetItem (QTreeWidgetItem *itr,
+                                       FileIndexType type,
+                                       const std::string &path, int pn,
+                                       const std::string &anchor);
 
   void setCurrentIndex (const std::string &path, int pn,
                         const std::string &anchor);
@@ -97,9 +97,13 @@ public:
   }
 
 private:
+  QVBoxLayout mLayout;
+  QToolBar mToolBar;
+  QTreeWidget mTreeWidget;
+
   std::map<FileIndexType, QIcon> mTypeIcons;
 
-  bool mIsFocused;
+  bool mIsFocused{ false };
 
   FileIndex mIndex;
 
@@ -107,24 +111,47 @@ private:
 
   std::unique_ptr<QTimer> mFirstTimer;
 
-  QTreeWidgetItem *mCurrentItem{ nullptr };
+  bool mSortAscending{ true };
 
-  bool mTitleSortAscending{ true };
+  void setupToolBar ();
+  void setupTree ();
 
-  void setIndex (const FileIndex &index, QTreeWidgetItem *root_itr);
+  QTreeWidgetItem *
+  selectedTreeItem ()
+  {
+    auto selitems = mTreeWidget.selectedItems ();
+    return selitems.isEmpty () ? nullptr : selitems[0];
+  }
+  void setItemSelected (QTreeWidgetItem *item);
+
+  void setIndex (FileIndex &index, QTreeWidgetItem *root_itr);
   void refreshIndex (const FileIndex &index);
-  void appendIndex (const FileIndex &index);
 
-  const FileIndex *treeItemToIndex (QTreeWidgetItem *item) const;
-  const FileIndex *treeItemToFileIndex (QTreeWidgetItem *item) const;
+  void setFileIndexToTreeItem (QTreeWidgetItem *item, FileIndex *index);
+  FileIndex *getFileIndexFromTreeItem (QTreeWidgetItem *item);
+
+  FileIndex *treeItemToFileIndex (QTreeWidgetItem *item);
 
 private slots:
-  void onChanged ();
+  void onRefresh ();
+  void onFilter ();
+  void
+  sortBy (int method)
+  {
+    mSortAscending = !mSortAscending;
+    if (method == CONTENT_COL_TITLE)
+      mIndex.sortByTitle (mSortAscending);
+    else if (method == CONTENT_COL_MTIME)
+      mIndex.sortByMtime (mSortAscending);
+    else if (method == CONTENT_COL_FILE_SIZE)
+      mIndex.sortByFileSize (mSortAscending);
+    refreshIndex (mIndex);
+  }
+
   void onRowActivated (QTreeWidgetItem *item, int column);
   void onRowDoubleClicked ();
   void firstSelected ();
   void setIndex (const FileIndex &index);
-  void sortByTitle (int col);
 };
 }
 

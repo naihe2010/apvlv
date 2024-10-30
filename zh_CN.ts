@@ -112,6 +112,42 @@
         <source>title</source>
         <translation>标题</translation>
     </message>
+    <message>
+        <source>Filter</source>
+        <translation>过滤</translation>
+    </message>
+    <message>
+        <source>Expand All</source>
+        <translation>展开所有</translation>
+    </message>
+    <message>
+        <source>Collapse All</source>
+        <translation>收起所有</translation>
+    </message>
+    <message>
+        <source>Refresh</source>
+        <translation>刷新</translation>
+    </message>
+    <message>
+        <source>Sort By Title</source>
+        <translation>以标题排序</translation>
+    </message>
+    <message>
+        <source>Sort By Modified Time</source>
+        <translation>以更改时间排序</translation>
+    </message>
+    <message>
+        <source>Sort By File Size</source>
+        <translation>以文件大小排序</translation>
+    </message>
+    <message>
+        <source>size</source>
+        <translation>大小</translation>
+    </message>
+    <message>
+        <source>modified time</source>
+        <translation>更改时间</translation>
+    </message>
 </context>
 <context>
     <name>apvlv::ApvlvCore</name>

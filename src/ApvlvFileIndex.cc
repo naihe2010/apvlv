@@ -1,0 +1,148 @@
+/*
+ * This file is part of the apvlv package
+ * Copyright (C) <2008>  <Alf>
+ *
+ * Contact: Alf <naihe2010@126.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ */
+/* @CPPFILE File.cc
+ *
+ *  Author: Alf <naihe2010@126.com>
+ */
+
+#include <QBuffer>
+#include <algorithm>
+#include <filesystem>
+#include <iostream>
+#include <stack>
+
+#include "ApvlvFile.h"
+#include "ApvlvFileIndex.h"
+#include "ApvlvUtil.h"
+
+namespace apvlv
+{
+
+using namespace std;
+
+void
+FileIndex::sortByTitle (bool ascending)
+{
+  sortBy (
+      [ascending] (const FileIndex &a, const FileIndex &b) {
+        return ascending ? (a.title < b.title) : (a.title > b.title);
+      },
+      [ascending] (FileIndex &a) { a.sortByTitle (ascending); });
+}
+
+void
+FileIndex::sortByMtime (bool ascending)
+{
+  sortBy (
+      [ascending] (const FileIndex &a, const FileIndex &b) {
+        return ascending ? a.mtime < b.mtime : a.mtime > b.mtime;
+      },
+      [ascending] (FileIndex &a) { a.sortByMtime (ascending); });
+}
+
+void
+FileIndex::sortByFileSize (bool ascending)
+{
+  sortBy (
+      [ascending] (const FileIndex &a, const FileIndex &b) {
+        return ascending ? a.size < b.size : a.size > b.size;
+      },
+      [ascending] (FileIndex &a) { a.sortByFileSize (ascending); });
+}
+
+void
+FileIndex::loadDirectory (const string &path1)
+{
+  auto exts = File::supportFileExts ();
+
+  try
+    {
+      for (auto &entry : filesystem::directory_iterator (
+               path1, filesystem::directory_options::follow_directory_symlink))
+        {
+          if (entry.is_directory ())
+            {
+              auto index
+                  = FileIndex (entry.path ().filename ().string (), 0,
+                               entry.path ().string (), FileIndexType::DIR);
+              index.loadDirectory (entry.path ().string ());
+              if (!index.mChildrenIndex.empty ())
+                {
+                  mChildrenIndex.emplace_back (index);
+                }
+            }
+          else if (entry.file_size () > 0)
+            {
+              auto file_ext = filenameExtension (entry.path ().string ());
+              if (find (exts.cbegin (), exts.cend (), file_ext)
+                  != exts.cend ())
+                {
+                  auto index = FileIndex (entry.path ().filename ().string (),
+                                          0, entry.path ().string (),
+                                          FileIndexType::FILE);
+                  index.size = entry.file_size ();
+                  auto last = entry.last_write_time ();
+#if __cplusplus > 201703L
+                  auto sys = filesystem::__file_clock::to_sys (last_write);
+                  auto epoch = sys.time_since_epoch ();
+#else
+                  auto epoch = last.time_since_epoch ()
+                               + chrono::seconds{ 6437664000 };
+#endif
+                  auto milliseconds
+                      = chrono::duration_cast<chrono::seconds> (epoch);
+                  index.mtime = static_cast<int64_t> (milliseconds.count ());
+
+                  mChildrenIndex.emplace_back (index);
+                }
+            }
+        }
+    }
+  catch (filesystem::filesystem_error &err)
+    {
+      qWarning ("file system error: %s", err.what ());
+    }
+}
+
+void
+FileIndex::appendChild (const FileIndex &child_index)
+{
+  Q_ASSERT (type == FileIndexType::FILE);
+  Q_ASSERT (child_index.type == FileIndexType::FILE);
+  mChildrenIndex = child_index.mChildrenIndex;
+}
+
+FileIndex::FileIndex (const string &title, int page, const string &path,
+                      FileIndexType type)
+{
+  this->title = title;
+  this->page = page;
+  this->path = path;
+  this->type = type;
+}
+
+FileIndex::~FileIndex () = default;
+}
+
+// Local Variables:
+// mode: c++
+// End:
