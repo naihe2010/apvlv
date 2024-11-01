@@ -78,7 +78,7 @@ public:
   void showMessages (const std::vector<std::string> &msgs);
 };
 
-const int DEFAULT_CONTENT_WIDTH = 30;
+const int DEFAULT_CONTENT_WIDTH = 300;
 
 class FileWidget;
 class ApvlvView;

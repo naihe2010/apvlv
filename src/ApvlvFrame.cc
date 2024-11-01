@@ -426,7 +426,6 @@ ApvlvFrame::process (int has, int ct, uint key)
       if (isControlledContent ())
         {
           mContent->scrollUp (ct);
-          contentShowPage (mContent->currentItemFileIndex (), false);
         }
       else
         {
@@ -441,7 +440,6 @@ ApvlvFrame::process (int has, int ct, uint key)
       if (isControlledContent ())
         {
           mContent->scrollDown (ct);
-          contentShowPage (mContent->currentItemFileIndex (), false);
         }
       else
         {
@@ -456,7 +454,6 @@ ApvlvFrame::process (int has, int ct, uint key)
       if (isControlledContent ())
         {
           mContent->scrollLeft (ct);
-          contentShowPage (mContent->currentItemFileIndex (), false);
         }
       else
         {
@@ -471,7 +468,6 @@ ApvlvFrame::process (int has, int ct, uint key)
       if (isControlledContent ())
         {
           mContent->scrollRight (ct);
-          contentShowPage (mContent->currentItemFileIndex (), false);
         }
       else
         {
@@ -480,7 +476,7 @@ ApvlvFrame::process (int has, int ct, uint key)
         }
       break;
     case Key_Return:
-      contentShowPage (mContent->currentItemFileIndex (), true);
+      contentShowPage (mContent->currentItemFileIndex (), false);
       break;
     case 'R':
       reload ();

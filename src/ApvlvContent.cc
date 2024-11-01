@@ -53,7 +53,7 @@ ApvlvContent::ApvlvContent ()
 
   mFirstTimer = make_unique<QTimer> ();
   QObject::connect (mFirstTimer.get (), SIGNAL (timeout ()), this,
-                    SLOT (firstSelected ()));
+                    SLOT (selectFirstItem ()));
 }
 
 void
@@ -91,8 +91,8 @@ ApvlvContent::setupTree ()
 {
   mTreeWidget.setColumnCount (3);
   mTreeWidget.setColumnWidth (CONTENT_COL_TITLE, 400);
-  mTreeWidget.setColumnWidth (CONTENT_COL_MTIME, 120);
-  mTreeWidget.setColumnWidth (CONTENT_COL_FILE_SIZE, 120);
+  mTreeWidget.setColumnWidth (CONTENT_COL_MTIME, 150);
+  mTreeWidget.setColumnWidth (CONTENT_COL_FILE_SIZE, 150);
   mTreeWidget.setHeaderHidden (false);
   mTreeWidget.setHeaderLabels (
       { tr ("title"), tr ("modified time"), tr ("size") });
@@ -308,7 +308,7 @@ ApvlvContent::findTreeWidgetItem (QTreeWidgetItem *itr, FileIndexType type,
   return nullptr;
 }
 
-void
+bool
 ApvlvContent::setCurrentIndex (const string &path, int pn,
                                const string &anchor)
 {
@@ -330,7 +330,12 @@ ApvlvContent::setCurrentIndex (const string &path, int pn,
     }
 
   if (fitr)
-    setItemSelected (fitr);
+    {
+      setItemSelected (fitr);
+      return true;
+    }
+
+  return false;
 }
 
 void
@@ -455,25 +460,18 @@ ApvlvContent::onRowDoubleClicked ()
 }
 
 void
-ApvlvContent::firstSelected ()
+ApvlvContent::selectFirstItem ()
 {
-  if (mIndex.type == FileIndexType::DIR)
+  mFirstTimer->stop ();
+
+  if (setCurrentIndex (mFrame->filename (), mFrame->pageNumber (), ""))
     return;
 
   if (mTreeWidget.topLevelItemCount () > 0)
     {
-      if (mFrame->pageNumber () <= 1)
-        {
-          auto itr = mTreeWidget.topLevelItem (0);
-          setItemSelected (itr);
-        }
-      else
-        {
-          setCurrentIndex (mFrame->filename (), mFrame->pageNumber (), "");
-        }
+      auto itr = mTreeWidget.topLevelItem (0);
+      setItemSelected (itr);
     }
-
-  mFirstTimer->stop ();
 }
 
 FileIndex *

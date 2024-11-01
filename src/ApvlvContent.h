@@ -67,7 +67,7 @@ public:
                                        const std::string &path, int pn,
                                        const std::string &anchor);
 
-  void setCurrentIndex (const std::string &path, int pn,
+  bool setCurrentIndex (const std::string &path, int pn,
                         const std::string &anchor);
 
   void
@@ -150,7 +150,7 @@ private slots:
 
   void onRowActivated (QTreeWidgetItem *item, int column);
   void onRowDoubleClicked ();
-  void firstSelected ();
+  void selectFirstItem ();
   void setIndex (const FileIndex &index);
 };
 }
