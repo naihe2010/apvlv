@@ -28,6 +28,8 @@
 #ifndef _APVLV_CONTENT_H_
 #define _APVLV_CONTENT_H_
 
+#include <QComboBox>
+#include <QLineEdit>
 #include <QTimer>
 #include <QToolBar>
 #include <QTreeWidget>
@@ -44,10 +46,6 @@ namespace apvlv
 {
 class ApvlvFrame;
 
-const int CONTENT_COL_TITLE = 0;
-const int CONTENT_COL_MTIME = 1;
-const int CONTENT_COL_FILE_SIZE = 2;
-
 class ApvlvContent final : public QFrame
 {
   Q_OBJECT
@@ -57,6 +55,26 @@ public:
   ~ApvlvContent () override = default;
 
   bool isReady ();
+
+  enum class Column : int
+  {
+    Title = 0,
+    MTime,
+    FileSize,
+  };
+  static std::vector<const char *> ColumnString;
+  static std::vector<const char *> SortByColumnString;
+
+  enum class FilterType : int
+  {
+    Title = 0,
+    FileName,
+    MTimeBe,
+    MTimeLe,
+    FileSizeBe,
+    FileSizeLe,
+  };
+  static std::vector<const char *> FilterTypeString;
 
   FileIndex *currentItemFileIndex ();
 
@@ -99,6 +117,8 @@ public:
 private:
   QVBoxLayout mLayout;
   QToolBar mToolBar;
+  QComboBox mFilterType;
+  QLineEdit mFilterText;
   QTreeWidget mTreeWidget;
 
   std::map<FileIndexType, QIcon> mTypeIcons;
@@ -132,6 +152,11 @@ private:
 
   FileIndex *treeItemToFileIndex (QTreeWidgetItem *item);
 
+  using filterFuncReturn = std::tuple<bool, bool>;
+  using filterFunc = std::function<filterFuncReturn (const FileIndex *)>;
+  void filterItemBy (QTreeWidgetItem *root, const filterFunc &filter_func);
+  void setItemChildrenFilter (QTreeWidgetItem *root, bool is_filter);
+
 private slots:
   void onRefresh ();
   void onFilter ();
@@ -139,11 +164,11 @@ private slots:
   sortBy (int method)
   {
     mSortAscending = !mSortAscending;
-    if (method == CONTENT_COL_TITLE)
+    if (method == static_cast<int> (Column::Title))
       mIndex.sortByTitle (mSortAscending);
-    else if (method == CONTENT_COL_MTIME)
+    else if (method == static_cast<int> (Column::MTime))
       mIndex.sortByMtime (mSortAscending);
-    else if (method == CONTENT_COL_FILE_SIZE)
+    else if (method == static_cast<int> (Column::FileSize))
       mIndex.sortByFileSize (mSortAscending);
     refreshIndex (mIndex);
   }

@@ -29,8 +29,9 @@
 #include <QComboBox>
 #include <QDateTime>
 #include <QHeaderView>
+#include <QLocale>
 #include <QTreeWidget>
-#include <filesystem>
+#include <stack>
 
 #include "ApvlvContent.h"
 #include "ApvlvFrame.h"
@@ -40,6 +41,25 @@
 namespace apvlv
 {
 using namespace std;
+
+std::vector<const char *> ApvlvContent::ColumnString = {
+  QT_TR_NOOP ("Title"),
+  QT_TR_NOOP ("Modified Time"),
+  QT_TR_NOOP ("File Size"),
+};
+std::vector<const char *> ApvlvContent::SortByColumnString = {
+  QT_TR_NOOP ("Sort By Title"),
+  QT_TR_NOOP ("Sort By Modified Time"),
+  QT_TR_NOOP ("Sort By File Size"),
+};
+std::vector<const char *> ApvlvContent::FilterTypeString = {
+  QT_TR_NOOP ("Filter Title"),
+  QT_TR_NOOP ("Filter File Name"),
+  QT_TR_NOOP ("Filter Modified Time >="),
+  QT_TR_NOOP ("Filter Modified Time <="),
+  QT_TR_NOOP ("Filter File Size >="),
+  QT_TR_NOOP ("Filter FileSize <="),
+};
 
 ApvlvContent::ApvlvContent ()
 {
@@ -59,22 +79,22 @@ ApvlvContent::ApvlvContent ()
 void
 ApvlvContent::setupToolBar ()
 {
+  mToolBar.addWidget (&mFilterText);
+  QObject::connect (&mFilterText, SIGNAL (textEdited (const QString &)), this,
+                    SLOT (onFilter ()));
+  mToolBar.addSeparator ();
+  mToolBar.addWidget (&mFilterType);
+  for (auto const &str : FilterTypeString)
+    {
+      mFilterType.addItem (tr (str));
+    }
+  mToolBar.addSeparator ();
+
   auto refresh = mToolBar.addAction (tr ("Refresh"));
   refresh->setIcon (QIcon::fromTheme (QIcon::ThemeIcon::ViewRefresh));
   QObject::connect (refresh, SIGNAL (triggered (bool)), this,
                     SLOT (onRefresh ()));
-
-  auto csort = new QComboBox ();
-  mToolBar.addWidget (csort);
-  csort->addItems ({ tr ("Sort By Title"), tr ("Sort By Modified Time"),
-                     tr ("Sort By File Size") });
-  QObject::connect (csort, SIGNAL (activated (int)), this,
-                    SLOT (sortBy (int)));
-
-  auto filter = mToolBar.addAction (tr ("Filter"));
-  filter->setIcon (QIcon::fromTheme (QIcon::ThemeIcon::ToolsCheckSpelling));
-  QObject::connect (filter, SIGNAL (triggered (bool)), this,
-                    SLOT (onFilter ()));
+  mToolBar.addSeparator ();
 
   auto expand_all = mToolBar.addAction (tr ("Expand All"));
   expand_all->setIcon (QIcon::fromTheme (QIcon::ThemeIcon::ListAdd));
@@ -84,19 +104,33 @@ ApvlvContent::setupToolBar ()
   collapse_all->setIcon (QIcon::fromTheme (QIcon::ThemeIcon::ListRemove));
   QObject::connect (collapse_all, SIGNAL (triggered (bool)), &mTreeWidget,
                     SLOT (collapseAll ()));
+  mToolBar.addSeparator ();
+
+  auto csort = new QComboBox ();
+  mToolBar.addWidget (csort);
+  for (auto const &str : SortByColumnString)
+    {
+      csort->addItem (tr (str));
+    }
+  QObject::connect (csort, SIGNAL (activated (int)), this,
+                    SLOT (sortBy (int)));
 }
 
 void
 ApvlvContent::setupTree ()
 {
   mTreeWidget.setColumnCount (3);
-  mTreeWidget.setColumnWidth (CONTENT_COL_TITLE, 400);
-  mTreeWidget.setColumnWidth (CONTENT_COL_MTIME, 150);
-  mTreeWidget.setColumnWidth (CONTENT_COL_FILE_SIZE, 150);
-  mTreeWidget.setHeaderHidden (false);
-  mTreeWidget.setHeaderLabels (
-      { tr ("title"), tr ("modified time"), tr ("size") });
+  mTreeWidget.setColumnWidth (static_cast<int> (Column::Title), 400);
+  mTreeWidget.setColumnWidth (static_cast<int> (Column::MTime), 150);
+  mTreeWidget.setColumnWidth (static_cast<int> (Column::FileSize), 150);
   mTreeWidget.setSortingEnabled (false);
+  mTreeWidget.setHeaderHidden (false);
+  QStringList labels;
+  for (auto const &str : ColumnString)
+    {
+      labels.append (tr (str));
+    }
+  mTreeWidget.setHeaderLabels (labels);
 
   auto headerview = mTreeWidget.header ();
   headerview->setSectionsClickable (true);
@@ -226,17 +260,21 @@ void
 ApvlvContent::setFileIndexToTreeItem (QTreeWidgetItem *item, FileIndex *index)
 {
   auto variant = QVariant::fromValue<FileIndex *> (index);
-  item->setData (CONTENT_COL_TITLE, Qt::UserRole, variant);
-  item->setText (CONTENT_COL_TITLE,
+  item->setData (static_cast<int> (Column::Title), Qt::UserRole, variant);
+  item->setText (static_cast<int> (Column::Title),
                  QString::fromLocal8Bit (index->title.c_str ()));
-  item->setIcon (CONTENT_COL_TITLE, mTypeIcons[index->type]);
-  item->setToolTip (CONTENT_COL_TITLE, QString::fromLocal8Bit (index->path));
+  item->setIcon (static_cast<int> (Column::Title), mTypeIcons[index->type]);
+  item->setToolTip (static_cast<int> (Column::Title),
+                    QString::fromLocal8Bit (index->path));
   if (index->type == FileIndexType::FILE)
     {
-      item->setText (CONTENT_COL_FILE_SIZE, QString::number (index->size));
       auto date
           = QDateTime::fromSecsSinceEpoch (index->mtime, Qt::TimeSpec::UTC);
-      item->setText (CONTENT_COL_MTIME, date.toString ("yyyy-MM-dd HH:mm:ss"));
+      item->setText (static_cast<int> (Column::MTime),
+                     date.toString ("yyyy-MM-dd HH:mm:ss"));
+      auto size
+          = QLocale ().formattedDataSize (static_cast<qint64> (index->size));
+      item->setText (static_cast<int> (Column::FileSize), size);
     }
 }
 
@@ -246,7 +284,7 @@ ApvlvContent::getFileIndexFromTreeItem (QTreeWidgetItem *item)
   if (item == nullptr)
     return nullptr;
 
-  auto varaint = item->data (CONTENT_COL_TITLE, Qt::UserRole);
+  auto varaint = item->data (static_cast<int> (Column::Title), Qt::UserRole);
   auto index = varaint.value<FileIndex *> ();
   return index;
 }
@@ -264,6 +302,74 @@ ApvlvContent::treeItemToFileIndex (QTreeWidgetItem *item)
     }
 
   return nullptr;
+}
+
+void
+ApvlvContent::filterItemBy (QTreeWidgetItem *root,
+                            const filterFunc &filter_func)
+{
+  std::stack<QTreeWidgetItem *> item_stack;
+  if (root == nullptr)
+    {
+      for (auto i = 0; i < mTreeWidget.topLevelItemCount (); ++i)
+        {
+          auto item = mTreeWidget.topLevelItem (i);
+          item_stack.push (item);
+        }
+    }
+  else
+    {
+      for (auto i = 0; i < root->childCount (); ++i)
+        {
+          auto item = root->child (i);
+          item_stack.push (item);
+        }
+    }
+
+  while (!item_stack.empty ())
+    {
+      auto item = item_stack.top ();
+      item_stack.pop ();
+
+      auto index = getFileIndexFromTreeItem (item);
+      auto [is_filter, same_as_file] = filter_func (index);
+      if (is_filter)
+        {
+          item->setHidden (false);
+
+          auto parent = item->parent ();
+          while (parent)
+            {
+              parent->setHidden (false);
+              parent = parent->parent ();
+            }
+        }
+      else
+        {
+          item->setHidden (true);
+        }
+
+      if (index->type == FileIndexType::FILE && same_as_file)
+        {
+          setItemChildrenFilter (item, is_filter);
+        }
+      else
+        {
+          for (int i = 0; i < item->childCount (); ++i)
+            {
+              auto child_item = item->child (i);
+              item_stack.push (child_item);
+            }
+        }
+    }
+}
+
+void
+ApvlvContent::setItemChildrenFilter (QTreeWidgetItem *root, bool is_filter)
+{
+  filterItemBy (root, [is_filter] (const FileIndex *a) -> filterFuncReturn {
+    return { is_filter, false };
+  });
 }
 
 QTreeWidgetItem *
@@ -442,6 +548,76 @@ ApvlvContent::onRefresh ()
 void
 ApvlvContent::onFilter ()
 {
+  auto cur = mFilterType.currentIndex ();
+  auto type = static_cast<FilterType> (cur);
+  auto text = mFilterText.text ().trimmed ();
+  if (text.isEmpty ())
+    {
+      setItemChildrenFilter (nullptr, true);
+      return;
+    }
+
+  QDateTime datetime;
+  qint64 qsize;
+  decltype (FileIndex::size) size;
+
+  switch (type)
+    {
+    case FilterType::Title:
+      filterItemBy (nullptr, [text] (const FileIndex *a) -> filterFuncReturn {
+        return { a->title.find (text.toStdString ()) != string::npos, false };
+      });
+      break;
+
+    case FilterType::FileName:
+      filterItemBy (nullptr, [text] (const FileIndex *a) -> filterFuncReturn {
+        return { a->type == FileIndexType::FILE
+                     && a->title.find (text.toStdString ()) != string::npos,
+                 true };
+      });
+      break;
+
+    case FilterType::MTimeBe:
+      datetime = QDateTime::fromString (text);
+      filterItemBy (
+          nullptr, [datetime] (const FileIndex *a) -> filterFuncReturn {
+            return { a->type == FileIndexType::FILE
+                         && a->mtime >= datetime.toMSecsSinceEpoch (),
+                     true };
+          });
+      break;
+
+    case FilterType::MTimeLe:
+      datetime = QDateTime::fromString (text);
+      filterItemBy (
+          nullptr, [datetime] (const FileIndex *a) -> filterFuncReturn {
+            return { a->type == FileIndexType::FILE
+                         && a->mtime <= datetime.toMSecsSinceEpoch (),
+                     true };
+          });
+      break;
+
+    case FilterType::FileSizeBe:
+      qsize = parseFormattedDataSize (text);
+      size = static_cast<decltype (size)> (qsize);
+      filterItemBy (nullptr, [size] (const FileIndex *a) -> filterFuncReturn {
+        return { a->type == FileIndexType::FILE && a->size >= size, true };
+      });
+      break;
+
+    case FilterType::FileSizeLe:
+      qsize = parseFormattedDataSize (text);
+      size = static_cast<decltype (size)> (qsize);
+      filterItemBy (nullptr, [size] (const FileIndex *a) -> filterFuncReturn {
+        return { a->type == FileIndexType::FILE && a->size <= size, true };
+      });
+      break;
+    default:
+      qCritical () << tr ("Filter Type is invalid");
+      break;
+    }
+
+  mTreeWidget.expandAll ();
 }
 
 void

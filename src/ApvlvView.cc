@@ -353,11 +353,17 @@ ApvlvView::dired ()
 bool
 ApvlvView::newTab (const std::string &filename)
 {
-  auto optndoc = hasLoaded (filename);
+  auto docname = filename;
+  if (filesystem::is_directory (filename))
+    {
+      docname = helppdf;
+    }
+
+  auto optndoc = hasLoaded (docname);
   if (!optndoc)
     {
       auto ndoc = new ApvlvFrame (this);
-      if (!ndoc->loadfile (filename, true, true))
+      if (!ndoc->loadfile (docname, true, true))
         {
           delete ndoc;
           ndoc = nullptr;
@@ -373,6 +379,10 @@ ApvlvView::newTab (const std::string &filename)
   if (optndoc)
     {
       newTab (optndoc.value ());
+      if (filesystem::is_directory (filename))
+        {
+          loadDir (filename);
+        }
       return true;
     }
   else

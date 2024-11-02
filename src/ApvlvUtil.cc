@@ -29,6 +29,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QProcessEnvironment>
+#include <QRegularExpression>
 #include <QXmlStreamReader>
 #include <filesystem>
 #include <memory>
@@ -232,6 +233,39 @@ templateBuild (string_view temp, string_view token, string_view real)
   outstr += string (real);
   outstr += string (second);
   return outstr;
+}
+
+qint64
+parseFormattedDataSize (const QString &sizeStr)
+{
+  QString cleanStr = sizeStr.simplified ().toUpper ();
+
+  QRegularExpression re ("^(\\d+(?:\\.\\d+)?)(\\s*)(B?|KB?|MB?|GB?|TB?)$");
+  QRegularExpressionMatch match = re.match (cleanStr);
+
+  if (match.hasMatch ())
+    {
+      double number = match.captured (1).toDouble ();
+      QString unit = match.captured (3);
+      if (unit.isEmpty ())
+        return static_cast<qint64> (number);
+
+      switch (unit[0].unicode ())
+        {
+        case 'T':
+          return static_cast<qint64> (number * 1024 * 1024 * 1024 * 1024);
+        case 'G':
+          return static_cast<qint64> (number * 1024 * 1024 * 1024);
+        case 'M':
+          return static_cast<qint64> (number * 1024 * 1024);
+        case 'K':
+          return static_cast<qint64> (number * 1024);
+        default:
+          return static_cast<qint64> (number);
+        }
+    }
+
+  return -1;
 }
 
 }

@@ -203,7 +203,7 @@ main (int argc, char *argv[])
       path = paths.front ();
       paths.pop_front ();
     }
-  if (!filesystem::is_regular_file (path))
+  if (!filesystem::is_regular_file (path) && !filesystem::is_directory (path))
     {
       qFatal ("File '%s' is not readable.\n", path.c_str ());
       return 1;

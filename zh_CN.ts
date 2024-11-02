@@ -110,11 +110,11 @@
     <name>apvlv::ApvlvContent</name>
     <message>
         <source>title</source>
-        <translation>标题</translation>
+        <translation type="vanished">标题</translation>
     </message>
     <message>
         <source>Filter</source>
-        <translation>过滤</translation>
+        <translation type="vanished">过滤</translation>
     </message>
     <message>
         <source>Expand All</source>
@@ -142,11 +142,55 @@
     </message>
     <message>
         <source>size</source>
-        <translation>大小</translation>
+        <translation type="vanished">大小</translation>
     </message>
     <message>
         <source>modified time</source>
+        <translation type="vanished">更改时间</translation>
+    </message>
+    <message>
+        <source>Title</source>
+        <translation>标题</translation>
+    </message>
+    <message>
+        <source>File Size</source>
+        <translation>文件大小</translation>
+    </message>
+    <message>
+        <source>Modified Time</source>
         <translation>更改时间</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation type="vanished">无</translation>
+    </message>
+    <message>
+        <source>Filter Title</source>
+        <translation>过滤标题</translation>
+    </message>
+    <message>
+        <source>Filter File Name</source>
+        <translation>过滤文件名</translation>
+    </message>
+    <message>
+        <source>Filter File Size &gt;=</source>
+        <translation>过滤文件&gt;=</translation>
+    </message>
+    <message>
+        <source>Filter FileSize &lt;=</source>
+        <translation>过滤文件&lt;=</translation>
+    </message>
+    <message>
+        <source>Filter Modified Time &gt;=</source>
+        <translation>过滤更改时间&gt;=</translation>
+    </message>
+    <message>
+        <source>Filter Modified Time &lt;=</source>
+        <translation>过滤更改时间&lt;=</translation>
+    </message>
+    <message>
+        <source>Filter Type is invalid</source>
+        <translation>过滤类型错误</translation>
     </message>
 </context>
 <context>

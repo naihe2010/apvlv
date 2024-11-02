@@ -77,6 +77,8 @@ void imageArgb32ToRgb32 (QImage &image, int left, int top, int right,
 std::string templateBuild (std::string_view temp, std::string_view token,
                            std::string_view real);
 
+qint64 parseFormattedDataSize (const QString &sizeStr);
+
 }
 #endif
 
