@@ -28,11 +28,12 @@
 #ifndef _APVLV_FRAME_H_
 #define _APVLV_FRAME_H_
 
-#include <QBoxLayout>
 #include <QFileSystemWatcher>
+#include <QHBoxLayout>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QSplitter>
+#include <QVBoxLayout>
 #include <iostream>
 #include <map>
 
@@ -76,6 +77,9 @@ public:
   void setActive (bool act);
 
   void showMessages (const std::vector<std::string> &msgs);
+
+private:
+  QHBoxLayout mLayout;
 };
 
 const int DEFAULT_CONTENT_WIDTH = 300;
@@ -174,7 +178,7 @@ public:
 
   static ApvlvFrame *findByWidget (QWidget *widget);
 
-protected:
+private:
   std::unique_ptr<File> mFile;
 
   FileIndex mDirIndex{};
@@ -207,14 +211,14 @@ protected:
   ApvlvDocPositionMap mPositions;
 
   // the main menubar
-  QBoxLayout *mVbox;
+  QVBoxLayout mVbox;
 
   // the main panel
-  QSplitter *mPaned;
+  QSplitter mPaned;
   int mContentWidth;
 
   // content panel
-  ApvlvContent *mContent;
+  ApvlvContent mContent;
 
   // the custom widget
   std::unique_ptr<FileWidget> mWidget;
@@ -223,7 +227,7 @@ protected:
   bool mActive{};
 
   // status bar
-  ApvlvStatus *mStatus;
+  ApvlvStatus mStatus;
 
   void setWidget (DISPLAY_TYPE type);
   void unsetHighlight ();

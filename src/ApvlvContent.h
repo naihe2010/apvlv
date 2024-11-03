@@ -44,8 +44,13 @@
 
 namespace apvlv
 {
-class ApvlvFrame;
+class ContentTree : public QTreeWidget
+{
+protected:
+  void keyPressEvent (QKeyEvent *event) override;
+};
 
+class ApvlvFrame;
 class ApvlvContent final : public QFrame
 {
   Q_OBJECT
@@ -102,16 +107,24 @@ public:
 
   void scrollRight (int times);
 
-  [[nodiscard]] bool
-  isFocused () const
+  void
+  setActive (bool active)
   {
-    return mIsFocused;
+    if (active)
+      {
+        QTimer::singleShot (50, &mTreeWidget,
+                            [=] () { mTreeWidget.setFocus (); });
+      }
+    else
+      {
+        mTreeWidget.clearFocus ();
+      }
   }
 
-  void
-  setIsFocused (bool is_focused)
+  bool
+  isActive ()
   {
-    mIsFocused = is_focused;
+    return mTreeWidget.hasFocus ();
   }
 
 private:
@@ -119,18 +132,14 @@ private:
   QToolBar mToolBar;
   QComboBox mFilterType;
   QLineEdit mFilterText;
-  QTreeWidget mTreeWidget;
+  ContentTree mTreeWidget;
 
   std::map<FileIndexType, QIcon> mTypeIcons;
-
-  bool mIsFocused{ false };
 
   FileIndex mIndex;
   Column mSortColumn{ Column::Title };
 
   ApvlvFrame *mFrame{ nullptr };
-
-  std::unique_ptr<QTimer> mFirstTimer;
 
   bool mSortAscending{ true };
 

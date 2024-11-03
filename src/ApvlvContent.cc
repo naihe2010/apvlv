@@ -34,6 +34,7 @@
 #include <QLocale>
 #include <QMenu>
 #include <QMessageBox>
+#include <QTimeZone>
 #include <QTreeWidget>
 #include <stack>
 
@@ -65,6 +66,12 @@ std::vector<const char *> ApvlvContent::FilterTypeString = {
   QT_TR_NOOP ("Filter FileSize <="),
 };
 
+void
+ContentTree::keyPressEvent (QKeyEvent *event)
+{
+  event->ignore ();
+}
+
 ApvlvContent::ApvlvContent ()
 {
   setLayout (&mLayout);
@@ -73,9 +80,7 @@ ApvlvContent::ApvlvContent ()
   setupToolBar ();
   setupTree ();
 
-  mFirstTimer = make_unique<QTimer> ();
-  QObject::connect (mFirstTimer.get (), SIGNAL (timeout ()), this,
-                    SLOT (selectFirstItem ()));
+  QTimer::singleShot (50, this, [this] { selectFirstItem (); });
 }
 
 void
@@ -280,7 +285,7 @@ ApvlvContent::refreshIndex (const FileIndex &index)
       setIndex (child, nullptr);
     }
 
-  mFirstTimer->start (50);
+  QTimer::singleShot (50, this, [this] { selectFirstItem (); });
 }
 
 void
@@ -296,7 +301,7 @@ ApvlvContent::setFileIndexToTreeItem (QTreeWidgetItem *item, FileIndex *index)
   if (index->type == FileIndexType::FILE)
     {
       auto date
-          = QDateTime::fromSecsSinceEpoch (index->mtime, Qt::TimeSpec::UTC);
+          = QDateTime::fromSecsSinceEpoch (index->mtime, QTimeZone::systemTimeZone());
       item->setText (static_cast<int> (Column::MTime),
                      date.toString ("yyyy-MM-dd HH:mm:ss"));
       auto size
@@ -743,7 +748,6 @@ ApvlvContent::onRowActivated ([[maybe_unused]] QTreeWidgetItem *item,
 void
 ApvlvContent::onRowDoubleClicked ()
 {
-  setIsFocused (true);
   parentWidget ()->setFocus ();
 }
 
@@ -785,8 +789,6 @@ ApvlvContent::onContextMenuRequest (const QPoint &point)
 void
 ApvlvContent::selectFirstItem ()
 {
-  mFirstTimer->stop ();
-
   if (setCurrentIndex (mFrame->filename (), mFrame->pageNumber (), ""))
     return;
 

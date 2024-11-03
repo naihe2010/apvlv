@@ -61,11 +61,9 @@ ApvlvFrame::ApvlvFrame (ApvlvView *view)
   mSearchResults = nullptr;
   mSearchStr = "";
 
-  mVbox = new QVBoxLayout ();
-  setLayout (mVbox);
+  setLayout (&mVbox);
 
-  mPaned = new QSplitter ();
-  mPaned->setHandleWidth (4);
+  mPaned.setHandleWidth (4);
   mContentWidth = DEFAULT_CONTENT_WIDTH;
 
   auto f_width = ApvlvParams::instance ()->getIntOrDefault ("fix_width");
@@ -73,30 +71,28 @@ ApvlvFrame::ApvlvFrame (ApvlvView *view)
 
   if (f_width > 0 && f_height > 0)
     {
-      mPaned->setFixedSize (f_width, f_height);
+      mPaned.setFixedSize (f_width, f_height);
 
       auto hbox = new QHBoxLayout ();
-      hbox->addWidget (mPaned, 0);
-      mVbox->addLayout (hbox, 1);
+      hbox->addWidget (&mPaned, 0);
+      mVbox.addLayout (hbox, 1);
     }
   else
     {
-      mVbox->addWidget (mPaned, 1);
+      mVbox.addWidget (&mPaned, 1);
     }
 
-  mContent = new ApvlvContent ();
-  mContent->setFrame (this);
+  mContent.setFrame (this);
   QObject::connect (this, SIGNAL (indexGenerited (const FileIndex &)),
-                    mContent, SLOT (setIndex (const FileIndex &)));
+                    &mContent, SLOT (setIndex (const FileIndex &)));
 
-  mPaned->addWidget (mContent);
+  mPaned.addWidget (&mContent);
 
-  mStatus = new ApvlvStatus ();
-  mVbox->addWidget (mStatus, 0);
+  mVbox.addWidget (&mStatus, 0);
   auto guiopt = ApvlvParams::instance ()->getStringOrDefault ("guioptions");
   if (guiopt.find ("S") == string::npos)
     {
-      mStatus->hide ();
+      mStatus.hide ();
     }
   qDebug ("ApvlvFrame: %p be created", this);
 }
@@ -161,23 +157,23 @@ ApvlvFrame::toggleContent (bool show)
 {
   if (show)
     {
-      if (!mContent->isReady ())
+      if (!mContent.isReady ())
         {
           qWarning ("file %s has no content", mFilestr.c_str ());
           show = false;
         }
     }
 
-  auto sizes = mPaned->sizes ();
+  auto sizes = mPaned.sizes ();
   if (show)
     {
       mDirIndex = {};
       if (sizes[0] == 0)
         {
-          auto psize = mPaned->size ();
-          sizes = { mContentWidth, psize.width () - mPaned->handleWidth ()
+          auto psize = mPaned.size ();
+          sizes = { mContentWidth, psize.width () - mPaned.handleWidth ()
                                        - DEFAULT_CONTENT_WIDTH };
-          mPaned->setSizes (sizes);
+          mPaned.setSizes (sizes);
         }
     }
   else
@@ -185,9 +181,9 @@ ApvlvFrame::toggleContent (bool show)
       if (sizes[0] != 0)
         mContentWidth = sizes[0];
 
-      auto psize = mPaned->size ();
-      sizes = { 0, psize.width () - mPaned->handleWidth () };
-      mPaned->setSizes (sizes);
+      auto psize = mPaned.size ();
+      sizes = { 0, psize.width () - mPaned.handleWidth () };
+      mPaned.setSizes (sizes);
     }
 }
 
@@ -214,8 +210,9 @@ ApvlvFrame::setActive (bool act)
       mView->setTitle (base.string ());
     }
 
-  mStatus->setActive (act);
+  mStatus.setActive (act);
 }
+
 void
 ApvlvFrame::setDirIndex (const string &path)
 {
@@ -235,12 +232,12 @@ ApvlvFrame::toggledControlContent (bool is_right)
 
   if (auto controlled = isControlledContent (); !controlled && !is_right)
     {
-      mContent->setIsFocused (true);
+      mContent.setActive (true);
       return true;
     }
   else if (controlled && is_right)
     {
-      mContent->setIsFocused (false);
+      mContent.setActive (false);
       return true;
     }
 
@@ -250,7 +247,7 @@ ApvlvFrame::toggledControlContent (bool is_right)
 bool
 ApvlvFrame::isShowContent ()
 {
-  auto sizes = mPaned->sizes ();
+  auto sizes = mPaned.sizes ();
   return sizes[0] > 1;
 }
 
@@ -260,7 +257,7 @@ ApvlvFrame::isControlledContent ()
   if (!isShowContent ())
     return false;
 
-  return mContent->isFocused ();
+  return mContent.isActive ();
 }
 
 ApvlvFrame *
@@ -278,9 +275,7 @@ ApvlvFrame::findByWidget (QWidget *widget)
 ApvlvStatus::ApvlvStatus ()
 {
   setFrameShape (QFrame::NoFrame);
-  auto layout = new QHBoxLayout ();
-  qDebug ("status layout: %p", layout);
-  setLayout (layout);
+  setLayout (&mLayout);
 }
 
 void
@@ -425,7 +420,7 @@ ApvlvFrame::process (int has, int ct, uint key)
     case 'k':
       if (isControlledContent ())
         {
-          mContent->scrollUp (ct);
+          mContent.scrollUp (ct);
         }
       else
         {
@@ -439,7 +434,7 @@ ApvlvFrame::process (int has, int ct, uint key)
     case 'j':
       if (isControlledContent ())
         {
-          mContent->scrollDown (ct);
+          mContent.scrollDown (ct);
         }
       else
         {
@@ -453,7 +448,7 @@ ApvlvFrame::process (int has, int ct, uint key)
     case 'h':
       if (isControlledContent ())
         {
-          mContent->scrollLeft (ct);
+          mContent.scrollLeft (ct);
         }
       else
         {
@@ -467,7 +462,7 @@ ApvlvFrame::process (int has, int ct, uint key)
     case 'l':
       if (isControlledContent ())
         {
-          mContent->scrollRight (ct);
+          mContent.scrollRight (ct);
         }
       else
         {
@@ -476,7 +471,7 @@ ApvlvFrame::process (int has, int ct, uint key)
         }
       break;
     case Key_Return:
-      contentShowPage (mContent->currentItemFileIndex (), false);
+      contentShowPage (mContent.currentItemFileIndex (), false);
       break;
     case 'R':
       reload ();
@@ -1058,7 +1053,7 @@ ApvlvFrame::contentShowPage (const FileIndex *index, bool force)
       return;
     }
 
-  auto file = mContent->currentFileFileIndex ();
+  auto file = mContent.currentFileFileIndex ();
   if (file && file->path != mFilestr)
     loadfile (file->path, true, true);
 
@@ -1073,7 +1068,7 @@ ApvlvFrame::contentShowPage (const FileIndex *index, bool force)
 void
 ApvlvFrame::setWidget (DISPLAY_TYPE type)
 {
-  auto sizes = mPaned->sizes ();
+  auto sizes = mPaned.sizes ();
 
   if (type == DISPLAY_TYPE::IMAGE)
     {
@@ -1089,12 +1084,12 @@ ApvlvFrame::setWidget (DISPLAY_TYPE type)
     {
       mWidget.reset (mFile->getWidget ());
     }
-  if (mPaned->count () == 1)
-    mPaned->addWidget (mWidget->widget ());
+  if (mPaned.count () == 1)
+    mPaned.addWidget (mWidget->widget ());
   else
-    mPaned->replaceWidget (1, mWidget->widget ());
+    mPaned.replaceWidget (1, mWidget->widget ());
 
-  mPaned->setSizes (sizes);
+  mPaned.setSizes (sizes);
 }
 
 void
@@ -1156,29 +1151,29 @@ ApvlvFrame::updateStatus ()
       ss = QString ("%1%").arg (static_cast<int> (sr * 100));
       labels.emplace_back (ss.toStdString ());
 
-      mStatus->showMessages (labels);
+      mStatus.showMessages (labels);
 
-      mContent->setCurrentIndex (mFilestr, mWidget->pageNumber (),
-                                 mWidget->anchor ());
+      mContent.setCurrentIndex (mFilestr, mWidget->pageNumber (),
+                                mWidget->anchor ());
     }
 }
 
 bool
 ApvlvFrame::isStatusHidden ()
 {
-  return mStatus->isHidden ();
+  return mStatus.isHidden ();
 }
 
 void
 ApvlvFrame::statusShow ()
 {
-  mStatus->show ();
+  mStatus.show ();
 }
 
 void
 ApvlvFrame::statusHide ()
 {
-  mStatus->hide ();
+  mStatus.hide ();
 }
 
 }
