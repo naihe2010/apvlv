@@ -126,6 +126,7 @@ private:
   bool mIsFocused{ false };
 
   FileIndex mIndex;
+  Column mSortColumn{ Column::Title };
 
   ApvlvFrame *mFrame{ nullptr };
 
@@ -158,23 +159,21 @@ private:
   void setItemChildrenFilter (QTreeWidgetItem *root, bool is_filter);
 
 private slots:
+  void onFileRename ();
+  void onFileDelete ();
   void onRefresh ();
   void onFilter ();
   void
   sortBy (int method)
   {
     mSortAscending = !mSortAscending;
-    if (method == static_cast<int> (Column::Title))
-      mIndex.sortByTitle (mSortAscending);
-    else if (method == static_cast<int> (Column::MTime))
-      mIndex.sortByMtime (mSortAscending);
-    else if (method == static_cast<int> (Column::FileSize))
-      mIndex.sortByFileSize (mSortAscending);
+    mSortColumn = static_cast<Column> (method);
     refreshIndex (mIndex);
   }
 
   void onRowActivated (QTreeWidgetItem *item, int column);
   void onRowDoubleClicked ();
+  void onContextMenuRequest (const QPoint &point);
   void selectFirstItem ();
   void setIndex (const FileIndex &index);
 };

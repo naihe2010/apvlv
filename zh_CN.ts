@@ -192,6 +192,43 @@
         <source>Filter Type is invalid</source>
         <translation>过滤类型错误</translation>
     </message>
+    <message>
+        <source>Confirm</source>
+        <translation>确认</translation>
+    </message>
+    <message>
+        <source>Delete This File</source>
+        <translation type="vanished">删除这个文件</translation>
+    </message>
+    <message>
+        <source>Will delete the 
+%1, confirm ?</source>
+        <translation>将要删除%1，确定吗？</translation>
+    </message>
+    <message>
+        <source>Input new name of %1</source>
+        <translation>输入%1的新文件名</translation>
+    </message>
+    <message>
+        <source>Rename</source>
+        <translation>重命名</translation>
+    </message>
+    <message>
+        <source>Rename %1 to %2 failed</source>
+        <translation>重命名%1为%2失败</translation>
+    </message>
+    <message>
+        <source>Warning</source>
+        <translation>警告</translation>
+    </message>
+    <message>
+        <source>Rename File</source>
+        <translation>重命名文件</translation>
+    </message>
+    <message>
+        <source>Delete File</source>
+        <translation>删除文件</translation>
+    </message>
 </context>
 <context>
     <name>apvlv::ApvlvCore</name>

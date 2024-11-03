@@ -30,6 +30,7 @@
 
 #include <QImage>
 #include <QXmlStreamReader>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -78,6 +79,8 @@ std::string templateBuild (std::string_view temp, std::string_view token,
                            std::string_view real);
 
 qint64 parseFormattedDataSize (const QString &sizeStr);
+
+qint64 filesystemTimeToMSeconds (std::filesystem::file_time_type ftt);
 
 }
 #endif

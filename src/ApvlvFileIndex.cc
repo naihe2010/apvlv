@@ -85,6 +85,8 @@ FileIndex::loadDirectory (const string &path1)
                   = FileIndex (entry.path ().filename ().string (), 0,
                                entry.path ().string (), FileIndexType::DIR);
               index.loadDirectory (entry.path ().string ());
+              auto last = entry.last_write_time ();
+              index.mtime = filesystemTimeToMSeconds (last);
               if (!index.mChildrenIndex.empty ())
                 {
                   mChildrenIndex.emplace_back (index);
@@ -99,19 +101,9 @@ FileIndex::loadDirectory (const string &path1)
                   auto index = FileIndex (entry.path ().filename ().string (),
                                           0, entry.path ().string (),
                                           FileIndexType::FILE);
-                  index.size = entry.file_size ();
+                  index.size = static_cast<int64_t> (entry.file_size ());
                   auto last = entry.last_write_time ();
-#if __cplusplus > 201703L
-                  auto sys = filesystem::__file_clock::to_sys (last_write);
-                  auto epoch = sys.time_since_epoch ();
-#else
-                  auto epoch = last.time_since_epoch ()
-                               + chrono::seconds{ 6437664000 };
-#endif
-                  auto milliseconds
-                      = chrono::duration_cast<chrono::seconds> (epoch);
-                  index.mtime = static_cast<int64_t> (milliseconds.count ());
-
+                  index.mtime = filesystemTimeToMSeconds (last);
                   mChildrenIndex.emplace_back (index);
                 }
             }
@@ -124,11 +116,17 @@ FileIndex::loadDirectory (const string &path1)
 }
 
 void
-FileIndex::appendChild (const FileIndex &child_index)
+FileIndex::moveChildChildren (const FileIndex &other_index)
 {
   Q_ASSERT (type == FileIndexType::FILE);
-  Q_ASSERT (child_index.type == FileIndexType::FILE);
-  mChildrenIndex = child_index.mChildrenIndex;
+  Q_ASSERT (other_index.type == FileIndexType::FILE);
+  mChildrenIndex = other_index.mChildrenIndex;
+}
+
+void
+FileIndex::removeChild (const FileIndex &child)
+{
+  mChildrenIndex.remove (child);
 }
 
 FileIndex::FileIndex (const string &title, int page, const string &path,

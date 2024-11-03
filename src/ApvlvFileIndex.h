@@ -29,10 +29,10 @@
 
 #include <QImage>
 #include <iostream>
+#include <list>
 #include <map>
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "ApvlvParams.h"
 #include "ApvlvSearch.h"
@@ -55,11 +55,19 @@ public:
              FileIndexType type);
   ~FileIndex ();
 
+  friend bool
+  operator== (const FileIndex &a, const FileIndex &b)
+  {
+    return a.title == b.title && a.page == b.page && a.path == b.path
+           && a.anchor == b.anchor;
+  }
+
   void sortByTitle (bool ascending);
   void sortByMtime (bool ascending);
   void sortByFileSize (bool ascending);
   void loadDirectory (const std::string &path1);
-  void appendChild (const FileIndex &child);
+  void moveChildChildren (const FileIndex &other_index);
+  void removeChild (const FileIndex &child);
 
   /* public variables */
   FileIndexType type{ FileIndexType::PAGE };
@@ -67,11 +75,11 @@ public:
   int page{ 0 };
   std::string path;
   std::string anchor;
-  std::vector<FileIndex> mChildrenIndex;
+  std::list<FileIndex> mChildrenIndex;
 
   /* public file variables */
-  std::uintmax_t size{ 0 };
-  std::int64_t mtime;
+  std::int64_t size{ 0 };
+  std::int64_t mtime{ 0 };
 
   /* runtime variables */
   bool isExpanded{ false };
@@ -86,7 +94,7 @@ private:
   {
     if (type == FileIndexType::DIR)
       {
-        std::sort (mChildrenIndex.begin (), mChildrenIndex.end (), sf);
+        mChildrenIndex.sort (sf);
         std::for_each (mChildrenIndex.begin (), mChildrenIndex.end (), ef);
       }
   }

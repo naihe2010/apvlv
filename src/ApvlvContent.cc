@@ -28,8 +28,12 @@
 #include <QApplication>
 #include <QComboBox>
 #include <QDateTime>
+#include <QFile>
 #include <QHeaderView>
+#include <QInputDialog>
 #include <QLocale>
+#include <QMenu>
+#include <QMessageBox>
 #include <QTreeWidget>
 #include <stack>
 
@@ -63,8 +67,6 @@ std::vector<const char *> ApvlvContent::FilterTypeString = {
 
 ApvlvContent::ApvlvContent ()
 {
-  setFocusPolicy (Qt::NoFocus);
-
   setLayout (&mLayout);
   mLayout.addWidget (&mToolBar, 0);
   mLayout.addWidget (&mTreeWidget);
@@ -89,6 +91,8 @@ ApvlvContent::setupToolBar ()
       mFilterType.addItem (tr (str));
     }
   mToolBar.addSeparator ();
+  QObject::connect (&mFilterType, SIGNAL (activated (int)), this,
+                    SLOT (onFilter ()));
 
   auto refresh = mToolBar.addAction (tr ("Refresh"));
   refresh->setIcon (QIcon::fromTheme (QIcon::ThemeIcon::ViewRefresh));
@@ -142,7 +146,7 @@ ApvlvContent::setupTree ()
   mTreeWidget.setSelectionBehavior (
       QAbstractItemView::SelectionBehavior::SelectRows);
   mTreeWidget.setSelectionMode (
-      QAbstractItemView::SelectionMode::SingleSelection);
+      QAbstractItemView::SelectionMode::ExtendedSelection);
 
   mTypeIcons[FileIndexType::DIR] = QIcon (icondir.c_str ());
   mTypeIcons[FileIndexType::FILE] = QIcon (iconfile.c_str ());
@@ -154,6 +158,10 @@ ApvlvContent::setupTree ()
   QObject::connect (&mTreeWidget,
                     SIGNAL (itemDoubleClicked (QTreeWidgetItem *, int)), this,
                     SLOT (onRowDoubleClicked ()));
+  mTreeWidget.setContextMenuPolicy (Qt::ContextMenuPolicy::CustomContextMenu);
+  QObject::connect (&mTreeWidget,
+                    SIGNAL (customContextMenuRequested (const QPoint &)), this,
+                    SLOT (onContextMenuRequest (const QPoint &)));
 }
 
 bool
@@ -166,7 +174,7 @@ void
 ApvlvContent::setIndex (const FileIndex &index)
 {
   auto cur_index = currentItemFileIndex ();
-  if (cur_index == nullptr || index.type == FileIndexType::DIR)
+  if (index.type == FileIndexType::DIR)
     {
       refreshIndex (index);
       return;
@@ -179,7 +187,7 @@ ApvlvContent::setIndex (const FileIndex &index)
       if (cur_index->mChildrenIndex.empty ())
         {
           auto cur_item = selectedTreeItem ();
-          cur_index->appendChild (index);
+          cur_index->moveChildChildren (index);
           for (auto &child : cur_index->mChildrenIndex)
             {
               setIndex (child, cur_item);
@@ -247,6 +255,25 @@ ApvlvContent::refreshIndex (const FileIndex &index)
   mTreeWidget.clear ();
 
   mIndex = index;
+
+  switch (mSortColumn)
+    {
+    case Column::Title:
+      mIndex.sortByTitle (mSortAscending);
+      break;
+
+    case Column::MTime:
+      mIndex.sortByMtime (mSortAscending);
+      break;
+
+    case Column::FileSize:
+      mIndex.sortByFileSize (mSortAscending);
+      break;
+
+    default:
+      qFatal () << "sort column error";
+      break;
+    }
 
   for (auto &child : mIndex.mChildrenIndex)
     {
@@ -540,6 +567,91 @@ ApvlvContent::scrollRight (int times)
 }
 
 void
+ApvlvContent::onFileRename ()
+{
+  auto items = mTreeWidget.selectedItems ();
+  if (items.isEmpty ())
+    return;
+
+  auto item = items[0];
+  auto index = getFileIndexFromTreeItem (item);
+  if (index->type != FileIndexType::FILE)
+    return;
+
+  auto qpath = QString::fromLocal8Bit (index->path);
+  auto text = QString (tr ("Input new name of %1")).arg (qpath);
+  auto user_text = QInputDialog::getText (this, tr ("Rename"), text,
+                                          QLineEdit::Normal, qpath);
+  auto nname = user_text.trimmed ();
+  if (nname.isEmpty ())
+    return;
+
+  if (QFile (qpath).rename (nname))
+    {
+      index->path = nname.toStdString ();
+      index->title = index->path.substr (index->path.rfind ('/'));
+      setFileIndexToTreeItem (item, index);
+    }
+  else
+    {
+      text = QString (tr ("Rename %1 to %2 failed")).arg (qpath).arg (nname);
+      QMessageBox::warning (this, tr ("Warning"), text);
+    }
+}
+
+void
+ApvlvContent::onFileDelete ()
+{
+  auto items = mTreeWidget.selectedItems ();
+  if (items.isEmpty ())
+    return;
+
+  auto msg_res = QMessageBox::No;
+  for (auto item : items)
+    {
+      auto index = getFileIndexFromTreeItem (item);
+      if (index->type != FileIndexType::FILE)
+        continue;
+
+      auto qpath = QString::fromLocal8Bit (index->path);
+      auto text = QString (tr ("Will delete the \n%1, confirm ?")).arg (qpath);
+      if (msg_res == QMessageBox::No || msg_res == QMessageBox::Yes)
+        {
+          auto buttons = QMessageBox::Yes | QMessageBox::No;
+          if (items.size () > 1)
+            buttons = QMessageBox::Yes | QMessageBox::YesToAll
+                      | QMessageBox::No | QMessageBox::NoToAll;
+          msg_res = QMessageBox::question (this, tr ("Confirm"), text, buttons,
+                                           QMessageBox::No);
+        }
+
+      if (msg_res == QMessageBox::NoToAll)
+        return;
+
+      else if (msg_res == QMessageBox::No)
+        continue;
+
+      auto parent = item->parent ();
+      if (parent == nullptr)
+        {
+          auto offset = mTreeWidget.indexOfTopLevelItem (item);
+          mIndex.removeChild (*index);
+          item = mTreeWidget.takeTopLevelItem (offset);
+          delete item;
+        }
+      else
+        {
+          auto pindex = getFileIndexFromTreeItem (parent);
+          pindex->removeChild (*index);
+          parent->removeChild (item);
+        }
+
+      qDebug () << "delete " << qpath;
+      QFile::remove (qpath);
+    }
+}
+
+void
 ApvlvContent::onRefresh ()
 {
   refreshIndex (mIndex);
@@ -633,6 +745,41 @@ ApvlvContent::onRowDoubleClicked ()
 {
   setIsFocused (true);
   parentWidget ()->setFocus ();
+}
+
+void
+ApvlvContent::onContextMenuRequest (const QPoint &point)
+{
+  qDebug () << "on context menu request";
+  auto items = mTreeWidget.selectedItems ();
+  if (items.isEmpty ())
+    return;
+
+  auto item = items[0];
+  auto index = getFileIndexFromTreeItem (item);
+  if (index->type == FileIndexType::FILE)
+    {
+      auto menu = new QMenu{ &mTreeWidget };
+      if (items.size () == 1)
+        {
+          auto rename_action = menu->addAction (tr ("Rename File"));
+          QObject::connect (rename_action, SIGNAL (triggered (bool)), this,
+                            SLOT (onFileRename ()));
+        }
+      if (std::all_of (items.begin (), items.end (),
+                       [this] (QTreeWidgetItem *a) {
+                         auto i = getFileIndexFromTreeItem (a);
+                         return i && i->type == FileIndexType::FILE;
+                       }))
+        {
+          auto del_action = menu->addAction (tr ("Delete File"));
+          del_action->setIcon (
+              QIcon::fromTheme (QIcon::ThemeIcon::EditDelete));
+          QObject::connect (del_action, SIGNAL (triggered (bool)), this,
+                            SLOT (onFileDelete ()));
+        }
+      menu->popup (mTreeWidget.mapToGlobal (point));
+    }
 }
 
 void
