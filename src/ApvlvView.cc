@@ -191,9 +191,9 @@ ApvlvView::~ApvlvView ()
       itr = mChildren.begin ();
     }
 
-  for (auto &t : mTabList)
+  for (auto t : mTabList)
     {
-      delete t->getRootWindow ();
+      delete t;
     }
   mTabList.clear ();
 
@@ -204,24 +204,32 @@ ApvlvWindow *
 ApvlvView::currentWindow ()
 {
   auto index = mTabContainer->currentIndex ();
-  Q_ASSERT (index != -1);
+  if (index < 0)
+    return nullptr;
 
   auto widget = QApplication::focusWidget ();
   if (widget)
     {
       auto win = mTabList[index]->findWindowByWidget (widget);
       if (win)
-        return win;
+        {
+          mTabList[index]->setActiveWindow (win);
+          return win;
+        }
     }
 
-  return mTabList[index]->getActiveWindow ();
+  auto win = mTabList[index]->getActiveWindow ();
+  if (win)
+    return win;
+
+  return mTabList[index]->firstFrameWindow ();
 }
 
 void
 ApvlvView::delCurrentWindow ()
 {
   if (auto win = currentWindow (); win)
-    win->unbirth ();
+    win->perish ();
   updateTabName ();
 }
 
@@ -410,13 +418,12 @@ ApvlvView::newTab (ApvlvFrame *core)
 int
 ApvlvView::newTabContext (ApvlvFrame *core)
 {
-  auto context = new ApvlvWindowContext (this);
-
-  new ApvlvWindow (context, core);
+  auto win = new ApvlvWindow ();
+  win->setFrame (core);
 
   auto index = mTabContainer->currentIndex () + 1;
   auto insPos = mTabList.begin () + index;
-  mTabList.insert (insPos, context);
+  mTabList.insert (insPos, win);
 
   return index;
 }
@@ -425,7 +432,7 @@ void
 ApvlvView::deleteTabContext (int tabPos)
 {
   auto iter = mTabList.begin () + tabPos;
-  delete (*iter)->getRootWindow ();
+  delete *iter;
   mTabList.erase (iter);
 }
 
@@ -455,7 +462,7 @@ ApvlvView::loadFile (const std::string &filename)
 
   if (optndoc)
     {
-      win->setCore (optndoc.value ());
+      win->setFrame (optndoc.value ());
       updateTabName ();
     }
 
@@ -819,19 +826,19 @@ ApvlvView::closeTab ()
 void
 ApvlvView::horizontalSplit ()
 {
-  currentWindow ()->birth (ApvlvWindow::WindowType::AW_SP, nullptr);
+  currentWindow ()->birth (ApvlvWindow::WindowType::SP, nullptr);
 }
 
 void
 ApvlvView::verticalSplit ()
 {
-  currentWindow ()->birth (ApvlvWindow::WindowType::AW_VSP, nullptr);
+  currentWindow ()->birth (ApvlvWindow::WindowType::VSP, nullptr);
 }
 
 void
 ApvlvView::unBirth ()
 {
-  currentWindow ()->unbirth ();
+  currentWindow ()->perish ();
 }
 
 ApvlvFrame *
@@ -845,7 +852,7 @@ ApvlvView::currentFrame ()
 
   ApvlvWindow *curwin = currentWindow ();
   Q_ASSERT (curwin);
-  return curwin->getCore ();
+  return curwin->getFrame ();
 }
 
 CmdReturn
@@ -1083,16 +1090,14 @@ ApvlvView::runCommand (const char *str)
         }
       else if (cmd == "sp")
         {
-          if (currentWindow ()->birth (ApvlvWindow::WindowType::AW_SP,
-                                       nullptr))
+          if (currentWindow ()->birth (ApvlvWindow::WindowType::SP, nullptr))
             {
               windowAdded ();
             }
         }
       else if (cmd == "vsp")
         {
-          if (currentWindow ()->birth (ApvlvWindow::WindowType::AW_VSP,
-                                       nullptr))
+          if (currentWindow ()->birth (ApvlvWindow::WindowType::VSP, nullptr))
             {
               windowAdded ();
             }
@@ -1344,7 +1349,15 @@ ApvlvView::windowAdded ()
 void
 ApvlvView::updateTabName ()
 {
-  const char *filename = currentWindow ()->getCore ()->filename ();
+  auto win = currentWindow ();
+  if (win == nullptr)
+    return;
+
+  auto frame = win->getFrame ();
+  if (frame == nullptr)
+    return;
+
+  const char *filename = frame->filename ();
   string gfilename;
 
   if (filename == nullptr)
@@ -1357,11 +1370,8 @@ ApvlvView::updateTabName ()
   auto index = mTabContainer->currentIndex ();
   Q_ASSERT (index != -1);
   auto tagname = QString::fromLocal8Bit (gfilename);
-  if (mTabList[index]->getWindowCount () > 1)
-    tagname = QString ("[%1] %2")
-                  .arg (mTabList[index]->getWindowCount ())
-                  .arg (gfilename.c_str ());
-
+  // need impl tagname = QString("[%1] %2").arg (mTabList[index]).arg
+  // (gfilename.c_str());
   mTabContainer->setTabText (index, tagname);
 }
 

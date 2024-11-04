@@ -37,37 +37,52 @@ namespace apvlv
 class ApvlvFrame;
 class ApvlvWindowContext;
 
-class ApvlvWindow final : public QObject
+class ApvlvWindow final : public QFrame
 {
   Q_OBJECT
 public:
-  ApvlvWindow (ApvlvWindowContext *context, ApvlvFrame *core);
+  ApvlvWindow ();
   ~ApvlvWindow () override;
 
   /* WE operate the AW_DOC window
-   * Any AW_SP, AW_VSP are a virtual window, just for contain the AW_DOC window
+   * Any SP, VSP are a virtual window, just for contain the AW_DOC window
    * AW_NONE is an empty window, need free
    * So, ANY user interface function can only get the AW_DOC window
    * */
   enum class WindowType
   {
-    AW_SP,
-    AW_VSP,
-    AW_CORE
+    FRAME,
+    SP,
+    VSP,
   };
-  WindowType mType;
+  WindowType mType{ WindowType::FRAME };
 
   bool birth (WindowType type, ApvlvFrame *doc);
 
-  void unbirth ();
+  void perish ();
 
   void setActive (bool act);
 
-  QWidget *widget ();
+  void setFrame (ApvlvFrame *doc);
+  ApvlvFrame *stealFrame ();
+  ApvlvFrame *getFrame ();
 
-  void setCore (ApvlvFrame *doc);
+  ApvlvWindow *firstWindow ();
+  ApvlvWindow *secondWindow ();
+  ApvlvWindow *parentWindow ();
+  ApvlvWindow *rootWindow ();
+  ApvlvWindow *firstFrameWindow ();
 
-  ApvlvFrame *getCore ();
+  void
+  setActiveWindow (ApvlvWindow *win)
+  {
+    mActive = win;
+  }
+  ApvlvWindow *
+  getActiveWindow ()
+  {
+    return mActive;
+  }
 
   bool isRoot ();
 
@@ -80,11 +95,14 @@ public:
 
   CmdReturn process (int times, uint keyval);
 
-  ApvlvWindow *m_parent;
-  ApvlvWindow *m_child_1;
-  ApvlvWindow *m_child_2;
+  ApvlvWindow *findWindowByWidget (QWidget *widget);
 
 private:
+  QVBoxLayout mLayout;
+  QSplitter mPaned;
+
+  ApvlvWindow *mActive{ nullptr };
+
   ApvlvWindow *getLeft ();
   ApvlvWindow *getRight ();
   ApvlvWindow *getTop ();
@@ -92,72 +110,9 @@ private:
 
   void splitWidget (WindowType type, QWidget *one, QWidget *other);
 
-  QSplitter *mPaned;
-
-  ApvlvFrame *mCore;
-
-  ApvlvWindowContext *mContext;
-};
-
-class ApvlvWindowContext : public QSplitter
-{
-public:
-  explicit ApvlvWindowContext (ApvlvView *view, ApvlvWindow *root = nullptr,
-                               ApvlvWindow *active = nullptr, int count = 0);
-  ~ApvlvWindowContext () override = default;
-
-  void registerWindow (ApvlvWindow *win);
-  void unregisterWindow (ApvlvWindow *win);
-
-  ApvlvView *
-  getView () const
-  {
-    return mView;
-  }
-
-  ApvlvWindow *
-  getRootWindow ()
-  {
-    return mRootWindow;
-  }
-
-  void
-  setRootWindow (ApvlvWindow *win)
-  {
-    mRootWindow = win;
-  }
-
-  ApvlvWindow *
-  getActiveWindow ()
-  {
-    return mActiveWindow;
-  }
-
-  void
-  setActiveWindow (ApvlvWindow *win)
-  {
-    if (mActiveWindow == win)
-      return;
-
-    if (mActiveWindow)
-      mActiveWindow->setActive (false);
-    mActiveWindow = win;
-    mActiveWindow->setActive (true);
-  }
-
-  [[nodiscard]] int
-  getWindowCount () const
-  {
-    return mWindowCount;
-  }
-
-  ApvlvWindow *findWindowByWidget (QWidget *widget);
-
-private:
-  ApvlvView *mView;
-  ApvlvWindow *mRootWindow;
-  ApvlvWindow *mActiveWindow;
-  int mWindowCount;
+private slots:
+  void perishWidget ();
+  void setAsRootActive ();
 };
 
 }

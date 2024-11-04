@@ -176,6 +176,12 @@ public:
 
   ApvlvView *mView;
 
+  void
+  focusInEvent (QFocusEvent *event) override
+  {
+    emit focusIn ();
+  }
+
   static ApvlvFrame *findByWidget (QWidget *widget);
 
 private:
@@ -237,6 +243,7 @@ private:
 
 signals:
   void indexGenerited (const FileIndex &index);
+  void focusIn ();
 };
 }
 

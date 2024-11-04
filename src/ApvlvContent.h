@@ -112,8 +112,7 @@ public:
   {
     if (active)
       {
-        QTimer::singleShot (50, &mTreeWidget,
-                            [=] () { mTreeWidget.setFocus (); });
+        QTimer::singleShot (50, &mTreeWidget, SLOT (setFocus ()));
       }
     else
       {

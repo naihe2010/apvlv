@@ -80,7 +80,7 @@ ApvlvContent::ApvlvContent ()
   setupToolBar ();
   setupTree ();
 
-  QTimer::singleShot (50, this, [this] { selectFirstItem (); });
+  QTimer::singleShot (50, this, SLOT (selectFirstItem ()));
 }
 
 void
@@ -285,7 +285,7 @@ ApvlvContent::refreshIndex (const FileIndex &index)
       setIndex (child, nullptr);
     }
 
-  QTimer::singleShot (50, this, [this] { selectFirstItem (); });
+  QTimer::singleShot (50, this, SLOT (selectFirstItem ()));
 }
 
 void
@@ -300,8 +300,8 @@ ApvlvContent::setFileIndexToTreeItem (QTreeWidgetItem *item, FileIndex *index)
                     QString::fromLocal8Bit (index->path));
   if (index->type == FileIndexType::FILE)
     {
-      auto date
-          = QDateTime::fromSecsSinceEpoch (index->mtime, QTimeZone::systemTimeZone());
+      auto date = QDateTime::fromSecsSinceEpoch (index->mtime,
+                                                 QTimeZone::systemTimeZone ());
       item->setText (static_cast<int> (Column::MTime),
                      date.toString ("yyyy-MM-dd HH:mm:ss"));
       auto size

@@ -195,7 +195,7 @@ ApvlvFrame::setActive (bool act)
   auto wid = mWidget->widget ();
   if (act)
     {
-      wid->setFocus ();
+      QTimer::singleShot (50, wid, SLOT (setFocus ()));
     }
   else
     {
@@ -368,6 +368,8 @@ ApvlvFrame::subprocess (int ct, uint key)
 CmdReturn
 ApvlvFrame::process (int has, int ct, uint key)
 {
+  emit focusIn ();
+
   if (mProCmd != 0)
     {
       return subprocess (ct, key);

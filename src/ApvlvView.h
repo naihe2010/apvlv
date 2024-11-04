@@ -179,8 +179,6 @@ private:
 
   void setupToolBar ();
 
-  static ApvlvCompletion *getFileCompleteItems (const char *s);
-
   bool runCommand (const char *cmd);
 
   int newTabContext (ApvlvFrame *core);
@@ -208,7 +206,7 @@ private:
   QMenuBar *mMenuBar;
   QToolBar *mToolBar;
 
-  std::vector<ApvlvWindowContext *> mTabList;
+  std::vector<ApvlvWindow *> mTabList;
 
   bool mHasFull;
 
