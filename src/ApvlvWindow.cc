@@ -30,7 +30,6 @@
 #include <stack>
 
 #include "ApvlvParams.h"
-#include "ApvlvUtil.h"
 #include "ApvlvView.h"
 #include "ApvlvWindow.h"
 
@@ -374,7 +373,7 @@ ApvlvWindow::birth (WindowType type, ApvlvFrame *doc)
 
   if (doc == nullptr)
     {
-      doc = frame->copy ();
+      doc = frame->clone ();
       if (doc == nullptr)
         {
           frame->mView->errorMessage ("can't split");

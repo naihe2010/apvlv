@@ -73,9 +73,8 @@ ApvlvFrame::ApvlvFrame (ApvlvView *view)
     {
       mPaned.setFixedSize (f_width, f_height);
 
-      auto hbox = new QHBoxLayout ();
-      hbox->addWidget (&mPaned, 0);
-      mVbox.addLayout (hbox, 1);
+      mVbox.addLayout (&mHBoxLayout, 1);
+      mHBoxLayout.addWidget (&mPaned, 0);
     }
   else
     {
@@ -557,7 +556,7 @@ ApvlvFrame::process (int has, int ct, uint key)
 }
 
 ApvlvFrame *
-ApvlvFrame::copy ()
+ApvlvFrame::clone ()
 {
   auto *ndoc = new ApvlvFrame (mView);
   ndoc->loadfile (mFilestr, false, false);

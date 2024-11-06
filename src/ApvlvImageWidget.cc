@@ -41,19 +41,20 @@ using namespace std;
 
 ImageContainer::ImageContainer (QWidget *parent) : QLabel (parent)
 {
-  auto copy = new QAction ("Copy");
-  QObject::connect (copy, SIGNAL (triggered (bool)), this, SLOT (copy ()));
-  addAction (copy);
+  mCopyAction.setText (tr ("Copy"));
+  QObject::connect (&mCopyAction, SIGNAL (triggered (bool)), this,
+                    SLOT (copy ()));
+  addAction (&mCopyAction);
 
-  auto underline = new QAction ("Underline");
-  QObject::connect (underline, SIGNAL (triggered (bool)), this,
+  mUnderlineAction.setText (tr ("Underline"));
+  QObject::connect (&mUnderlineAction, SIGNAL (triggered (bool)), this,
                     SLOT (underline ()));
-  addAction (underline);
+  addAction (&mUnderlineAction);
 
-  auto comment = new QAction ("Comment");
-  QObject::connect (comment, SIGNAL (triggered (bool)), this,
+  mCommentAction.setText (tr ("Comment"));
+  QObject::connect (&mCommentAction, SIGNAL (triggered (bool)), this,
                     SLOT (comment ()));
-  addAction (comment);
+  addAction (&mCommentAction);
 
   setContextMenuPolicy (Qt::ContextMenuPolicy::ActionsContextMenu);
 }

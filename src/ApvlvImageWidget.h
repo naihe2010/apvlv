@@ -71,6 +71,9 @@ private:
   friend class ImageWidget;
 
   QImage mImage;
+  QAction mCopyAction;
+  QAction mUnderlineAction;
+  QAction mCommentAction;
 
   std::pair<ApvlvPoint, ApvlvPoint> selectionRange ();
   std::vector<Rectangle> selectionArea ();

@@ -28,10 +28,12 @@
 #ifndef _APVLV_VIEW_H_
 #define _APVLV_VIEW_H_
 
-#include <QBoxLayout>
 #include <QLineEdit>
 #include <QMainWindow>
+#include <QMenuBar>
 #include <QTabWidget>
+#include <QToolBar>
+#include <QVBoxLayout>
 #include <iosfwd>
 #include <iostream>
 #include <list>
@@ -98,7 +100,7 @@ public:
     std::stringstream msg;
     msg << "ERROR: ";
     msg << (... + args);
-    mCommandBar->setText (QString::fromLocal8Bit (msg.str ()));
+    mCommandBar.setText (QString::fromLocal8Bit (msg.str ()));
     cmdShow (CmdStatusType::CMD_MESSAGE);
   }
 
@@ -181,10 +183,6 @@ private:
 
   bool runCommand (const char *cmd);
 
-  int newTabContext (ApvlvFrame *core);
-
-  void deleteTabContext (int tabPos);
-
   void switchTab (int tabPos);
 
   // Update the tab's context and update tab label.
@@ -198,15 +196,14 @@ private:
   uint mProCmd;
   int mProCmdCnt;
 
-  QFrame *mCentral;
+  QFrame mCentral;
+  QVBoxLayout mVBoxLayout;
 
-  QTabWidget *mTabContainer;
-  ApvlvCommandBar *mCommandBar;
+  QTabWidget mTabContainer;
+  ApvlvCommandBar mCommandBar;
 
-  QMenuBar *mMenuBar;
-  QToolBar *mToolBar;
-
-  std::vector<ApvlvWindow *> mTabList;
+  QMenuBar mMenuBar;
+  QToolBar mToolBar;
 
   bool mHasFull;
 
@@ -243,8 +240,7 @@ private slots:
   void commandbarEdited (const QString &str);
   void commandbarReturn ();
   void commandbarKeyPressed (QKeyEvent *gek);
-  void notebookSwitched (int ind);
-  void notebookClosed (int ind);
+  void tabSwitched (int ind);
 };
 
 }

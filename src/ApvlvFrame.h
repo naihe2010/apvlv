@@ -100,7 +100,7 @@ public:
 
   bool inuse ();
 
-  ApvlvFrame *copy ();
+  ApvlvFrame *clone ();
 
   void setDirIndex (const std::string &path);
 
@@ -222,6 +222,8 @@ private:
   // the main panel
   QSplitter mPaned;
   int mContentWidth;
+
+  QHBoxLayout mHBoxLayout;
 
   // content panel
   ApvlvContent mContent;

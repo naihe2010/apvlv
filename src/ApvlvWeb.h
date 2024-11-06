@@ -37,10 +37,10 @@ namespace apvlv
 class ApvlvWEB : public File
 {
 public:
-  ApvlvWEB () : mWebWidget (new WebViewWidget)
+  ApvlvWEB ()
   {
-    mWebWidget->setFile (this);
-    mWebWidget->setInternalScroll (true);
+    mWebWidget.setFile (this);
+    mWebWidget.setInternalScroll (true);
   }
 
   [[nodiscard]] DISPLAY_TYPE
@@ -52,7 +52,7 @@ public:
   FileWidget *
   getWidget () override
   {
-    return mWebWidget;
+    return &mWebWidget;
   }
 
   bool load (const std::string &filename) override;
@@ -62,7 +62,7 @@ public:
 
 protected:
   QUrl mUrl;
-  WebViewWidget *mWebWidget;
+  WebViewWidget mWebWidget;
 };
 
 }

@@ -31,10 +31,14 @@
 #include <QCheckBox>
 #include <QDialog>
 #include <QFileSystemModel>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QPushButton>
+#include <QSplitter>
 #include <QTimer>
+#include <QVBoxLayout>
 #include <string>
 #include <thread>
 #include <vector>
@@ -65,6 +69,16 @@ private slots:
 
 private:
   void displayResult (std::unique_ptr<SearchFileMatch> result);
+
+  QVBoxLayout mVBox;
+  QHBoxLayout mHBox;
+  QHBoxLayout mHBox2;
+  QHBoxLayout mHBox3;
+  QSplitter mSplitter;
+
+  QLabel mLabel;
+
+  QPushButton mDirButton;
 
   SearchOptions mOptions;
 

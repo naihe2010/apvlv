@@ -391,6 +391,21 @@
     </message>
 </context>
 <context>
+    <name>apvlv::ImageContainer</name>
+    <message>
+        <source>Copy</source>
+        <translation>复制</translation>
+    </message>
+    <message>
+        <source>Underline</source>
+        <translation>划线</translation>
+    </message>
+    <message>
+        <source>Comment</source>
+        <translation>注释</translation>
+    </message>
+</context>
+<context>
     <name>apvlv::SearchDialog</name>
     <message>
         <source>Case sensitive</source>

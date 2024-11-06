@@ -30,6 +30,7 @@
 
 #include <QComboBox>
 #include <QLineEdit>
+#include <QMenu>
 #include <QTimer>
 #include <QToolBar>
 #include <QTreeWidget>
@@ -131,7 +132,10 @@ private:
   QToolBar mToolBar;
   QComboBox mFilterType;
   QLineEdit mFilterText;
+  QComboBox mSortType;
   ContentTree mTreeWidget;
+
+  QMenu mItemMenu;
 
   std::map<FileIndexType, QIcon> mTypeIcons;
 

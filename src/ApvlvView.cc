@@ -131,47 +131,38 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
     }
   show ();
 
-  mCentral = new QFrame ();
-  setCentralWidget (mCentral);
+  setCentralWidget (&mCentral);
 
-  mMenuBar = new QMenuBar ();
   setupMenuBar (guiopt);
-  setMenuBar (mMenuBar);
-  mToolBar = new QToolBar ();
+  setMenuBar (&mMenuBar);
   setupToolBar ();
-  addToolBar (Qt::TopToolBarArea, mToolBar);
+  addToolBar (Qt::TopToolBarArea, &mToolBar);
 
   bool isMenuBarShow = guiopt.find ('m') != string::npos;
   if (!isMenuBarShow)
     {
-      mMenuBar->hide ();
+      mMenuBar.hide ();
     }
   bool isToolBarShow = guiopt.find ('T') != string::npos;
   if (!isToolBarShow)
     {
-      mToolBar->hide ();
+      mToolBar.hide ();
     }
 
-  auto box = new QVBoxLayout ();
-  mCentral->setLayout (box);
+  mCentral.setLayout (&mVBoxLayout);
 
-  mTabContainer = new QTabWidget (this);
-  mTabContainer->setTabBarAutoHide (true);
-  box->addWidget (mTabContainer, 1);
+  mTabContainer.setTabBarAutoHide (true);
+  mVBoxLayout.addWidget (&mTabContainer, 1);
 
-  QObject::connect (mTabContainer, SIGNAL (currentChanged (int)), this,
-                    SLOT (notebookSwitched (int)));
-  QObject::connect (mTabContainer, SIGNAL (tabCloseRequested (int)), this,
-                    SLOT (notebookClosed (int)));
+  QObject::connect (&mTabContainer, SIGNAL (currentChanged (int)), this,
+                    SLOT (tabSwitched (int)));
 
-  mCommandBar = new ApvlvCommandBar ();
-  box->addWidget (mCommandBar, 0);
-
-  QObject::connect (mCommandBar, SIGNAL (textEdited (const QString &)), this,
+  mVBoxLayout.addWidget (&mCommandBar, 0);
+  QObject::connect (&mCommandBar, SIGNAL (textEdited (const QString &)), this,
                     SLOT (commandbarEdited (const QString &)));
-  QObject::connect (mCommandBar, SIGNAL (returnPressed ()), this,
+  QObject::connect (&mCommandBar, SIGNAL (returnPressed ()), this,
                     SLOT (commandbarReturn ()));
-  QObject::connect (mCommandBar, SIGNAL (keyPressed (QKeyEvent *)), this,
+  QObject::connect (&mCommandBar, SIGNAL (keyPressed (QKeyEvent *)), this,
                     SLOT (commandbarKeyPressed (QKeyEvent *)));
 
   cmdHide ();
@@ -191,38 +182,35 @@ ApvlvView::~ApvlvView ()
       itr = mChildren.begin ();
     }
 
-  for (auto t : mTabList)
-    {
-      delete t;
-    }
-  mTabList.clear ();
-
   mCmdHistroy.clear ();
 }
 
 ApvlvWindow *
 ApvlvView::currentWindow ()
 {
-  auto index = mTabContainer->currentIndex ();
+  auto index = mTabContainer.currentIndex ();
   if (index < 0)
     return nullptr;
+
+  auto root_win = dynamic_cast<ApvlvWindow *> (mTabContainer.widget (index));
+  Q_ASSERT (root_win);
 
   auto widget = QApplication::focusWidget ();
   if (widget)
     {
-      auto win = mTabList[index]->findWindowByWidget (widget);
+      auto win = root_win->findWindowByWidget (widget);
       if (win)
         {
-          mTabList[index]->setActiveWindow (win);
+          root_win->setActiveWindow (win);
           return win;
         }
     }
 
-  auto win = mTabList[index]->getActiveWindow ();
+  auto win = root_win->getActiveWindow ();
   if (win)
     return win;
 
-  return mTabList[index]->firstFrameWindow ();
+  return root_win->firstFrameWindow ();
 }
 
 void
@@ -315,17 +303,15 @@ ApvlvView::loadDir (const std::string &path)
 void
 ApvlvView::quit (bool only_tab)
 {
-  if (int (mTabList.size ()) <= 1 || only_tab == false)
+  if (mTabContainer.count () <= 1 || only_tab == false)
     {
-      mTabList.clear ();
       closeEvent (nullptr);
       return;
     }
 
-  auto index = mTabContainer->currentIndex ();
+  auto index = mTabContainer.currentIndex ();
   Q_ASSERT (index != -1);
-  deleteTabContext (index);
-  mTabContainer->removeTab (index);
+  mTabContainer.removeTab (index);
 }
 
 void
@@ -402,38 +388,18 @@ ApvlvView::newTab (const std::string &filename)
 bool
 ApvlvView::newTab (ApvlvFrame *core)
 {
-  auto pos = newTabContext (core);
+  auto win = new ApvlvWindow ();
+  win->setFrame (core);
 
   auto basename
       = core->filename ()
             ? filesystem::path (core->filename ()).filename ().string ()
             : "NONE";
-  mTabContainer->insertTab (pos, mTabList[pos],
-                            QString::fromLocal8Bit (basename));
-  mTabContainer->setCurrentIndex (pos);
+  auto pos = mTabContainer.currentIndex () + 1;
+  mTabContainer.insertTab (pos, win, QString::fromLocal8Bit (basename));
+  mTabContainer.setCurrentIndex (pos);
 
   return true;
-}
-
-int
-ApvlvView::newTabContext (ApvlvFrame *core)
-{
-  auto win = new ApvlvWindow ();
-  win->setFrame (core);
-
-  auto index = mTabContainer->currentIndex () + 1;
-  auto insPos = mTabList.begin () + index;
-  mTabList.insert (insPos, win);
-
-  return index;
-}
-
-void
-ApvlvView::deleteTabContext (int tabPos)
-{
-  auto iter = mTabList.begin () + tabPos;
-  delete *iter;
-  mTabList.erase (iter);
 }
 
 bool
@@ -527,7 +493,7 @@ ApvlvView::setupMenuBar (const string &guiopt)
 {
   // File -> open, openDir
   auto mfile = new QMenu (tr ("File"));
-  mMenuBar->addMenu (mfile);
+  mMenuBar.addMenu (mfile);
 
   auto action = mfile->addAction (tr ("Open"));
   QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (open ()));
@@ -548,7 +514,7 @@ ApvlvView::setupMenuBar (const string &guiopt)
 
   // Edit ->
   auto medit = new QMenu (tr ("Edit"));
-  mMenuBar->addMenu (medit);
+  mMenuBar.addMenu (medit);
   action = medit->addAction (tr ("Search"));
   QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (search ()));
   action = medit->addAction (tr ("Back Search"));
@@ -557,7 +523,7 @@ ApvlvView::setupMenuBar (const string &guiopt)
 
   // View ->
   auto mview = new QMenu (tr ("View"));
-  mMenuBar->addMenu (mview);
+  mMenuBar.addMenu (mview);
 
   action = mview->addAction (tr ("ToolBar"));
   action->setCheckable (true);
@@ -585,7 +551,7 @@ ApvlvView::setupMenuBar (const string &guiopt)
 
   // Navigate ->
   auto mnavigate = new QMenu (tr ("Navigate"));
-  mMenuBar->addMenu (mnavigate);
+  mMenuBar.addMenu (mnavigate);
   action = mnavigate->addAction (tr ("Previous Page"));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (previousPage ()));
@@ -595,7 +561,7 @@ ApvlvView::setupMenuBar (const string &guiopt)
 
   // Tools
   auto mtools = new QMenu (tr ("Tools"));
-  mMenuBar->addMenu (mtools);
+  mMenuBar.addMenu (mtools);
   action = mtools->addAction (tr ("Advanced Search"));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (advancedSearch ()));
@@ -604,40 +570,40 @@ ApvlvView::setupMenuBar (const string &guiopt)
 
   // Help -> about
   auto mhelp = new QMenu (tr ("Help"));
-  mMenuBar->addMenu (mhelp);
+  mMenuBar.addMenu (mhelp);
 }
 
 void
 ApvlvView::setupToolBar ()
 {
-  auto action = mToolBar->addAction (tr ("Open"));
+  auto action = mToolBar.addAction (tr ("Open"));
   action->setIcon (
       QApplication::style ()->standardIcon (QStyle::SP_DialogOpenButton));
   QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (open ()));
 
-  action = mToolBar->addAction (tr ("OpenDir"));
+  action = mToolBar.addAction (tr ("OpenDir"));
   action->setIcon (
       QApplication::style ()->standardIcon (QStyle::SP_DirOpenIcon));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (openDir ()));
 
-  action = mToolBar->addAction (tr ("Previous Page"));
+  action = mToolBar.addAction (tr ("Previous Page"));
   action->setIcon (
       QApplication::style ()->standardIcon (QStyle::SP_ArrowLeft));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (previousPage ()));
 
-  action = mToolBar->addAction (tr ("Next Page"));
+  action = mToolBar.addAction (tr ("Next Page"));
   action->setIcon (
       QApplication::style ()->standardIcon (QStyle::SP_ArrowRight));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (nextPage ()));
 
-  action = mToolBar->addAction (tr ("Toggle Content"));
+  action = mToolBar.addAction (tr ("Toggle Content"));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (toggleContent ()));
 
-  action = mToolBar->addAction (tr ("Quit"));
+  action = mToolBar.addAction (tr ("Quit"));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (quit (bool)));
 }
@@ -646,14 +612,14 @@ void
 ApvlvView::promptCommand (char ch)
 {
   QString s{ ch };
-  mCommandBar->setText (s);
+  mCommandBar.setText (s);
   cmdShow (CmdStatusType::CMD_CMD);
 }
 
 void
 ApvlvView::promptCommand (const char *str)
 {
-  mCommandBar->setText (str);
+  mCommandBar.setText (str);
   cmdShow (CmdStatusType::CMD_CMD);
 }
 
@@ -670,9 +636,9 @@ ApvlvView::cmdShow (CmdStatusType cmdtype)
 {
   mCmdType = cmdtype;
 
-  mCommandBar->show ();
-  mCommandBar->setCursorPosition (1);
-  mCommandBar->setFocus ();
+  mCommandBar.show ();
+  mCommandBar.setCursorPosition (1);
+  mCommandBar.setFocus ();
 }
 
 void
@@ -681,8 +647,8 @@ ApvlvView::cmdHide ()
   mCmdType = CmdStatusType::CMD_NONE;
   mCmdTime = chrono::steady_clock::now ();
 
-  mCommandBar->hide ();
-  mTabContainer->setFocus ();
+  mCommandBar.hide ();
+  mTabContainer.setFocus ();
 }
 
 void
@@ -736,7 +702,7 @@ ApvlvView::cmdAuto (const char *ps)
       s.replace (" ", "\\ ");
       QString linetext = QString::asprintf (":%s %s", cmd.c_str (),
                                             s.toStdString ().c_str ());
-      mCommandBar->setText (linetext);
+      mCommandBar.setText (linetext);
     }
   else
     {
@@ -784,13 +750,13 @@ ApvlvView::toggleContent ()
 void
 ApvlvView::toggleToolBar ()
 {
-  if (mToolBar->isHidden ())
+  if (mToolBar.isHidden ())
     {
-      mToolBar->show ();
+      mToolBar.show ();
     }
   else
     {
-      mToolBar->hide ();
+      mToolBar.hide ();
     }
 }
 
@@ -813,7 +779,7 @@ ApvlvView::toggleStatus ()
 void
 ApvlvView::newTab ()
 {
-  auto doc = currentFrame ()->copy ();
+  auto doc = currentFrame ()->clone ();
   newTab (doc);
 }
 
@@ -891,14 +857,14 @@ ApvlvView::subProcess (int times, uint keyval)
       if (keyval == 't')
         {
           if (times == 0)
-            switchTab (mTabContainer->currentIndex () + 1);
+            switchTab (mTabContainer.currentIndex () + 1);
           else
             switchTab (times - 1);
         }
       else if (keyval == 'T')
         {
           if (times == 0)
-            switchTab (mTabContainer->currentIndex () - 1);
+            switchTab (mTabContainer.currentIndex () - 1);
           else
             switchTab (times - 1);
         }
@@ -1158,11 +1124,11 @@ ApvlvView::runCommand (const char *str)
         }
       else if (cmd == "tabn" || cmd == "tabnext")
         {
-          switchTab (mTabContainer->currentIndex () + 1);
+          switchTab (mTabContainer.currentIndex () + 1);
         }
       else if (cmd == "tabp" || cmd == "tabprevious")
         {
-          switchTab (mTabContainer->currentIndex () - 1);
+          switchTab (mTabContainer.currentIndex () - 1);
         }
       else if (cmd == "toc")
         {
@@ -1227,7 +1193,7 @@ ApvlvView::commandbarReturn ()
 {
   if (mCmdType == CmdStatusType::CMD_CMD)
     {
-      auto str = mCommandBar->text ();
+      auto str = mCommandBar.text ();
       if (!str.isEmpty ())
         {
           if (run (str.toStdString ().c_str ()))
@@ -1253,7 +1219,7 @@ ApvlvView::commandbarKeyPressed (QKeyEvent *gek)
 {
   if (gek->key () == Qt::Key_Tab)
     {
-      auto str = mCommandBar->text ();
+      auto str = mCommandBar.text ();
       if (!str.isEmpty ())
         {
           cmdAuto (str.toStdString ().c_str () + 1);
@@ -1261,7 +1227,7 @@ ApvlvView::commandbarKeyPressed (QKeyEvent *gek)
     }
   else if (gek->key () == Qt::Key_Backspace)
     {
-      auto str = mCommandBar->text ();
+      auto str = mCommandBar.text ();
       if (str.length () == 1)
         {
           cmdHide ();
@@ -1277,7 +1243,7 @@ ApvlvView::commandbarKeyPressed (QKeyEvent *gek)
     {
       if (!mCmdHistroy.empty ())
         {
-          mCommandBar->setText (QString::fromLocal8Bit (
+          mCommandBar.setText (QString::fromLocal8Bit (
               mCurrHistroy > 0 ? mCmdHistroy[mCurrHistroy--]
                                : mCmdHistroy[0]));
         }
@@ -1286,7 +1252,7 @@ ApvlvView::commandbarKeyPressed (QKeyEvent *gek)
     {
       if (!mCmdHistroy.empty ())
         {
-          mCommandBar->setText (QString::fromLocal8Bit (
+          mCommandBar.setText (QString::fromLocal8Bit (
               (size_t)mCurrHistroy < mCmdHistroy.size () - 1
                   ? mCmdHistroy[++mCurrHistroy]
                   : mCmdHistroy[mCmdHistroy.size () - 1]));
@@ -1304,7 +1270,7 @@ ApvlvView::closeEvent (QCloseEvent *evt)
 }
 
 void
-ApvlvView::notebookSwitched (int pnum)
+ApvlvView::tabSwitched (int pnum)
 {
   qDebug ("tabwidget switch to: %d", pnum);
   if (pnum == -1)
@@ -1320,28 +1286,20 @@ ApvlvView::notebookSwitched (int pnum)
 }
 
 void
-ApvlvView::notebookClosed (int ind)
-{
-  qDebug ("tabwidget will close %d", ind);
-  if (mTabContainer->currentIndex () == -1 && mTabContainer->count () > 0)
-    mTabContainer->setCurrentIndex (0);
-}
-
-void
 ApvlvView::switchTab (int tabPos)
 {
-  int ntabs = int (mTabList.size ());
+  int ntabs = mTabContainer.count ();
   while (tabPos < 0)
     tabPos += ntabs;
 
   tabPos = tabPos % ntabs;
-  mTabContainer->setCurrentIndex (tabPos);
+  mTabContainer.setCurrentIndex (tabPos);
 }
 
 void
 ApvlvView::windowAdded ()
 {
-  auto index = mTabContainer->currentIndex ();
+  auto index = mTabContainer.currentIndex ();
   Q_ASSERT (index != -1);
   updateTabName ();
 }
@@ -1367,12 +1325,12 @@ ApvlvView::updateTabName ()
 
   setTitle (gfilename);
 
-  auto index = mTabContainer->currentIndex ();
+  auto index = mTabContainer.currentIndex ();
   Q_ASSERT (index != -1);
   auto tagname = QString::fromLocal8Bit (gfilename);
   // need impl tagname = QString("[%1] %2").arg (mTabList[index]).arg
   // (gfilename.c_str());
-  mTabContainer->setTabText (index, tagname);
+  mTabContainer.setTabText (index, tagname);
 }
 
 void

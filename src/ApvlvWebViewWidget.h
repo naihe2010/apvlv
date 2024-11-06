@@ -71,12 +71,13 @@ public:
   void
   setFile (File *file)
   {
-    mSchemeHandler->setFile (file);
+    mSchemeHandler.setFile (file);
   }
 
 private:
+  QWebEngineProfile mProfile;
   std::unique_ptr<QWebEnginePage> mPage;
-  std::unique_ptr<ApvlvSchemeHandler> mSchemeHandler;
+  ApvlvSchemeHandler mSchemeHandler;
 
   bool isScrolledToTop ();
   bool isScrolledToBottom ();
@@ -92,7 +93,7 @@ public:
   {
     QObject::connect (&mWebView, SIGNAL (loadFinished (bool)), this,
                       SLOT (webviewLoadFinished (bool)));
-    QObject::connect (mWebView.mSchemeHandler.get (),
+    QObject::connect (&mWebView.mSchemeHandler,
                       SIGNAL (webpageUpdated (const string &)), this,
                       SLOT (webviewUpdate (const string &)));
   }

@@ -115,13 +115,12 @@ ApvlvContent::setupToolBar ()
                     SLOT (collapseAll ()));
   mToolBar.addSeparator ();
 
-  auto csort = new QComboBox ();
-  mToolBar.addWidget (csort);
+  mToolBar.addWidget (&mSortType);
   for (auto const &str : SortByColumnString)
     {
-      csort->addItem (tr (str));
+      mSortType.addItem (tr (str));
     }
-  QObject::connect (csort, SIGNAL (activated (int)), this,
+  QObject::connect (&mSortType, SIGNAL (activated (int)), this,
                     SLOT (sortBy (int)));
 }
 
@@ -754,7 +753,6 @@ ApvlvContent::onRowDoubleClicked ()
 void
 ApvlvContent::onContextMenuRequest (const QPoint &point)
 {
-  qDebug () << "on context menu request";
   auto items = mTreeWidget.selectedItems ();
   if (items.isEmpty ())
     return;
@@ -763,10 +761,10 @@ ApvlvContent::onContextMenuRequest (const QPoint &point)
   auto index = getFileIndexFromTreeItem (item);
   if (index->type == FileIndexType::FILE)
     {
-      auto menu = new QMenu{ &mTreeWidget };
+      mItemMenu.clear ();
       if (items.size () == 1)
         {
-          auto rename_action = menu->addAction (tr ("Rename File"));
+          auto rename_action = mItemMenu.addAction (tr ("Rename File"));
           QObject::connect (rename_action, SIGNAL (triggered (bool)), this,
                             SLOT (onFileRename ()));
         }
@@ -776,13 +774,13 @@ ApvlvContent::onContextMenuRequest (const QPoint &point)
                          return i && i->type == FileIndexType::FILE;
                        }))
         {
-          auto del_action = menu->addAction (tr ("Delete File"));
+          auto del_action = mItemMenu.addAction (tr ("Delete File"));
           del_action->setIcon (
               QIcon::fromTheme (QIcon::ThemeIcon::EditDelete));
           QObject::connect (del_action, SIGNAL (triggered (bool)), this,
                             SLOT (onFileDelete ()));
         }
-      menu->popup (mTreeWidget.mapToGlobal (point));
+      mItemMenu.popup (mTreeWidget.mapToGlobal (point));
     }
 }
 

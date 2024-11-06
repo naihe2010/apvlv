@@ -62,12 +62,9 @@ ApvlvSchemeHandler::requestStarted (QWebEngineUrlRequestJob *job)
 
 WebView::WebView ()
 {
-  auto profile = new QWebEngineProfile ();
-  profile->setHttpCacheType (QWebEngineProfile::NoCache);
-  mSchemeHandler = make_unique<ApvlvSchemeHandler> ();
-  profile->installUrlSchemeHandler ("apvlv", mSchemeHandler.get ());
-
-  mPage = make_unique<QWebEnginePage> (profile);
+  mProfile.setHttpCacheType (QWebEngineProfile::NoCache);
+  mProfile.installUrlSchemeHandler ("apvlv", &mSchemeHandler);
+  mPage = make_unique<QWebEnginePage> (&mProfile);
   setPage (mPage.get ());
 }
 

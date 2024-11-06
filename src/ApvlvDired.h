@@ -54,6 +54,9 @@ public:
 signals:
   void loadFile (const std::string &path, int pn);
 
+private:
+  QVBoxLayout mVboxLayout;
+
 private slots:
   void activateItem (QListWidgetItem *item);
 };

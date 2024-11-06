@@ -46,61 +46,56 @@ using namespace std;
 SearchDialog::SearchDialog (QWidget *parent)
     : QDialog (parent), mPreviewIsFinished (true)
 {
-  auto vbox = new QVBoxLayout;
-  setLayout (vbox);
+  setLayout (&mVBox);
 
   // search line
-  auto hbox = new QHBoxLayout;
-  vbox->addLayout (hbox);
+  mVBox.addLayout (&mHBox);
 
-  hbox->addWidget (&mSearchEdit, 1);
+  mHBox.addWidget (&mSearchEdit, 1);
   QObject::connect (&mSearchEdit, SIGNAL (returnPressed ()), this,
                     SLOT (search ()));
 
   mCaseSensitive.setText (tr ("Case sensitive"));
-  hbox->addWidget (&mCaseSensitive);
+  mHBox.addWidget (&mCaseSensitive);
 
   mRegex.setText (tr ("Regular expression"));
-  hbox->addWidget (&mRegex);
+  mHBox.addWidget (&mRegex);
 
-  auto hbox2 = new QHBoxLayout;
-  vbox->addLayout (hbox2);
-  auto label = new QLabel (tr ("Find Directory: "));
-  hbox2->addWidget (label, 0);
-  hbox2->addWidget (&mFromDir, 1);
+  mVBox.addLayout (&mHBox2);
+  mLabel.setText (tr ("Find Directory: "));
+  mHBox2.addWidget (&mLabel, 0);
+  mHBox2.addWidget (&mFromDir, 1);
   QObject::connect (&mFromDir, SIGNAL (returnPressed ()), this,
                     SLOT (search ()));
   mFromDir.setText (QDir::homePath ());
-  auto dir_button = new QPushButton (tr ("..."));
-  dir_button->setFocusPolicy (Qt::NoFocus);
-  hbox2->addWidget (dir_button, 0);
-  QObject::connect (dir_button, &QPushButton::clicked, this, [&] () {
+  mDirButton.setText (tr ("..."));
+  mDirButton.setFocusPolicy (Qt::NoFocus);
+  mHBox2.addWidget (&mDirButton, 0);
+  QObject::connect (&mDirButton, &QPushButton::clicked, this, [&] () {
     auto dir = QFileDialog::getExistingDirectory ();
     if (!dir.isEmpty ())
       mFromDir.setText (dir);
   });
 
   // file type line
-  auto hbox3 = new QHBoxLayout;
-  vbox->addLayout (hbox3);
+  mVBox.addLayout (&mHBox3);
 
   auto mime_types = File::supportMimeTypes ();
   for_each (mime_types.begin (), mime_types.end (), [&] (const auto &pair) {
     for_each (pair.second.begin (), pair.second.end (), [&] (const auto &ext) {
       auto checkbox = new QCheckBox (QString::fromLocal8Bit (ext));
       checkbox->setChecked (true);
-      hbox3->addWidget (checkbox);
+      mHBox3.addWidget (checkbox);
       mTypes.emplace_back (checkbox);
     });
   });
 
-  auto spliter = new QSplitter;
-  vbox->addWidget (spliter);
+  mVBox.addWidget (&mSplitter);
 
-  spliter->setOrientation (Qt::Vertical);
+  mSplitter.setOrientation (Qt::Vertical);
 
-  spliter->addWidget (&mResults);
-  spliter->addWidget (&mPreview);
+  mSplitter.addWidget (&mResults);
+  mSplitter.addWidget (&mPreview);
   mPreview.resize (400, 300);
   QObject::connect (
       &mResults,

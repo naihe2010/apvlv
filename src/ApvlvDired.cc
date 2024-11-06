@@ -43,8 +43,7 @@ using namespace std;
 
 DiredDialog::DiredDialog (QWidget *parent) : QDialog (parent)
 {
-  auto vbox = new QVBoxLayout;
-  setLayout (vbox);
+  setLayout (&mVboxLayout);
 }
 
 void
