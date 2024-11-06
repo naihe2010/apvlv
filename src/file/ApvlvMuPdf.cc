@@ -147,6 +147,9 @@ void
 ApvlvPDF::generateIndex ()
 {
   mIndex = { "", 0, "", FileIndexType::FILE };
+  if (mDoc->m_internal->load_outline == nullptr)
+    return;
+
   auto toc = mDoc->fz_load_outline ();
   while (toc.m_internal != nullptr)
     {
