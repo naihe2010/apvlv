@@ -593,7 +593,7 @@ ApvlvContent::onFileRename ()
   if (QFile (qpath).rename (nname))
     {
       index->path = nname.toStdString ();
-      index->title = index->path.substr (index->path.rfind ('/'));
+      index->title = index->path.substr (index->path.rfind ('/') + 1);
       setFileIndexToTreeItem (item, index);
     }
   else
