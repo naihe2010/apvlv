@@ -75,7 +75,7 @@ ApvlvParams::loadFile (const std::string &filename)
 
   if (!os.is_open ())
     {
-      qCritical ("Open configure file %s error", filename.c_str ());
+      qWarning () << "Open configure file " << filename << " error";
       return false;
     }
 
@@ -122,7 +122,7 @@ ApvlvParams::loadFile (const std::string &filename)
 
           if (argu.empty ())
             {
-              qCritical ("map command not complete");
+              qWarning () << "map command not complete";
               continue;
             }
 
@@ -137,13 +137,12 @@ ApvlvParams::loadFile (const std::string &filename)
             }
           else
             {
-              qCritical ("Syntax error: map: %s", str.c_str ());
+              qWarning () << "Syntax error: map: " << str;
             }
         }
       else
         {
-          qCritical ("Unknown rc command: %s: %s", crap.c_str (),
-                     str.c_str ());
+          qWarning () << "Unknown rc command: " << crap << ": " << str;
         }
     }
 

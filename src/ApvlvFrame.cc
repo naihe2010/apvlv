@@ -93,10 +93,13 @@ ApvlvFrame::ApvlvFrame (ApvlvView *view)
     {
       mStatus.hide ();
     }
-  qDebug ("ApvlvFrame: %p be created", this);
+  qDebug () << "ApvlvFrame: " << this << " be created";
 }
 
-ApvlvFrame::~ApvlvFrame () { qDebug ("ApvlvFrame: %p be freed", this); }
+ApvlvFrame::~ApvlvFrame ()
+{
+  qDebug () << "ApvlvFrame: " << this << " be freed";
+}
 
 void
 ApvlvFrame::inuse (bool use)
@@ -158,7 +161,7 @@ ApvlvFrame::toggleContent (bool show)
     {
       if (!mContent.isReady ())
         {
-          qWarning ("file %s has no content", mFilestr.c_str ());
+          qWarning () << "file " << mFilestr << " has no content";
           show = false;
         }
     }
@@ -722,7 +725,7 @@ ApvlvFrame::loadfile (const string &filename, bool check, bool show_content)
 
       if (mFile->sum () <= 1)
         {
-          qDebug ("sum () = %d", mFile->sum ());
+          qDebug () << "sum () = " << mFile->sum ();
         }
 
       setWidget (mFile->getDisplayType ());
@@ -896,14 +899,14 @@ ApvlvFrame::needsearch (const string &str, bool reverse)
   // search a different string
   if (!str.empty () && str != mSearchStr)
     {
-      qDebug ("different string.");
+      qDebug () << "different string.";
       mSearchStr = str;
       return true;
     }
 
   else if (mSearchResults == nullptr)
     {
-      qDebug ("no result.");
+      qDebug () << "no result.";
       return true;
     }
 
@@ -912,16 +915,18 @@ ApvlvFrame::needsearch (const string &str, bool reverse)
             && mWidget->searchSelect () == (int)mSearchResults->size () - 1)
            || (reverse && mWidget->searchSelect () == 0))
     {
-      qDebug ("same, but need next string: s: %d, sel: %d, max: %lu.", reverse,
-              mWidget->searchSelect (), mSearchResults->size ());
+      qDebug () << "same, but need next string: s: " << reverse
+                << ", sel: " << mWidget->searchSelect ()
+                << ", max: " << mSearchResults->size ();
       return true;
     }
 
   // same string, not need search, but has zoomed
   else
     {
-      qDebug ("same, not need next string. sel: %d, max: %ld",
-              mWidget->searchSelect (), mSearchResults->size ());
+      qDebug () << "same, not need next string. sel: "
+                << mWidget->searchSelect ()
+                << ", max: " << mSearchResults->size ();
       if (!reverse)
         {
           setHighlightAndIndex (*mSearchResults, mWidget->searchSelect () + 1);

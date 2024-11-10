@@ -25,6 +25,7 @@
  */
 
 #include <QBuffer>
+#include <QDebug>
 #include <algorithm>
 #include <filesystem>
 #include <iostream>
@@ -111,7 +112,7 @@ FileIndex::loadDirectory (const string &path1)
     }
   catch (filesystem::filesystem_error &err)
     {
-      qWarning ("file system error: %s", err.what ());
+      qWarning () << "file system error: " << err.what ();
     }
 }
 

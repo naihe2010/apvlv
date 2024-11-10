@@ -170,7 +170,7 @@ loadTranslator (QTranslator &translator)
       if (!translator.load (QString::fromLocal8Bit (lantrans),
                             QString::fromLocal8Bit (translations)))
         {
-          qCritical ("Load i18n file failed, using English");
+          qWarning () << "Load i18n file failed, using English";
         }
       else
         {
@@ -205,7 +205,7 @@ main (int argc, char *argv[])
     }
   if (!filesystem::is_regular_file (path) && !filesystem::is_directory (path))
     {
-      qFatal ("File '%s' is not readable.\n", path.c_str ());
+      qFatal () << "File '" << path << "' is not readable.";
       return 1;
     }
 
@@ -222,7 +222,7 @@ main (int argc, char *argv[])
       auto apath = filesystem::absolute (path).string ();
       if (!sView.newTab (apath))
         {
-          qCritical ("Can't open document: %s", apath.c_str ());
+          qCritical () << "Can't open document: " << apath;
         }
     }
 

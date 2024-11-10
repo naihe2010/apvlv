@@ -24,6 +24,8 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
+#include <QDebug>
+
 #include "ApvlvDjvu.h"
 #include "ApvlvUtil.h"
 
@@ -39,7 +41,7 @@ handleDdjvuMessages (ddjvu_context_t *ctx, int wait)
     ddjvu_message_wait (ctx);
   while ((msg = ddjvu_message_peek (ctx)))
     {
-      qDebug ("tag: %d", msg->m_any.tag);
+      qDebug () << "tag: " << msg->m_any.tag;
       switch (msg->m_any.tag)
         {
         case DDJVU_ERROR:
@@ -63,7 +65,7 @@ ApvlvDJVU::load (const string &filename)
   mContext = ddjvu_context_create ("apvlv");
   if (mContext == nullptr)
     {
-      qCritical ("djvu context error");
+      qCritical () << "djvu context error";
       return false;
     }
 
@@ -77,19 +79,17 @@ ApvlvDJVU::load (const string &filename)
       return false;
     }
 
-  if (ddjvu_document_get_type (mDoc) == DDJVU_DOCTYPE_SINGLEPAGE)
+  if (ddjvu_document_get_type (mDoc) != DDJVU_DOCTYPE_SINGLEPAGE)
     {
-      qDebug ("djvu type: %d", ddjvu_document_get_type (mDoc));
-      return true;
-    }
-  else
-    {
+      qCritical () << "djvu type: " << ddjvu_document_get_type (mDoc);
       ddjvu_document_release (mDoc);
       mDoc = nullptr;
       ddjvu_context_release (mContext);
       mContext = nullptr;
       return false;
     }
+
+  return true;
 }
 
 ApvlvDJVU::~ApvlvDJVU ()
@@ -137,7 +137,7 @@ ApvlvDJVU::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 
   if ((tpage = ddjvu_page_create_by_pageno (mDoc, pn)) == nullptr)
     {
-      qDebug ("no this page: %d", pn);
+      qDebug () << "no this page: " << pn;
       return false;
     }
 
@@ -167,7 +167,7 @@ ApvlvDJVU::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
     {
       this_thread::sleep_for (50ms);
       ++retry;
-      qDebug ("fender failed, retry %d", retry);
+      qDebug () << "fender failed, retry " << retry;
     }
 
   auto image = QImage (ix, iy, QImage::Format_RGB888);

@@ -65,7 +65,7 @@ ApvlvPDF::load (const string &filename)
         }
       else
         {
-          qWarning ("file: %s has password, skip !!!", filename.c_str ());
+          qWarning () << "file: " << filename << " has password, skip !!!";
         }
     }
 

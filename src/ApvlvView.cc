@@ -84,7 +84,7 @@ ApvlvCommandBar::eventFilter (QObject *obj, QEvent *event)
   if (event->type () == QEvent::KeyPress
       && dynamic_cast<QKeyEvent *> (event)->key () == Qt::Key_Tab)
     {
-      qDebug ("Ate key press tab");
+      qDebug () << "Ate key press tab";
       emit keyPressed (dynamic_cast<QKeyEvent *> (event));
       return true;
     }
@@ -693,11 +693,11 @@ ApvlvView::cmdAuto (const char *ps)
       comp.addItems (items);
     }
 
-  qDebug ("find match: %s", np.c_str ());
+  qDebug () << "find match: " << np;
   auto comtext = comp.complete (np);
   if (!comtext.empty ())
     {
-      qDebug ("get a match: %s", comtext.c_str ());
+      qDebug () << "get a match: " << comtext;
       QString s = QString::fromLocal8Bit (comtext);
       s.replace (" ", "\\ ");
       QString linetext = QString::asprintf (":%s %s", cmd.c_str (),
@@ -706,7 +706,7 @@ ApvlvView::cmdAuto (const char *ps)
     }
   else
     {
-      qDebug ("no get match");
+      qDebug () << "no get match";
     }
 }
 
@@ -1156,7 +1156,7 @@ ApvlvView::runCommand (const char *str)
             }
           else
             {
-              errorMessage (string ("no command: "), cmd.c_str ());
+              errorMessage (string ("no command: "), cmd);
               ret = false;
             }
         }
@@ -1272,7 +1272,7 @@ ApvlvView::closeEvent (QCloseEvent *evt)
 void
 ApvlvView::tabSwitched (int pnum)
 {
-  qDebug ("tabwidget switch to: %d", pnum);
+  qDebug () << "tabwidget switch to: " << pnum;
   if (pnum == -1)
     return;
 

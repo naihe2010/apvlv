@@ -25,6 +25,7 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
+#include <QDebug>
 #include <algorithm>
 #include <filesystem>
 #include <regex>
@@ -108,7 +109,7 @@ Searcher::dispatch ()
             }
           catch (const exception &ext)
             {
-              qWarning ("search occurred error: %s", ext.what ());
+              qWarning () << "search occurred error: " << ext.what ();
             }
         }
       else
@@ -121,8 +122,7 @@ Searcher::dispatch ()
 void
 Searcher::dirFunc ()
 {
-  qDebug ("searching %s from %s", mOptions.mText.c_str (),
-          mOptions.mFromDir.c_str ());
+  qDebug () << "searching " << mOptions.mText << " from " << mOptions.mFromDir;
   stack<string> dirs;
   dirs.push (mOptions.mFromDir);
   while (!dirs.empty ())

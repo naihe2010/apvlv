@@ -145,7 +145,7 @@ Command::push (string_view sv, CmdType type)
           mNext = make_unique<Command> ();
           mNext->push (s + off + 4);
         }
-      qDebug ("set string type command: [%s]", mStrCommand.c_str ());
+      qDebug () << "set string type command: [" << mStrCommand << "]";
       return;
     }
 
@@ -222,7 +222,7 @@ Command::append (const char *s)
         }
       else
         {
-          qCritical ("Can't recognize the symbol: %s", s);
+          qWarning () << "Can't recognize the symbol: " << s;
         }
       return s + 5;
     }

@@ -743,7 +743,7 @@ ApvlvContent::onFilter ()
       });
       break;
     default:
-      qCritical () << tr ("Filter Type is invalid");
+      qWarning () << tr ("Filter Type is invalid");
       break;
     }
 

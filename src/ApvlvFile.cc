@@ -109,7 +109,7 @@ File::loadFile (const string &filename)
         return file;
     }
 
-  qCritical ("open %s error.", filename.c_str ());
+  qWarning () << "open " << filename << " error";
   return nullptr;
 }
 

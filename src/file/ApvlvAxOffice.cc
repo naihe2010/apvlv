@@ -115,7 +115,7 @@ ApvlvOfficeWord::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
   auto mime = clip->mimeData ();
   for (auto const &t : mime->formats ())
     {
-      qDebug ("clipboard contains: %s\n", t.toStdString ().c_str ());
+      qDebug () << "clipboard contains: " << t;
     }
 
   // HWND hWnd = (HWND)mApp->winId ();
@@ -219,7 +219,7 @@ ApvlvOfficeWord::pathContent (const string &path)
     }
   else
     {
-      qWarning ("Failed to get page range\n");
+      qWarning () << "Failed to get page range";
       return nullptr;
     }
 

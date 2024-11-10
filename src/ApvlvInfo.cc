@@ -42,7 +42,7 @@ ApvlvInfo::loadFile (std::string_view file)
   mFileName = file;
   mFileMax = 10;
 
-  ifstream is (mFileName.c_str (), ios::in);
+  ifstream is (mFileName, ios::in);
   if (is.is_open ())
     {
       string line;
@@ -67,7 +67,7 @@ ApvlvInfo::loadFile (std::string_view file)
 bool
 ApvlvInfo::update ()
 {
-  ofstream os (mFileName.c_str (), ios::out);
+  ofstream os (mFileName, ios::out);
   if (!os.is_open ())
     {
       return false;

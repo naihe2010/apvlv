@@ -57,7 +57,7 @@ CmdReturn
 ApvlvWindow::process (int ct, uint key)
 {
   ApvlvWindow *nwin;
-  qDebug ("input [%d]", key);
+  qDebug () << "input [" << key << "]";
 
   switch (key)
     {

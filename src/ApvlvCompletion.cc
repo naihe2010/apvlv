@@ -24,6 +24,7 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
+#include <QDebug>
 #include <algorithm>
 #include <filesystem>
 #include <string>
@@ -68,7 +69,7 @@ ApvlvCompletion::addPath (const string &path)
         {
           auto item = entry.path ().string ()
                       + (entry.is_directory () ? PATH_SEP_S : "");
-          qDebug ("add a item: %s", item.c_str ());
+          qDebug () << "add a item: " << item;
           items.emplace_back (item);
         }
     }

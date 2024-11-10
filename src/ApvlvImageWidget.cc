@@ -183,7 +183,10 @@ ApvlvImage::ApvlvImage ()
   QScrollArea::setWidget (&mImageContainer);
 }
 
-ApvlvImage::~ApvlvImage () { qDebug ("ApvlvImage: %p be freed", this); }
+ApvlvImage::~ApvlvImage ()
+{
+  qDebug () << "ApvlvImage: " << this << " be freed";
+}
 
 void
 ImageWidget::showPage (int p, double s)
