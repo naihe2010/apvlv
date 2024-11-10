@@ -415,8 +415,15 @@ ApvlvFrame::process (int has, int ct, uint key)
     case '/':
     case '?':
     case 'F':
-      mView->promptCommand (char (key));
-      return CmdReturn::NEED_MORE;
+      if (isControlledContent ())
+        {
+          mContent.focusFilter ();
+        }
+      else
+        {
+          mView->promptCommand (char (key));
+          return CmdReturn::NEED_MORE;
+        }
     case 'H':
       mWidget->scrollTo (0.0, 0.0);
       break;

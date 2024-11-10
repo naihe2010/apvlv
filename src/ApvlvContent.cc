@@ -67,6 +67,20 @@ std::vector<const char *> ApvlvContent::FilterTypeString = {
 };
 
 void
+FilterLine::keyPressEvent (QKeyEvent *event)
+{
+  if (event->key () == Qt::Key_Escape)
+    {
+      clearFocus ();
+      event->ignore ();
+    }
+  else
+    {
+      QLineEdit::keyPressEvent (event);
+    }
+}
+
+void
 ContentTree::keyPressEvent (QKeyEvent *event)
 {
   event->ignore ();

@@ -45,6 +45,13 @@
 
 namespace apvlv
 {
+
+class FilterLine : public QLineEdit
+{
+protected:
+  void keyPressEvent (QKeyEvent *event) override;
+};
+
 class ContentTree : public QTreeWidget
 {
 protected:
@@ -100,6 +107,12 @@ public:
     mFrame = frame;
   }
 
+  void
+  focusFilter ()
+  {
+    QTimer::singleShot (50, &mFilterText, SLOT (setFocus ()));
+  }
+
   void scrollUp (int times);
 
   void scrollDown (int times);
@@ -130,8 +143,8 @@ public:
 private:
   QVBoxLayout mLayout;
   QToolBar mToolBar;
+  FilterLine mFilterText;
   QComboBox mFilterType;
-  QLineEdit mFilterText;
   QComboBox mSortType;
   ContentTree mTreeWidget;
 
