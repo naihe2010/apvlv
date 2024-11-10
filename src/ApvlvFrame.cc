@@ -89,7 +89,7 @@ ApvlvFrame::ApvlvFrame (ApvlvView *view)
 
   mVbox.addWidget (&mStatus, 0);
   auto guiopt = ApvlvParams::instance ()->getStringOrDefault ("guioptions");
-  if (guiopt.find ("S") == string::npos)
+  if (guiopt.find ('S') == string::npos)
     {
       mStatus.hide ();
     }
@@ -362,6 +362,22 @@ ApvlvFrame::subprocess (int ct, uint key)
     }
 
   return CmdReturn::MATCH;
+}
+
+void
+ApvlvFrame::wheelEvent (QWheelEvent *event)
+{
+  auto angel = event->angleDelta ();
+  if (angel.y () > 0)
+    {
+      mWidget->scrollUp (1);
+      updateStatus ();
+    }
+  else
+    {
+      mWidget->scrollDown (1);
+      updateStatus ();
+    }
 }
 
 CmdReturn

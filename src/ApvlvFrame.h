@@ -172,6 +172,8 @@ public:
 
   bool isControlledContent ();
 
+  void wheelEvent (QWheelEvent *event) override;
+
   CmdReturn process (int has, int times, uint keyval);
 
   ApvlvView *mView;
