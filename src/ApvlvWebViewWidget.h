@@ -125,6 +125,8 @@ public:
   void setSearchStr (const std::string &str) override;
   void setSearchSelect (int select) override;
 
+  void setZoomrate (double zm) override;
+
   void
   setInternalScroll (bool internal)
   {

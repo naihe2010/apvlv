@@ -204,6 +204,13 @@ WebViewWidget::setSearchSelect (int select)
   mSearchSelect = select;
 }
 
+void
+WebViewWidget::setZoomrate (double zm)
+{
+  mWebView.setZoomFactor (zm);
+  mZoomrate = zm;
+}
+
 bool
 WebView::isScrolledToTop ()
 {
