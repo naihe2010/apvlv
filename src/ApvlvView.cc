@@ -30,11 +30,8 @@
 #include <QInputDialog>
 #include <QKeyEvent>
 #include <QLineEdit>
-#include <QMainWindow>
 #include <QMenu>
-#include <QMenuBar>
 #include <QMessageBox>
-#include <QToolBar>
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <filesystem>
@@ -587,18 +584,6 @@ ApvlvView::setupToolBar ()
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (openDir ()));
 
-  action = mToolBar.addAction (tr ("Previous Page"));
-  action->setIcon (
-      QApplication::style ()->standardIcon (QStyle::SP_ArrowLeft));
-  QObject::connect (action, SIGNAL (triggered (bool)), this,
-                    SLOT (previousPage ()));
-
-  action = mToolBar.addAction (tr ("Next Page"));
-  action->setIcon (
-      QApplication::style ()->standardIcon (QStyle::SP_ArrowRight));
-  QObject::connect (action, SIGNAL (triggered (bool)), this,
-                    SLOT (nextPage ()));
-
   action = mToolBar.addAction (tr ("Toggle Content"));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (toggleContent ()));
@@ -1070,7 +1055,7 @@ ApvlvView::runCommand (const char *str)
         }
       else if ((cmd == "zoom" || cmd == "z") && !subcmd.empty ())
         {
-          currentFrame ()->setzoom (subcmd.c_str ());
+          currentFrame ()->setZoomString (subcmd.c_str ());
         }
       else if (cmd == "forwardpage" || cmd == "fp")
         {

@@ -29,7 +29,6 @@
 #define _APVLV_CONTENT_H_
 
 #include <QComboBox>
-#include <QLineEdit>
 #include <QMenu>
 #include <QTimer>
 #include <QToolBar>
@@ -42,15 +41,10 @@
 
 #include "ApvlvFile.h"
 #include "ApvlvUtil.h"
+#include "ApvlvWidget.h"
 
 namespace apvlv
 {
-
-class FilterLine : public QLineEdit
-{
-protected:
-  void keyPressEvent (QKeyEvent *event) override;
-};
 
 class ContentTree : public QTreeWidget
 {
@@ -143,7 +137,7 @@ public:
 private:
   QVBoxLayout mLayout;
   QToolBar mToolBar;
-  FilterLine mFilterText;
+  ApvlvLineEdit mFilterText;
   QComboBox mFilterType;
   QComboBox mSortType;
   ContentTree mTreeWidget;

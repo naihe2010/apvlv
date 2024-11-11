@@ -30,6 +30,7 @@
 
 #include <QFileSystemWatcher>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QSplitter>
@@ -41,6 +42,7 @@
 #include "ApvlvContent.h"
 #include "ApvlvFile.h"
 #include "ApvlvFileWidget.h"
+#include "ApvlvWidget.h"
 
 namespace apvlv
 {
@@ -80,6 +82,29 @@ public:
 
 private:
   QHBoxLayout mLayout;
+};
+
+class ApvlvToolStatus : public QToolBar
+{
+  Q_OBJECT
+public:
+  explicit ApvlvToolStatus (ApvlvFrame *frame);
+
+  void updateValue (int pn, int totpn, double zm, double sr);
+
+private:
+  ApvlvFrame *mFrame;
+
+  ApvlvLineEdit mPageValue;
+  QLabel mPageSum;
+  QComboBox mZoomType;
+  ApvlvLineEdit mZoomValue;
+  QLabel mScrollRate;
+
+private slots:
+  void gotoPage ();
+
+  friend class ApvlvFrame;
 };
 
 const int DEFAULT_CONTENT_WIDTH = 300;
@@ -136,7 +161,7 @@ public:
 
   void setzoom (double zm);
 
-  void setzoom (const char *z);
+  void setZoomString (const char *z);
 
   void jump (char s);
 
@@ -210,7 +235,8 @@ private:
     FITHEIGHT,
     CUSTOM
   };
-  ZoomMode mZoommode;
+  ZoomMode mZoomMode;
+  static std::vector<const char *> ZoomLabel;
 
   bool mZoominit{};
 
@@ -230,14 +256,16 @@ private:
   // content panel
   ApvlvContent mContent;
 
-  // the custom widget
+  QFrame mTextFrame;
+  QVBoxLayout mTextLayout;
+  ApvlvToolStatus mToolStatus;
   std::unique_ptr<FileWidget> mWidget;
-
-  // if active
-  bool mActive{};
 
   // status bar
   ApvlvStatus mStatus;
+
+  // if active
+  bool mActive{};
 
   void setWidget (DISPLAY_TYPE type);
   void unsetHighlight ();
@@ -248,6 +276,16 @@ private:
 signals:
   void indexGenerited (const FileIndex &index);
   void focusIn ();
+
+private slots:
+  void previousPage ();
+  void nextPage ();
+  void setZoomMode (int mode);
+  void zoomIn ();
+  void zoomOut ();
+
+  friend class ApvlvStats;
+  friend class ApvlvToolStatus;
 };
 }
 

@@ -48,7 +48,14 @@ using namespace std;
 using namespace Qt;
 using namespace CommandModeType;
 
-ApvlvFrame::ApvlvFrame (ApvlvView *view)
+std::vector<const char *> ApvlvFrame::ZoomLabel = {
+  QT_TR_NOOP ("Default"),
+  QT_TR_NOOP ("Fit Width"),
+  QT_TR_NOOP ("Fit Height"),
+  QT_TR_NOOP ("Custom"),
+};
+
+ApvlvFrame::ApvlvFrame (ApvlvView *view) : mToolStatus (this)
 {
   mInuse = true;
 
@@ -56,7 +63,7 @@ ApvlvFrame::ApvlvFrame (ApvlvView *view)
 
   mProCmd = 0;
 
-  mZoommode = ZoomMode::NORMAL;
+  mZoomMode = ZoomMode::NORMAL;
 
   mSearchResults = nullptr;
   mSearchStr = "";
@@ -85,11 +92,21 @@ ApvlvFrame::ApvlvFrame (ApvlvView *view)
   QObject::connect (this, SIGNAL (indexGenerited (const FileIndex &)),
                     &mContent, SLOT (setIndex (const FileIndex &)));
 
+  // left is Content
   mPaned.addWidget (&mContent);
 
-  mVbox.addWidget (&mStatus, 0);
+  // Right is Text
+  mPaned.addWidget (&mTextFrame);
+  mTextFrame.setLayout (&mTextLayout);
+  mTextLayout.addWidget (&mToolStatus, 0);
   auto guiopt = ApvlvParams::instance ()->getStringOrDefault ("guioptions");
   if (guiopt.find ('S') == string::npos)
+    {
+      mToolStatus.hide ();
+    }
+
+  mVbox.addWidget (&mStatus, 0);
+  if (guiopt.find ('s') == string::npos)
     {
       mStatus.hide ();
     }
@@ -320,10 +337,74 @@ ApvlvStatus::showMessages (const vector<string> &msgs)
     }
 }
 
+ApvlvToolStatus::ApvlvToolStatus (ApvlvFrame *frame) : mFrame (frame)
+{
+  auto paction = addAction (QIcon::fromTheme (QIcon::ThemeIcon::GoPrevious),
+                            tr ("Previous Page"));
+  QObject::connect (paction, SIGNAL (triggered (bool)), mFrame,
+                    SLOT (previousPage ()));
+  auto naction = addAction (QIcon::fromTheme (QIcon::ThemeIcon::GoNext),
+                            tr ("Next Page"));
+  QObject::connect (naction, SIGNAL (triggered (bool)), mFrame,
+                    SLOT (nextPage ()));
+
+  mPageValue.setSizePolicy (QSizePolicy::Fixed, QSizePolicy::Fixed);
+  QObject::connect (&mPageValue, SIGNAL (editingFinished ()), this,
+                    SLOT (gotoPage ()));
+  addWidget (&mPageValue);
+  addWidget (&mPageSum);
+
+  addSeparator ();
+
+  auto iaction = addAction (QIcon::fromTheme (QIcon::ThemeIcon::ZoomIn),
+                            tr ("Zoom In"));
+  QObject::connect (iaction, SIGNAL (triggered (bool)), mFrame,
+                    SLOT (zoomIn ()));
+  auto oaction = addAction (QIcon::fromTheme (QIcon::ThemeIcon::ZoomOut),
+                            tr ("Zoom Out"));
+  QObject::connect (oaction, SIGNAL (triggered (bool)), mFrame,
+                    SLOT (zoomOut ()));
+
+  addWidget (&mZoomType);
+  for (auto const &str : ApvlvFrame::ZoomLabel)
+    {
+      mZoomType.addItem (ApvlvFrame::tr (str));
+    }
+  QObject::connect (&mZoomType, SIGNAL (currentIndexChanged (int)), mFrame,
+                    SLOT (setZoomMode (int)));
+  mZoomType.setLineEdit (&mZoomValue);
+
+  addWidget (&mScrollRate);
+}
+
+void
+ApvlvToolStatus::updateValue (int pn, int totpn, double zm, double sr)
+{
+  mPageValue.setText (QString::number (pn));
+  mPageSum.setText (QString::fromLocal8Bit ("/%1").arg (totpn));
+  if (mZoomType.currentIndex () == 3)
+    {
+      mZoomValue.setText (
+          QString::fromLocal8Bit ("%1%").arg (static_cast<int> (zm * 100)));
+    }
+  mScrollRate.setText (
+      QString::fromLocal8Bit ("%1%").arg (static_cast<int> (sr * 100)));
+}
+
+void
+ApvlvToolStatus::gotoPage ()
+{
+  auto text = mPageValue.text ().trimmed ();
+  auto pn = text.toInt ();
+  if (pn != mFrame->pageNumber ())
+    {
+      mFrame->showpage (pn, 0.f);
+    }
+}
+
 CmdReturn
 ApvlvFrame::subprocess (int ct, uint key)
 {
-  auto zoomrate = mWidget->zoomrate ();
   uint procmd = mProCmd;
   mProCmd = 0;
   switch (procmd)
@@ -339,23 +420,19 @@ ApvlvFrame::subprocess (int ct, uint key)
     case 'z':
       if (key == 'i')
         {
-          setzoom (zoomrate * 1.1);
-          updateStatus ();
+          zoomIn ();
         }
       else if (key == 'o')
         {
-          setzoom (zoomrate / 1.1);
-          updateStatus ();
+          zoomOut ();
         }
       else if (key == 'h')
         {
-          setzoom ("fitheight");
-          updateStatus ();
+          setZoomMode (static_cast<int> (ZoomMode::FITHEIGHT));
         }
       else if (key == 'w')
         {
-          setzoom ("fitwidth");
-          updateStatus ();
+          setZoomMode (static_cast<int> (ZoomMode::FITWIDTH));
         }
       break;
 
@@ -365,6 +442,58 @@ ApvlvFrame::subprocess (int ct, uint key)
     }
 
   return CmdReturn::MATCH;
+}
+
+void
+ApvlvFrame::previousPage ()
+{
+  prepage (1);
+}
+
+void
+ApvlvFrame::nextPage ()
+{
+  nextpage (1);
+}
+
+void
+ApvlvFrame::setZoomMode (int mode)
+{
+  if (mode < static_cast<int> (ZoomMode::CUSTOM))
+    {
+      switch (static_cast<ZoomMode> (mode))
+        {
+        case ZoomMode::NORMAL:
+          setZoomString ("normal");
+          break;
+        case ZoomMode::FITWIDTH:
+          setZoomString ("fitwidth");
+          break;
+        case ZoomMode::FITHEIGHT:
+          setZoomString ("fitheight");
+          break;
+        case ZoomMode::CUSTOM:
+          break;
+        }
+    }
+
+  updateStatus ();
+}
+
+void
+ApvlvFrame::zoomIn ()
+{
+  auto zoomrate = mWidget->zoomrate ();
+  setzoom (zoomrate * 1.1);
+  updateStatus ();
+}
+
+void
+ApvlvFrame::zoomOut ()
+{
+  auto zoomrate = mWidget->zoomrate ();
+  setzoom (zoomrate / 1.1);
+  updateStatus ();
 }
 
 void
@@ -593,12 +722,12 @@ ApvlvFrame::clone ()
 void
 ApvlvFrame::setzoom (double zm)
 {
-  mZoommode = ZoomMode::CUSTOM;
+  mZoomMode = ZoomMode::CUSTOM;
   mWidget->setZoomrate (zm);
 }
 
 void
-ApvlvFrame::setzoom (const char *z)
+ApvlvFrame::setZoomString (const char *z)
 {
   auto zoomrate = mWidget->zoomrate ();
   if (z != nullptr)
@@ -606,23 +735,23 @@ ApvlvFrame::setzoom (const char *z)
       string_view sv (z);
       if (sv == "normal")
         {
-          mZoommode = ZoomMode::NORMAL;
+          mZoomMode = ZoomMode::NORMAL;
           zoomrate = 1.2;
         }
       else if (sv == "fitwidth")
         {
-          mZoommode = ZoomMode::FITWIDTH;
+          mZoomMode = ZoomMode::FITWIDTH;
         }
       else if (sv == "fitheight")
         {
-          mZoommode = ZoomMode::FITHEIGHT;
+          mZoomMode = ZoomMode::FITHEIGHT;
         }
       else
         {
           double d = strtod (z, nullptr);
           if (d > 0)
             {
-              mZoommode = ZoomMode::CUSTOM;
+              mZoomMode = ZoomMode::CUSTOM;
               zoomrate = d;
             }
         }
@@ -636,12 +765,12 @@ ApvlvFrame::setzoom (const char *z)
       if (size.width > 0 && size.height > 0)
         {
           auto wid = mWidget->widget ();
-          if (mZoommode == ZoomMode::FITWIDTH)
+          if (mZoomMode == ZoomMode::FITWIDTH)
             {
               auto x_root = wid->width ();
               zoomrate = x_root / size.width;
             }
-          else if (mZoommode == ZoomMode::FITHEIGHT)
+          else if (mZoomMode == ZoomMode::FITHEIGHT)
             {
               auto y_root = wid->height ();
               zoomrate = y_root / size.height;
@@ -802,7 +931,7 @@ ApvlvFrame::showpage (int p, double s)
   if (!mZoominit)
     {
       mZoominit = true;
-      setzoom (nullptr);
+      setZoomString (nullptr);
     }
 
   refresh (rp, s);
@@ -817,7 +946,7 @@ ApvlvFrame::showpage (int p, const string &anchor)
   if (!mZoominit)
     {
       mZoominit = true;
-      setzoom (nullptr);
+      setZoomString (nullptr);
     }
 
   mWidget->showPage (p, anchor);
@@ -1113,10 +1242,7 @@ ApvlvFrame::setWidget (DISPLAY_TYPE type)
     {
       mWidget.reset (mFile->getWidget ());
     }
-  if (mPaned.count () == 1)
-    mPaned.addWidget (mWidget->widget ());
-  else
-    mPaned.replaceWidget (1, mWidget->widget ());
+  mTextLayout.addWidget (mWidget->widget (), 1);
 
   mPaned.setSizes (sizes);
 }
@@ -1181,6 +1307,8 @@ ApvlvFrame::updateStatus ()
       labels.emplace_back (ss.toStdString ());
 
       mStatus.showMessages (labels);
+
+      mToolStatus.updateValue (pn, totpn, zm, sr);
 
       mContent.setCurrentIndex (mFilestr, mWidget->pageNumber (),
                                 mWidget->anchor ());

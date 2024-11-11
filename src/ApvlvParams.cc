@@ -59,7 +59,7 @@ ApvlvParams::ApvlvParams ()
 #else
   push ("defaultdir", "/tmp");
 #endif
-  push ("guioptions", "mT");
+  push ("guioptions", "mTsS");
   push ("autoreload", "3");
   push ("thread_count", "auto");
   push ("lok_path", "/usr/lib64/libreoffice/program");

@@ -243,6 +243,33 @@
     </message>
 </context>
 <context>
+    <name>apvlv::ApvlvFrame</name>
+    <message>
+        <source>Previous Page</source>
+        <translation type="vanished">前一页</translation>
+    </message>
+    <message>
+        <source>Next Page</source>
+        <translation type="vanished">下一页</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>默认</translation>
+    </message>
+    <message>
+        <source>Fit Width</source>
+        <translation>适应宽度</translation>
+    </message>
+    <message>
+        <source>Fit Height</source>
+        <translation>适应高度</translation>
+    </message>
+    <message>
+        <source>Custom</source>
+        <translation>自定义</translation>
+    </message>
+</context>
+<context>
     <name>apvlv::ApvlvSearchDialog</name>
     <message>
         <source>Case sensitive</source>
@@ -259,6 +286,25 @@
     <message>
         <source>Find Directory: </source>
         <translation type="vanished">查找目录：</translation>
+    </message>
+</context>
+<context>
+    <name>apvlv::ApvlvToolStatus</name>
+    <message>
+        <source>Previous Page</source>
+        <translation>前一页</translation>
+    </message>
+    <message>
+        <source>Next Page</source>
+        <translation>后一页</translation>
+    </message>
+    <message>
+        <source>Zoom In</source>
+        <translation>放大</translation>
+    </message>
+    <message>
+        <source>Zoom Out</source>
+        <translation>缩小</translation>
     </message>
 </context>
 <context>

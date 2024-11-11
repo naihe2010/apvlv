@@ -67,20 +67,6 @@ std::vector<const char *> ApvlvContent::FilterTypeString = {
 };
 
 void
-FilterLine::keyPressEvent (QKeyEvent *event)
-{
-  if (event->key () == Qt::Key_Escape)
-    {
-      clearFocus ();
-      event->ignore ();
-    }
-  else
-    {
-      QLineEdit::keyPressEvent (event);
-    }
-}
-
-void
 ContentTree::keyPressEvent (QKeyEvent *event)
 {
   event->ignore ();
@@ -93,7 +79,12 @@ ApvlvContent::ApvlvContent ()
   mLayout.addWidget (&mTreeWidget);
   setupToolBar ();
   setupTree ();
-
+  auto guioptions
+      = ApvlvParams::instance ()->getStringOrDefault ("guioptions");
+  if (guioptions.find ('S') == string::npos)
+    {
+      mToolBar.hide ();
+    }
   QTimer::singleShot (50, this, SLOT (selectFirstItem ()));
 }
 
