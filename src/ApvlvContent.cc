@@ -182,13 +182,14 @@ ApvlvContent::isReady ()
 void
 ApvlvContent::setIndex (const FileIndex &index)
 {
-  auto cur_index = currentItemFileIndex ();
-  if (index.type == FileIndexType::DIR)
+  if (mTreeWidget.topLevelItemCount () == 0
+      || index.type == FileIndexType::DIR)
     {
       refreshIndex (index);
       return;
     }
 
+  auto cur_index = currentItemFileIndex ();
   if (mIndex.type == FileIndexType::DIR
       && cur_index->type == FileIndexType::FILE
       && index.type == FileIndexType::FILE)
