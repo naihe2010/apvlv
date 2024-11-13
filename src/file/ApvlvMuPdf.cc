@@ -46,7 +46,11 @@ ApvlvMuPDF::ApvlvMuPDF () : mDoc{ nullptr }
   fz_register_document_handlers (mContext);
 }
 
-ApvlvMuPDF::~ApvlvMuPDF () { fz_drop_context (mContext); }
+ApvlvMuPDF::~ApvlvMuPDF ()
+{
+  fz_drop_document (mContext, mDoc);
+  fz_drop_context (mContext);
+}
 
 bool
 ApvlvMuPDF::load (const string &filename)
@@ -65,7 +69,8 @@ SizeF
 ApvlvMuPDF::pageSizeF (int pn, int rot)
 {
   auto page = fz_load_page (mContext, mDoc, pn);
-  auto rect = page->bound_page (mContext, page, FZ_CROP_BOX);
+  auto rect = fz_bound_page (mContext, page);
+  fz_drop_page (mContext, page);
   SizeF sizef{ rect.x1 - rect.x0, rect.y1 - rect.y0 };
   return sizef;
 }
@@ -80,29 +85,12 @@ ApvlvMuPDF::sum ()
 bool
 ApvlvMuPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 {
-  auto size = pageSizeF (pn, rot);
-  fz_draw_options opt{
-    .x_resolution = 0,
-    .y_resolution = 0,
-    .width = static_cast<int> (size.width * zm),
-    .height = static_cast<int> (size.height * zm),
-    .colorspace = fz_device_rgb (mContext),
-  };
-  fz_rect rect{
-    .x0 = 0,
-    .y0 = 0,
-    .x1 = static_cast<float> (size.width),
-    .y1 = static_cast<float> (size.height),
-  };
-  fz_pixmap *pixmap;
-  auto device
-      = fz_new_draw_device_with_options (mContext, &opt, rect, &pixmap);
-  if (device == nullptr)
-    return false;
+  auto scale = fz_scale (static_cast<float> (zm), static_cast<float> (zm));
+  auto mat = fz_pre_rotate (scale, static_cast<float> (rot));
+  auto color = fz_device_rgb (mContext);
+  auto pixmap
+      = fz_new_pixmap_from_page_number (mContext, mDoc, pn, mat, color, 0);
 
-  auto page = fz_load_page (mContext, mDoc, pn);
-  fz_matrix trans = fz_rotate (static_cast<float> (rot));
-  fz_run_page (mContext, page, device, trans, nullptr);
   QImage img{ pixmap->w, pixmap->h, QImage::Format_RGB32 };
   for (auto y = 0; y < pixmap->h; ++y)
     {
@@ -114,6 +102,8 @@ ApvlvMuPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
           p += pixmap->n;
         }
     }
+
+  fz_drop_pixmap (mContext, pixmap);
 
   *pix = img;
   return true;
@@ -130,6 +120,7 @@ ApvlvMuPDF::pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb)
   fz_quad quad_array[1024];
   auto quads
       = fz_highlight_selection (mContext, text_page, fa, fb, quad_array, 1024);
+  fz_drop_stext_page (mContext, text_page);
   if (quads == 0)
     return nullopt;
 
@@ -156,6 +147,7 @@ ApvlvMuPDF::pageText (int pn, const Rectangle &rect, string &text)
     .y1 = static_cast<float> (rect.p2y),
   };
   text = fz_copy_rectangle (mContext, text_page, fzrect, 0);
+  fz_drop_stext_page (mContext, text_page);
   return true;
 }
 
@@ -195,6 +187,8 @@ ApvlvMuPDF::generateIndex ()
       mIndex.mChildrenIndex.push_back (child_index);
       toc = toc->next;
     }
+
+  fz_drop_outline (mContext, toc);
 }
 
 void

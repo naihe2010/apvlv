@@ -429,6 +429,15 @@ ApvlvWindow::setFrame (ApvlvFrame *doc)
   setFrameStyle (QFrame::Raised | QFrame::Box);
   setLineWidth (1);
 
+  if (mType == WindowType::FRAME)
+    {
+      auto frame = stealFrame ();
+      if (frame)
+        {
+          frame->inuse (false);
+        }
+    }
+
   mPaned.setStretchFactor (0, 1);
   mPaned.addWidget (doc);
   doc->inuse (true);

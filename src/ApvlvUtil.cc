@@ -271,12 +271,7 @@ parseFormattedDataSize (const QString &sizeStr)
 qint64
 filesystemTimeToMSeconds (std::filesystem::file_time_type ftt)
 {
-#if __cplusplus > 201703L
-  auto sys = filesystem::__file_clock::to_sys (ftt);
-  auto epoch = sys.time_since_epoch ();
-#else
   auto epoch = ftt.time_since_epoch () + chrono::seconds{ 6437664000 };
-#endif
   auto milliseconds = chrono::duration_cast<chrono::seconds> (epoch);
   return static_cast<qint64> (milliseconds.count ());
 }
