@@ -35,13 +35,13 @@
 
 namespace apvlv
 {
-FILE_TYPE_DEFINITION (ApvlvPDF, { ".pdf" });
+FILE_TYPE_DEFINITION ("poppler", ApvlvPopplerPDF, { ".pdf" });
 
 using namespace std;
 using namespace Poppler;
 
 bool
-ApvlvPDF::load (const string &filename)
+ApvlvPopplerPDF::load (const string &filename)
 {
   mDoc = Document::load (QString::fromLocal8Bit (filename));
   if (mDoc == nullptr)
@@ -62,7 +62,7 @@ ApvlvPDF::load (const string &filename)
 }
 
 SizeF
-ApvlvPDF::pageSizeF (int pn, int rot)
+ApvlvPopplerPDF::pageSizeF (int pn, int rot)
 {
   auto page = mDoc->page (pn);
   auto qsize = page->pageSizeF ();
@@ -77,13 +77,13 @@ ApvlvPDF::pageSizeF (int pn, int rot)
 }
 
 int
-ApvlvPDF::sum ()
+ApvlvPopplerPDF::sum ()
 {
   return mDoc ? mDoc->numPages () : 0;
 }
 
 unique_ptr<WordListRectangle>
-ApvlvPDF::pageSearch (int pn, const char *str)
+ApvlvPopplerPDF::pageSearch (int pn, const char *str)
 {
   if (mDoc == nullptr)
     return nullptr;
@@ -105,7 +105,7 @@ ApvlvPDF::pageSearch (int pn, const char *str)
 }
 
 bool
-ApvlvPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
+ApvlvPopplerPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 {
   if (mDoc == nullptr)
     return false;
@@ -130,7 +130,7 @@ ApvlvPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 }
 
 bool
-ApvlvPDF::generateIndex ()
+ApvlvPopplerPDF::generateIndex ()
 {
   auto outlines = mDoc->outline ();
   if (outlines.empty ())
@@ -142,8 +142,8 @@ ApvlvPDF::generateIndex ()
 }
 
 void
-ApvlvPDF::generateChildrenIndex (FileIndex &root_index,
-                                 const QVector<OutlineItem> &outlines)
+ApvlvPopplerPDF::generateChildrenIndex (FileIndex &root_index,
+                                        const QVector<OutlineItem> &outlines)
 {
   for (auto const &outline : outlines)
     {

@@ -33,7 +33,7 @@
 
 namespace apvlv
 {
-FILE_TYPE_DEFINITION (ApvlvTXT, { ".txt", ".text" });
+FILE_TYPE_DEFINITION ("Web", ApvlvTXT, { ".txt", ".text" });
 
 bool
 ApvlvTXT::pageText (int pn, const Rectangle &rect, std::string &text)

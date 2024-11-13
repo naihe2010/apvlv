@@ -33,7 +33,8 @@
 
 namespace apvlv
 {
-FILE_TYPE_DEFINITION (ApvlvOFFICE, { ".doc", ".docx", ".xls", ".xlsx" });
+FILE_TYPE_DEFINITION ("libreOffice", ApvlvOFFICE,
+                      { ".doc", ".docx", ".xls", ".xlsx" });
 
 using namespace std;
 

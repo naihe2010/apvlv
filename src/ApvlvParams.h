@@ -47,6 +47,10 @@ public:
 
   bool push (std::string_view ch, std::string_view str);
 
+  std::string getGroupStringOrDefault (std::string_view entry,
+                                       std::string_view key,
+                                       const std::string &defs = "");
+
   std::string getStringOrDefault (std::string_view key,
                                   const std::string &defs = "");
 

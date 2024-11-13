@@ -186,7 +186,7 @@ Searcher::fileLoopFunc ()
 void
 Searcher::fileFunc (const string &path)
 {
-  auto file = File::loadFile (path);
+  auto file = FileFactory::loadFile (path);
   if (file)
     {
       auto result = file->grepFile (mOptions.mText, mOptions.mCaseSensitive,

@@ -28,23 +28,30 @@
 #include <QMessageBox>
 #include <filesystem>
 #include <fstream>
-#include <mupdf/classes.h>
-#include <mupdf/classes2.h>
+#include <mupdf/fitz.h>
 
 #include "ApvlvMuPdf.h"
 
 namespace apvlv
 {
 using namespace std;
-using namespace mupdf;
 
-FILE_TYPE_DEFINITION (ApvlvPDF, { ".pdf", ".xps", ".epub", ".mobi", ".fb2",
-                                  ".cbz", ".svg", ".txt" });
+FILE_TYPE_DEFINITION ("MuPDF", ApvlvMuPDF,
+                      { ".pdf", ".xps", ".epub", ".mobi", ".fb2", ".cbz",
+                        ".svg", ".txt" });
+
+ApvlvMuPDF::ApvlvMuPDF () : mDoc{ nullptr }
+{
+  mContext = fz_new_context (nullptr, nullptr, FZ_STORE_UNLIMITED);
+  fz_register_document_handlers (mContext);
+}
+
+ApvlvMuPDF::~ApvlvMuPDF () { fz_drop_context (mContext); }
 
 bool
-ApvlvPDF::load (const string &filename)
+ApvlvMuPDF::load (const string &filename)
 {
-  mDoc = make_unique<FzDocument> (filename.c_str ());
+  mDoc = fz_open_document (mContext, filename.c_str ());
   if (mDoc == nullptr)
     {
       return false;
@@ -55,37 +62,56 @@ ApvlvPDF::load (const string &filename)
 }
 
 SizeF
-ApvlvPDF::pageSizeF (int pn, int rot)
+ApvlvMuPDF::pageSizeF (int pn, int rot)
 {
-  auto page = mDoc->fz_load_page (pn);
-  auto rect = page.fz_bound_page ();
+  auto page = fz_load_page (mContext, mDoc, pn);
+  auto rect = page->bound_page (mContext, page, FZ_CROP_BOX);
   SizeF sizef{ rect.x1 - rect.x0, rect.y1 - rect.y0 };
   return sizef;
 }
 
 int
-ApvlvPDF::sum ()
+ApvlvMuPDF::sum ()
 {
-  return mDoc->fz_count_pages ();
+  auto pages = fz_count_pages (mContext, mDoc);
+  return pages;
 }
 
 bool
-ApvlvPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
+ApvlvMuPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 {
-  auto matrix
-      = FzMatrix::fz_scale (static_cast<float> (zm), static_cast<float> (zm));
-  matrix = fz_pre_rotate (matrix, static_cast<float> (rot));
-  auto pixmap
-      = mDoc->fz_new_pixmap_from_page_number (pn, matrix, fz_device_rgb (), 0);
-  QImage img{ pixmap.w (), pixmap.h (), QImage::Format_RGB32 };
-  for (auto y = 0; y < pixmap.h (); ++y)
+  auto size = pageSizeF (pn, rot);
+  fz_draw_options opt{
+    .x_resolution = 0,
+    .y_resolution = 0,
+    .width = static_cast<int> (size.width * zm),
+    .height = static_cast<int> (size.height * zm),
+    .colorspace = fz_device_rgb (mContext),
+  };
+  fz_rect rect{
+    .x0 = 0,
+    .y0 = 0,
+    .x1 = static_cast<float> (size.width),
+    .y1 = static_cast<float> (size.height),
+  };
+  fz_pixmap *pixmap;
+  auto device
+      = fz_new_draw_device_with_options (mContext, &opt, rect, &pixmap);
+  if (device == nullptr)
+    return false;
+
+  auto page = fz_load_page (mContext, mDoc, pn);
+  fz_matrix trans = fz_rotate (static_cast<float> (rot));
+  fz_run_page (mContext, page, device, trans, nullptr);
+  QImage img{ pixmap->w, pixmap->h, QImage::Format_RGB32 };
+  for (auto y = 0; y < pixmap->h; ++y)
     {
-      auto p = pixmap.samples () + y * pixmap.stride ();
-      for (auto x = 0; x < pixmap.w (); ++x)
+      auto p = pixmap->samples + y * pixmap->stride;
+      for (auto x = 0; x < pixmap->w; ++x)
         {
           QColor c{ int (p[0]), int (p[1]), int (p[2]) };
           img.setPixelColor (x, y, c);
-          p += pixmap.n ();
+          p += pixmap->n;
         }
     }
 
@@ -94,49 +120,62 @@ ApvlvPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 }
 
 optional<vector<Rectangle> >
-ApvlvPDF::pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb)
+ApvlvMuPDF::pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb)
 {
-  auto options = FzStextOptions{};
-  auto text_page = FzStextPage (*mDoc, pn, options);
-  auto fa = FzPoint (static_cast<float> (pa.x), static_cast<float> (pa.y));
-  auto fb = FzPoint (static_cast<float> (pb.x), static_cast<float> (pb.y));
-  auto quads = text_page.fz_highlight_selection2 (fa, fb, 1024);
-  if (quads.empty ())
+  auto options = fz_stext_options{};
+  auto text_page
+      = fz_new_stext_page_from_page_number (mContext, mDoc, pn, &options);
+  auto fa = fz_point{ static_cast<float> (pa.x), static_cast<float> (pa.y) };
+  auto fb = fz_point{ static_cast<float> (pb.x), static_cast<float> (pb.y) };
+  fz_quad quad_array[1024];
+  auto quads
+      = fz_highlight_selection (mContext, text_page, fa, fb, quad_array, 1024);
+  if (quads == 0)
     return nullopt;
 
   auto rect_list = vector<Rectangle>{};
-  for (auto const &quad : quads)
+  for (auto i = 0; i < quads; ++i)
     {
-      Rectangle r{ quad.ul.x, quad.ul.y, quad.lr.x, quad.lr.y };
+      auto quad = quad_array + i;
+      Rectangle r{ quad->ul.x, quad->ul.y, quad->lr.x, quad->lr.y };
       rect_list.emplace_back (r);
     }
   return rect_list;
 }
 
 bool
-ApvlvPDF::pageText (int pn, const Rectangle &rect, string &text)
+ApvlvMuPDF::pageText (int pn, const Rectangle &rect, string &text)
 {
-  auto options = FzStextOptions{};
-  auto text_page = FzStextPage (*mDoc, pn, options);
-  auto fzrect = FzRect (rect.p1x, rect.p1y, rect.p2x, rect.p2y);
-  text = text_page.fz_copy_rectangle (fzrect, 0);
+  auto options = fz_stext_options{};
+  auto text_page
+      = fz_new_stext_page_from_page_number (mContext, mDoc, pn, &options);
+  auto fzrect = fz_rect{
+    .x0 = static_cast<float> (rect.p1x),
+    .y0 = static_cast<float> (rect.p1y),
+    .x1 = static_cast<float> (rect.p2x),
+    .y1 = static_cast<float> (rect.p2y),
+  };
+  text = fz_copy_rectangle (mContext, text_page, fzrect, 0);
   return true;
 }
 
 unique_ptr<WordListRectangle>
-ApvlvPDF::pageSearch (int pn, const char *str)
+ApvlvMuPDF::pageSearch (int pn, const char *str)
 {
-  auto results = mDoc->fz_search_page2 (pn, str, 1024);
-  if (results.empty ())
+  int hit;
+  fz_quad quad_array[1024];
+  auto count = fz_search_page_number (mContext, mDoc, pn, str, &hit,
+                                      quad_array, 1024);
+  if (count == 0)
     return nullptr;
 
   auto list = make_unique<WordListRectangle> ();
-  for (auto const &res : results)
+  for (auto i = 0; i < count; ++i)
     {
       WordRectangle rectangle;
       rectangle.word = str;
-      Rectangle rect{ res.quad.ul.x, res.quad.lr.y, res.quad.lr.x,
-                      res.quad.ul.y };
+      auto quad = quad_array[i];
+      Rectangle rect{ quad.ul.x, quad.lr.y, quad.lr.x, quad.ul.y };
       rectangle.rect_list.push_back (rect);
       list->push_back (rectangle);
     }
@@ -144,30 +183,30 @@ ApvlvPDF::pageSearch (int pn, const char *str)
 }
 
 void
-ApvlvPDF::generateIndex ()
+ApvlvMuPDF::generateIndex ()
 {
   mIndex = { "", 0, "", FileIndexType::FILE };
 
-  auto toc = mDoc->fz_load_outline ();
-  while (toc.m_internal != nullptr)
+  auto toc = fz_load_outline (mContext, mDoc);
+  while (toc != nullptr)
     {
       auto child_index = FileIndex{};
       generateIndexRecursively (child_index, toc);
       mIndex.mChildrenIndex.push_back (child_index);
-      toc = toc.next ();
+      toc = toc->next;
     }
 }
 
 void
-ApvlvPDF::generateIndexRecursively (FileIndex &index,
-                                    mupdf::FzOutline &outline)
+ApvlvMuPDF::generateIndexRecursively (FileIndex &index,
+                                      const fz_outline *outline)
 {
   index.type = FileIndexType::PAGE;
-  index.title = outline.title ();
-  index.page = mDoc->fz_page_number_from_location (outline.page ());
-  if (outline.m_internal->uri != nullptr)
+  index.title = outline->title;
+  index.page = fz_page_number_from_location (mContext, mDoc, outline->page);
+  if (outline->uri != nullptr)
     {
-      index.path = outline.uri ();
+      index.path = outline->uri;
       auto pos = index.path.find ('#');
       if (pos != string::npos)
         {
@@ -176,18 +215,19 @@ ApvlvPDF::generateIndexRecursively (FileIndex &index,
         }
       if (index.page == -1)
         {
-          auto dest = mDoc->fz_resolve_link (outline.uri (), nullptr, nullptr);
-          index.page = mDoc->fz_page_number_from_location (dest);
+          auto dest = fz_resolve_link (mContext, mDoc, outline->uri, nullptr,
+                                       nullptr);
+          index.page = fz_page_number_from_location (mContext, mDoc, dest);
         }
     }
 
-  auto toc = outline.down ();
-  while (toc.m_internal != nullptr)
+  auto toc = outline->down;
+  while (toc != nullptr)
     {
       auto child_index = FileIndex{};
       generateIndexRecursively (child_index, toc);
       index.mChildrenIndex.push_back (child_index);
-      toc = toc.next ();
+      toc = toc->next;
     }
 }
 

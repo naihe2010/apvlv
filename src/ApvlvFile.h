@@ -108,12 +108,6 @@ class FileWidget;
 class File
 {
 public:
-  const static std::map<std::string, std::vector<std::string> > &
-  supportMimeTypes ();
-  static std::vector<std::string> supportFileExts ();
-
-  static std::unique_ptr<File> loadFile (const std::string &filename);
-
   virtual ~File ();
 
   virtual bool load (const std::string &filename) = 0;
@@ -238,10 +232,6 @@ public:
 protected:
   File () = default;
 
-  static int registerClass (const std::string &mime,
-                            std::function<File *()> fun,
-                            std::initializer_list<std::string> exts);
-
   std::string mFilename;
   FileIndex mIndex;
   std::vector<std::string> mPages;
@@ -250,19 +240,39 @@ protected:
   ApvlvCover mCover;
 
 private:
-  static std::map<std::string, std::vector<std::string> > mSupportMimeTypes;
-  static std::map<std::string, std::function<File *()> > mSupportClass;
-
   std::optional<QByteArray> pathContentHtml (int, double, int);
   std::optional<QByteArray> pathContentPng (int, double, int);
+};
+
+class FileFactory
+{
+public:
+  static int registerClass (const std::string &name,
+                            const std::function<File *()> &fun,
+                            std::initializer_list<std::string> exts);
+
+  static const std::map<std::string, std::vector<std::string> > &
+  supportMimeTypes ();
+
+  static std::vector<std::string> supportFileExts ();
+
+  using ExtClass = std::pair<std::string, std::function<File *()> >;
+  using ExtClassList = std::vector<ExtClass>;
+
+  static std::optional<ExtClass> findMatchClass (const std::string &filename);
+  static std::unique_ptr<File> loadFile (const std::string &filename);
+
+private:
+  static std::map<std::string, std::vector<std::string> > mSupportMimeTypes;
+  static std::map<std::string, ExtClassList> mSupportClass;
 };
 
 #define FILE_TYPE_DECLARATION(cls)                                            \
 private:                                                                      \
   static int class_id_of_##cls
-#define FILE_TYPE_DEFINITION(cls, ...)                                        \
-  int cls::class_id_of_##cls = registerClass (                                \
-      #cls, [] () -> File * { return new cls (); }, __VA_ARGS__)
+#define FILE_TYPE_DEFINITION(name, cls, ...)                                  \
+  int cls::class_id_of_##cls = FileFactory::registerClass (                   \
+      name, [] () -> File * { return new cls (); }, __VA_ARGS__)
 
 };
 

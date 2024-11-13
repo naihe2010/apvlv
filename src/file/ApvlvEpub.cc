@@ -35,7 +35,7 @@
 
 namespace apvlv
 {
-FILE_TYPE_DEFINITION (ApvlvEPUB, { ".epub" });
+FILE_TYPE_DEFINITION ("Web", ApvlvEPUB, { ".epub" });
 
 using namespace std;
 

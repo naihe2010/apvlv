@@ -59,13 +59,13 @@ const string html_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
                              "</html>\n";
 
 const map<string, vector<string> > &
-File::supportMimeTypes ()
+FileFactory::supportMimeTypes ()
 {
   return mSupportMimeTypes;
 }
 
 vector<string>
-File::supportFileExts ()
+FileFactory::supportFileExts ()
 {
   vector<string> exts;
   for (const auto &pair : mSupportMimeTypes)
@@ -75,8 +75,8 @@ File::supportFileExts ()
   return exts;
 }
 
-map<string, vector<string> > File::mSupportMimeTypes{};
-map<string, function<File *()> > File::mSupportClass{};
+map<string, vector<string> > FileFactory::mSupportMimeTypes;
+map<string, FileFactory::ExtClassList> FileFactory::mSupportClass;
 
 File::~File ()
 {
@@ -86,31 +86,72 @@ File::~File ()
 }
 
 int
-File::registerClass (const string &mime, function<File *()> fun,
-                     initializer_list<string> exts)
+FileFactory::registerClass (const string &name, const function<File *()> &fun,
+                            initializer_list<string> exts)
 {
-  mSupportMimeTypes.insert ({ mime, exts });
-  for_each (exts.begin (), exts.end (),
-            [fun] (const string &t) { mSupportClass.insert ({ t, fun }); });
+  mSupportMimeTypes.insert ({ name, exts });
+  for_each (exts.begin (), exts.end (), [=] (const string &t) {
+    auto iter = mSupportClass.find (t);
+    if (iter != mSupportClass.end ())
+      {
+        auto &cls_list = iter->second;
+        cls_list.emplace_back (name, fun);
+      }
+    else
+      {
+        auto cls_list = ExtClassList{ { name, fun } };
+        mSupportClass.insert ({ t, cls_list });
+      }
+  });
   return static_cast<int> (mSupportMimeTypes.size ());
 }
 
-unique_ptr<File>
-File::loadFile (const string &filename)
+optional<FileFactory::ExtClass>
+FileFactory::findMatchClass (const std::string &filename)
 {
   auto ext = filenameExtension (filename);
   if (ext.empty ())
-    return nullptr;
+    return nullopt;
 
-  if (mSupportClass.find (ext) != mSupportClass.end ())
+  if (mSupportClass.find (ext) == mSupportClass.end ())
+    return nullopt;
+
+  auto cls_list = mSupportClass[ext];
+  if (cls_list.size () == 1)
+    return cls_list[0];
+
+  auto cls_name
+      = ApvlvParams::instance ()->getGroupStringOrDefault (ext, "engine", "");
+  if (cls_name.empty ())
+    return cls_list[0];
+
+  for (auto const &cls : cls_list)
     {
-      auto file = unique_ptr<File> (mSupportClass[ext]());
-      if (file->load (filename))
-        return file;
+      if (cls.first == cls_name)
+        return cls;
     }
 
-  qWarning () << "open " << filename << " error";
-  return nullptr;
+  return cls_list[0];
+}
+
+unique_ptr<File>
+FileFactory::loadFile (const string &filename)
+{
+  auto cls = findMatchClass (filename);
+  if (!cls.has_value ())
+    {
+      qWarning () << "no engine to open " << filename;
+      return nullptr;
+    }
+
+  auto file = unique_ptr<File> (cls->second ());
+  if (file->load (filename))
+    return file;
+  else
+    {
+      qWarning () << "open " << filename << " error";
+      return nullptr;
+    }
 }
 
 unique_ptr<SearchFileMatch>

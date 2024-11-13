@@ -80,7 +80,7 @@ SearchDialog::SearchDialog (QWidget *parent)
   // file type line
   mVBox.addLayout (&mHBox3);
 
-  auto mime_types = File::supportMimeTypes ();
+  auto mime_types = FileFactory::supportMimeTypes ();
   for_each (mime_types.begin (), mime_types.end (), [&] (const auto &pair) {
     for_each (pair.second.begin (), pair.second.end (), [&] (const auto &ext) {
       auto checkbox = new QCheckBox (QString::fromLocal8Bit (ext));
@@ -159,7 +159,7 @@ SearchDialog::previewItem (QListWidgetItem *item)
     mPreviewFile = nullptr;
 
   if (mPreviewFile == nullptr)
-    mPreviewFile = File::loadFile (path);
+    mPreviewFile = FileFactory::loadFile (path);
 
   if (mPreviewFile)
     {

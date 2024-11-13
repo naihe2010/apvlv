@@ -13,8 +13,12 @@ ENDIF ()
 MESSAGE("-- BUILD TYPE: ${CMAKE_BUILD_TYPE}")
 MESSAGE("-- CXX FLAGS: ${CMAKE_CXX_FLAGS}")
 
-SET(APVLV_PDF_BACKEND MUPDF CACHE STRING "apvlv use which library to render pdf")
-SET_PROPERTY(CACHE APVLV_PDF_BACKEND PROPERTY STRINGS MUPDF POPPLER QTPDF)
+OPTION(APVLV_WITH_MUPDF "If build binary with MuPDF." On)
+IF (WIN32)
+    OPTION(APVLV_WITH_POPPLER "If build binary with Poppler-Qt6." On)
+ELSE()
+    OPTION(APVLV_WITH_POPPLER "If build binary with Poppler-Qt6." Off)
+ENDIF()
 
 IF (WIN32)
     SET(Qt6_DIR "C:/Qt/6.7.2/msvc2019_64/lib/cmake/Qt6" CACHE STRING "Qt6config.cmake directory")
@@ -28,7 +32,7 @@ IF (WIN32)
     CMAKE_POLICY(SET CMP0087 NEW)
 ELSE ()
     FIND_PACKAGE(PkgConfig)
-    IF (${APVLV_PDF_BACKEND} STREQUAL "POPPLER")
+    IF (${APVLV_WITH_POPPLER})
         PKG_CHECK_MODULES(POPPLER poppler-qt6)
     ENDIF ()
     PKG_CHECK_MODULES(QUAZIP quazip1-qt6 REQUIRED)
@@ -87,6 +91,10 @@ SET(HEADERS
         ApvlvWebViewWidget.h
         file/ApvlvHtm.h
         file/ApvlvImage.h
+        file/ApvlvQtPdf.h
+        file/ApvlvEpub.h
+        file/ApvlvFb2.h
+        file/ApvlvTxt.h
 )
 
 SET(SOURCES
@@ -113,41 +121,38 @@ SET(SOURCES
         ApvlvWebViewWidget.cc
         file/ApvlvHtm.cc
         file/ApvlvImage.cc
+        file/ApvlvQtPdf.cc
+        file/ApvlvEpub.cc
+        file/ApvlvFb2.cc
+        file/ApvlvTxt.cc
         main.cc
 )
 
-IF (${APVLV_PDF_BACKEND} STREQUAL "MUPDF")
-    MESSAGE("-- use mupdf as pdf backend")
+MESSAGE("-- apvlv will build QtPdf for pdf file support")
+
+IF (${APVLV_WITH_MUPDF})
+    MESSAGE("-- apvlv will build with MuPDF for pdf file support")
     SET(HEADERS ${HEADERS} file/ApvlvMuPdf.h)
     SET(SOURCES ${SOURCES} file/ApvlvMuPdf.cc)
     IF (WIN32)
-        SET(APVLV_REQ_LIBRARIES mupdfcpp64.lib ${APVLV_REQ_LIBRARIES})
+        SET(APVLV_REQ_LIBRARIES mupdf.lib ${APVLV_REQ_LIBRARIES})
     ELSE ()
-        SET(APVLV_REQ_LIBRARIES -lmupdfcpp ${APVLV_REQ_LIBRARIES})
+        SET(APVLV_REQ_LIBRARIES -lmupdf ${APVLV_REQ_LIBRARIES})
     ENDIF ()
-ELSEIF (${APVLV_PDF_BACKEND} STREQUAL "POPPLER")
-    MESSAGE("-- use poppler-qt6 as pdf backend")
+ENDIF ()
+
+IF (${APVLV_WITH_POPPLER})
+    MESSAGE("-- apvlv will build with Poppler-Qt6 for pdf file support")
     SET(HEADERS ${HEADERS} file/ApvlvPopplerPdf.h)
     SET(SOURCES ${SOURCES} file/ApvlvPopplerPdf.cc)
     INCLUDE_DIRECTORIES(${POPPLER_INCLUDE_DIRS})
     LINK_DIRECTORIES(${POPPLER_LIBRARY_DIRS})
     SET(APVLV_REQ_LIBRARIES ${POPPLER_LIBRARIES} ${APVLV_REQ_LIBRARIES})
-ELSEIF (${APVLV_PDF_BACKEND} STREQUAL "QTPDF")
-    MESSAGE("-- use QtPdf as pdf backend")
-    SET(HEADERS ${HEADERS} file/ApvlvQtPdf.h)
-    SET(SOURCES ${SOURCES} file/ApvlvQtPdf.cc)
-ELSE ()
-    MESSAGE("-- not support pdf file")
-ENDIF ()
-
-IF (NOT ${APVLV_PDF_BACKEND} STREQUAL "MUPDF")
-    SET(HEADERS ${HEADERS} file/ApvlvEpub.h file/ApvlvFb2.h file/ApvlvTxt.h)
-    SET(SOURCES ${SOURCES} file/ApvlvEpub.cc file/ApvlvFb2.cc file/ApvlvTxt.cc)
 ENDIF ()
 
 OPTION(APVLV_WITH_DJVU "If build apvlv with djvu format support." ON)
 IF (APVLV_WITH_DJVU)
-    MESSAGE("-- Will use djvulibre for djvu file support")
+    MESSAGE("-- Will use build with djvulibre for djvu file support")
     IF (WIN32)
         INCLUDE_DIRECTORIES(${DJVULIBRE_DIR}/include)
         LINK_DIRECTORIES(${DJVULIBRE_DIR})

@@ -57,7 +57,7 @@ handleDdjvuMessages (ddjvu_context_t *ctx, int wait)
     }
 }
 
-FILE_TYPE_DEFINITION (ApvlvDJVU, { ".djv", ".djvu" });
+FILE_TYPE_DEFINITION ("djvulibre", ApvlvDJVU, { ".djv", ".djvu" });
 
 bool
 ApvlvDJVU::load (const string &filename)

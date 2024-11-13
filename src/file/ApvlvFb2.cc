@@ -98,7 +98,7 @@ const string section_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
                                 "  </body>\n"
                                 "</html>\n";
 
-FILE_TYPE_DEFINITION (ApvlvFB2, { ".fb2" });
+FILE_TYPE_DEFINITION ("Web", ApvlvFB2, { ".fb2" });
 
 bool
 ApvlvFB2::load (const string &filename)

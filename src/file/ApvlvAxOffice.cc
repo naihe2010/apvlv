@@ -39,9 +39,9 @@ namespace apvlv
 {
 using namespace std;
 
-FILE_TYPE_DEFINITION (ApvlvOfficeWord, { ".doc", ".docx" });
-FILE_TYPE_DEFINITION (ApvlvPowerPoint, { ".ppt", ".pptx" });
-FILE_TYPE_DEFINITION (ApvlvExcel, { ".xls", ".xlsx" });
+FILE_TYPE_DEFINITION ("MSOffice", ApvlvOfficeWord, { ".doc", ".docx" });
+FILE_TYPE_DEFINITION ("MSOffice", ApvlvPowerPoint, { ".ppt", ".pptx" });
+FILE_TYPE_DEFINITION ("MSOffice", ApvlvExcel, { ".xls", ".xlsx" });
 
 bool
 ApvlvOfficeWord::load (const string &filename)

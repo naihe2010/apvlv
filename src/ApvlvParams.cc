@@ -63,6 +63,11 @@ ApvlvParams::ApvlvParams ()
   push ("autoreload", "3");
   push ("thread_count", "auto");
   push ("lok_path", "/usr/lib64/libreoffice/program");
+
+  push (".pdf:engine", "MuPDF");
+  push (".epub:engine", "Web");
+  push (".fb2:engine", "Web");
+  push (".txt:engine", "MuPDF");
 }
 
 ApvlvParams::~ApvlvParams () = default;
@@ -154,6 +159,30 @@ ApvlvParams::push (string_view ch, string_view str)
 {
   mParamMap[string (ch)] = str;
   return true;
+}
+
+string
+ApvlvParams::getGroupStringOrDefault (std::string_view entry,
+                                      std::string_view key,
+                                      const std::string &defs)
+{
+  auto itr = find_if (mParamMap.cbegin (), mParamMap.cend (),
+                      [entry, key] (const pair<string, string> &p) -> bool {
+                        if (p.first.find (':') == string::npos)
+                          return false;
+                        else
+                          {
+                            auto pos = p.first.find (':');
+                            auto pentry = p.first.substr (0, pos);
+                            auto pkey = p.first.substr (pos + 1);
+                            return pentry == entry && pkey == key;
+                          }
+                      });
+  if (itr != mParamMap.cend ())
+    {
+      return itr->second;
+    }
+  return defs;
 }
 
 string

@@ -27,21 +27,22 @@
 #ifndef _APVLV_MUPDF_H_
 #define _APVLV_MUPDF_H_
 
-#include <mupdf/classes.h>
+#include <mupdf/fitz.h>
 
 #include "ApvlvFile.h"
 
 namespace apvlv
 {
 
-class ApvlvPDF : public File
+class ApvlvMuPDF : public File
 {
-  FILE_TYPE_DECLARATION (ApvlvPDF);
+  FILE_TYPE_DECLARATION (ApvlvMuPDF);
 
 public:
-  bool load (const std::string &filename) override;
+  ApvlvMuPDF ();
+  ~ApvlvMuPDF () override;
 
-  ~ApvlvPDF () override = default;
+  bool load (const std::string &filename) override;
 
   [[nodiscard]] DISPLAY_TYPE
   getDisplayType () const override
@@ -64,10 +65,11 @@ public:
                                                  const char *str) override;
 
 private:
-  std::unique_ptr<mupdf::FzDocument> mDoc;
+  fz_context *mContext;
+  fz_document *mDoc;
 
   void generateIndex ();
-  void generateIndexRecursively (FileIndex &index, mupdf::FzOutline &outline);
+  void generateIndexRecursively (FileIndex &index, const fz_outline *outline);
 };
 }
 #endif

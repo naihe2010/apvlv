@@ -235,7 +235,7 @@ ApvlvView::open ()
 
   // qDebug ("lastfile: [%s], dirname: [%s]", fp ? fp->file.c_str () : "",
   // dirname);
-  auto const mimes = File::supportMimeTypes ();
+  auto const mimes = FileFactory::supportMimeTypes ();
   QString filters;
   for (const auto &m : mimes)
     {

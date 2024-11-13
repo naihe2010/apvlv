@@ -844,7 +844,7 @@ ApvlvFrame::loadfile (const string &filename, bool check, bool show_content)
       return false;
     }
 
-  mFile = File::loadFile (filename);
+  mFile = FileFactory::loadFile (filename);
 
   if (mFile)
     {

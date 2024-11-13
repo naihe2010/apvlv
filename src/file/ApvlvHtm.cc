@@ -31,7 +31,7 @@
 
 namespace apvlv
 {
-FILE_TYPE_DEFINITION (ApvlvHTML, { ".htm", ".html" });
+FILE_TYPE_DEFINITION ("Web", ApvlvHTML, { ".htm", ".html" });
 
 using namespace std;
 

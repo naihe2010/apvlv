@@ -34,14 +34,14 @@
 namespace apvlv
 {
 
-class ApvlvPDF : public File
+class ApvlvPopplerPDF : public File
 {
-  FILE_TYPE_DECLARATION (ApvlvPDF);
+  FILE_TYPE_DECLARATION (ApvlvPopplerPDF);
 
 public:
   bool load (const std::string &filename) override;
 
-  ~ApvlvPDF () override = default;
+  ~ApvlvPopplerPDF () override = default;
 
   SizeF pageSizeF (int page, int rot) override;
 

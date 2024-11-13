@@ -29,7 +29,8 @@
 namespace apvlv
 {
 
-FILE_TYPE_DEFINITION (ApvlvIMAGE, { ".png", ".jpg", "jpeg", ".gif", ".bmp" });
+FILE_TYPE_DEFINITION ("Web", ApvlvIMAGE,
+                      { ".png", ".jpg", "jpeg", ".gif", ".bmp" });
 
 }
 

@@ -42,7 +42,7 @@ namespace apvlv
 {
 using namespace std;
 
-FILE_TYPE_DEFINITION (ApvlvPDF, { ".pdf" });
+FILE_TYPE_DEFINITION ("QtPdf", ApvlvPDF, { ".pdf" });
 
 bool
 ApvlvPDF::load (const string &filename)

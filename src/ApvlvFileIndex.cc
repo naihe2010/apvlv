@@ -73,7 +73,7 @@ FileIndex::sortByFileSize (bool ascending)
 void
 FileIndex::loadDirectory (const string &path1)
 {
-  auto exts = File::supportFileExts ();
+  auto exts = FileFactory::supportFileExts ();
 
   try
     {
