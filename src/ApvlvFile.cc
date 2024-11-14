@@ -31,7 +31,6 @@
 #include <iostream>
 #include <optional>
 #include <sstream>
-#include <stack>
 #include <utility>
 
 #include "ApvlvFile.h"
@@ -58,6 +57,9 @@ const string html_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
                              "  </body>\n"
                              "</html>\n";
 
+map<string, vector<string> > FileFactory::mSupportMimeTypes;
+map<string, FileFactory::ExtClassList> FileFactory::mSupportClass;
+
 const map<string, vector<string> > &
 FileFactory::supportMimeTypes ()
 {
@@ -75,22 +77,12 @@ FileFactory::supportFileExts ()
   return exts;
 }
 
-map<string, vector<string> > FileFactory::mSupportMimeTypes;
-map<string, FileFactory::ExtClassList> FileFactory::mSupportClass;
-
-File::~File ()
-{
-  mPages.clear ();
-  srcPages.clear ();
-  srcMimeTypes.clear ();
-}
-
 int
 FileFactory::registerClass (const string &name, const function<File *()> &fun,
                             initializer_list<string> exts)
 {
   mSupportMimeTypes.insert ({ name, exts });
-  for_each (exts.begin (), exts.end (), [=] (const string &t) {
+  std::ranges::for_each (exts, [=] (const string &t) {
     auto iter = mSupportClass.find (t);
     if (iter != mSupportClass.end ())
       {
@@ -127,7 +119,7 @@ FileFactory::findMatchClass (const std::string &filename)
 
   for (auto const &cls : cls_list)
     {
-      if (cls.first == cls_name)
+      if (strcasecmp (cls.first.c_str (), cls_name.c_str ()) == 0)
         return cls;
     }
 
@@ -152,6 +144,13 @@ FileFactory::loadFile (const string &filename)
       qWarning () << "open " << filename << " error";
       return nullptr;
     }
+}
+
+File::~File ()
+{
+  mPages.clear ();
+  srcPages.clear ();
+  srcMimeTypes.clear ();
 }
 
 unique_ptr<SearchFileMatch>

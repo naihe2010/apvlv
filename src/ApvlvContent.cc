@@ -182,17 +182,15 @@ ApvlvContent::isReady ()
 void
 ApvlvContent::setIndex (const FileIndex &index)
 {
-  if (mTreeWidget.topLevelItemCount () == 0
-      || index.type == FileIndexType::DIR)
+  using enum FileIndexType;
+  if (mTreeWidget.topLevelItemCount () == 0 || index.type == DIR)
     {
       refreshIndex (index);
       return;
     }
 
   auto cur_index = currentItemFileIndex ();
-  if (mIndex.type == FileIndexType::DIR
-      && cur_index->type == FileIndexType::FILE
-      && index.type == FileIndexType::FILE)
+  if (mIndex.type == DIR && cur_index->type == FILE && index.type == FILE)
     {
       if (cur_index->mChildrenIndex.empty ())
         {
@@ -268,15 +266,16 @@ ApvlvContent::refreshIndex (const FileIndex &index)
 
   switch (mSortColumn)
     {
-    case Column::Title:
+      using enum Column;
+    case Title:
       mIndex.sortByTitle (mSortAscending);
       break;
 
-    case Column::MTime:
+    case MTime:
       mIndex.sortByMtime (mSortAscending);
       break;
 
-    case Column::FileSize:
+    case FileSize:
       mIndex.sortByFileSize (mSortAscending);
       break;
 
@@ -296,14 +295,17 @@ ApvlvContent::refreshIndex (const FileIndex &index)
 void
 ApvlvContent::setFileIndexToTreeItem (QTreeWidgetItem *item, FileIndex *index)
 {
+  using enum Column;
   auto variant = QVariant::fromValue<FileIndex *> (index);
-  item->setData (static_cast<int> (Column::Title), Qt::UserRole, variant);
-  item->setText (static_cast<int> (Column::Title),
+  item->setData (static_cast<int> (Title), Qt::UserRole, variant);
+  item->setText (static_cast<int> (Title),
                  QString::fromLocal8Bit (index->title.c_str ()));
-  item->setIcon (static_cast<int> (Column::Title), mTypeIcons[index->type]);
-  item->setToolTip (static_cast<int> (Column::Title),
+  item->setIcon (static_cast<int> (Title), mTypeIcons[index->type]);
+  item->setToolTip (static_cast<int> (Title),
                     QString::fromLocal8Bit (index->path));
-  if (index->type == FileIndexType::FILE)
+
+  using enum FileIndexType;
+  if (index->type == FILE)
     {
       auto date = QDateTime::fromSecsSinceEpoch (index->mtime,
                                                  QTimeZone::systemTimeZone ());

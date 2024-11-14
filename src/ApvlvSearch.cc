@@ -64,8 +64,7 @@ Searcher::~Searcher ()
 {
   mRestart.store (true);
   mQuit.store (true);
-  for_each (mTasks.begin (), mTasks.end (),
-            [] (thread &task) { task.join (); });
+  std::ranges::for_each (mTasks, [] (thread &task) { task.join (); });
   qDebug ("all search threads ended");
 }
 
@@ -228,9 +227,8 @@ grep (const string &source, const string &text, bool is_case, bool is_regex)
         {
           auto nsource = source;
           auto ntext = text;
-          transform (nsource.begin (), nsource.end (), nsource.begin (),
-                     ::tolower);
-          transform (ntext.begin (), ntext.end (), ntext.begin (), ::tolower);
+          std::ranges::transform (nsource, nsource.begin (), ::tolower);
+          std::ranges::transform (ntext, ntext.begin (), ::tolower);
           p_source = &nsource;
           p_text = &ntext;
         }

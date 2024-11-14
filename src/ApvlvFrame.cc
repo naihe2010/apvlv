@@ -403,7 +403,7 @@ ApvlvToolStatus::gotoPage ()
 }
 
 CmdReturn
-ApvlvFrame::subprocess (int ct, uint key)
+ApvlvFrame::subprocess ([[maybe_unused]] int ct, uint key)
 {
   uint procmd = mProCmd;
   mProCmd = 0;
@@ -463,16 +463,17 @@ ApvlvFrame::setZoomMode (int mode)
     {
       switch (static_cast<ZoomMode> (mode))
         {
-        case ZoomMode::NORMAL:
+          using enum ZoomMode;
+        case NORMAL:
           setZoomString ("normal");
           break;
-        case ZoomMode::FITWIDTH:
+        case FITWIDTH:
           setZoomString ("fitwidth");
           break;
-        case ZoomMode::FITHEIGHT:
+        case FITHEIGHT:
           setZoomString ("fitheight");
           break;
-        case ZoomMode::CUSTOM:
+        case CUSTOM:
           break;
         }
     }

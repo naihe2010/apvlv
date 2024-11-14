@@ -103,9 +103,10 @@ ApvlvInfo::file (int id)
 optional<InfoFile *>
 ApvlvInfo::file (const string &filename)
 {
-  auto itr = find_if (
-      mInfoFiles.begin (), mInfoFiles.end (),
-      [filename] (auto const &infofile) { return infofile.file == filename; });
+  auto itr
+      = std::ranges::find_if (mInfoFiles, [filename] (auto const &infofile) {
+          return infofile.file == filename;
+        });
   if (itr != mInfoFiles.end ())
     {
       return &(*itr);

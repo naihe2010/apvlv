@@ -81,8 +81,8 @@ SearchDialog::SearchDialog (QWidget *parent)
   mVBox.addLayout (&mHBox3);
 
   auto mime_types = FileFactory::supportMimeTypes ();
-  for_each (mime_types.begin (), mime_types.end (), [&] (const auto &pair) {
-    for_each (pair.second.begin (), pair.second.end (), [&] (const auto &ext) {
+  std::ranges::for_each (mime_types, [&] (const auto &pair) {
+    std::ranges::for_each (pair.second, [&] (const auto &ext) {
       auto checkbox = new QCheckBox (QString::fromLocal8Bit (ext));
       checkbox->setChecked (true);
       mHBox3.addWidget (checkbox);

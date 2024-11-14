@@ -179,7 +179,19 @@ ApvlvMuPDF::generateIndex ()
 {
   mIndex = { "", 0, "", FileIndexType::FILE };
 
-  auto toc = fz_load_outline (mContext, mDoc);
+  fz_outline *top_toc;
+  fz_try (mContext) top_toc = fz_load_outline (mContext, mDoc);
+  fz_catch (mContext)
+  {
+    qCritical () << "load " << mFilename << " outline error";
+    fz_report_error (mContext);
+    top_toc = nullptr;
+  }
+
+  if (top_toc == nullptr)
+    return;
+
+  auto toc = top_toc;
   while (toc != nullptr)
     {
       auto child_index = FileIndex{};
@@ -188,7 +200,7 @@ ApvlvMuPDF::generateIndex ()
       toc = toc->next;
     }
 
-  fz_drop_outline (mContext, toc);
+  fz_drop_outline (mContext, top_toc);
 }
 
 void
@@ -196,7 +208,8 @@ ApvlvMuPDF::generateIndexRecursively (FileIndex &index,
                                       const fz_outline *outline)
 {
   index.type = FileIndexType::PAGE;
-  index.title = outline->title;
+  if (outline->title)
+    index.title = outline->title;
   index.page = fz_page_number_from_location (mContext, mDoc, outline->page);
   if (outline->uri != nullptr)
     {
@@ -224,7 +237,6 @@ ApvlvMuPDF::generateIndexRecursively (FileIndex &index,
       toc = toc->next;
     }
 }
-
 }
 
 // Local Variables:

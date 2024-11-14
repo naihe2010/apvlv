@@ -140,7 +140,7 @@ xmlContentGetElement (const char *content, size_t length,
       if (xml->isStartElement ())
         {
           auto name = xml->name ().toString ().toStdString ();
-          auto iter = find (names.begin (), names.end (), name);
+          auto iter = std::ranges::find (names, name);
           if (iter == names.end ())
             {
               xml->readNextStartElement ();
@@ -198,7 +198,7 @@ filenameExtension (const string &filename)
     return "";
 
   string ext = filename.substr (pointp);
-  transform (ext.begin (), ext.end (), ext.begin (), ::tolower);
+  std::ranges::transform (ext, ext.begin (), ::tolower);
   return ext;
 }
 

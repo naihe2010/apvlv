@@ -166,18 +166,18 @@ ApvlvParams::getGroupStringOrDefault (std::string_view entry,
                                       std::string_view key,
                                       const std::string &defs)
 {
-  auto itr = find_if (mParamMap.cbegin (), mParamMap.cend (),
-                      [entry, key] (const pair<string, string> &p) -> bool {
-                        if (p.first.find (':') == string::npos)
-                          return false;
-                        else
-                          {
-                            auto pos = p.first.find (':');
-                            auto pentry = p.first.substr (0, pos);
-                            auto pkey = p.first.substr (pos + 1);
-                            return pentry == entry && pkey == key;
-                          }
-                      });
+  auto itr = std::ranges::find_if (
+      mParamMap, [entry, key] (const pair<string, string> &p) -> bool {
+        if (p.first.find (':') == string::npos)
+          return false;
+        else
+          {
+            auto pos = p.first.find (':');
+            auto pentry = p.first.substr (0, pos);
+            auto pkey = p.first.substr (pos + 1);
+            return pentry == entry && pkey == key;
+          }
+      });
   if (itr != mParamMap.cend ())
     {
       return itr->second;
@@ -188,10 +188,10 @@ ApvlvParams::getGroupStringOrDefault (std::string_view entry,
 string
 ApvlvParams::getStringOrDefault (string_view key, const string &defs)
 {
-  auto itr = find_if (mParamMap.cbegin (), mParamMap.cend (),
-                      [key] (const pair<string, string> &p) -> bool {
-                        return p.first == key;
-                      });
+  auto itr = std::ranges::find_if (
+      mParamMap, [key] (const pair<string, string> &p) -> bool {
+        return p.first == key;
+      });
   if (itr != mParamMap.cend ())
     {
       return itr->second;
