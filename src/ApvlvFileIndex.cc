@@ -41,36 +41,6 @@ namespace apvlv
 using namespace std;
 
 void
-FileIndex::sortByTitle (bool ascending)
-{
-  sortBy (
-      [ascending] (const FileIndex &a, const FileIndex &b) {
-        return ascending ? (a.title < b.title) : (a.title > b.title);
-      },
-      [ascending] (FileIndex &a) { a.sortByTitle (ascending); });
-}
-
-void
-FileIndex::sortByMtime (bool ascending)
-{
-  sortBy (
-      [ascending] (const FileIndex &a, const FileIndex &b) {
-        return ascending ? a.mtime < b.mtime : a.mtime > b.mtime;
-      },
-      [ascending] (FileIndex &a) { a.sortByMtime (ascending); });
-}
-
-void
-FileIndex::sortByFileSize (bool ascending)
-{
-  sortBy (
-      [ascending] (const FileIndex &a, const FileIndex &b) {
-        return ascending ? a.size < b.size : a.size > b.size;
-      },
-      [ascending] (FileIndex &a) { a.sortByFileSize (ascending); });
-}
-
-void
 FileIndex::loadDirectory (const string &path1)
 {
   auto exts = FileFactory::supportFileExts ();

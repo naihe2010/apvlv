@@ -187,8 +187,10 @@ private slots:
   {
     mSortAscending = !mSortAscending;
     mSortColumn = static_cast<Column> (method);
-    refreshIndex (mIndex);
+    sortItems (mTreeWidget.invisibleRootItem ());
   }
+
+  void sortItems (QTreeWidgetItem *root);
 
   void onRowActivated (QTreeWidgetItem *item, int column);
   void onRowDoubleClicked ();

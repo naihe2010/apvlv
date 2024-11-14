@@ -211,9 +211,6 @@ ApvlvContent::setItemSelected (QTreeWidgetItem *item)
   for (auto selitem : selitems)
     {
       selitem->setSelected (false);
-      auto index = getFileIndexFromTreeItem (selitem);
-      if (index)
-        index->isSelected = false;
     }
 
   auto parent = item->parent ();
@@ -227,13 +224,6 @@ ApvlvContent::setItemSelected (QTreeWidgetItem *item)
   if (item->isExpanded ())
     mTreeWidget.collapseItem (item);
   mTreeWidget.scrollToItem (item);
-
-  auto index = getFileIndexFromTreeItem (item);
-  if (index)
-    {
-      index->isSelected = true;
-      index->isExpanded = false;
-    }
 }
 
 void
@@ -242,14 +232,7 @@ ApvlvContent::setIndex (FileIndex &index, QTreeWidgetItem *root_itr)
   auto itr = new QTreeWidgetItem ();
   setFileIndexToTreeItem (itr, &index);
 
-  if (root_itr == nullptr)
-    {
-      mTreeWidget.addTopLevelItem (itr);
-    }
-  else
-    {
-      root_itr->addChild (itr);
-    }
+  root_itr->addChild (itr);
 
   for (auto &child : index.mChildrenIndex)
     {
@@ -264,30 +247,12 @@ ApvlvContent::refreshIndex (const FileIndex &index)
 
   mIndex = index;
 
-  switch (mSortColumn)
-    {
-      using enum Column;
-    case Title:
-      mIndex.sortByTitle (mSortAscending);
-      break;
-
-    case MTime:
-      mIndex.sortByMtime (mSortAscending);
-      break;
-
-    case FileSize:
-      mIndex.sortByFileSize (mSortAscending);
-      break;
-
-    default:
-      qFatal () << "sort column error";
-      break;
-    }
-
   for (auto &child : mIndex.mChildrenIndex)
     {
-      setIndex (child, nullptr);
+      setIndex (child, mTreeWidget.invisibleRootItem ());
     }
+
+  sortItems (mTreeWidget.invisibleRootItem ());
 
   QTimer::singleShot (50, this, SLOT (selectFirstItem ()));
 }
@@ -348,21 +313,10 @@ ApvlvContent::filterItemBy (QTreeWidgetItem *root,
                             const filterFunc &filter_func)
 {
   std::stack<QTreeWidgetItem *> item_stack;
-  if (root == nullptr)
+  for (auto i = 0; i < root->childCount (); ++i)
     {
-      for (auto i = 0; i < mTreeWidget.topLevelItemCount (); ++i)
-        {
-          auto item = mTreeWidget.topLevelItem (i);
-          item_stack.push (item);
-        }
-    }
-  else
-    {
-      for (auto i = 0; i < root->childCount (); ++i)
-        {
-          auto item = root->child (i);
-          item_stack.push (item);
-        }
+      auto item = root->child (i);
+      item_stack.push (item);
     }
 
   while (!item_stack.empty ())
@@ -458,21 +412,16 @@ ApvlvContent::setCurrentIndex (const string &path, int pn,
                                const string &anchor)
 {
   auto itr = selectedTreeItem ();
+
   auto fitr = findTreeWidgetItem (itr, FileIndexType::PAGE, path, pn, anchor);
 
-  for (auto ind = 0; fitr == nullptr && ind < mTreeWidget.topLevelItemCount ();
-       ++ind)
-    {
-      itr = mTreeWidget.topLevelItem (ind);
-      fitr = findTreeWidgetItem (itr, FileIndexType::PAGE, path, pn, anchor);
-    }
+  if (fitr == nullptr)
+    fitr = findTreeWidgetItem (mTreeWidget.invisibleRootItem (),
+                               FileIndexType::PAGE, path, pn, anchor);
 
-  for (auto ind = 0; fitr == nullptr && ind < mTreeWidget.topLevelItemCount ();
-       ++ind)
-    {
-      itr = mTreeWidget.topLevelItem (ind);
-      fitr = findTreeWidgetItem (itr, FileIndexType::FILE, path, pn, anchor);
-    }
+  if (fitr == nullptr)
+    fitr = findTreeWidgetItem (mTreeWidget.invisibleRootItem (),
+                               FileIndexType::FILE, path, pn, anchor);
 
   if (fitr)
     {
@@ -493,23 +442,15 @@ ApvlvContent::scrollUp (int times)
   auto parent = item->parent ();
   if (parent == nullptr)
     {
-      auto index = mTreeWidget.indexOfTopLevelItem (item);
-      if (index > 0)
-        {
-          auto new_index = index > times ? index - times : 0;
-          auto itr = mTreeWidget.topLevelItem (new_index);
-          setItemSelected (itr);
-        }
+      parent = mTreeWidget.invisibleRootItem ();
     }
-  else
+
+  auto index = parent->indexOfChild (item);
+  if (index > 0)
     {
-      auto index = parent->indexOfChild (item);
-      if (index > 0)
-        {
-          auto new_index = index > times ? index - times : 0;
-          auto itr = parent->child (new_index);
-          setItemSelected (itr);
-        }
+      auto new_index = index > times ? index - times : 0;
+      auto itr = parent->child (new_index);
+      setItemSelected (itr);
     }
 }
 
@@ -523,20 +464,14 @@ ApvlvContent::scrollDown (int times)
   auto parent = item->parent ();
   if (parent == nullptr)
     {
-      auto index = mTreeWidget.indexOfTopLevelItem (item);
-      auto count = mTreeWidget.topLevelItemCount ();
-      auto new_index = index + times < count ? index + times : count - 1;
-      auto itr = mTreeWidget.topLevelItem (new_index);
-      setItemSelected (itr);
+      parent = mTreeWidget.invisibleRootItem ();
     }
-  else
-    {
-      auto index = parent->indexOfChild (item);
-      auto count = parent->childCount ();
-      auto new_index = index + times < count ? index + times : count - 1;
-      auto itr = parent->child (new_index);
-      setItemSelected (itr);
-    }
+
+  auto index = parent->indexOfChild (item);
+  auto count = parent->childCount ();
+  auto new_index = index + times < count ? index + times : count - 1;
+  auto itr = parent->child (new_index);
+  setItemSelected (itr);
 }
 
 void
@@ -685,16 +620,17 @@ ApvlvContent::onFilter ()
   qint64 qsize;
   decltype (FileIndex::size) size;
 
+  auto root = mTreeWidget.invisibleRootItem ();
   switch (type)
     {
     case FilterType::Title:
-      filterItemBy (nullptr, [text] (const FileIndex *a) -> filterFuncReturn {
+      filterItemBy (root, [text] (const FileIndex *a) -> filterFuncReturn {
         return { a->title.find (text.toStdString ()) != string::npos, false };
       });
       break;
 
     case FilterType::FileName:
-      filterItemBy (nullptr, [text] (const FileIndex *a) -> filterFuncReturn {
+      filterItemBy (root, [text] (const FileIndex *a) -> filterFuncReturn {
         return { a->type == FileIndexType::FILE
                      && a->title.find (text.toStdString ()) != string::npos,
                  true };
@@ -703,28 +639,26 @@ ApvlvContent::onFilter ()
 
     case FilterType::MTimeBe:
       datetime = QDateTime::fromString (text);
-      filterItemBy (
-          nullptr, [datetime] (const FileIndex *a) -> filterFuncReturn {
-            return { a->type == FileIndexType::FILE
-                         && a->mtime >= datetime.toMSecsSinceEpoch (),
-                     true };
-          });
+      filterItemBy (root, [datetime] (const FileIndex *a) -> filterFuncReturn {
+        return { a->type == FileIndexType::FILE
+                     && a->mtime >= datetime.toMSecsSinceEpoch (),
+                 true };
+      });
       break;
 
     case FilterType::MTimeLe:
       datetime = QDateTime::fromString (text);
-      filterItemBy (
-          nullptr, [datetime] (const FileIndex *a) -> filterFuncReturn {
-            return { a->type == FileIndexType::FILE
-                         && a->mtime <= datetime.toMSecsSinceEpoch (),
-                     true };
-          });
+      filterItemBy (root, [datetime] (const FileIndex *a) -> filterFuncReturn {
+        return { a->type == FileIndexType::FILE
+                     && a->mtime <= datetime.toMSecsSinceEpoch (),
+                 true };
+      });
       break;
 
     case FilterType::FileSizeBe:
       qsize = parseFormattedDataSize (text);
       size = static_cast<decltype (size)> (qsize);
-      filterItemBy (nullptr, [size] (const FileIndex *a) -> filterFuncReturn {
+      filterItemBy (root, [size] (const FileIndex *a) -> filterFuncReturn {
         return { a->type == FileIndexType::FILE && a->size >= size, true };
       });
       break;
@@ -732,7 +666,7 @@ ApvlvContent::onFilter ()
     case FilterType::FileSizeLe:
       qsize = parseFormattedDataSize (text);
       size = static_cast<decltype (size)> (qsize);
-      filterItemBy (nullptr, [size] (const FileIndex *a) -> filterFuncReturn {
+      filterItemBy (root, [size] (const FileIndex *a) -> filterFuncReturn {
         return { a->type == FileIndexType::FILE && a->size <= size, true };
       });
       break;
@@ -742,6 +676,115 @@ ApvlvContent::onFilter ()
     }
 
   mTreeWidget.expandAll ();
+}
+
+void
+ApvlvContent::sortItems (QTreeWidgetItem *tree_iter)
+{
+  stack<QTreeWidgetItem *> needSort;
+  needSort.push (tree_iter);
+
+  using itemState = pair<QTreeWidgetItem *, bool>;
+  while (!needSort.empty ())
+    {
+      auto root = needSort.top ();
+      needSort.pop ();
+
+      vector<itemState> item_list;
+      for (auto i = 0; i < root->childCount (); ++i)
+        {
+          auto item = root->child (i);
+          auto index = getFileIndexFromTreeItem (item);
+          if (index->type != FileIndexType::PAGE)
+            item_list.emplace_back (item, item->isExpanded ());
+        }
+
+      std::ranges::for_each (item_list, [this, &needSort] (itemState &p) {
+        if (p.first->childCount () > 1)
+          {
+            auto index = getFileIndexFromTreeItem (p.first);
+            if (index && index->type == FileIndexType::DIR)
+              {
+                needSort.push (p.first);
+              }
+          }
+      });
+
+      if (mSortAscending)
+        {
+          switch (mSortColumn)
+            {
+              using enum Column;
+            case Title:
+              std::ranges::sort (
+                  item_list, std::ranges::greater (), [this] (itemState &p) {
+                    auto index = getFileIndexFromTreeItem (p.first);
+                    return index->title;
+                  });
+              break;
+            case MTime:
+              std::ranges::sort (
+                  item_list, std::ranges::greater (), [this] (itemState &p) {
+                    auto index = getFileIndexFromTreeItem (p.first);
+                    return index->mtime;
+                  });
+              break;
+            case FileSize:
+              std::ranges::sort (
+                  item_list, std::ranges::greater (), [this] (itemState &p) {
+                    auto index = getFileIndexFromTreeItem (p.first);
+                    return index->size;
+                  });
+              break;
+            }
+        }
+      else
+        {
+          switch (mSortColumn)
+            {
+              using enum Column;
+            case Title:
+              std::ranges::sort (
+                  item_list, std::ranges::less (), [this] (itemState &p) {
+                    auto index = getFileIndexFromTreeItem (p.first);
+                    return index->title;
+                  });
+              break;
+            case MTime:
+              std::ranges::sort (
+                  item_list, std::ranges::less (), [this] (itemState &p) {
+                    auto index = getFileIndexFromTreeItem (p.first);
+                    return index->mtime;
+                  });
+              break;
+            case FileSize:
+              std::ranges::sort (
+                  item_list, std::ranges::less (), [this] (itemState &p) {
+                    auto index = getFileIndexFromTreeItem (p.first);
+                    return index->size;
+                  });
+              break;
+            }
+        }
+
+      mTreeWidget.setUpdatesEnabled (false);
+      for (auto i = 0;
+           static_cast<decltype (item_list.size ())> (i) < item_list.size ();
+           ++i)
+        {
+          auto p = item_list[i];
+          auto oi = root->indexOfChild (p.first);
+          if (oi != i)
+            {
+              root->takeChild (oi);
+              root->insertChild (i, p.first);
+              p.first->setExpanded (p.second);
+            }
+        }
+      mTreeWidget.setUpdatesEnabled (true);
+    }
+
+  mTreeWidget.update ();
 }
 
 void

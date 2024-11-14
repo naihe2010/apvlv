@@ -62,9 +62,6 @@ public:
            && a.anchor == b.anchor;
   }
 
-  void sortByTitle (bool ascending);
-  void sortByMtime (bool ascending);
-  void sortByFileSize (bool ascending);
   void loadDirectory (const std::string &path1);
   void moveChildChildren (const FileIndex &other_index);
   void removeChild (const FileIndex &child);
@@ -80,24 +77,6 @@ public:
   /* public file variables */
   std::int64_t size{ 0 };
   std::int64_t mtime{ 0 };
-
-  /* runtime variables */
-  bool isExpanded{ false };
-  bool isSelected{ false };
-
-private:
-  using sortFunc
-      = std::function<bool (const FileIndex &a, const FileIndex &b)>;
-  using eachFunc = std::function<void (FileIndex &a)>;
-  void
-  sortBy (const sortFunc &sf, const eachFunc &ef)
-  {
-    if (type == FileIndexType::DIR)
-      {
-        mChildrenIndex.sort (sf);
-        std::for_each (mChildrenIndex.begin (), mChildrenIndex.end (), ef);
-      }
-  }
 };
 
 }
