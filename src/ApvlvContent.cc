@@ -607,12 +607,13 @@ ApvlvContent::onRefresh ()
 void
 ApvlvContent::onFilter ()
 {
+  auto root = mTreeWidget.invisibleRootItem ();
   auto cur = mFilterType.currentIndex ();
   auto type = static_cast<FilterType> (cur);
   auto text = mFilterText.text ().trimmed ();
   if (text.isEmpty ())
     {
-      setItemChildrenFilter (nullptr, true);
+      setItemChildrenFilter (root, true);
       return;
     }
 
@@ -620,7 +621,6 @@ ApvlvContent::onFilter ()
   qint64 qsize;
   decltype (FileIndex::size) size;
 
-  auto root = mTreeWidget.invisibleRootItem ();
   switch (type)
     {
     case FilterType::Title:

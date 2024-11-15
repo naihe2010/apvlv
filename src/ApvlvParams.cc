@@ -68,6 +68,8 @@ ApvlvParams::ApvlvParams ()
   push (".epub:engine", "Web");
   push (".fb2:engine", "Web");
   push (".txt:engine", "MuPDF");
+
+  push ("ocr:lang", "eng+chi_sim");
 }
 
 ApvlvParams::~ApvlvParams () = default;

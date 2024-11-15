@@ -27,7 +27,10 @@
 #include <QDomDocument>
 #include <QXmlStreamReader>
 #include <filesystem>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <quazipfile.h>
+#pragma GCC diagnostic pop
 
 #include "ApvlvEpub.h"
 #include "ApvlvUtil.h"

@@ -16,9 +16,9 @@ MESSAGE("-- CXX FLAGS: ${CMAKE_CXX_FLAGS}")
 OPTION(APVLV_WITH_MUPDF "If build binary with MuPDF." On)
 IF (WIN32)
     OPTION(APVLV_WITH_POPPLER "If build binary with Poppler-Qt6." On)
-ELSE()
+ELSE ()
     OPTION(APVLV_WITH_POPPLER "If build binary with Poppler-Qt6." Off)
-ENDIF()
+ENDIF ()
 
 IF (WIN32)
     SET(Qt6_DIR "C:/Qt/6.7.2/msvc2019_64/lib/cmake/Qt6" CACHE STRING "Qt6config.cmake directory")
@@ -89,6 +89,7 @@ SET(HEADERS
         ApvlvQueue.h
         ApvlvImageWidget.h
         ApvlvWebViewWidget.h
+        ApvlvEditor.h
         file/ApvlvHtm.h
         file/ApvlvImage.h
         file/ApvlvQtPdf.h
@@ -119,6 +120,7 @@ SET(SOURCES
         ApvlvDired.cc
         ApvlvImageWidget.cc
         ApvlvWebViewWidget.cc
+        ApvlvEditor.cc
         file/ApvlvHtm.cc
         file/ApvlvImage.cc
         file/ApvlvQtPdf.cc
@@ -188,6 +190,23 @@ IF (APVLV_WITH_OFFICE)
         SET(SOURCES ${SOURCES} file/ApvlvLibreOffice.cc)
     ENDIF (WIN32)
 ENDIF (APVLV_WITH_OFFICE)
+
+OPTION(APVLV_WITH_OCR "If build apvlv with OCR support." ON)
+IF (${APVLV_WITH_OCR})
+    ADD_DEFINITIONS(-DAPVLV_WITH_OCR)
+    SET(HEADERS ${HEADERS} ApvlvOCR.h)
+    SET(SOURCES ${SOURCES} ApvlvOCR.cc)
+
+    IF (WIN32)
+    ELSE ()
+        MESSAGE("-- will build opencv and tesseract as OCR library")
+        PKG_CHECK_MODULES(TESSERACT tesseract opencv)
+        INCLUDE_DIRECTORIES(${TESSERACT_INCLUDE_DIRS})
+        LINK_DIRECTORIES(${TESSERACT_LIBRARY_DIRS})
+        SET(APVLV_REQ_LIBRARIES ${TESSERACT_LIBRARIES}
+                ${APVLV_REQ_LIBRARIES})
+    ENDIF ()
+ENDIF ()
 
 MESSAGE("-- link libraries: ${APVLV_REQ_LIBRARIES}")
 ADD_EXECUTABLE(apvlv ${HEADERS} ${SOURCES})

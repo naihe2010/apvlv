@@ -354,7 +354,7 @@ ApvlvView::newTab (const std::string &filename)
   if (!optndoc)
     {
       auto ndoc = new ApvlvFrame (this);
-      if (!ndoc->loadfile (docname, true, true))
+      if (!ndoc->loadFile (docname, true, true))
         {
           delete ndoc;
           ndoc = nullptr;
@@ -411,7 +411,7 @@ ApvlvView::loadFile (const std::string &filename)
   if (!optndoc)
     {
       ndoc = new ApvlvFrame (this);
-      if (!ndoc->loadfile (filename, true, true))
+      if (!ndoc->loadFile (filename, true, true))
         {
           delete ndoc;
           ndoc = nullptr;
@@ -440,7 +440,7 @@ ApvlvView::loadFileOnPage (const string &filename, int pn)
     {
       if (loadFile (filename))
         {
-          cdoc->showpage (pn, 0.0);
+          cdoc->showPage (pn, 0.0);
         }
     }
 }
@@ -717,13 +717,13 @@ ApvlvView::fullScreen ()
 void
 ApvlvView::nextPage ()
 {
-  currentFrame ()->nextpage (1);
+  currentFrame ()->nextPage (1);
 }
 
 void
 ApvlvView::previousPage ()
 {
-  currentFrame ()->prepage (1);
+  currentFrame ()->previousPage (1);
 }
 
 void
@@ -857,7 +857,7 @@ ApvlvView::subProcess (int times, uint keyval)
         {
           if (times == 0)
             times = 1;
-          currentFrame ()->showpage (times - 1, 0.0);
+          currentFrame ()->showPage (times - 1, 0.0);
         }
       break;
 
@@ -988,7 +988,7 @@ ApvlvView::runCommand (const char *str)
         {
           if (subcmd == "skip")
             {
-              currentFrame ()->setskip (
+              currentFrame ()->setSkip (
                   int (strtol (argu.c_str (), nullptr, 10)));
             }
           else
@@ -1060,17 +1060,17 @@ ApvlvView::runCommand (const char *str)
       else if (cmd == "forwardpage" || cmd == "fp")
         {
           if (subcmd.empty ())
-            currentFrame ()->nextpage (1);
+            currentFrame ()->nextPage (1);
           else
-            currentFrame ()->nextpage (
+            currentFrame ()->nextPage (
                 int (strtol (subcmd.c_str (), nullptr, 10)));
         }
       else if (cmd == "prewardpage" || cmd == "bp")
         {
           if (subcmd.empty ())
-            currentFrame ()->prepage (1);
+            currentFrame ()->previousPage (1);
           else
-            currentFrame ()->prepage (
+            currentFrame ()->previousPage (
                 int (strtol (subcmd.c_str (), nullptr, 10)));
         }
       else if (cmd == "content")
@@ -1081,8 +1081,8 @@ ApvlvView::runCommand (const char *str)
         {
           currentFrame ()->markposition ('\'');
           auto p = strtol (subcmd.c_str (), nullptr, 10);
-          p += currentFrame ()->getskip ();
-          currentFrame ()->showpage (int (p - 1), 0.0);
+          p += currentFrame ()->getSkip ();
+          currentFrame ()->showPage (int (p - 1), 0.0);
         }
       else if (cmd == "help" || cmd == "h")
         {
@@ -1133,10 +1133,10 @@ ApvlvView::runCommand (const char *str)
           if (isn && currentFrame ())
             {
               auto p = strtol (cmd.c_str (), nullptr, 10);
-              p += currentFrame ()->getskip ();
+              p += currentFrame ()->getSkip ();
               if (p != currentFrame ()->pageNumber ())
                 {
-                  currentFrame ()->showpage (int (p - 1), 0.0);
+                  currentFrame ()->showPage (int (p - 1), 0.0);
                 }
             }
           else

@@ -39,6 +39,17 @@ namespace apvlv
 {
 using namespace std;
 
+#ifdef APVLV_WITH_OCR
+TextContainer::TextContainer (QWidget *parent) : Editor (parent)
+{
+  setReadOnly (false);
+  setHorizontalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
+  setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
+}
+
+TextContainer::~TextContainer () {}
+#endif
+
 ImageContainer::ImageContainer (QWidget *parent) : QLabel (parent)
 {
   mCopyAction.setText (tr ("Copy"));
@@ -188,6 +199,40 @@ ApvlvImage::~ApvlvImage ()
   qDebug () << "ApvlvImage: " << this << " be freed";
 }
 
+#ifdef APVLV_WITH_OCR
+void
+ApvlvImage::ocrDisplay (bool is_ocr)
+{
+  if (is_ocr)
+    {
+      auto image = mImageContainer.pixmap ();
+      auto text = mOCR.getTextFromPixmap (image);
+      mTextContainer.setText (text.get ());
+      if (widget () != &mTextContainer)
+        {
+          takeWidget ();
+          setWidget (&mTextContainer);
+        }
+    }
+  else
+    {
+      if (widget () != &mImageContainer)
+        {
+          takeWidget ();
+          setWidget (&mImageContainer);
+        }
+    }
+}
+
+std::unique_ptr<char>
+ApvlvImage::ocrGetText ()
+{
+  auto image = mImageContainer.pixmap ();
+  auto text = mOCR.getTextFromPixmap (image);
+  return text;
+}
+#endif
+
 void
 ImageWidget::showPage (int p, double s)
 {
@@ -197,6 +242,14 @@ ImageWidget::showPage (int p, double s)
         return;
     }
   mImage.mImageContainer.redraw ();
+#ifdef APVLV_WITH_OCR
+  mImage.mTextContainer.resize (mImage.mImageContainer.size ());
+  if (mImage.widget () == &mImage.mTextContainer)
+    {
+      mImage.mTextContainer.setZoomrate (mZoomrate);
+      mImage.ocrDisplay (true);
+    }
+#endif
   scrollTo (0.0, s);
   mPageNumber = p;
 }
@@ -225,6 +278,9 @@ ImageWidget::setZoomrate (double zm)
           mImage.mImageContainer.redraw ();
           mZoomrate = zm;
         }
+#ifdef APVLV_WITH_OCR
+      mImage.mTextContainer.setZoomrate (zm);
+#endif
     }
   else
     {

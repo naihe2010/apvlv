@@ -268,6 +268,10 @@
         <source>Custom</source>
         <translation>自定义</translation>
     </message>
+    <message>
+        <source>text in clipboard</source>
+        <translation>剪贴板文本</translation>
+    </message>
 </context>
 <context>
     <name>apvlv::ApvlvSearchDialog</name>
@@ -305,6 +309,14 @@
     <message>
         <source>Zoom Out</source>
         <translation>缩小</translation>
+    </message>
+    <message>
+        <source>OCR Copy</source>
+        <translation>OCR复制</translation>
+    </message>
+    <message>
+        <source>OCR Parse</source>
+        <translation>OCR解析</translation>
     </message>
 </context>
 <context>

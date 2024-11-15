@@ -29,16 +29,33 @@
 #define _APVLV_IMAGEWIDGET_H_
 
 #include <QLabel>
+#include <QMainWindow>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QTextEdit>
+#include <QVBoxLayout>
 #include <iostream>
 #include <map>
 
 #include "ApvlvFileWidget.h"
 #include "ApvlvUtil.h"
+#ifdef APVLV_WITH_OCR
+#include "ApvlvEditor.h"
+#include "ApvlvOCR.h"
+#endif
 
 namespace apvlv
 {
+
+#ifdef APVLV_WITH_OCR
+class TextContainer : public Editor
+{
+  Q_OBJECT
+public:
+  explicit TextContainer (QWidget *parent = nullptr);
+  ~TextContainer ();
+};
+#endif
 
 class ImageWidget;
 class ImageContainer : public QLabel
@@ -93,8 +110,17 @@ public:
 
   ~ApvlvImage () override;
 
+#ifdef APVLV_WITH_OCR
+  void ocrDisplay (bool replace);
+  std::unique_ptr<char> ocrGetText ();
+#endif
+
 private:
   ImageContainer mImageContainer;
+#ifdef APVLV_WITH_OCR
+  TextContainer mTextContainer;
+  OCR mOCR;
+#endif
 
   friend class ImageWidget;
 };

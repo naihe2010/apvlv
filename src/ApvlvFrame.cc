@@ -26,6 +26,7 @@
  */
 
 #include <QBuffer>
+#include <QClipboard>
 #include <QMessageBox>
 #include <QSplitter>
 #include <filesystem>
@@ -153,13 +154,13 @@ ApvlvFrame::print ([[maybe_unused]] int ct)
 }
 
 int
-ApvlvFrame::getskip ()
+ApvlvFrame::getSkip ()
 {
   return mSkip;
 }
 
 void
-ApvlvFrame::setskip (int ct)
+ApvlvFrame::setSkip (int ct)
 {
   mSkip = ct;
 }
@@ -353,7 +354,9 @@ ApvlvToolStatus::ApvlvToolStatus (ApvlvFrame *frame) : mFrame (frame)
                     SLOT (gotoPage ()));
   addWidget (&mPageValue);
   addWidget (&mPageSum);
+  addSeparator ();
 
+  addWidget (&mScrollRate);
   addSeparator ();
 
   auto iaction = addAction (QIcon::fromTheme (QIcon::ThemeIcon::ZoomIn),
@@ -373,8 +376,20 @@ ApvlvToolStatus::ApvlvToolStatus (ApvlvFrame *frame) : mFrame (frame)
   QObject::connect (&mZoomType, SIGNAL (currentIndexChanged (int)), mFrame,
                     SLOT (setZoomMode (int)));
   mZoomType.setLineEdit (&mZoomValue);
+  addSeparator ();
 
-  addWidget (&mScrollRate);
+#ifdef APVLV_WITH_OCR
+  addWidget (&mOcrParse);
+  mOcrParse.setText (tr ("OCR Parse"));
+  QObject::connect (&mOcrParse, SIGNAL (checkStateChanged (Qt::CheckState)),
+                    mFrame, SLOT (ocrParse ()));
+
+  addAction (&mOcrCopy);
+  mOcrCopy.setIcon (QIcon::fromTheme (QIcon::ThemeIcon::Scanner));
+  mOcrCopy.setText (tr ("OCR Copy"));
+  QObject::connect (&mOcrCopy, SIGNAL (triggered (bool)), mFrame,
+                    SLOT (ocrCopy ()));
+#endif
 }
 
 void
@@ -389,6 +404,12 @@ ApvlvToolStatus::updateValue (int pn, int totpn, double zm, double sr)
     }
   mScrollRate.setText (
       QString::fromLocal8Bit ("%1%").arg (static_cast<int> (sr * 100)));
+
+#ifdef APVLV_WITH_OCR
+  auto is_image = mFrame->mWidget->widget ()->inherits ("apvlv::ApvlvImage");
+  mOcrParse.setEnabled (is_image);
+  mOcrCopy.setEnabled (is_image);
+#endif
 }
 
 void
@@ -398,12 +419,12 @@ ApvlvToolStatus::gotoPage ()
   auto pn = text.toInt ();
   if (pn != mFrame->pageNumber ())
     {
-      mFrame->showpage (pn, 0.f);
+      mFrame->showPage (pn, 0.f);
     }
 }
 
 CmdReturn
-ApvlvFrame::subprocess ([[maybe_unused]] int ct, uint key)
+ApvlvFrame::subProcess ([[maybe_unused]] int ct, uint key)
 {
   uint procmd = mProCmd;
   mProCmd = 0;
@@ -447,13 +468,13 @@ ApvlvFrame::subprocess ([[maybe_unused]] int ct, uint key)
 void
 ApvlvFrame::previousPage ()
 {
-  prepage (1);
+  previousPage (1);
 }
 
 void
 ApvlvFrame::nextPage ()
 {
-  nextpage (1);
+  nextPage (1);
 }
 
 void
@@ -485,7 +506,7 @@ void
 ApvlvFrame::zoomIn ()
 {
   auto zoomrate = mWidget->zoomrate ();
-  setzoom (zoomrate * 1.1);
+  setZoomrate (zoomrate * 1.1);
   updateStatus ();
 }
 
@@ -493,9 +514,42 @@ void
 ApvlvFrame::zoomOut ()
 {
   auto zoomrate = mWidget->zoomrate ();
-  setzoom (zoomrate / 1.1);
+  setZoomrate (zoomrate / 1.1);
   updateStatus ();
 }
+
+#ifdef APVLV_WITH_OCR
+void
+ApvlvFrame::ocrParse ()
+{
+  auto meta = mWidget->widget ()->metaObject ();
+  qDebug () << "widget is " << meta->className ();
+  if (!mWidget->widget ()->inherits ("apvlv::ApvlvImage"))
+    return;
+
+  auto image = dynamic_cast<ApvlvImage *> (mWidget->widget ());
+  auto state = mToolStatus.mOcrParse.checkState ();
+  image->ocrDisplay (state == Qt::Checked);
+}
+
+void
+ApvlvFrame::ocrCopy ()
+{
+  auto meta = mWidget->widget ()->metaObject ();
+  qDebug () << "widget is " << meta->className ();
+  if (!mWidget->widget ()->inherits ("apvlv::ApvlvImage"))
+    return;
+
+  auto image = dynamic_cast<ApvlvImage *> (mWidget->widget ());
+  auto text = image->ocrGetText ();
+#ifdef QT_DEBUG
+  QMessageBox::information (this, tr ("text in clipboard"),
+                            QString::fromLocal8Bit (text.get ()));
+#endif
+  auto clipboard = QGuiApplication::clipboard ();
+  clipboard->setText (text.get ());
+}
+#endif
 
 void
 ApvlvFrame::wheelEvent (QWheelEvent *event)
@@ -520,7 +574,7 @@ ApvlvFrame::process (int has, int ct, uint key)
 
   if (mProCmd != 0)
     {
-      return subprocess (ct, key);
+      return subProcess (ct, key);
     }
 
   if (!has)
@@ -532,17 +586,17 @@ ApvlvFrame::process (int has, int ct, uint key)
     {
     case Key_PageDown:
     case ctrlValue ('f'):
-      nextpage (ct);
+      nextPage (ct);
       break;
     case Key_PageUp:
     case ctrlValue ('b'):
-      prepage (ct);
+      previousPage (ct);
       break;
     case ctrlValue ('d'):
-      halfnextpage (ct);
+      halfNextPage (ct);
       break;
     case ctrlValue ('u'):
-      halfprepage (ct);
+      halfPreviousPage (ct);
       break;
     case ':':
     case '/':
@@ -660,11 +714,11 @@ ApvlvFrame::process (int has, int ct, uint key)
       markposition ('\'');
       if (!has)
         {
-          showpage (mFile->sum () - 1, 0.0);
+          showPage (mFile->sum () - 1, 0.0);
         }
       else
         {
-          showpage (ct - 1, 0.0);
+          showPage (ct - 1, 0.0);
         }
       break;
     case 'm':
@@ -698,7 +752,7 @@ ApvlvFrame::process (int has, int ct, uint key)
         }
       break;
     case 's':
-      setskip (ct);
+      setSkip (ct);
       break;
     case 'c':
       toggleContent ();
@@ -715,13 +769,13 @@ ApvlvFrame *
 ApvlvFrame::clone ()
 {
   auto *ndoc = new ApvlvFrame (mView);
-  ndoc->loadfile (mFilestr, false, false);
-  ndoc->showpage (mWidget->pageNumber (), mWidget->scrollRate ());
+  ndoc->loadFile (mFilestr, false, false);
+  ndoc->showPage (mWidget->pageNumber (), mWidget->scrollRate ());
   return ndoc;
 }
 
 void
-ApvlvFrame::setzoom (double zm)
+ApvlvFrame::setZoomrate (double zm)
 {
   mZoomMode = ZoomMode::CUSTOM;
   mWidget->setZoomrate (zm);
@@ -801,7 +855,7 @@ ApvlvFrame::loadLastPosition (const string &filename)
   if (filename.empty () || helppdf == filename
       || ApvlvParams::instance ()->getBoolOrDefault ("noinfo"))
     {
-      showpage (0, 0.0);
+      showPage (0, 0.0);
       return false;
     }
 
@@ -811,12 +865,12 @@ ApvlvFrame::loadLastPosition (const string &filename)
   if (optfp)
     {
       // correctly check
-      showpage (optfp.value ()->page, 0.0);
-      setskip (optfp.value ()->skip);
+      showPage (optfp.value ()->page, 0.0);
+      setSkip (optfp.value ()->skip);
     }
   else
     {
-      showpage (0, 0.0);
+      showPage (0, 0.0);
       ApvlvInfo::instance ()->updateFile (0, 0.0, mWidget->zoomrate (),
                                           filename);
     }
@@ -828,7 +882,7 @@ bool
 ApvlvFrame::reload ()
 {
   saveLastPosition (filename ());
-  return loadfile (mFilestr, false, isShowContent ());
+  return loadFile (mFilestr, false, isShowContent ());
 }
 
 int
@@ -838,20 +892,20 @@ ApvlvFrame::pageNumber ()
 }
 
 bool
-ApvlvFrame::loadfile (const string &filename, bool check, bool show_content)
+ApvlvFrame::loadFile (const std::string &file, bool check, bool show_content)
 {
-  if (check && filename == mFilestr)
+  if (check && file == mFilestr)
     {
       return false;
     }
 
-  mFile = FileFactory::loadFile (filename);
+  mFile = FileFactory::loadFile (file);
 
   if (mFile)
     {
       emit indexGenerited (mFile->getIndex ());
 
-      mFilestr = filename;
+      mFilestr = file;
 
       if (mFile->sum () <= 1)
         {
@@ -860,7 +914,7 @@ ApvlvFrame::loadfile (const string &filename, bool check, bool show_content)
 
       setWidget (mFile->getDisplayType ());
 
-      loadLastPosition (filename);
+      loadLastPosition (file);
 
       setActive (true);
 
@@ -873,7 +927,7 @@ ApvlvFrame::loadfile (const string &filename, bool check, bool show_content)
           QObject::connect (mWatcher.get (), SIGNAL (fileChanged ()), this,
                             SLOT (changed_cb ()));
 
-          auto systempath = filesystem::path (filename);
+          auto systempath = filesystem::path (file);
           if (filesystem::is_symlink (systempath))
             {
               auto realname = filesystem::read_symlink (systempath).string ();
@@ -884,7 +938,7 @@ ApvlvFrame::loadfile (const string &filename, bool check, bool show_content)
             }
           else
             {
-              mWatcher->addPath (QString::fromLocal8Bit (filename));
+              mWatcher->addPath (QString::fromLocal8Bit (file));
             }
         }
     }
@@ -916,14 +970,14 @@ ApvlvFrame::jump (const char s)
     {
       ApvlvDocPosition adp = it->second;
       markposition ('\'');
-      showpage (adp.pagenum, adp.scrollrate);
+      showPage (adp.pagenum, adp.scrollrate);
     }
 }
 
 void
-ApvlvFrame::showpage (int p, double s)
+ApvlvFrame::showPage (int pn, double s)
 {
-  auto rp = mFile->pageNumberWrap (p);
+  auto rp = mFile->pageNumberWrap (pn);
   if (rp < 0)
     return;
 
@@ -939,10 +993,10 @@ ApvlvFrame::showpage (int p, double s)
 }
 
 void
-ApvlvFrame::showpage (int p, const string &anchor)
+ApvlvFrame::showPage (int pn, const std::string &anchor)
 {
-  auto pn = mFile->pageNumberWrap (p);
-  if (pn < 0)
+  auto rp = mFile->pageNumberWrap (pn);
+  if (rp < 0)
     return;
   if (!mZoominit)
     {
@@ -950,20 +1004,20 @@ ApvlvFrame::showpage (int p, const string &anchor)
       setZoomString (nullptr);
     }
 
-  mWidget->showPage (p, anchor);
+  mWidget->showPage (rp, anchor);
   updateStatus ();
 }
 
 void
-ApvlvFrame::nextpage (int times)
+ApvlvFrame::nextPage (int times)
 {
-  showpage (mWidget->pageNumber () + times, 0.0f);
+  showPage (mWidget->pageNumber () + times, 0.0f);
 }
 
 void
-ApvlvFrame::prepage (int times)
+ApvlvFrame::previousPage (int times)
 {
-  showpage (mWidget->pageNumber () - times, 0.0f);
+  showPage (mWidget->pageNumber () - times, 0.0f);
 }
 
 void
@@ -977,7 +1031,7 @@ ApvlvFrame::refresh (int pn, double s)
 }
 
 void
-ApvlvFrame::halfnextpage (int times)
+ApvlvFrame::halfNextPage (int times)
 {
   double sr = mWidget->scrollRate ();
   int rtimes = times / 2;
@@ -995,11 +1049,11 @@ ApvlvFrame::halfnextpage (int times)
         }
     }
 
-  showpage (mWidget->pageNumber () + rtimes, sr);
+  showPage (mWidget->pageNumber () + rtimes, sr);
 }
 
 void
-ApvlvFrame::halfprepage (int times)
+ApvlvFrame::halfPreviousPage (int times)
 {
   double sr = mWidget->scrollRate ();
   int rtimes = times / 2;
@@ -1017,11 +1071,11 @@ ApvlvFrame::halfprepage (int times)
         }
     }
 
-  showpage (mWidget->pageNumber () - rtimes, sr);
+  showPage (mWidget->pageNumber () - rtimes, sr);
 }
 
 bool
-ApvlvFrame::needsearch (const string &str, bool reverse)
+ApvlvFrame::needSearch (const std::string &str, bool reverse)
 {
   if (mFile == nullptr)
     return false;
@@ -1086,7 +1140,7 @@ ApvlvFrame::search (const char *str, bool reverse)
           = (reverse ? CommandModeType::BACKSEARCH : CommandModeType::SEARCH);
     }
 
-  if (!needsearch (str, reverse))
+  if (!needSearch (str, reverse))
     {
       return true;
     }
@@ -1109,7 +1163,7 @@ ApvlvFrame::search (const char *str, bool reverse)
           if (mSearchResults != nullptr && !mSearchResults->empty ())
             {
               if (i != mWidget->pageNumber ())
-                showpage (i, 0.0);
+                showPage (i, 0.0);
               auto results = *mSearchResults;
               auto sel = 0;
               if (reverse)
@@ -1208,19 +1262,19 @@ ApvlvFrame::contentShowPage (const FileIndex *index, bool force)
 
   if (index->type == FileIndexType::FILE)
     {
-      loadfile (index->path, true, true);
+      loadFile (index->path, true, true);
       return;
     }
 
   auto file = mContent.currentFileFileIndex ();
   if (file && file->path != mFilestr)
-    loadfile (file->path, true, true);
+    loadFile (file->path, true, true);
 
   if (index->type == FileIndexType::PAGE)
     {
       if (index->page != mWidget->pageNumber ()
           || index->anchor != mWidget->anchor ())
-        showpage (index->page, index->anchor);
+        showPage (index->page, index->anchor);
     }
 }
 
@@ -1233,6 +1287,9 @@ ApvlvFrame::setWidget (DISPLAY_TYPE type)
     {
       mWidget = make_unique<ImageWidget> ();
       mWidget->setFile (mFile.get ());
+#ifdef APVLV_WITH_OCR
+      ocrParse ();
+#endif
     }
   else if (type == DISPLAY_TYPE::HTML)
     {

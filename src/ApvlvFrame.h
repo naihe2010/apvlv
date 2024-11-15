@@ -28,6 +28,8 @@
 #ifndef _APVLV_FRAME_H_
 #define _APVLV_FRAME_H_
 
+#include <QAction>
+#include <QCheckBox>
 #include <QFileSystemWatcher>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -97,9 +99,15 @@ private:
 
   ApvlvLineEdit mPageValue;
   QLabel mPageSum;
+  QLabel mScrollRate;
+
   QComboBox mZoomType;
   ApvlvLineEdit mZoomValue;
-  QLabel mScrollRate;
+
+#ifdef APVLV_WITH_OCR
+  QCheckBox mOcrParse;
+  QAction mOcrCopy;
+#endif
 
 private slots:
   void gotoPage ();
@@ -129,7 +137,7 @@ public:
 
   void setDirIndex (const std::string &path);
 
-  bool loadfile (const std::string &file, bool check, bool show_content);
+  bool loadFile (const std::string &file, bool check, bool show_content);
 
   bool loadUri (const std::string &uri);
 
@@ -137,8 +145,8 @@ public:
 
   int pageNumber ();
 
-  void showpage (int pn, double s);
-  void showpage (int pn, const std::string &anchor);
+  void showPage (int pn, double s);
+  void showPage (int pn, const std::string &anchor);
   void refresh (int pn, double s);
 
   void setActive (bool act);
@@ -159,19 +167,19 @@ public:
 
   void markposition (char s);
 
-  void setzoom (double zm);
+  void setZoomrate (double zm);
 
   void setZoomString (const char *z);
 
   void jump (char s);
 
-  void nextpage (int times);
+  void nextPage (int times);
 
-  void prepage (int times);
+  void previousPage (int times);
 
-  void halfnextpage (int times);
+  void halfNextPage (int times);
 
-  void halfprepage (int times);
+  void halfPreviousPage (int times);
 
   bool search (const char *str, bool reverse);
 
@@ -184,8 +192,8 @@ public:
 
   void contentShowPage (const FileIndex *index, bool force);
 
-  int getskip ();
-  void setskip (int ct);
+  int getSkip ();
+  void setSkip (int ct);
 
   void toggleContent ();
 
@@ -270,8 +278,8 @@ private:
   void setWidget (DISPLAY_TYPE type);
   void unsetHighlight ();
   void setHighlightAndIndex (const WordListRectangle &poses, int sel);
-  bool needsearch (const std::string &str, bool reverse);
-  CmdReturn subprocess (int ct, uint key);
+  bool needSearch (const std::string &str, bool reverse);
+  CmdReturn subProcess (int ct, uint key);
 
 signals:
   void indexGenerited (const FileIndex &index);
@@ -283,6 +291,10 @@ private slots:
   void setZoomMode (int mode);
   void zoomIn ();
   void zoomOut ();
+#ifdef APVLV_WITH_OCR
+  void ocrParse ();
+  void ocrCopy ();
+#endif
 
   friend class ApvlvStats;
   friend class ApvlvToolStatus;
