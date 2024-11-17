@@ -86,6 +86,8 @@ public:
 
   int sum () override;
 
+  bool pageIsOnlyImage (int pn) override;
+
   bool pageRenderToImage (int pn, double zm, int rot, QImage *img) override;
 
   bool pageText (int, const Rectangle &rect, std::string &text) override;

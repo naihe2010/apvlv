@@ -77,6 +77,24 @@ FileFactory::supportFileExts ()
   return exts;
 }
 
+ostream &
+FileFactory::typeEngineDescription (ostream &os)
+{
+  os << "Engines: " << endl;
+  for (auto &pair : mSupportClass)
+    {
+      string ext = pair.first;
+      string engines;
+      std::ranges::for_each (pair.second, [&engines] (ExtClass &cls) {
+        engines.append (" ");
+        engines.append (cls.first);
+      });
+      os << "\t" << pair.first << ":\t\t" << engines << endl;
+    }
+  os << endl;
+  return os;
+}
+
 int
 FileFactory::registerClass (const string &name, const function<File *()> &fun,
                             initializer_list<string> exts)

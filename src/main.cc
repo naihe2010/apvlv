@@ -61,21 +61,16 @@ registerUrlScheme ()
 static void
 usageExit ()
 {
-  fprintf (stdout,
-           "%s [options] paths\n"
-           "\n"
-           "Options: \n"
-           "%s\n"
-           "\n"
-           "Arguments: \n"
-           "%s\n"
-           "\n"
-           "Please send bug report to %s\n",
-           PACKAGE_NAME,
-           "\t-h                display this and exit\n"
-           "\t-v                display version info and exit\n"
-           "\t-c [file]         set user configuration file\n",
-           "\t paths            document path list", PACKAGE_BUGREPORT);
+  std::cout << PACKAGE_NAME << " [options] paths" << endl;
+  std::cout << endl;
+  std::cout << "Options: " << endl;
+  std::cout << "\t-h               display this and exit\n"
+               "\t-v               display version info and exit\n"
+               "\t-c [file]        set user configuration file\n"
+               "\t paths           document path list"
+            << endl;
+  FileFactory::typeEngineDescription (std::cout);
+  std::cout << "Please send bug report to " << PACKAGE_BUGREPORT << endl;
   exit (0);
 }
 

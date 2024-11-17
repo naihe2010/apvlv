@@ -47,6 +47,8 @@ public:
 
   int sum () override;
 
+  bool pageIsOnlyImage (int pn) override;
+
   bool pageRenderToImage (int pn, double zm, int rot, QImage *img) override;
 
   std::unique_ptr<WordListRectangle> pageSearch (int pn,

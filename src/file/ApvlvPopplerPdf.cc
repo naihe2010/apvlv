@@ -105,6 +105,14 @@ ApvlvPopplerPDF::pageSearch (int pn, const char *str)
 }
 
 bool
+ApvlvPopplerPDF::pageIsOnlyImage (int pn)
+{
+  auto page = mDoc->page (pn);
+  auto list = page->textList ();
+  return list.empty ();
+}
+
+bool
 ApvlvPopplerPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 {
   if (mDoc == nullptr)

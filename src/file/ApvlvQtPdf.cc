@@ -135,20 +135,29 @@ ApvlvPDF::pageSearch (int pn, const char *str)
 }
 
 bool
+ApvlvPDF::pageIsOnlyImage (int pn)
+{
+  auto sel = mDoc->getAllText (pn);
+  auto has_text = sel.isValid ();
+  return !has_text;
+}
+
+bool
 ApvlvPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 {
   if (mDoc == nullptr)
     return false;
 
+  using enum QPdfDocumentRenderOptions::Rotation;
   auto sizeF = pageSizeF (pn, rot);
   QSize image_size{ int (sizeF.width * zm), int (sizeF.height * zm) };
-  auto prot = QPdfDocumentRenderOptions::Rotation::None;
+  auto prot = None;
   if (rot == 90)
-    prot = QPdfDocumentRenderOptions::Rotation::Clockwise90;
+    prot = Clockwise90;
   if (rot == 180)
-    prot = QPdfDocumentRenderOptions::Rotation::Clockwise180;
+    prot = Clockwise180;
   if (rot == 270)
-    prot = QPdfDocumentRenderOptions::Rotation::Clockwise270;
+    prot = Clockwise270;
   QPdfDocumentRenderOptions options{};
   options.setRotation (prot);
   options.setScaledSize (image_size);

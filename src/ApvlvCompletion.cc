@@ -39,9 +39,9 @@ using namespace std;
 string
 ApvlvCompletion::complete (const string &prefix)
 {
-  auto iter = find_if (
-      mItems.cbegin (), mItems.cend (),
-      [prefix] (const string &item) { return item.find (prefix) == 0; });
+  auto iter = std::ranges::find_if (mItems, [prefix] (const string &item) {
+    return item.find (prefix) == 0;
+  });
   if (iter != mItems.cend ())
     return *iter;
   else

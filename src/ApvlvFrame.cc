@@ -406,9 +406,9 @@ ApvlvToolStatus::updateValue (int pn, int totpn, double zm, double sr)
       QString::fromLocal8Bit ("%1%").arg (static_cast<int> (sr * 100)));
 
 #ifdef APVLV_WITH_OCR
-  auto is_image = mFrame->mWidget->widget ()->inherits ("apvlv::ApvlvImage");
-  mOcrParse.setEnabled (is_image);
-  mOcrCopy.setEnabled (is_image);
+  auto need_ocr = mFrame->mFile->pageIsOnlyImage (mFrame->pageNumber ());
+  mOcrParse.setEnabled (need_ocr);
+  mOcrCopy.setEnabled (need_ocr);
 #endif
 }
 

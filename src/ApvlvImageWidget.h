@@ -53,7 +53,7 @@ class TextContainer : public Editor
   Q_OBJECT
 public:
   explicit TextContainer (QWidget *parent = nullptr);
-  ~TextContainer ();
+  ~TextContainer () override = default;
 };
 #endif
 

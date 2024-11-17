@@ -34,6 +34,13 @@ namespace apvlv
 class ApvlvIMAGE : public ApvlvHTML
 {
   FILE_TYPE_DECLARATION (ApvlvIMAGE);
+
+public:
+  bool
+  pageIsOnlyImage (int pn) override
+  {
+    return true;
+  }
 };
 
 }

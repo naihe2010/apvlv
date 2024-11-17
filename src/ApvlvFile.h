@@ -198,6 +198,13 @@ public:
   virtual bool pageRenderToWebView (int pn, double zm, int rot,
                                     WebView *webview);
 
+  // some ebooks only have image as page
+  virtual bool
+  pageIsOnlyImage (int pn)
+  {
+    return false;
+  }
+
   virtual std::unique_ptr<ApvlvLinks>
   pageLinks (int pn)
   {
@@ -255,6 +262,8 @@ public:
   supportMimeTypes ();
 
   static std::vector<std::string> supportFileExts ();
+
+  static std::ostream &typeEngineDescription (std::ostream &os);
 
   using ExtClass = std::pair<std::string, std::function<File *()> >;
   using ExtClassList = std::vector<ExtClass>;

@@ -46,8 +46,6 @@ TextContainer::TextContainer (QWidget *parent) : Editor (parent)
   setHorizontalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
 }
-
-TextContainer::~TextContainer () {}
 #endif
 
 ImageContainer::ImageContainer (QWidget *parent) : QLabel (parent)

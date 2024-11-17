@@ -83,6 +83,22 @@ ApvlvMuPDF::sum ()
 }
 
 bool
+ApvlvMuPDF::pageIsOnlyImage (int pn)
+{
+  auto text_page
+      = fz_new_stext_page_from_page_number (mContext, mDoc, pn, nullptr);
+  if (text_page == nullptr)
+    {
+      return true;
+    }
+
+  auto only_image = (text_page->first_block == nullptr);
+
+  fz_drop_stext_page (mContext, text_page);
+  return only_image;
+}
+
+bool
 ApvlvMuPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 {
   auto scale = fz_scale (static_cast<float> (zm), static_cast<float> (zm));
@@ -137,9 +153,8 @@ ApvlvMuPDF::pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb)
 bool
 ApvlvMuPDF::pageText (int pn, const Rectangle &rect, string &text)
 {
-  auto options = fz_stext_options{};
   auto text_page
-      = fz_new_stext_page_from_page_number (mContext, mDoc, pn, &options);
+      = fz_new_stext_page_from_page_number (mContext, mDoc, pn, nullptr);
   auto fzrect = fz_rect{
     .x0 = static_cast<float> (rect.p1x),
     .y0 = static_cast<float> (rect.p1y),
