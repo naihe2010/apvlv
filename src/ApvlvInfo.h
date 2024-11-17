@@ -27,9 +27,9 @@
 #ifndef _APVLV_INFO_H_
 #define _APVLV_INFO_H_
 
+#include <deque>
 #include <optional>
 #include <string>
-#include <vector>
 
 namespace apvlv
 {
@@ -42,6 +42,8 @@ struct InfoFile
   std::string file;
 };
 
+const int DEFAULT_MAX_INFO = 100;
+
 class ApvlvInfo final
 {
 public:
@@ -50,7 +52,6 @@ public:
   void loadFile (std::string_view file);
   bool update ();
 
-  std::optional<InfoFile *> file (int);
   std::optional<InfoFile *> file (const std::string &filename);
   bool updateFile (int page, int skip, double rate,
                    const std::string &filename);
@@ -63,13 +64,13 @@ public:
   }
 
 private:
-  ApvlvInfo () = default;
+  ApvlvInfo ();
   ~ApvlvInfo () = default;
 
   std::string mFileName{};
 
-  std::vector<InfoFile> mInfoFiles{};
-  int mFileMax{ 0 };
+  std::deque<InfoFile> mInfoFiles{};
+  std::deque<InfoFile>::size_type mMaxInfo{ DEFAULT_MAX_INFO };
 
   bool addPosition (const char *str);
 };

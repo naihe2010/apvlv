@@ -199,8 +199,8 @@ IF (${APVLV_WITH_OCR})
 
     IF (WIN32)
     ELSE ()
-        MESSAGE("-- will build opencv and tesseract as OCR library")
-        PKG_CHECK_MODULES(TESSERACT tesseract opencv)
+        MESSAGE("-- will build tesseract as OCR library")
+        PKG_CHECK_MODULES(TESSERACT tesseract)
         INCLUDE_DIRECTORIES(${TESSERACT_INCLUDE_DIRS})
         LINK_DIRECTORIES(${TESSERACT_LIBRARY_DIRS})
         SET(APVLV_REQ_LIBRARIES ${TESSERACT_LIBRARIES}

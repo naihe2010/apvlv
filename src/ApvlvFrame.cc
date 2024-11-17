@@ -117,6 +117,7 @@ ApvlvFrame::ApvlvFrame (ApvlvView *view) : mToolStatus (this)
 ApvlvFrame::~ApvlvFrame ()
 {
   qDebug () << "ApvlvFrame: " << this << " be freed";
+  saveLastPosition (mFilestr);
 }
 
 void
@@ -881,7 +882,6 @@ ApvlvFrame::loadLastPosition (const string &filename)
 bool
 ApvlvFrame::reload ()
 {
-  saveLastPosition (filename ());
   return loadFile (mFilestr, false, isShowContent ());
 }
 
@@ -898,6 +898,8 @@ ApvlvFrame::loadFile (const std::string &file, bool check, bool show_content)
     {
       return false;
     }
+
+  saveLastPosition (mFilestr);
 
   mFile = FileFactory::loadFile (file);
 

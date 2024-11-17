@@ -24,13 +24,15 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
-#include "ApvlvInfo.h"
-
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <sstream>
+#include <ranges>
+
+#include "ApvlvInfo.h"
+#include "ApvlvParams.h"
 
 namespace apvlv
 {
@@ -40,7 +42,6 @@ void
 ApvlvInfo::loadFile (std::string_view file)
 {
   mFileName = file;
-  mFileMax = 10;
 
   ifstream is (mFileName, ios::in);
   if (is.is_open ())
@@ -80,8 +81,6 @@ ApvlvInfo::update ()
       os << infofile.page << ':' << infofile.skip << "\t";
       os << infofile.rate << "\t";
       os << infofile.file << endl;
-      if (i >= mFileMax)
-        break;
     }
 
   os.close ();
@@ -89,25 +88,13 @@ ApvlvInfo::update ()
 }
 
 optional<InfoFile *>
-ApvlvInfo::file (int id)
-{
-  if (id < static_cast<int> (mInfoFiles.size ()))
-    {
-      auto &infofile = mInfoFiles[id];
-      return &infofile;
-    }
-
-  return nullopt;
-}
-
-optional<InfoFile *>
 ApvlvInfo::file (const string &filename)
 {
   auto itr
-      = std::ranges::find_if (mInfoFiles, [filename] (auto const &infofile) {
+      = std::ranges::find_if (std::views::reverse(mInfoFiles), [filename] (auto const &infofile) {
           return infofile.file == filename;
         });
-  if (itr != mInfoFiles.end ())
+  if (itr != mInfoFiles.rend ())
     {
       return &(*itr);
     }
@@ -126,10 +113,18 @@ ApvlvInfo::updateFile (int page, int skip, double rate, const string &filename)
     }
   else
     {
-      mInfoFiles.emplace_back (infofile);
+      mInfoFiles.push_back (infofile);
+      if (mInfoFiles.size () > mMaxInfo)
+        mInfoFiles.pop_front ();
     }
 
   return update ();
+}
+
+ApvlvInfo::ApvlvInfo ()
+{
+  mMaxInfo = ApvlvParams::instance ()->getIntOrDefault ("max_info",
+                                                        DEFAULT_MAX_INFO);
 }
 
 bool

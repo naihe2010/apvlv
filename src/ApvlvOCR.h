@@ -31,10 +31,6 @@
 #include <QPixmap>
 #include <QRect>
 #include <memory>
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-enum-enum-conversion"
-#include <opencv2/dnn.hpp>
-#pragma GCC diagnostic pop
 #include <tesseract/capi.h>
 #include <vector>
 
@@ -55,7 +51,6 @@ public:
 
 private:
   TessBaseAPI mTessBaseAPI;
-  cv::dnn::Net net;
 };
 
 }
