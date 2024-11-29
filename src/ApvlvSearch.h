@@ -98,14 +98,14 @@ private:
 
   SearchOptions mOptions;
   LockQueue<std::string> mFilenameQueue;
-  LockQueue<std::unique_ptr<SearchFileMatch> > mResults;
+  LockQueue<std::unique_ptr<SearchFileMatch>> mResults;
   std::atomic<bool> mRestart;
   std::atomic<bool> mQuit;
 };
 
-std::vector<std::pair<size_t, size_t> > grep (const std::string &source,
-                                              const std::string &text,
-                                              bool is_case, bool is_regex);
+std::vector<std::pair<size_t, size_t>> grep (const std::string &source,
+                                             const std::string &text,
+                                             bool is_case, bool is_regex);
 
 }
 

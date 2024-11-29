@@ -35,6 +35,7 @@
 #include <vector>
 
 #include "ApvlvFileIndex.h"
+#include "ApvlvNote.h"
 #include "ApvlvParams.h"
 #include "ApvlvSearch.h"
 
@@ -131,10 +132,31 @@ public:
     return mFilename;
   }
 
+  bool
+  setFilename (const std::string &filename)
+  {
+    if (load (filename))
+      {
+        mFilename = filename;
+
+        mNote.load ();
+
+        return true;
+      }
+
+    return false;
+  }
+
   const ApvlvCover &
   getCover ()
   {
     return mCover;
+  }
+
+  Note *
+  getNote ()
+  {
+    return &mNote;
   }
 
   const FileIndex &
@@ -223,7 +245,7 @@ public:
     return nullptr;
   }
 
-  virtual std::optional<std::vector<Rectangle> >
+  virtual std::optional<std::vector<Rectangle>>
   pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb)
   {
     return std::nullopt;
@@ -237,7 +259,7 @@ public:
   virtual int pathPageNumber (const std::string &path);
 
 protected:
-  File () = default;
+  File () : mNote (this) {}
 
   std::string mFilename;
   FileIndex mIndex;
@@ -245,6 +267,7 @@ protected:
   std::map<std::string, int> srcPages;
   std::map<std::string, std::string> srcMimeTypes;
   ApvlvCover mCover;
+  Note mNote;
 
 private:
   std::optional<QByteArray> pathContentHtml (int, double, int);
@@ -258,21 +281,21 @@ public:
                             const std::function<File *()> &fun,
                             std::initializer_list<std::string> exts);
 
-  static const std::map<std::string, std::vector<std::string> > &
+  static const std::map<std::string, std::vector<std::string>> &
   supportMimeTypes ();
 
   static std::vector<std::string> supportFileExts ();
 
   static std::ostream &typeEngineDescription (std::ostream &os);
 
-  using ExtClass = std::pair<std::string, std::function<File *()> >;
+  using ExtClass = std::pair<std::string, std::function<File *()>>;
   using ExtClassList = std::vector<ExtClass>;
 
   static std::optional<ExtClass> findMatchClass (const std::string &filename);
   static std::unique_ptr<File> loadFile (const std::string &filename);
 
 private:
-  static std::map<std::string, std::vector<std::string> > mSupportMimeTypes;
+  static std::map<std::string, std::vector<std::string>> mSupportMimeTypes;
   static std::map<std::string, ExtClassList> mSupportClass;
 };
 

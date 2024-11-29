@@ -50,7 +50,7 @@ public:
   std::optional<QByteArray> pathContent (const std::string &path) override;
 
 private:
-  std::map<std::string, std::pair<std::string, std::string> > titleSections;
+  std::map<std::string, std::pair<std::string, std::string>> titleSections;
   std::string mCoverHref;
 
   bool parseFb2 (const char *content, size_t length);

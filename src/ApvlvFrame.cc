@@ -695,11 +695,11 @@ ApvlvFrame::process (int has, int ct, uint key)
       returnLink (ct);
       break;
     case 't':
-      mView->newTab (helppdf);
+      mView->newTab (HelpPdf);
       mView->open ();
       break;
     case 'T':
-      mView->newTab (helppdf);
+      mView->newTab (HelpPdf);
       mView->openDir ();
       break;
     case 'o':
@@ -839,7 +839,7 @@ ApvlvFrame::setZoomString (const char *z)
 bool
 ApvlvFrame::saveLastPosition (const string &filename)
 {
-  if (filename.empty () || helppdf == filename
+  if (filename.empty () || HelpPdf == filename
       || ApvlvParams::instance ()->getBoolOrDefault ("noinfo", false))
     {
       return false;
@@ -853,7 +853,7 @@ ApvlvFrame::saveLastPosition (const string &filename)
 bool
 ApvlvFrame::loadLastPosition (const string &filename)
 {
-  if (filename.empty () || helppdf == filename
+  if (filename.empty () || HelpPdf == filename
       || ApvlvParams::instance ()->getBoolOrDefault ("noinfo"))
     {
       showPage (0, 0.0);

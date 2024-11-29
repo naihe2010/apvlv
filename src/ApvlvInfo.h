@@ -52,6 +52,7 @@ public:
   void loadFile (std::string_view file);
   bool update ();
 
+  std::optional<InfoFile *> lastFile ();
   std::optional<InfoFile *> file (const std::string &filename);
   bool updateFile (int page, int skip, double rate,
                    const std::string &filename);

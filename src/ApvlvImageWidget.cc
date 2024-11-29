@@ -27,6 +27,7 @@
 
 #include <QBuffer>
 #include <QClipboard>
+#include <QInputDialog>
 #include <QLabel>
 #include <QMouseEvent>
 #include <QScrollArea>
@@ -174,13 +175,54 @@ ImageContainer::copy ()
 void
 ImageContainer::underline ()
 {
-  qDebug () << "copy text";
+  qDebug () << "underline text";
+  auto page = mImageWidget->pageNumber ();
+  auto range = selectionRange ();
+  auto text = selectionText ();
+  if (!text.empty ())
+    {
+      auto note = mImageWidget->file ()->getNote ();
+      Comment comment;
+      comment.quoteText = text;
+      comment.begin.set (page, &range.first);
+      comment.end.set (page, &range.second);
+      note->addComment (comment);
+    }
+
+  mImageWidget->setSelects ({});
+  redraw ();
 }
 
 void
 ImageContainer::comment ()
 {
-  qDebug () << "copy text";
+  qDebug () << "comment text";
+  do
+    {
+      auto text = selectionText ();
+      if (text.empty ())
+        break;
+
+      auto input_text = QInputDialog::getMultiLineText (this, tr ("Input"),
+                                                        tr ("Comment"));
+      auto commentText = input_text.trimmed ();
+      if (commentText.isEmpty ())
+        break;
+
+      auto page = mImageWidget->pageNumber ();
+      auto range = selectionRange ();
+      auto note = mImageWidget->file ()->getNote ();
+      Comment comment;
+      comment.quoteText = text,
+      comment.commentText = commentText.toStdString ();
+      comment.begin.set (page, &range.first);
+      comment.end.set (page, &range.second);
+      note->addComment (comment);
+    }
+  while (false);
+
+  mImageWidget->setSelects ({});
+  redraw ();
 }
 
 ApvlvImage::ApvlvImage ()
@@ -189,7 +231,7 @@ ApvlvImage::ApvlvImage ()
   setHorizontalScrollBarPolicy (Qt::ScrollBarPolicy::ScrollBarAsNeeded);
   setVerticalScrollBarPolicy (Qt::ScrollBarPolicy::ScrollBarAsNeeded);
 
-  QScrollArea::setWidget (&mImageContainer);
+  setWidget (&mImageContainer);
 }
 
 ApvlvImage::~ApvlvImage ()

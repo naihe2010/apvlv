@@ -228,7 +228,7 @@ private:
 
   ApvlvCmds mCmds;
 
-  std::vector<std::unique_ptr<ApvlvFrame> > mDocs;
+  std::vector<std::unique_ptr<ApvlvFrame>> mDocs;
 
   std::vector<std::string> mCmdHistroy;
   size_t mCurrHistroy;

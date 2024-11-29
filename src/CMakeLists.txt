@@ -90,6 +90,7 @@ SET(HEADERS
         ApvlvImageWidget.h
         ApvlvWebViewWidget.h
         ApvlvEditor.h
+        ApvlvNote.h
         file/ApvlvHtm.h
         file/ApvlvImage.h
         file/ApvlvQtPdf.h
@@ -121,6 +122,7 @@ SET(SOURCES
         ApvlvImageWidget.cc
         ApvlvWebViewWidget.cc
         ApvlvEditor.cc
+        ApvlvNote.cc
         file/ApvlvHtm.cc
         file/ApvlvImage.cc
         file/ApvlvQtPdf.cc

@@ -122,12 +122,12 @@ parseCommandLine (const QCoreApplication &app)
   if (parser.isSet (configFileOption))
     {
       auto value = parser.value (configFileOption);
-      inifile = filesystem::absolute (value.toStdString ()).string ();
+      IniFile = filesystem::absolute (value.toStdString ()).string ();
     }
   if (parser.isSet (logFileOption))
     {
       auto value = parser.value (logFileOption);
-      logfile = filesystem::absolute (value.toStdString ()).string ();
+      LogFile = filesystem::absolute (value.toStdString ()).string ();
     }
 
   /*
@@ -140,8 +140,8 @@ parseCommandLine (const QCoreApplication &app)
   /*
    * load the user conf file
    * */
-  qDebug () << "using config: " << inifile;
-  ApvlvParams::instance ()->loadFile (inifile);
+  qDebug () << "using config: " << IniFile;
+  ApvlvParams::instance ()->loadFile (IniFile);
 
   list<string> paths;
   auto pathlist = parser.positionalArguments ();
@@ -163,7 +163,7 @@ loadTranslator (QTranslator &translator)
     {
       auto lantrans = lanuage_translator[lanstr];
       if (!translator.load (QString::fromLocal8Bit (lantrans),
-                            QString::fromLocal8Bit (translations)))
+                            QString::fromLocal8Bit (Translations)))
         {
           qWarning () << "Load i18n file failed, using English";
         }
@@ -186,13 +186,16 @@ main (int argc, char *argv[])
   QTranslator translator;
   loadTranslator (translator);
 
-  ApvlvInfo::instance ()->loadFile (sessionfile);
+  ApvlvInfo::instance ()->loadFile (SessionFile);
 
   auto paths = parseCommandLine (app);
 
-  ApvlvLog::instance ()->setLogFile (logfile);
+  NotesDir = ApvlvParams::instance ()->getGroupStringOrDefault ("notes", "dir",
+                                                                NotesDir);
 
-  string path = helppdf;
+  ApvlvLog::instance ()->setLogFile (LogFile);
+
+  string path = HelpPdf;
   if (!paths.empty ())
     {
       path = paths.front ();

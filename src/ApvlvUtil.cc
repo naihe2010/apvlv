@@ -43,16 +43,17 @@ namespace apvlv
 
 using namespace std;
 
-string helppdf;
-string iniexam;
-string icondir;
-string iconfile;
-string iconpage;
-string translations;
+string HelpPdf;
+string IniExam;
+string IconDir;
+string IconFile;
+string IconPage;
+string Translations;
 
-string inifile;
-string sessionfile;
-string logfile;
+string IniFile;
+string SessionFile;
+string LogFile;
+string NotesDir;
 
 static void
 getXdgOrHomeIni (const QString &appdir)
@@ -66,18 +67,18 @@ getXdgOrHomeIni (const QString &appdir)
       homedir = QDir::homePath ().toStdString ();
     }
 
-  inifile = appdir.toStdString () + "/.apvlvrc";
+  IniFile = appdir.toStdString () + "/.apvlvrc";
 
   if (!xdgdir.empty ())
     {
-      inifile = xdgdir + "/apvlv/apvlvrc";
+      IniFile = xdgdir + "/apvlv/apvlvrc";
     }
   else if (!homedir.empty ())
     {
-      inifile = homedir + "/.config/apvlv/apvlvrc";
-      if (!filesystem::is_regular_file (inifile))
+      IniFile = homedir + "/.config/apvlv/apvlvrc";
+      if (!filesystem::is_regular_file (IniFile))
         {
-          inifile = homedir + "/.apvlvrc";
+          IniFile = homedir + "/.apvlvrc";
         }
     }
 }
@@ -93,14 +94,14 @@ getXdgOrCachePath (const QString &appdir)
       homedir = QDir::homePath ().toStdString ();
     }
 
-  sessionfile = appdir.toStdString () + "/apvlvinfo";
+  SessionFile = appdir.toStdString () + "/apvlvinfo";
   if (!xdgdir.empty ())
     {
-      sessionfile = xdgdir + "/apvlvinfo";
+      SessionFile = xdgdir + "/apvlvinfo";
     }
   else if (!homedir.empty ())
     {
-      sessionfile = homedir + "/.cache/apvlvinfo";
+      SessionFile = homedir + "/.cache/apvlvinfo";
     }
 }
 
@@ -112,23 +113,26 @@ getRuntimePaths ()
   auto prefix = dirpath.path ().toStdString ();
   auto apvlvdir = prefix + "/share/doc/apvlv";
 
-  helppdf = apvlvdir + "/Startup.pdf";
-  icondir = apvlvdir + "/icons/dir.png";
-  iconfile = apvlvdir + "/icons/pdf.png";
-  iconpage = apvlvdir + "/icons/reg.png";
-  translations = apvlvdir + "/translations";
+  HelpPdf = apvlvdir + "/Startup.pdf";
+  IconDir = apvlvdir + "/icons/dir.png";
+  IconFile = apvlvdir + "/icons/pdf.png";
+  IconPage = apvlvdir + "/icons/reg.png";
+  Translations = apvlvdir + "/translations";
 
 #ifndef WIN32
-  iniexam = string (SYSCONFDIR) + "/apvlvrc.example";
+  IniExam = string (SYSCONFDIR) + "/apvlvrc.example";
 #else
-  iniexam = apvlvdir + "/apvlvrc.example";
+  IniExam = apvlvdir + "/apvlvrc.example";
 #endif
 
   getXdgOrHomeIni (dirpath.path ());
   getXdgOrCachePath (dirpath.path ());
+
+  auto homedir = QDir::homePath ().toStdString ();
+  NotesDir = homedir + "/" + "ApvlvNotes";
 }
 
-optional<unique_ptr<QXmlStreamReader> >
+optional<unique_ptr<QXmlStreamReader>>
 xmlContentGetElement (const char *content, size_t length,
                       const vector<string> &names)
 {

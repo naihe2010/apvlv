@@ -157,9 +157,9 @@ ApvlvContent::setupTree ()
   mTreeWidget.setSelectionMode (
       QAbstractItemView::SelectionMode::ExtendedSelection);
 
-  mTypeIcons[FileIndexType::DIR] = QIcon (icondir.c_str ());
-  mTypeIcons[FileIndexType::FILE] = QIcon (iconfile.c_str ());
-  mTypeIcons[FileIndexType::PAGE] = QIcon (iconpage.c_str ());
+  mTypeIcons[FileIndexType::DIR] = QIcon (IconDir.c_str ());
+  mTypeIcons[FileIndexType::FILE] = QIcon (IconFile.c_str ());
+  mTypeIcons[FileIndexType::PAGE] = QIcon (IconPage.c_str ());
 
   QObject::connect (&mTreeWidget,
                     SIGNAL (itemActivated (QTreeWidgetItem *, int)), this,

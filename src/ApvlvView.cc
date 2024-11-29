@@ -222,7 +222,7 @@ void
 ApvlvView::open ()
 {
   QString dirname;
-  auto fp = ApvlvInfo::instance ()->file (0);
+  auto fp = ApvlvInfo::instance ()->lastFile ();
   if (fp)
     {
       dirname = QString::fromLocal8Bit (
@@ -261,7 +261,7 @@ void
 ApvlvView::openDir ()
 {
   QString dirname;
-  auto fp = ApvlvInfo::instance ()->file (0);
+  auto fp = ApvlvInfo::instance ()->lastFile ();
   if (fp)
     {
       dirname = QString::fromLocal8Bit (
@@ -347,7 +347,7 @@ ApvlvView::newTab (const std::string &filename)
   auto docname = filename;
   if (filesystem::is_directory (filename))
     {
-      docname = helppdf;
+      docname = HelpPdf;
     }
 
   auto optndoc = hasLoaded (docname);
@@ -1086,7 +1086,7 @@ ApvlvView::runCommand (const char *str)
         }
       else if (cmd == "help" || cmd == "h")
         {
-          loadFile (helppdf);
+          loadFile (HelpPdf);
         }
       else if (cmd == "q" || cmd == "quit")
         {
@@ -1105,7 +1105,7 @@ ApvlvView::runCommand (const char *str)
         }
       else if (cmd == "tabnew")
         {
-          newTab (helppdf);
+          newTab (HelpPdf);
         }
       else if (cmd == "tabn" || cmd == "tabnext")
         {

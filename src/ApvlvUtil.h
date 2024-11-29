@@ -38,16 +38,17 @@ namespace apvlv
 {
 
 // Global files
-extern std::string helppdf;
-extern std::string iniexam;
-extern std::string icondir;
-extern std::string iconfile;
-extern std::string iconpage;
-extern std::string translations;
+extern std::string HelpPdf;
+extern std::string IniExam;
+extern std::string IconDir;
+extern std::string IconFile;
+extern std::string IconPage;
+extern std::string Translations;
 
-extern std::string inifile;
-extern std::string sessionfile;
-extern std::string logfile;
+extern std::string IniFile;
+extern std::string SessionFile;
+extern std::string LogFile;
+extern std::string NotesDir;
 
 void getRuntimePaths ();
 
@@ -59,7 +60,7 @@ const char PATH_SEP_C = '/';
 const char *const PATH_SEP_S = "/";
 #endif
 
-std::optional<std::unique_ptr<QXmlStreamReader> >
+std::optional<std::unique_ptr<QXmlStreamReader>>
 xmlContentGetElement (const char *content, size_t length,
                       const std::vector<std::string> &names);
 

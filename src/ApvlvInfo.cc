@@ -28,8 +28,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
-#include <sstream>
 #include <ranges>
+#include <sstream>
 
 #include "ApvlvInfo.h"
 #include "ApvlvParams.h"
@@ -87,13 +87,21 @@ ApvlvInfo::update ()
   return true;
 }
 
+std::optional<InfoFile *>
+ApvlvInfo::lastFile ()
+{
+  if (mInfoFiles.empty ())
+    return nullopt;
+  else
+    return &*(mInfoFiles.rbegin ());
+}
+
 optional<InfoFile *>
 ApvlvInfo::file (const string &filename)
 {
-  auto itr
-      = std::ranges::find_if (std::views::reverse(mInfoFiles), [filename] (auto const &infofile) {
-          return infofile.file == filename;
-        });
+  auto itr = std::ranges::find_if (
+      std::views::reverse (mInfoFiles),
+      [filename] (auto const &infofile) { return infofile.file == filename; });
   if (itr != mInfoFiles.rend ())
     {
       return &(*itr);

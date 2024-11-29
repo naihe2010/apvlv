@@ -58,7 +58,7 @@ public:
 
   bool pageRenderToImage (int pn, double zm, int rot, QImage *img) override;
 
-  std::optional<std::vector<Rectangle> >
+  std::optional<std::vector<Rectangle>>
   pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb) override;
 
   bool pageText (int pn, const Rectangle &rect, std::string &text) override;

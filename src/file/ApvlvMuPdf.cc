@@ -24,7 +24,6 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
-#include <QInputDialog>
 #include <QMessageBox>
 #include <filesystem>
 #include <fstream>
@@ -125,7 +124,7 @@ ApvlvMuPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
   return true;
 }
 
-optional<vector<Rectangle> >
+optional<vector<Rectangle>>
 ApvlvMuPDF::pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb)
 {
   auto options = fz_stext_options{};
