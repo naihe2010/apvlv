@@ -28,8 +28,6 @@
 #ifndef _APVLV_WINDOW_H_
 #define _APVLV_WINDOW_H_
 
-#include <iostream>
-
 #include "ApvlvFrame.h"
 
 namespace apvlv

@@ -28,13 +28,9 @@
 #define _APVLV_FILE_INDEX_H_
 
 #include <QImage>
-#include <iostream>
 #include <list>
-#include <map>
-#include <memory>
 #include <string>
 
-#include "ApvlvParams.h"
 #include "ApvlvSearch.h"
 
 namespace apvlv

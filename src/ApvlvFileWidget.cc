@@ -25,9 +25,6 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
-#include <QScrollBar>
-#include <string>
-
 #include "ApvlvFileWidget.h"
 #include "ApvlvParams.h"
 

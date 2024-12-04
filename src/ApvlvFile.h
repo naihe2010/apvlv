@@ -27,8 +27,6 @@
 #ifndef _APVLV_FILE_H_
 #define _APVLV_FILE_H_
 
-#include <QImage>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <string>

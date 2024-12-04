@@ -26,10 +26,8 @@
 
 #include <QApplication>
 #include <QInputDialog>
-#include <QPdfBookmarkModel>
-#include <QPdfDocument>
+#include <QPainter>
 #include <QPdfPageNavigator>
-#include <QPdfSearchModel>
 #include <QThread>
 #include <QtPdfWidgets/QPdfView>
 #include <filesystem>
@@ -162,6 +160,12 @@ ApvlvPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
   options.setRotation (prot);
   options.setScaledSize (image_size);
   *pix = mDoc->render (pn, image_size, options);
+
+  if (auto comments = mNote.getCommentsInPage (pn); !comments.empty ())
+    {
+      pageRenderComments (pn, pix, comments);
+    }
+
   return true;
 }
 
@@ -175,6 +179,36 @@ ApvlvPDF::pageText (int pn, const Rectangle &rect, string &text)
                                        { rect.p2x, rect.p2y });
   text = selection.text ().toStdString ();
   return true;
+}
+
+void
+ApvlvPDF::pageRenderComments (int pn, QImage *img,
+                          const std::vector<Comment> &comments)
+{
+  auto model = make_unique<QPdfSearchModel> ();
+  model->setDocument (mDoc.get ());
+  QPainter painter (img);
+  painter.setPen (QPen (Qt::blue, 0.4));
+
+  // TODO
+  // search not work, need better impl
+  for (auto const &comment : comments)
+    {
+      model->setSearchString (QString::fromLocal8Bit (comment.quoteText));
+      auto links = model->resultsOnPage (pn);
+      if (links.empty ())
+        continue;
+
+      for (auto const &link : links)
+        {
+          auto rects = link.rectangles ();
+          auto brect = rects[0];
+          auto erect = rects[rects.count () - 1];
+          painter.drawLine (brect.x(), brect.y() + brect.height (), erect.x(), brect.y() + brect.height ());
+        }
+    }
+
+  painter.end ();
 }
 
 bool

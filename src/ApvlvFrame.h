@@ -31,12 +31,8 @@
 #include <QAction>
 #include <QCheckBox>
 #include <QFileSystemWatcher>
-#include <QHBoxLayout>
 #include <QLabel>
-#include <QScrollArea>
-#include <QScrollBar>
 #include <QSplitter>
-#include <QVBoxLayout>
 #include <iostream>
 #include <map>
 

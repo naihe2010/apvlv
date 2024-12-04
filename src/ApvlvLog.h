@@ -27,7 +27,6 @@
 #define _APVLV_LOG_H_
 
 #include <QFile>
-#include <QString>
 #include <QTextStream>
 #include <QtMessageHandler>
 #include <memory>

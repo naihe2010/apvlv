@@ -28,7 +28,6 @@
 #include <QBuffer>
 #include <QClipboard>
 #include <QMessageBox>
-#include <QSplitter>
 #include <filesystem>
 #include <fstream>
 #include <memory>

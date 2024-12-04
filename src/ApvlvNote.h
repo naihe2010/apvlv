@@ -41,7 +41,7 @@ namespace apvlv
 const float NoteScoreMin = 0.0f;
 const float NoteScoreMax = 10.0f;
 
-class ApvlvPoint;
+struct ApvlvPoint;
 struct Location
 {
   int page{ 0 };

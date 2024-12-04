@@ -28,10 +28,7 @@
 #include <QBuffer>
 #include <QClipboard>
 #include <QInputDialog>
-#include <QLabel>
 #include <QMouseEvent>
-#include <QScrollArea>
-#include <QSplitter>
 #include <iostream>
 
 #include "ApvlvImageWidget.h"

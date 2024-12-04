@@ -25,7 +25,6 @@
  */
 
 #include <QFile>
-#include <QXmlStreamReader>
 #include <cmath>
 #include <sstream>
 

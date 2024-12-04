@@ -32,7 +32,6 @@
 #include <QMenu>
 #include <QTimer>
 #include <QToolBar>
-#include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QVBoxLayout>
 #include <iostream>

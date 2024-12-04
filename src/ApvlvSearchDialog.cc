@@ -25,18 +25,12 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
-#include <QCheckBox>
 #include <QFileDialog>
-#include <QFileSystemModel>
-#include <QPushButton>
-#include <QSplitter>
-#include <QVBoxLayout>
 #include <algorithm>
 #include <regex>
 #include <stack>
 
 #include "ApvlvFile.h"
-#include "ApvlvParams.h"
 #include "ApvlvSearchDialog.h"
 
 namespace apvlv

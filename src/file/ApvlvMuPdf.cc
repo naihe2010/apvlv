@@ -105,6 +105,11 @@ ApvlvMuPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
   auto color = fz_device_rgb (mContext);
   auto pixmap
       = fz_new_pixmap_from_page_number (mContext, mDoc, pn, mat, color, 0);
+  if (pixmap == nullptr)
+    return false;
+
+  auto comments = mNote.getCommentsInPage (pn);
+  pageRenderComments (pn, pixmap, comments, mat);
 
   QImage img{ pixmap->w, pixmap->h, QImage::Format_RGB32 };
   for (auto y = 0; y < pixmap->h; ++y)
@@ -132,9 +137,9 @@ ApvlvMuPDF::pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb)
       = fz_new_stext_page_from_page_number (mContext, mDoc, pn, &options);
   auto fa = fz_point{ static_cast<float> (pa.x), static_cast<float> (pa.y) };
   auto fb = fz_point{ static_cast<float> (pb.x), static_cast<float> (pb.y) };
-  fz_quad quad_array[1024];
+  std::array<fz_quad, 1024> quad_array;
   auto quads
-      = fz_highlight_selection (mContext, text_page, fa, fb, quad_array, 1024);
+      = fz_highlight_selection (mContext, text_page, fa, fb, quad_array.data(), quad_array.size());
   fz_drop_stext_page (mContext, text_page);
   if (quads == 0)
     return nullopt;
@@ -142,7 +147,7 @@ ApvlvMuPDF::pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb)
   auto rect_list = vector<Rectangle>{};
   for (auto i = 0; i < quads; ++i)
     {
-      auto quad = quad_array + i;
+      auto quad = &quad_array[i];
       Rectangle r{ quad->ul.x, quad->ul.y, quad->lr.x, quad->lr.y };
       rect_list.emplace_back (r);
     }
@@ -169,9 +174,9 @@ unique_ptr<WordListRectangle>
 ApvlvMuPDF::pageSearch (int pn, const char *str)
 {
   int hit;
-  fz_quad quad_array[1024];
+  std::array<fz_quad, 1024> quad_array;
   auto count = fz_search_page_number (mContext, mDoc, pn, str, &hit,
-                                      quad_array, 1024);
+                                      quad_array.data (), quad_array.size ());
   if (count == 0)
     return nullptr;
 
@@ -186,6 +191,46 @@ ApvlvMuPDF::pageSearch (int pn, const char *str)
       list->push_back (rectangle);
     }
   return list;
+}
+
+void
+ApvlvMuPDF::pageRenderComments (int pn, fz_pixmap *pixmap,
+                                const vector<Comment> &comments,
+                                const fz_matrix &mat)
+{
+  if (comments.empty ())
+    return;
+
+  auto dev = fz_new_draw_device (mContext, mat, pixmap);
+  auto stroke = fz_new_stroke_state (mContext);
+  stroke->linewidth = 0.4;
+  fz_path *path = fz_new_path (mContext);
+  auto scale = fz_scale (1.0, 1.0);
+  std::array<float, 3> color = { 0.0, 0.0, 1.0 };
+
+  for (const auto &comment : comments)
+    {
+      ApvlvPoint pa{ comment.begin.x, comment.begin.y };
+      ApvlvPoint pb{ comment.end.x, comment.end.y };
+      auto rect_list = pageHighlight (pn, pa, pb);
+      if (rect_list->empty ())
+        continue;
+
+      for (auto const &rect : rect_list.value ())
+        {
+          fz_moveto (mContext, path, static_cast<float> (rect.p1x),
+                     static_cast<float> (rect.p2y));
+          fz_lineto (mContext, path, static_cast<float> (rect.p2x),
+                     static_cast<float> (rect.p2y));
+          fz_stroke_path (mContext, dev, path, stroke, scale,
+                          fz_device_rgb (mContext), color.data (), 0.8,
+                          fz_default_color_params);
+        }
+    }
+
+  fz_drop_path (mContext, path);
+  fz_drop_stroke_state (mContext, stroke);
+  fz_drop_device (mContext, dev);
 }
 
 void

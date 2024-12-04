@@ -28,7 +28,6 @@
 #ifndef _APVLV_EDITOR_H_
 #define _APVLV_EDITOR_H_
 
-#include <QFont>
 #include <QTextEdit>
 
 namespace apvlv

@@ -30,7 +30,6 @@
 #include <QDir>
 #include <QProcessEnvironment>
 #include <QRegularExpression>
-#include <QXmlStreamReader>
 #include <filesystem>
 #include <memory>
 #include <optional>

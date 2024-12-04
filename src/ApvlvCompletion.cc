@@ -25,7 +25,6 @@
  */
 
 #include <QDebug>
-#include <algorithm>
 #include <filesystem>
 #include <string>
 

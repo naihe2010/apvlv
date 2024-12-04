@@ -28,6 +28,7 @@
 #define _APVLV_MUPDF_H_
 
 #include <mupdf/fitz.h>
+#include <vector>
 
 #include "ApvlvFile.h"
 
@@ -58,7 +59,7 @@ public:
 
   bool pageRenderToImage (int pn, double zm, int rot, QImage *img) override;
 
-  std::optional<std::vector<Rectangle>>
+  std::optional<std::vector<Rectangle> >
   pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb) override;
 
   bool pageText (int pn, const Rectangle &rect, std::string &text) override;
@@ -70,6 +71,9 @@ private:
   fz_context *mContext;
   fz_document *mDoc;
 
+  void pageRenderComments (int pn, fz_pixmap *pixmap,
+                           const std::vector<Comment> &comments,
+                           const fz_matrix &mat);
   void generateIndex ();
   void generateIndexRecursively (FileIndex &index, const fz_outline *outline);
 };

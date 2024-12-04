@@ -26,8 +26,6 @@
  */
 
 #include <QBuffer>
-#include <QWebEnginePage>
-#include <QWebEngineProfile>
 #include <filesystem>
 #include <iostream>
 #include <sstream>

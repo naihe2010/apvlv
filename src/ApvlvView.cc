@@ -28,12 +28,7 @@
 #include <QApplication>
 #include <QFileDialog>
 #include <QInputDialog>
-#include <QKeyEvent>
 #include <QLineEdit>
-#include <QMenu>
-#include <QMessageBox>
-#include <QToolButton>
-#include <QVBoxLayout>
 #include <filesystem>
 #include <sstream>
 

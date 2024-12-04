@@ -28,7 +28,6 @@
 #include <filesystem>
 
 #include <QApplication>
-#include <QCommandLineOption>
 #include <QCommandLineParser>
 #include <QDir>
 #include <QLocale>

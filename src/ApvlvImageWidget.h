@@ -31,11 +31,7 @@
 #include <QLabel>
 #include <QMainWindow>
 #include <QScrollArea>
-#include <QScrollBar>
-#include <QTextEdit>
 #include <QVBoxLayout>
-#include <iostream>
-#include <map>
 
 #include "ApvlvFileWidget.h"
 #include "ApvlvUtil.h"

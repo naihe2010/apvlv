@@ -32,10 +32,8 @@
 #include <QHeaderView>
 #include <QInputDialog>
 #include <QLocale>
-#include <QMenu>
 #include <QMessageBox>
 #include <QTimeZone>
-#include <QTreeWidget>
 #include <stack>
 
 #include "ApvlvContent.h"

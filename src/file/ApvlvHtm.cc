@@ -24,8 +24,6 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
-#include <QUrl>
-
 #include "ApvlvHtm.h"
 #include "ApvlvWebViewWidget.h"
 

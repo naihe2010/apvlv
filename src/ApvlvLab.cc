@@ -28,8 +28,6 @@
 #include "ApvlvUtil.h"
 #include "ApvlvWebViewWidget.h"
 
-#include <sstream>
-
 namespace apvlv
 {
 using namespace std;

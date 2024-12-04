@@ -26,7 +26,6 @@
 
 #include <LibreOfficeKit/LibreOfficeKit.hxx>
 #include <QDir>
-#include <QImage>
 #include <QTemporaryFile>
 
 #include "ApvlvLibreOffice.h"

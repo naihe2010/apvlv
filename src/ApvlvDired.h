@@ -28,18 +28,13 @@
 #ifndef _APVLV_DIRED_H_
 #define _APVLV_DIRED_H_
 
-#include <QCheckBox>
 #include <QDialog>
-#include <QFileSystemModel>
-#include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QTimer>
+#include <QVBoxLayout>
 #include <string>
 #include <thread>
-#include <vector>
-
-#include "ApvlvQueue.h"
 
 namespace apvlv
 {

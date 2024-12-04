@@ -30,8 +30,6 @@
 
 #include <QCheckBox>
 #include <QDialog>
-#include <QFileSystemModel>
-#include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -40,10 +38,8 @@
 #include <QTimer>
 #include <QVBoxLayout>
 #include <string>
-#include <thread>
 #include <vector>
 
-#include "ApvlvQueue.h"
 #include "ApvlvWebViewWidget.h"
 
 namespace apvlv
