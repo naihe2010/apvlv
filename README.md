@@ -1,10 +1,6 @@
-# Import Information
-
-## The next version of apvlv will use C++17 and Qt to support more OS (like Windows ...)
-
 # apvlv
 
-apvlv is a PDF/EPUB/TXT/FB2 Viewer Under Linux/WIN32 and its behaviour like Vim.
+apvlv is a PDF/EPUB/TXT/FB2/MOBI/CBZ/HTML ... Viewer Under Linux/WIN32 and its behaviour like Vim.
 
 Apvlv is an open source software, was created by Alf and is hosted on [github](https://github.com/naihe2010/apvlv).
 
@@ -22,10 +18,14 @@ What's more import is apvlv can support view a directory as content of a pdf/epu
 
 # Dependencies
 
-+ GTK+ version 3.0 or higher ( http://www.gtk.org/ )
-+ WebKit2GTK 4.0 or higher (https://webkitgtk.org/)
-+ Poppler version 0.5.0 with glib bindings ( http://poppler.freedesktop.org/ )
-+ libepub (https://sourceforge.net/projects/ebook-tools/)
++ Qt6 ( http://www.qt.org/ )
++ Quazip ( https://github.com/stachenov/quazip )
+
+# Optional Dependencies
+
++ Poppler-qt6 ( https://www.qt.io/ )
++ MuPDF ( https://www.mupdf.com/ )
++ Teeseract ( https://github.com/tesseract-ocr/tessdoc )
 
 # Download
 
@@ -34,36 +34,43 @@ What's more import is apvlv can support view a directory as content of a pdf/epu
 # Build
 
 1. Using cmake to generate Makefile.
-```
-cmake .
-```
+   
+   ```
+   cmake .
+   ```
 2. Execute make.
-```
-make
-```
+   
+   ```
+   make
+   ```
 
 # Install
 
 + Make a package and install it.
-```
-make package
-```
+  
+  ```
+  make package
+  ```
 + Or install it directly.
-```
-sudo make install
-```
-
+  
+  ```
+  sudo make install
+  ```
 
 # License
 
 apvlv is licensed under the GNU General Public License (GPL).
 
 # Contact
+
 + Email: Alf [naihe2010@126.com](mailto:naihe2010@126.com)
 
 # Develop Tools
-+ Vim (https://www.vim.org/)
-+ Emacs (https://www.gnu.org/software/emacs/)
-+ CLion (https://www.jetbrains.com/clion/)
 
++ Vim (https://www.vim.org/)
+
++ Emacs (https://www.gnu.org/software/emacs/)
+
++ CLion (https://www.jetbrains.com/clion/)
+  
   Thanks these great tools.
