@@ -24,21 +24,24 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2008/09/30 00:00:00 Alf */
+
+#include <filesystem>
+
+#include <QApplication>
+#include <QCommandLineParser>
+#include <QDir>
+#include <QLocale>
+#include <QMessageBox>
+#include <QTranslator>
+#include <QWebEngineUrlScheme>
 
 #include "ApvlvInfo.h"
+#include "ApvlvLog.h"
 #include "ApvlvParams.h"
 #include "ApvlvUtil.h"
 #include "ApvlvView.h"
 
-#include <clocale>
-#ifndef WIN32
-#include <getopt.h>
-#endif
-#include <glib.h>
-#include <gtk/gtk.h>
-#include <iostream>
-
+using namespace std;
 using namespace apvlv;
 
 #if defined WIN32 && defined NDEBUG
@@ -46,24 +49,32 @@ using namespace apvlv;
 #pragma comment(linker, "/ENTRY:mainCRTStartup")
 #endif
 
-#ifndef WIN32
 static void
-usage_exit ()
+registerUrlScheme ()
 {
-  fprintf (stdout,
-           "%s Usage:\n"
-           "%s\n"
-           "Please send bug report to %s\n",
-           PACKAGE_NAME,
-           "\t-h                display this and exit\n"
-           "\t-v                display version info and exit\n"
-           "\t-c [file]         set user configuration file\n",
-           PACKAGE_BUGREPORT);
+  QWebEngineUrlScheme scheme ("apvlv");
+  scheme.setSyntax (QWebEngineUrlScheme::Syntax::Path);
+  QWebEngineUrlScheme::registerScheme (scheme);
+}
+
+static void
+usageExit ()
+{
+  std::cout << PACKAGE_NAME << " [options] paths" << endl;
+  std::cout << endl;
+  std::cout << "Options: " << endl;
+  std::cout << "\t-h               display this and exit\n"
+               "\t-v               display version info and exit\n"
+               "\t-c [file]        set user configuration file\n"
+               "\t paths           document path list"
+            << endl;
+  FileFactory::typeEngineDescription (std::cout);
+  std::cout << "Please send bug report to " << PACKAGE_BUGREPORT << endl;
   exit (0);
 }
 
 static void
-version_exit ()
+versionExit ()
 {
   fprintf (stdout,
            "%s %s-%s\n"
@@ -72,244 +83,147 @@ version_exit ()
            PACKAGE_NAME, PACKAGE_VERSION, RELEASE, PACKAGE_BUGREPORT);
   exit (0);
 }
-#endif
 
-static char *
-get_xdg_or_home_ini (void)
+static list<string>
+parseCommandLine (const QCoreApplication &app)
 {
-  const gchar *xdgdir, *homedir;
-  gchar *configpath;
+  QCommandLineParser parser;
 
-  xdgdir = g_getenv ("XDG_CONFIG_DIR");
-  homedir = g_getenv ("HOME");
-  if (homedir == nullptr)
+  auto versionOption = QCommandLineOption (QStringList () << "v" << "version",
+                                           QObject::tr ("version number"));
+  parser.addOption (versionOption);
+
+  auto helpOption = QCommandLineOption (QStringList () << "h" << "help",
+                                        QObject::tr ("help information"));
+  parser.addOption (helpOption);
+
+  auto configFileOption
+      = QCommandLineOption (QStringList () << "c" << "config-file",
+                            QObject::tr ("config file"), "config");
+  parser.addOption (configFileOption);
+
+  auto logFileOption = QCommandLineOption (QStringList () << "l" << "log-file",
+                                           QObject::tr ("log file"), "log");
+  parser.addOption (logFileOption);
+
+  parser.addPositionalArgument ("path", QObject::tr ("document path"));
+
+  parser.process (app);
+
+  if (parser.isSet (helpOption))
     {
-      homedir = g_get_home_dir ();
+      usageExit ();
     }
-  if (xdgdir != nullptr)
+  if (parser.isSet (versionOption))
     {
-      configpath = g_strdup_printf ("%s/apvlv/apvlvrc", xdgdir);
+      versionExit ();
     }
-  else if (homedir != nullptr)
+  if (parser.isSet (configFileOption))
     {
-      configpath = g_strdup_printf ("%s/.config/apvlv/apvlvrc", homedir);
-      if (g_file_test (configpath, G_FILE_TEST_IS_REGULAR) == FALSE)
-        {
-          g_free (configpath);
-          configpath = g_strdup_printf ("%s/.apvlvrc", homedir);
-        }
+      auto value = parser.value (configFileOption);
+      IniFile = filesystem::absolute (value.toStdString ()).string ();
     }
-  else
+  if (parser.isSet (logFileOption))
     {
-      configpath = absolutepath (inifile.c_str ());
+      auto value = parser.value (logFileOption);
+      LogFile = filesystem::absolute (value.toStdString ()).string ();
     }
-
-  if (configpath && g_file_test (configpath, G_FILE_TEST_IS_REGULAR))
-    return configpath;
-  else
-    return nullptr;
-}
-
-static char *
-get_xdg_or_cache_sessionpath (void)
-{
-  const gchar *xdgdir, *homedir;
-  gchar *sessionpath;
-
-  xdgdir = g_getenv ("XDG_CACHE_HOME");
-  homedir = g_getenv ("HOME");
-  if (homedir == nullptr)
-    {
-      homedir = g_get_home_dir ();
-    }
-  if (xdgdir != nullptr)
-    {
-      sessionpath = g_strdup_printf ("%s/apvlvinfo", xdgdir);
-    }
-  else if (homedir != nullptr)
-    {
-      sessionpath = g_strdup_printf ("%s/.cache/apvlvinfo", homedir);
-    }
-  else
-    {
-      sessionpath = absolutepath (sessionfile.c_str ());
-    }
-
-  return sessionpath;
-}
-
-static int
-parse_options (int argc, char *argv[])
-{
-  gchar *ini;
-
-#ifdef WIN32
-  ini = absolutepath (inifile.c_str ());
-  if (ini != nullptr)
-    {
-      gParams->loadfile (ini);
-      g_free (ini);
-    }
-  return 1;
-#else
-  int c, index;
-  static struct option long_options[]
-      = { { "config", required_argument, nullptr, 'c' },
-          { "help", no_argument, nullptr, 'h' },
-          { "version", no_argument, nullptr, 'v' },
-          { nullptr, 0, nullptr, 0 } };
-
-  index = 0;
-  ini = nullptr;
-  while ((c = getopt_long (argc, argv, "c:hv", long_options, &index)) != -1)
-    {
-      switch (c)
-        {
-        case 'c':
-          ini = absolutepath (optarg);
-          break;
-
-        case 'h':
-          usage_exit ();
-          return -1;
-
-        case 'v':
-          version_exit ();
-          return -1;
-
-        default:
-          errp ("no command line options");
-          return -1;
-        }
-    }
-
-  if (ini == nullptr)
-    {
-      ini = get_xdg_or_home_ini ();
-    }
-  debug ("using config: %s", ini);
 
   /*
    * load the global sys conf file
    * */
-  gchar *sysIni = g_strdup_printf ("%s/%s", SYSCONFDIR, "apvlvrc");
-  if (sysIni)
-    {
-      gParams->loadfile (sysIni);
-      g_free (sysIni);
-    }
+  auto sysIni = string (SYSCONFDIR) + "/apvlvrc";
+  auto params = ApvlvParams::instance ();
+  params->loadFile (sysIni);
 
   /*
    * load the user conf file
    * */
-  if (ini != nullptr)
+  qDebug () << "using config: " << IniFile;
+  ApvlvParams::instance ()->loadFile (IniFile);
+
+  list<string> paths;
+  auto pathlist = parser.positionalArguments ();
+  for (const auto &path : pathlist)
     {
-      gParams->loadfile (ini);
-      g_free (ini);
+      paths.emplace_back (path.toStdString ());
     }
 
-  return optind;
-#endif
+  return paths;
+}
+
+static void
+loadTranslator (QTranslator &translator)
+{
+  map<string, string> lanuage_translator{ { "Chinese", "zh_CN" } };
+  auto lan = QLocale::system ().language ();
+  auto lanstr = QLocale::languageToString (lan).toStdString ();
+  if (lanuage_translator.find (lanstr) != lanuage_translator.end ())
+    {
+      auto lantrans = lanuage_translator[lanstr];
+      if (!translator.load (QString::fromLocal8Bit (lantrans),
+                            QString::fromLocal8Bit (Translations)))
+        {
+          qWarning () << "Load i18n file failed, using English";
+        }
+      else
+        {
+          QCoreApplication::installTranslator (&translator);
+        }
+    }
 }
 
 int
 main (int argc, char *argv[])
 {
-  setlocale (LC_ALL, "");
+  registerUrlScheme ();
 
-  ApvlvParams sParams;
-  gParams = &sParams;
+  QApplication app (argc, argv);
 
-  gchar *infopath = get_xdg_or_cache_sessionpath ();
-  ApvlvInfo sInfo (infopath);
-  g_free (infopath);
-  gInfo = &sInfo;
+  getRuntimePaths ();
 
-#ifdef _WIN32
-  gchar *temp = absolutepath (iconpdf.c_str ());
-  iconpdf = temp;
-  g_free (temp);
-  temp = absolutepath (icondir.c_str ());
-  icondir = temp;
-  g_free (temp);
-  temp = absolutepath (iconreg.c_str ());
-  iconreg = temp;
-  g_free (temp);
-#endif
+  QTranslator translator;
+  loadTranslator (translator);
 
-  int opt = parse_options (argc, argv);
-  if (opt < 0)
+  ApvlvInfo::instance ()->loadFile (SessionFile);
+
+  auto paths = parseCommandLine (app);
+
+  NotesDir = ApvlvParams::instance ()->getGroupStringOrDefault ("notes", "dir",
+                                                                NotesDir);
+
+  ApvlvLog::instance ()->setLogFile (LogFile);
+
+  string path = HelpPdf;
+  if (!paths.empty ())
     {
-      errp ("Parse options failed.\n");
+      path = paths.front ();
+      paths.pop_front ();
+    }
+  if (!filesystem::is_regular_file (path) && !filesystem::is_directory (path))
+    {
+      qFatal () << "File '" << path << "' is not readable.";
       return 1;
     }
-
-  gchar *path;
-  bool isHelpPdf = false;
-  if (opt > 0 && argc > opt)
-    {
-      path = argv[opt];
-      opt++;
-    }
-  else
-    {
-      path = (gchar *)helppdf.c_str ();
-      isHelpPdf = true;
-    }
-
-  gchar *rpath = g_locale_to_utf8 (path, -1, nullptr, nullptr, nullptr);
-  if (rpath == nullptr)
-    {
-      errp ("Convert path: '%s' to utf8 failed.\n", path);
-      return 1;
-    }
-
-  path = absolutepath (rpath);
-  g_free (rpath);
-  if (path == nullptr)
-    {
-      errp ("Convert '%s' to absolute path failed.\n", rpath);
-      return 1;
-    }
-
-  if (g_file_test (path, G_FILE_TEST_IS_REGULAR) == FALSE)
-    {
-      errp ("File '%s' is not readable.\n", path);
-      g_free (path);
-      return 1;
-    }
-
-  gtk_init (&argc, &argv);
 
   ApvlvView sView (nullptr);
-  if (!sView.newtab (path))
+  if (!sView.newTab (path))
     {
       exit (1);
     }
 
-  if (isHelpPdf)
+  while (!paths.empty ())
     {
-      helppdf = path;
-    }
-  g_free (path);
-
-  while (opt < argc)
-    {
-      path = absolutepath (argv[opt++]);
-      if (path == nullptr)
+      path = paths.front ();
+      paths.pop_front ();
+      auto apath = filesystem::absolute (path).string ();
+      if (!sView.newTab (apath))
         {
-          continue;
+          qCritical () << "Can't open document: " << apath;
         }
-
-      if (!sView.loadfile (path))
-        {
-          errp ("Can't open document: %s", path);
-        }
-
-      g_free (path);
     }
 
-  gtk_main ();
+  QApplication::exec ();
 
   return 0;
 }

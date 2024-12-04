@@ -23,26 +23,25 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2024/03/24 12:02:34 Alf*/
 
 #ifndef _APVLV_LAB_H_
 #define _APVLV_LAB_H_
 
 #include "ApvlvFile.h"
-#include <libxml/tree.h>
+#include <QWebEngineView>
 
 namespace apvlv
 {
-class ApvlvLab : public ApvlvFile
+
+class ApvlvLab : public File
 {
 public:
-  explicit ApvlvLab (const char *filename, bool check = true);
+  bool load (const std::string &filename) override;
 
   ~ApvlvLab () override;
 
-  bool render (int, int, int, double, int, GdkPixbuf *, char *) override;
-  bool renderweb (int pn, int ix, int iy, double zm, int rot,
-                  GtkWidget *widget) override;
+  bool pageRenderToWebView (int pn, double zm, int rot,
+                            WebView *webview) override;
 
 private:
 };

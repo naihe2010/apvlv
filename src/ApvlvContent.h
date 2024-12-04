@@ -20,84 +20,182 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-/* @CPPFILE ApvlvCore.h
+/* @CPPFILE ApvlvFrame.h
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2021/07/19 20:34:00 Alf */
 
 #ifndef _APVLV_CONTENT_H_
 #define _APVLV_CONTENT_H_
 
-#include "ApvlvFile.h"
-#include "ApvlvUtil.h"
-
-#include <gtk/gtk.h>
-
+#include <QComboBox>
+#include <QMenu>
+#include <QTimer>
+#include <QToolBar>
+#include <QTreeWidgetItem>
+#include <QVBoxLayout>
 #include <iostream>
 #include <map>
+#include <string>
 
-using namespace std;
+#include "ApvlvFile.h"
+#include "ApvlvUtil.h"
+#include "ApvlvWidget.h"
 
 namespace apvlv
 {
-class ApvlvDoc;
-class ApvlvContent
+
+class ContentTree : public QTreeWidget
 {
+protected:
+  void keyPressEvent (QKeyEvent *event) override;
+};
+
+class ApvlvFrame;
+class ApvlvContent final : public QFrame
+{
+  Q_OBJECT
 public:
-  explicit ApvlvContent ();
+  ApvlvContent ();
 
-  virtual ~ApvlvContent ();
+  ~ApvlvContent () override = default;
 
-  GtkWidget *widget ();
+  bool isReady ();
 
-  const ApvlvFileIndex currentIndex ();
+  enum class Column : int
+  {
+    Title = 0,
+    MTime,
+    FileSize,
+  };
+  static std::vector<const char *> ColumnString;
+  static std::vector<const char *> SortByColumnString;
 
-  void setIndex (const ApvlvFileIndex &index);
+  enum class FilterType : int
+  {
+    Title = 0,
+    FileName,
+    MTimeBe,
+    MTimeLe,
+    FileSizeBe,
+    FileSizeLe,
+  };
+  static std::vector<const char *> FilterTypeString;
 
-  void setIndex (const ApvlvFileIndex &index, GtkTreeIter *root_itr);
+  FileIndex *currentItemFileIndex ();
 
-  void setCurrentIndex (int pn, const char *anchor);
+  FileIndex *currentFileFileIndex ();
+
+  QTreeWidgetItem *findTreeWidgetItem (QTreeWidgetItem *itr,
+                                       FileIndexType type,
+                                       const std::string &path, int pn,
+                                       const std::string &anchor);
+
+  bool setCurrentIndex (const std::string &path, int pn,
+                        const std::string &anchor);
 
   void
-  setDoc (ApvlvDoc *doc)
+  setFrame (ApvlvFrame *frame)
   {
-    mDoc = doc;
+    mFrame = frame;
   }
 
-  void scrollup (int times);
+  void
+  focusFilter ()
+  {
+    QTimer::singleShot (50, &mFilterText, SLOT (setFocus ()));
+  }
 
-  void scrolldown (int times);
+  void scrollUp (int times);
 
-  void scrollleft (int times);
+  void scrollDown (int times);
 
-  void scrollright (int times);
+  void scrollLeft (int times);
+
+  void scrollRight (int times);
+
+  void
+  setActive (bool active)
+  {
+    if (active)
+      {
+        QTimer::singleShot (50, &mTreeWidget, SLOT (setFocus ()));
+      }
+    else
+      {
+        mTreeWidget.clearFocus ();
+      }
+  }
+
+  bool
+  isActive ()
+  {
+    return mTreeWidget.hasFocus ();
+  }
 
 private:
-  GtkWidget *mTreeView;
-  GtkTreeStore *mStore;
-  GtkTreeSelection *mSelection;
-  GtkTreeIter mCurrentIter;
+  QVBoxLayout mLayout;
+  QToolBar mToolBar;
+  ApvlvLineEdit mFilterText;
+  QComboBox mFilterType;
+  QComboBox mSortType;
+  ContentTree mTreeWidget;
 
-  ApvlvFileIndex mIndex;
+  QMenu mItemMenu;
 
-  std::pair<int, string> mTargetIndex;
+  std::map<FileIndexType, QIcon> mTypeIcons;
 
-  ApvlvDoc *mDoc;
-  static gboolean apvlv_set_iter_by_index (GtkTreeModel *model,
-                                           GtkTreePath *path,
-                                           GtkTreeIter *iter,
-                                           ApvlvContent *content);
-  static void apvlv_content_on_changed (GtkTreeSelection *, ApvlvContent *);
+  FileIndex mIndex;
+  Column mSortColumn{ Column::Title };
 
-  static void apvlv_content_on_row_activated (GtkTreeView *tree_view,
-                                              GtkTreePath *path,
-                                              GtkTreeViewColumn *column,
-                                              ApvlvContent *content);
+  ApvlvFrame *mFrame{ nullptr };
 
-  static gboolean apvlv_content_first_select_cb (ApvlvContent *);
+  bool mSortAscending{ true };
 
-private:
+  void setupToolBar ();
+  void setupTree ();
+
+  QTreeWidgetItem *
+  selectedTreeItem ()
+  {
+    auto selitems = mTreeWidget.selectedItems ();
+    return selitems.isEmpty () ? nullptr : selitems[0];
+  }
+  void setItemSelected (QTreeWidgetItem *item);
+
+  void setIndex (FileIndex &index, QTreeWidgetItem *root_itr);
+  void refreshIndex (const FileIndex &index);
+
+  void setFileIndexToTreeItem (QTreeWidgetItem *item, FileIndex *index);
+  FileIndex *getFileIndexFromTreeItem (QTreeWidgetItem *item);
+
+  FileIndex *treeItemToFileIndex (QTreeWidgetItem *item);
+
+  using filterFuncReturn = std::tuple<bool, bool>;
+  using filterFunc = std::function<filterFuncReturn (const FileIndex *)>;
+  void filterItemBy (QTreeWidgetItem *root, const filterFunc &filter_func);
+  void setItemChildrenFilter (QTreeWidgetItem *root, bool is_filter);
+
+private slots:
+  void onFileRename ();
+  void onFileDelete ();
+  void onRefresh ();
+  void onFilter ();
+  void
+  sortBy (int method)
+  {
+    mSortAscending = !mSortAscending;
+    mSortColumn = static_cast<Column> (method);
+    sortItems (mTreeWidget.invisibleRootItem ());
+  }
+
+  void sortItems (QTreeWidgetItem *root);
+
+  void onRowActivated (QTreeWidgetItem *item, int column);
+  void onRowDoubleClicked ();
+  void onContextMenuRequest (const QPoint &point);
+  void selectFirstItem ();
+  void setIndex (const FileIndex &index);
 };
 }
 

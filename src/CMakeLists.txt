@@ -1,104 +1,165 @@
-ADD_COMPILE_OPTIONS(-std=c++17)
-
+# compile options
 IF (WIN32)
     ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
-ELSE (WIN32)
-    SET(CMAKE_CXX_FLAGS "-Wall -fno-strict-aliasing")
+ELSE ()
+    SET(CMAKE_CXX_FLAGS "-std=c++20 -Wall -fno-strict-aliasing")
 
-    OPTION(APVLV_ENABLE_DEBUG "If build binary with debug information." OFF)
-    IF (APVLV_ENABLE_DEBUG)
+    IF (${CMAKE_BUILD_TYPE} STREQUAL Debug)
         SET(CMAKE_CXX_FLAGS "-D_DEBUG -g ${CMAKE_CXX_FLAGS}")
-    ELSE (APVLV_ENABLE_DEBUG)
+    ELSE ()
         SET(CMAKE_CXX_FLAGS "-O2 ${CMAKE_CXX_FLAGS}")
-    ENDIF (APVLV_ENABLE_DEBUG)
-ENDIF (WIN32)
+    ENDIF ()
+ENDIF ()
+MESSAGE("-- BUILD TYPE: ${CMAKE_BUILD_TYPE}")
+MESSAGE("-- CXX FLAGS: ${CMAKE_CXX_FLAGS}")
 
-FIND_PACKAGE(PkgConfig)
-
-PKG_CHECK_MODULES(FREETYPE2 freetype2 REQUIRED)
-PKG_CHECK_MODULES(GTK gtk+-3.0)
-PKG_CHECK_MODULES(GLIB2 glib-2.0 REQUIRED)
-PKG_CHECK_MODULES(LIBXML libxml-2.0 REQUIRED)
-PKG_CHECK_MODULES(WEBKIT webkit2gtk-4.1)
-if (NOT WEBKIT_FOUND)
-    PKG_CHECK_MODULES(WEBKIT webkit2gtk-4.0 REQUIRED)
-endif ()
-INCLUDE_DIRECTORIES(${FREETYPE2_INCLUDE_DIRS}
-        ${GTK_INCLUDE_DIRS}
-        ${GLIB2_INCLUDE_DIRS}
-        ${LIBXML_INCLUDE_DIRS}
-        ${WEBKIT_INCLUDE_DIRS})
-LINK_DIRECTORIES(${FREETYPE2_LIBRARY_DIRS}
-        ${GTK_LIBRARY_DIRS}
-        ${GLIB2_LIBRARY_DIRS}
-        ${LIBXML_LIBRARY_DIRS}
-        ${WEBKIT_LIBRARY_DIRS})
+OPTION(APVLV_WITH_MUPDF "If build binary with MuPDF." On)
+IF (WIN32)
+    OPTION(APVLV_WITH_POPPLER "If build binary with Poppler-Qt6." On)
+ELSE ()
+    OPTION(APVLV_WITH_POPPLER "If build binary with Poppler-Qt6." Off)
+ENDIF ()
 
 IF (WIN32)
-    SET(POPPLER_DIR ${CMAKE_HOME_DIRECTORY}/win32/poppler-src)
+    SET(Qt6_DIR "C:/Qt/6.7.2/msvc2019_64/lib/cmake/Qt6" CACHE STRING "Qt6config.cmake directory")
+    SET(Qt6QmlTools_DIR "C:/Qt/6.7.2/msvc2019_64/lib/cmake/Qt6QmlTools" CACHE STRING "Qt6QmlToolsconfig.cmake directory")
+    SET(Qt6AxContainer_DIR "C:/Qt/6.7.2/msvc2019_64/lib/cmake/Qt6AxContainer" CACHE STRING "Qt6config.cmake directory")
+    SET(QUAZIP_INCLUDE_DIRS "C:/Qt/6.7.2/msvc2019_64/include/QuaZip-Qt6-1.4/quazip;C:/Qt/6.7.2/msvc2019_64/include" CACHE STRING "Quazip include directory")
+    SET(QUAZIP_LIBRARY_DIRS "C:/Qt/6.7.2/msvc2019_64/lib" CACHE STRING "Quazip lib directory")
+    SET(QUAZIP_LIBRARIES "C:/Qt/6.7.2/msvc2019_64/lib/quazip1-qt6.lib" CACHE STRING "Quazip library file")
+    SET(DJVULIBRE_DIR "C:/Program Files (x86)/DjVuLibre" CACHE PATH "DjvuLibre dir")
+    CMAKE_POLICY(SET CMP0010 NEW)
+    CMAKE_POLICY(SET CMP0087 NEW)
+ELSE ()
+    FIND_PACKAGE(PkgConfig)
+    IF (${APVLV_WITH_POPPLER})
+        PKG_CHECK_MODULES(POPPLER poppler-qt6)
+    ENDIF ()
+    PKG_CHECK_MODULES(QUAZIP quazip1-qt6 REQUIRED)
+ENDIF ()
 
-    INCLUDE_DIRECTORIES(${POPPLER_DIR})
-    LINK_DIRECTORIES(${CMAKE_BINARY_DIR}/poppler-build)
-    SET(APVLV_REQ_LIBRARIES poppler.lib freetype.lib)
+FIND_PACKAGE(Qt6 NAMES Qt6 COMPONENTS Core Gui Widgets WebEngineWidgets Pdf PdfWidgets Xml PrintSupport REQUIRED)
 
-    ADD_SUBDIRECTORY(${POPPLER_DIR} ${CMAKE_BINARY_DIR}/poppler-build)
-ELSE (WIN32)
-    PKG_CHECK_MODULES(POPPLER poppler-glib REQUIRED)
-    INCLUDE_DIRECTORIES(${POPPLER_INCLUDE_DIRS})
-    LINK_DIRECTORIES(${POPPLER_LIBRARY_DIRS})
-    SET(APVLV_REQ_LIBRARIES ${POPPLER_LIBRARIES})
-ENDIF (WIN32)
+SET(Qt_INCLUDE_DIRS
+        ${Qt6Core_INCLUDE_DIRS}
+        ${Qt6Gui_INCLUDE_DIRS}
+        ${Qt6Widgets_INCLUDE_DIRS}
+        ${Qt6WebEngineWidgets_INCLUDE_DIRS}
+        ${Qt6Pdf_INCLUDE_DIRS}
+        ${Qt6PdfWidgets_INCLUDE_DIRS}
+        ${Qt6Xml_INCLUDE_DIRS}
+        ${Qt6PrintSupport_INCLUDE_DIRS})
+SET(Qt_LIBRARIES Qt6::Core Qt6::Gui Qt6::Widgets Qt6::WebEngineWidgets Qt6::Pdf Qt6::PdfWidgets Qt6::Xml Qt6::PrintSupport)
+GET_FILENAME_COMPONENT(_qt_bin_dir "${WINDEPLOYQT_EXECUTABLE}" DIRECTORY)
+MESSAGE("-- Qt6 binary directory: ${_qt_bin_dir}")
+
+INCLUDE_DIRECTORIES(
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${QUAZIP_INCLUDE_DIRS}
+        ${Qt_INCLUDE_DIRS})
+LINK_DIRECTORIES(
+        ${QUAZIP_LIBRARY_DIRS}
+        ${Qt_LIBRARY_DIRS})
+SET(APVLV_REQ_LIBRARIES
+        ${QUAZIP_LIBRARIES}
+        ${Qt_LIBRARIES})
+
+ADD_DEFINITIONS(-DQT_MESSAGELOGCONTEXT)
 
 SET(HEADERS
         ApvlvCmds.h
-        ApvlvCore.h
-        ApvlvDoc.h
+        ApvlvFrame.h
         ApvlvFile.h
-        ApvlvPdf.h
+        ApvlvFileIndex.h
+        ApvlvFileWidget.h
+        ApvlvWidget.h
+        ApvlvWeb.h
         ApvlvInfo.h
-        ApvlvMenuAndTool.h
         ApvlvParams.h
         ApvlvUtil.h
         ApvlvView.h
         ApvlvWindow.h
         ApvlvCompletion.h
-        ApvlvHtm.h
-        ApvlvEpub.h
-        ApvlvTxt.h
-        ApvlvFb2.h
         ApvlvContent.h
         ApvlvLab.h
+        ApvlvLog.h
+        ApvlvSearch.h
+        ApvlvSearchDialog.h
+        ApvlvDired.h
+        ApvlvQueue.h
+        ApvlvImageWidget.h
+        ApvlvWebViewWidget.h
+        ApvlvEditor.h
+        ApvlvNote.h
+        file/ApvlvHtm.h
+        file/ApvlvImage.h
+        file/ApvlvQtPdf.h
+        file/ApvlvEpub.h
+        file/ApvlvFb2.h
+        file/ApvlvTxt.h
 )
 
 SET(SOURCES
         ApvlvCmds.cc
-        ApvlvCore.cc
-        ApvlvDoc.cc
+        ApvlvFrame.cc
         ApvlvFile.cc
-        ApvlvPdf.cc
+        ApvlvFileIndex.cc
+        ApvlvFileWidget.cc
+        ApvlvWidget.cc
+        ApvlvWeb.cc
         ApvlvInfo.cc
-        ApvlvMenuAndTool.cc
         ApvlvParams.cc
         ApvlvUtil.cc
         ApvlvView.cc
         ApvlvWindow.cc
         ApvlvCompletion.cc
-        ApvlvHtm.cc
-        ApvlvEpub.cc
-        ApvlvTxt.cc
-        ApvlvFb2.cc
         ApvlvContent.cc
         ApvlvLab.cc
+        ApvlvLog.cc
+        ApvlvSearch.cc
+        ApvlvSearchDialog.cc
+        ApvlvDired.cc
+        ApvlvImageWidget.cc
+        ApvlvWebViewWidget.cc
+        ApvlvEditor.cc
+        ApvlvNote.cc
+        file/ApvlvHtm.cc
+        file/ApvlvImage.cc
+        file/ApvlvQtPdf.cc
+        file/ApvlvEpub.cc
+        file/ApvlvFb2.cc
+        file/ApvlvTxt.cc
         main.cc
 )
 
-OPTION(APVLV_WITH_DJVU "If build apvlv with djvu format support." OFF)
-IF (APVLV_WITH_DJVU)
-    ADD_DEFINITIONS(-DAPVLV_WITH_DJVU)
+MESSAGE("-- will build Web as epub engine")
+MESSAGE("-- will build Web as fb2 engine")
+MESSAGE("-- will build QtPdf as pdf engine")
 
+IF (${APVLV_WITH_MUPDF})
+    MESSAGE("-- will build MuPDF as pdf engine")
+    SET(HEADERS ${HEADERS} file/ApvlvMuPdf.h)
+    SET(SOURCES ${SOURCES} file/ApvlvMuPdf.cc)
     IF (WIN32)
-        SET(DJVULIBRE_DIR ${CMAKE_HOME_DIRECTORY}/win32/djvulibre)
+        SET(APVLV_REQ_LIBRARIES mupdf.lib ${APVLV_REQ_LIBRARIES})
+    ELSE ()
+        SET(APVLV_REQ_LIBRARIES -lmupdf ${APVLV_REQ_LIBRARIES})
+    ENDIF ()
+ENDIF ()
 
+IF (${APVLV_WITH_POPPLER})
+    MESSAGE("-- will build Poppler as pdf engine")
+    SET(HEADERS ${HEADERS} file/ApvlvPopplerPdf.h)
+    SET(SOURCES ${SOURCES} file/ApvlvPopplerPdf.cc)
+    INCLUDE_DIRECTORIES(${POPPLER_INCLUDE_DIRS})
+    LINK_DIRECTORIES(${POPPLER_LIBRARY_DIRS})
+    SET(APVLV_REQ_LIBRARIES ${POPPLER_LIBRARIES} ${APVLV_REQ_LIBRARIES})
+ENDIF ()
+
+OPTION(APVLV_WITH_DJVU "If build apvlv with djvu format support." ON)
+IF (APVLV_WITH_DJVU)
+    MESSAGE("-- will build djvulibre as djvu engine")
+    IF (WIN32)
         INCLUDE_DIRECTORIES(${DJVULIBRE_DIR}/include)
         LINK_DIRECTORIES(${DJVULIBRE_DIR})
         SET(APVLV_REQ_LIBRARIES libdjvulibre.lib
@@ -108,73 +169,146 @@ IF (APVLV_WITH_DJVU)
                 ${APVLV_REQ_LIBRARIES})
     ENDIF (WIN32)
 
-    SET(HEADERS ${HEADERS} ApvlvDjvu.h)
-    SET(SOURCES ${SOURCES} ApvlvDjvu.cc)
+    SET(HEADERS ${HEADERS} file/ApvlvDjvu.h)
+    SET(SOURCES ${SOURCES} file/ApvlvDjvu.cc)
 ENDIF (APVLV_WITH_DJVU)
 
+OPTION(APVLV_WITH_OFFICE "If build apvlv with office format support." ON)
+IF (APVLV_WITH_OFFICE)
+    IF (WIN32)
+        MESSAGE("-- will build MSOffice as office file engine")
+        FIND_PACKAGE(Qt6AxContainer REQUIRED)
+        INCLUDE_DIRECTORIES(${Qt6AxContainer_INCLUDE_DIRES})
+        SET(APVLV_REQ_LIBRARIES ${Qt6AxContainer_LIBRARIES} Shlwapi.lib
+                ${APVLV_REQ_LIBRARIES})
+        SET(HEADERS ${HEADERS} file/ApvlvAxOffice.h)
+        SET(SOURCES ${SOURCES} file/ApvlvAxOffice.cc)
+    ELSE (WIN32)
+        MESSAGE("-- will build libreOffice as office file engine")
+        SET(APVLV_REQ_LIBRARIES -llibreofficekitgtk
+                ${APVLV_REQ_LIBRARIES})
+        ADD_DEFINITIONS(-DLIBO_INTERNAL_ONLY=1)
+        SET(HEADERS ${HEADERS} file/ApvlvLibreOffice.h)
+        SET(SOURCES ${SOURCES} file/ApvlvLibreOffice.cc)
+    ENDIF (WIN32)
+ENDIF (APVLV_WITH_OFFICE)
+
+OPTION(APVLV_WITH_OCR "If build apvlv with OCR support." ON)
+IF (${APVLV_WITH_OCR})
+    ADD_DEFINITIONS(-DAPVLV_WITH_OCR)
+    SET(HEADERS ${HEADERS} ApvlvOCR.h)
+    SET(SOURCES ${SOURCES} ApvlvOCR.cc)
+
+    IF (WIN32)
+    ELSE ()
+        MESSAGE("-- will build tesseract as OCR library")
+        PKG_CHECK_MODULES(TESSERACT tesseract)
+        INCLUDE_DIRECTORIES(${TESSERACT_INCLUDE_DIRS})
+        LINK_DIRECTORIES(${TESSERACT_LIBRARY_DIRS})
+        SET(APVLV_REQ_LIBRARIES ${TESSERACT_LIBRARIES}
+                ${APVLV_REQ_LIBRARIES})
+    ENDIF ()
+ENDIF ()
+
+MESSAGE("-- link libraries: ${APVLV_REQ_LIBRARIES}")
 ADD_EXECUTABLE(apvlv ${HEADERS} ${SOURCES})
+SET_PROPERTY(TARGET apvlv PROPERTY AUTOMOC ON)
+TARGET_LINK_LIBRARIES(apvlv ${APVLV_REQ_LIBRARIES})
 
-TARGET_LINK_LIBRARIES(apvlv
-        ${GTK_LIBRARIES}
-        ${GLIB2_LIBRARIES}
-        ${GTHREAD2_LIBRARIES}
-        ${WEBKIT_LIBRARIES}
-        "-lepub"
-        ${LIBXML_LIBRARIES}
-        ${APVLV_REQ_LIBRARIES})
+# for debug
+IF (WIN32)
+    ADD_CUSTOM_COMMAND(TARGET apvlv POST_BUILD
+            COMMAND ${CMAKE_COMMAND}
+            "-E" copy_directory
+            ${CMAKE_SOURCE_DIR}/share
+            ${CMAKE_CURRENT_BINARY_DIR}/share)
+    ADD_CUSTOM_COMMAND(TARGET apvlv POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E
+            env PATH="${_qt_bin_dir}" "${WINDEPLOYQT_EXECUTABLE}"
+            --verbose 0
+            --dir "${CMAKE_CURRENT_BINARY_DIR}/Debug"
+            $<TARGET_FILE:apvlv>
+            COMMENT "Deploying Qt..."
+    )
+ELSE ()
+    ADD_CUSTOM_COMMAND(TARGET apvlv POST_BUILD
+            COMMAND ${CMAKE_COMMAND}
+            "-E" remove_directory ${CMAKE_BINARY_DIR}/share
+            COMMAND ${CMAKE_COMMAND}
+            "-E" copy_directory ${CMAKE_SOURCE_DIR}/share
+            ${CMAKE_BINARY_DIR}/share)
+ENDIF ()
+
+# translate
+FIND_PROGRAM(LUPDATE lupdate HINTS "${_qt_bin_dir}")
+FIND_PROGRAM(LRELEASE lrelease HINTS "${_qt_bin_dir}")
+IF (${LUPDATE} STREQUAL "LUPDATE-NOTFOUND")
+    FIND_PROGRAM(LUPDATE lupdate-qt6 HINTS "${_qt_bin_dir}")
+    FIND_PROGRAM(LRELEASE lrelease-qt6 HINTS "${_qt_bin_dir}")
+ENDIF ()
+FILE(GLOB cppfiles *.cc)
+ADD_CUSTOM_TARGET(apvlv_lupdate
+        COMMAND ${LUPDATE}
+        -locations none -target-language zh_CN
+        ${cppfiles} -ts ${CMAKE_SOURCE_DIR}/zh_CN.ts)
+ADD_CUSTOM_TARGET(apvlv_lrelease
+        COMMAND ${LRELEASE}
+        ${CMAKE_SOURCE_DIR}/zh_CN.ts
+        -qm ${CMAKE_SOURCE_DIR}/share/doc/apvlv/translations/zh_CN.qm)
+ADD_DEPENDENCIES(apvlv_lrelease apvlv_lupdate)
+ADD_DEPENDENCIES(apvlv apvlv_lrelease)
+
+INSTALL(TARGETS apvlv DESTINATION bin)
 
 IF (WIN32)
-    ADD_DEPENDENCIES(apvlv poppler)
-ENDIF (WIN32)
+    ADD_CUSTOM_COMMAND(TARGET apvlv POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E remove_directory "${CMAKE_CURRENT_BINARY_DIR}/winqt/"
+            COMMAND "${CMAKE_COMMAND}" -E
+            env PATH="${_qt_bin_dir}" "${WINDEPLOYQT_EXECUTABLE}"
+            --release
+            --verbose 0
+            --no-compiler-runtime
+            --no-opengl-sw
+            --no-libraries
+            --dir "${CMAKE_CURRENT_BINARY_DIR}/winqt/"
+            $<TARGET_FILE:apvlv>
+            COMMENT "Deploying Qt..."
+    )
 
-IF (WIN32)
-    INSTALL(TARGETS apvlv DESTINATION .)
-    FIND_FILE(LIBATK libatk-1.0-0.dll)
-    FIND_FILE(LIBEXPAT1 libexpat-1.dll)
-    FIND_FILE(LIBFONTCONFIG1 libfontconfig-1.dll)
-    FIND_FILE(LIBGIO libgio-2.0-0.dll)
-    FIND_FILE(LIBCAIRO libcairo-2.dll)
-    FIND_FILE(LIBPANGOCAIRO libpangocairo-1.0-0.dll)
-    FIND_FILE(LIBPANGOFT2 libpangoft2-1.0-0.dll)
-    FIND_FILE(LIBGDKPIXBUF libgdk_pixbuf-2.0-0.dll)
-    FIND_FILE(LIBGDK libgdk-win32-2.0-0.dll)
-    FIND_FILE(LIBGLIB libglib-2.0-0.dll)
-    FIND_FILE(LIBGMODULE libgmodule-2.0-0.dll)
-    FIND_FILE(LIBPANGO libpango-1.0-0.dll)
-    FIND_FILE(LIBGTHREAD libgthread-2.0-0.dll)
-    FIND_FILE(LIBPNG libpng14-14.dll)
-    FIND_FILE(LIBGTK libgtk-win32-2.0-0.dll)
-    FIND_FILE(LIBGOBJECT libgobject-2.0-0.dll)
-    FIND_FILE(LIBPANGOWIN32 libpangowin32-1.0-0.dll)
-    FIND_FILE(LIBZLIB1 zlib1.dll)
-    FIND_FILE(FREETYPE6 freetype6.dll)
-    INSTALL(FILES
-            ${LIBATK}
-            ${LIBEXPAT1}
-            ${LIBFONTCONFIG1}
-            ${LIBGIO}
-            ${LIBCAIRO}
-            ${LIBPANGOCAIRO}
-            ${LIBGDKPIXBUF}
-            ${LIBGDK}
-            ${LIBGLIB}
-            ${LIBGMODULE}
-            ${LIBPANGO}
-            ${LIBGTHREAD}
-            ${LIBPNG}
-            ${LIBGTK}
-            ${LIBGOBJECT}
-            ${LIBPANGOFT2}
-            ${LIBPANGOWIN32}
-            ${LIBZLIB1}
-            ${FREETYPE6}
-            DESTINATION .)
-    IF (APVLV_WITH_DJVU)
-        INSTALL(FILES
-                ${DJVULIBRE_DIR}/libdjvulibre.dll
-                ${DJVULIBRE_DIR}/libjpeg.dll
-                DESTINATION .)
-    ENDIF (APVLV_WITH_DJVU)
-ELSE (WIN32)
-    INSTALL(TARGETS apvlv DESTINATION bin)
+    INSTALL(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/winqt/" DESTINATION bin)
+
+    INSTALL(CODE "set(MY_DEPENDENCY_PATHS \"$ENV{PATH}\" \"${_qt_bin_dir}\" )")
+
+    INSTALL(CODE [[
+    MESSAGE("-- get runtime dependencies ...")
+    LIST(APPEND pre_exclude_regexes "api-ms-.*") # windows API
+    LIST(APPEND pre_exclude_regexes "ext-ms-.*") # windows API
+    LIST(APPEND pre_exclude_regexes "ieshims.dll") # windows API
+    LIST(APPEND pre_exclude_regexes "emclient.dll") # windows API
+    LIST(APPEND pre_exclude_regexes "devicelockhelpers.dll") # windows API
+
+    LIST(APPEND post_exclude_regexes ".*WINDOWS[\\/]system32.*")
+
+    FILE(GET_RUNTIME_DEPENDENCIES
+      EXECUTABLES $<TARGET_FILE:apvlv>
+      RESOLVED_DEPENDENCIES_VAR _r_deps
+      UNRESOLVED_DEPENDENCIES_VAR _u_deps
+      PRE_EXCLUDE_REGEXES ${pre_exclude_regexes}
+      POST_EXCLUDE_REGEXES ${post_exclude_regexes}
+      DIRECTORIES ${MY_DEPENDENCY_PATHS}
+    )
+    LIST(LENGTH _u_deps _u_length)
+    IF("${_u_length}" GREATER 0)
+      MESSAGE("Unresolved dependencies detected in [${MY_DEPENDENCY_PATHS}]!")
+      FOREACH(_no ${_u_deps})
+        MESSAGE("Can not find ${_no}")
+      ENDFOREACH()
+    ENDIF()
+    FOREACH(_file ${_r_deps})
+      MESSAGE("install " ${_file})
+      FILE(INSTALL FILES "${_file}"
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/bin"
+      )
+    ENDFOREACH()
+    ]])
 ENDIF (WIN32)

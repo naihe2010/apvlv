@@ -24,19 +24,19 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2008/09/30 00:00:00 Alf */
 
-#include "ApvlvParams.h"
-#include "ApvlvCmds.h"
-#include "ApvlvUtil.h"
-
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
+#include "ApvlvCmds.h"
+#include "ApvlvParams.h"
+#include "ApvlvUtil.h"
+
 namespace apvlv
 {
-ApvlvParams *gParams = nullptr;
+using namespace std;
 
 ApvlvParams::ApvlvParams ()
 {
@@ -46,64 +46,60 @@ ApvlvParams::ApvlvParams ()
   push ("continuous", "yes");
   push ("autoscrollpage", "yes");
   push ("autoscrolldoc", "yes");
-  push ("continuouspad", "2");
   push ("noinfo", "no");
   push ("width", "800");
   push ("height", "600");
   push ("fix_width", "0");
   push ("fix_height", "0");
-  push ("content_follow_mode", "file");
   push ("background", "");
-  push ("content", "yes");
-  push ("cache", "no");
-  push ("pdfcache", "4");
-  push ("scrollbar", "no");
-  push ("visualmode", "no");
   push ("warpscan", "yes");
   push ("commandtimeout", "1000");
-  push ("doubleclick", "page");
 #ifdef WIN32
   push ("defaultdir", "C:\\");
 #else
   push ("defaultdir", "/tmp");
 #endif
-  push ("guioptions", "");
+  push ("guioptions", "mTsS");
   push ("autoreload", "3");
+  push ("thread_count", "auto");
+  push ("lok_path", "/usr/lib64/libreoffice/program");
+
+  push (".pdf:engine", "MuPDF");
+  push (".epub:engine", "Web");
+  push (".fb2:engine", "Web");
+  push (".txt:engine", "MuPDF");
+
+  push ("ocr:lang", "eng+chi_sim");
 }
 
-ApvlvParams::~ApvlvParams () { mSettings.clear (); }
+ApvlvParams::~ApvlvParams () = default;
 
 bool
-ApvlvParams::loadfile (const char *filename)
+ApvlvParams::loadFile (const std::string &filename)
 {
-  if (filename == nullptr
-      || g_file_test (filename, G_FILE_TEST_IS_REGULAR) == FALSE)
-    {
-      return false;
-    }
-
-  //    debug ("load debug: %s", filename);
   string str;
   fstream os (filename, ios::in);
 
   if (!os.is_open ())
     {
-      errp ("Open configure file %s error", filename);
+      qWarning () << "Open configure file " << filename << " error";
       return false;
     }
 
   while ((getline (os, str)))
     {
-      string argu, data, crap;
+      string argu;
+      string data;
+      string crap;
       stringstream is (str);
-      // avoid commet line, continue next
+
       is >> crap;
       if (crap[0] == '\"' || crap.empty ())
         {
           continue;
         }
-      // parse the line like "set fullscreen=yes" or set "set zoom=1.5"
-      else if (crap == "set")
+
+      if (crap == "set")
         {
           is >> argu;
           size_t off = argu.find ('=');
@@ -112,65 +108,48 @@ ApvlvParams::loadfile (const char *filename)
               is >> crap >> data;
               if (crap == "=")
                 {
-                  push (argu.c_str (), data.c_str ());
+                  push (argu, data);
                   continue;
                 }
             }
-          else if (off < 32)
+          else
             {
-              char k[32], v[32], *p;
-              memcpy (k, argu.c_str (), off);
-              k[off] = '\0';
-
-              p = (char *)argu.c_str () + off + 1;
-              while (isspace (*p))
-                {
-                  p++;
-                }
-
-              g_snprintf (v, sizeof v, "%s", *p ? p : "");
-
-              p = (char *)v + strlen (v) - 1;
-              while (isspace (*p) && p >= v)
-                {
-                  p--;
-                }
-              *(p + 1) = '\0';
-
-              push (k, v);
+              argu[off] = ' ';
+              stringstream ass{ argu };
+              ass >> argu >> data;
+              push (argu, data);
               continue;
             }
-
-          errp ("Syntax error: set: %s", str.c_str ());
         }
+
       // like "map n next-page"
       else if (crap == "map")
         {
           is >> argu;
 
-          if (argu.length () == 0)
+          if (argu.empty ())
             {
-              errp ("map command not complete");
+              qWarning () << "map command not complete";
               continue;
             }
 
           getline (is, data);
 
-          while (data.length () > 0 && isspace (data[0]))
+          while (!data.empty () && isspace (data[0]))
             data.erase (0, 1);
 
-          if (argu.length () > 0 && data.length () > 0)
+          if (!argu.empty () && !data.empty ())
             {
-              ApvlvCmds::buildmap (argu.c_str (), data.c_str ());
+              ApvlvCmds::buildCommandMap (argu, data);
             }
           else
             {
-              errp ("Syntax error: map: %s", str.c_str ());
+              qWarning () << "Syntax error: map: " << str;
             }
         }
       else
         {
-          errp ("Unknown rc command: %s: %s", crap.c_str (), str.c_str ());
+          qWarning () << "Unknown rc command: " << crap << ": " << str;
         }
     }
 
@@ -178,54 +157,75 @@ ApvlvParams::loadfile (const char *filename)
 }
 
 bool
-ApvlvParams::push (const char *c, const char *s)
+ApvlvParams::push (string_view ch, string_view str)
 {
-  string cs (c), ss (s);
-  mSettings[cs] = ss;
+  mParamMap[string (ch)] = str;
   return true;
 }
 
-bool
-ApvlvParams::push (string &ch, string &str)
+string
+ApvlvParams::getGroupStringOrDefault (std::string_view entry,
+                                      std::string_view key,
+                                      const std::string &defs)
 {
-  mSettings[ch] = str;
-  return true;
-}
-
-const char *
-ApvlvParams::values (const char *s)
-{
-  string ss (s);
-  auto it = mSettings.find (ss);
-  if (it != mSettings.end ())
+  auto itr = std::ranges::find_if (
+      mParamMap, [entry, key] (const pair<string, string> &p) -> bool {
+        if (p.first.find (':') == string::npos)
+          return false;
+        else
+          {
+            auto pos = p.first.find (':');
+            auto pentry = p.first.substr (0, pos);
+            auto pkey = p.first.substr (pos + 1);
+            return pentry == entry && pkey == key;
+          }
+      });
+  if (itr != mParamMap.cend ())
     {
-      return it->second.c_str ();
+      return itr->second;
     }
-  return nullptr;
+  return defs;
+}
+
+string
+ApvlvParams::getStringOrDefault (string_view key, const string &defs)
+{
+  auto itr = std::ranges::find_if (
+      mParamMap, [key] (const pair<string, string> &p) -> bool {
+        return p.first == key;
+      });
+  if (itr != mParamMap.cend ())
+    {
+      return itr->second;
+    }
+  return defs;
 }
 
 int
-ApvlvParams::valuei (const char *s)
+ApvlvParams::getIntOrDefault (string_view key, int defi)
 {
-  string ss (s);
-  auto it = mSettings.find (ss);
-  if (it != mSettings.end ())
-    {
-      return int (strtol (it->second.c_str (), nullptr, 10));
-    }
-  return -1;
+  auto values = getStringOrDefault (key, "");
+  if (values.empty ())
+    return defi;
+
+  return int (strtol (values.c_str (), nullptr, 10));
 }
 
 bool
-ApvlvParams::valueb (const char *s)
+ApvlvParams::getBoolOrDefault (string_view key, bool defb)
 {
-  string ss (s);
-  auto it = mSettings.find (ss);
-  if (it != mSettings.end () && it->second == "yes")
+  auto values = getStringOrDefault (key, "");
+  if (values.empty ())
+    return defb;
+
+  if (values == "true" || values == "yes" || values == "on" || values == "1")
     {
       return true;
     }
-  return false;
+  else
+    {
+      return false;
+    }
 }
 }
 

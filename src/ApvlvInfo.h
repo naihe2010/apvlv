@@ -23,48 +23,58 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2010/02/23 14:56:21 Alf*/
 
 #ifndef _APVLV_INFO_H_
 #define _APVLV_INFO_H_
 
-#include <glib.h>
+#include <deque>
+#include <optional>
 #include <string>
-
-using namespace std;
 
 namespace apvlv
 {
-struct infofile
+
+struct InfoFile
 {
   int page;
   int skip;
   double rate;
-  string file;
+  std::string file;
 };
 
-class ApvlvInfo
+const int DEFAULT_MAX_INFO = 100;
+
+class ApvlvInfo final
 {
 public:
-  explicit ApvlvInfo (const char *file);
-  ~ApvlvInfo ();
-
+  ApvlvInfo (const ApvlvInfo &) = delete;
+  ApvlvInfo &operator= (const ApvlvInfo &) = delete;
+  void loadFile (std::string_view file);
   bool update ();
 
-  infofile *file (int);
-  infofile *file (const char *);
-  bool file (int, double, const char *, int);
+  std::optional<InfoFile *> lastFile ();
+  std::optional<InfoFile *> file (const std::string &filename);
+  bool updateFile (int page, int skip, double rate,
+                   const std::string &filename);
+
+  static ApvlvInfo *
+  instance ()
+  {
+    static ApvlvInfo inst;
+    return &inst;
+  }
 
 private:
-  string mFileName;
+  ApvlvInfo ();
+  ~ApvlvInfo () = default;
 
-  GSList *mFileHead;
-  int mFileMax;
+  std::string mFileName{};
 
-  bool ini_add_position (const char *);
+  std::deque<InfoFile> mInfoFiles{};
+  std::deque<InfoFile>::size_type mMaxInfo{ DEFAULT_MAX_INFO };
+
+  bool addPosition (const char *str);
 };
-
-extern ApvlvInfo *gInfo;
 };
 
 #endif

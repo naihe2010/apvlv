@@ -24,134 +24,158 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2008/09/30 00:00:00 Alf */
 
 #ifndef _APVLV_CMDS_H_
 #define _APVLV_CMDS_H_
 
-#include <gtk/gtk.h>
-
-#include <iostream>
+#include <QKeyEvent>
+#include <QTimer>
 #include <map>
 #include <vector>
 
-#include "ApvlvUtil.h"
-
-using namespace std;
-
 namespace apvlv
 {
-typedef enum
+enum class CmdType
 {
   CT_CMD,
   CT_STRING,
   CT_STRING_RETURN
-} cmdType;
+};
 
-typedef map<const char *, gint> StringKeyMap;
+enum class CmdState
+{
+  GETTING_COUNT,
+  GETTING_CMD,
+  CMD_OK,
+};
 
-class ApvlvCmd;
-typedef vector<gint> ApvlvCmdKeyv;
-typedef map<ApvlvCmdKeyv, ApvlvCmd *> ApvlvCmdMap;
+// command type
+enum class CmdStatusType
+{
+  CMD_NONE,
+  CMD_MESSAGE,
+  CMD_CMD
+};
+
+// function return type
+enum class CmdReturn
+{
+  MATCH,
+  NEED_MORE,
+  NO_MATCH,
+};
+
+// because every unsigned char is < 256, so use this marco to stand for
+// Ctrl+char, Shift+char
+constexpr int
+ctrlValue (int c)
+{
+  return c + 256;
+}
+
+using StringKeyMap = std::map<std::string, int>;
+
+class Command;
+using CommandKeyList = std::vector<int>;
+using CommandMap = std::map<CommandKeyList, Command *>;
 
 class ApvlvView;
-class ApvlvCmd
+class Command final
 {
 public:
-  ApvlvCmd ();
+  Command ();
 
-  ~ApvlvCmd ();
+  ~Command () = default;
 
-  void process (ApvlvView *);
+  void process (ApvlvView *view);
 
-  void push (const char *s, cmdType type = CT_CMD);
+  void push (std::string_view s, CmdType type = CmdType::CT_CMD);
 
-  bool append (GdkEventKey *key);
+  bool append (QKeyEvent *key);
 
   const char *append (const char *s);
 
-  void type (cmdType type);
+  void type (CmdType type);
 
-  cmdType type ();
+  CmdType type ();
 
-  const char *c_str ();
+  CommandKeyList *keyVals ();
 
-  ApvlvCmdKeyv *keyvalv_p ();
+  CommandKeyList keyvalv ();
 
-  ApvlvCmdKeyv keyvalv ();
+  void setPreCount (int precount);
 
-  void precount (gint precount);
+  [[nodiscard]] int preCount () const;
 
-  gint precount () const;
+  int keyval (uint id);
 
-  gint keyval (guint id);
+  Command *next ();
 
-  ApvlvCmd *next ();
+  void origin (Command *cmd);
 
-  void origin (ApvlvCmd *cmd);
-
-  ApvlvCmd *origin ();
+  Command *origin ();
 
 private:
-  // command type
-  cmdType mType;
+  static StringKeyMap mKeyMap;
 
-  // if has count
+  // command type
+  CmdType mType;
+
+  // if it has count
   bool mHasPreCount;
 
   // how to describe this command in .apvlvrc
   // like <C-d><C-w>, <S-b>s, or :run, :vsp, ...
-  string mStrCommand;
+  std::string mStrCommand;
 
   // key's value list
-  ApvlvCmdKeyv mKeyVals;
+  CommandKeyList mKeyVals;
 
   // cmd's pre count
-  gint mPreCount;
+  int mPreCount;
 
   // next command
-  ApvlvCmd *mNext;
+  std::unique_ptr<Command> mNext;
 
   // when a key is map to other, this is the origin cmd.
   // after a mapped key was processed, return to this cmds
-  ApvlvCmd *mOrigin;
+  Command *mOrigin;
 };
 
-class ApvlvCmds
+class ApvlvCmds : public QObject
 {
+  Q_OBJECT
 public:
   explicit ApvlvCmds (ApvlvView *view);
 
-  ~ApvlvCmds ();
+  ~ApvlvCmds () override;
 
-  void append (GdkEventKey *gev);
+  void append (QKeyEvent *gev);
 
-  static void buildmap (const char *os, const char *ms);
+  static void buildCommandMap (std::string_view os, std::string_view ms);
 
 private:
-  ApvlvCmd *process (ApvlvCmd *cmd);
+  Command *process (Command *cmd);
 
-  static returnType ismap (ApvlvCmdKeyv *ack);
+  static CmdReturn isMapCommand (CommandKeyList *ack);
 
-  static ApvlvCmd *getmap (ApvlvCmd *cmd);
+  static Command *getMapCommand (Command *cmd);
 
-  static gboolean apvlv_cmds_timeout_cb (gpointer);
+  static CommandMap mMaps;
 
-  ApvlvCmd *mCmdHead;
+  std::unique_ptr<Command> mCmdHead;
 
   // command view
   ApvlvView *mView;
 
-  enum cmdState
-  {
-    GETTING_COUNT,
-    GETTING_CMD,
-    CMD_OK,
-  } mState;
+  CmdState mState;
 
-  guint mTimeoutTimer;
+  std::unique_ptr<QTimer> mTimeoutTimer;
 
-  string mCountString;
+  std::string mCountString;
+
+private slots:
+  void timeoutCallback ();
 };
 }
 

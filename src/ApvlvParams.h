@@ -24,46 +24,54 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2008/09/30 00:00:00 Alf */
 
 #ifndef _APVLV_PARAMS_H_
 #define _APVLV_PARAMS_H_
 
-#include "ApvlvUtil.h"
-
-#include <iostream>
 #include <map>
 #include <string>
-
-using namespace std;
+#include <string_view>
 
 namespace apvlv
 {
-typedef map<string, string> ApvlvParam;
 
-class ApvlvParams
+class ApvlvParams final
 {
 public:
+  ApvlvParams (const ApvlvParams &) = delete;
+  const ApvlvParams &operator= (const ApvlvParams &) = delete;
+  ApvlvParams (const ApvlvParams &&) = delete;
+  const ApvlvParams &&operator= (const ApvlvParams &&) = delete;
+
+  bool loadFile (const std::string &filename);
+
+  bool push (std::string_view ch, std::string_view str);
+
+  std::string getGroupStringOrDefault (std::string_view entry,
+                                       std::string_view key,
+                                       const std::string &defs = "");
+
+  std::string getStringOrDefault (std::string_view key,
+                                  const std::string &defs = "");
+
+  int getIntOrDefault (std::string_view key, int defi = 0);
+
+  bool getBoolOrDefault (std::string_view key, bool defb = false);
+
+  static ApvlvParams *
+  instance ()
+  {
+    static ApvlvParams inst;
+    return &inst;
+  }
+
+private:
   ApvlvParams ();
   ~ApvlvParams ();
 
-  bool loadfile (const char *filename);
-
-  bool push (string &ch, string &str);
-
-  bool push (const char *c, const char *s);
-
-  const char *values (const char *key);
-
-  int valuei (const char *key);
-
-  bool valueb (const char *key);
-
-private:
-  ApvlvParam mSettings;
+  std::map<std::string, std::string> mParamMap;
 };
 
-extern ApvlvParams *gParams;
 }
 
 #endif

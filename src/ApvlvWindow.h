@@ -24,81 +24,93 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2008/09/30 00:00:00 Alf */
 
 #ifndef _APVLV_WINDOW_H_
 #define _APVLV_WINDOW_H_
 
-#include "ApvlvCore.h"
-#include "ApvlvDoc.h"
-
-#include <gtk/gtk.h>
-
-#include <iostream>
-using namespace std;
+#include "ApvlvFrame.h"
 
 namespace apvlv
 {
-class ApvlvCore;
+class ApvlvFrame;
+class ApvlvWindowContext;
 
-class ApvlvWindow
+class ApvlvWindow final : public QFrame
 {
+  Q_OBJECT
 public:
-  explicit ApvlvWindow (ApvlvCore *core, ApvlvView *view);
-  ~ApvlvWindow ();
+  ApvlvWindow ();
+  ~ApvlvWindow () override;
 
   /* WE operate the AW_DOC window
-   * Any AW_SP, AW_VSP are a virtual window, just for contain the AW_DOC window
-   * AW_NONE is a empty window, need free
+   * Any SP, VSP are a virtual window, just for contain the AW_DOC window
+   * AW_NONE is an empty window, need free
    * So, ANY user interface function can only get the AW_DOC window
    * */
-  enum WindowType
+  enum class WindowType
   {
-    AW_SP,
-    AW_VSP,
-    AW_CORE
-  } mType;
+    FRAME,
+    SP,
+    VSP,
+  };
+  WindowType mType{ WindowType::FRAME };
 
-  ApvlvWindow *birth (WindowType type, ApvlvCore *core);
+  bool birth (WindowType type, ApvlvFrame *doc);
 
-  ApvlvWindow *unbirth ();
+  void perish ();
 
-  GtkWidget *widget ();
+  void setActive (bool act);
 
-  ApvlvCore *getCore ();
+  void setFrame (ApvlvFrame *doc);
+  ApvlvFrame *stealFrame ();
+  ApvlvFrame *getFrame ();
 
-  ApvlvWindow *activeCoreWindow ();
+  ApvlvWindow *firstWindow ();
+  ApvlvWindow *secondWindow ();
+  ApvlvWindow *parentWindow ();
+  ApvlvWindow *rootWindow ();
+  ApvlvWindow *firstFrameWindow ();
 
-  ApvlvWindow *getAncestor ();
+  void
+  setActiveWindow (ApvlvWindow *win)
+  {
+    mActive = win;
+  }
+  ApvlvWindow *
+  getActiveWindow ()
+  {
+    return mActive;
+  }
 
-  bool isAncestor () const;
-
-  void setCore (ApvlvCore *core);
+  bool isRoot ();
 
   void smaller (int times = 1);
   void bigger (int times = 1);
 
-  void setcurrentWindow (ApvlvWindow *win);
+  ApvlvWindow *getNeighbor (int count, uint key);
 
-  ApvlvWindow *getneighbor (int count, guint key);
+  ApvlvWindow *getNext ();
 
-  ApvlvWindow *getnext (int num);
+  CmdReturn process (int times, uint keyval);
 
-  returnType process (int times, guint keyval);
-
-  ApvlvWindow *m_parent, *m_child_1, *m_child_2;
+  ApvlvWindow *findWindowByWidget (QWidget *widget);
 
 private:
-  inline ApvlvWindow *getkj (__attribute__ ((unused)) int num, bool next);
-  inline ApvlvWindow *gethl (__attribute__ ((unused)) int num, bool next);
+  QVBoxLayout mLayout;
+  QSplitter mPaned;
 
-  GtkWidget *mPaned;
+  ApvlvWindow *mActive{ nullptr };
 
-  ApvlvCore *mCore;
+  ApvlvWindow *getLeft ();
+  ApvlvWindow *getRight ();
+  ApvlvWindow *getTop ();
+  ApvlvWindow *getBottom ();
 
-  ApvlvView *mView;
+  void splitWidget (WindowType type, QWidget *one, QWidget *other);
 
-  ApvlvWindow *mActiveWindow;
+private slots:
+  void perishWidget ();
+  void setAsRootActive ();
 };
 
 }

@@ -26,31 +26,29 @@
 #ifndef _APVLV_COMPLETION_H_
 #define _APVLV_COMPLETION_H_
 
-#include <glib.h>
-
-#if GLIB_CHECK_VERSION(2, 26, 0)
-#define APVLV_NO_G_COMP
-#endif
+#include <string>
+#include <vector>
 
 namespace apvlv
 {
-class ApvlvCompletion
+
+class ApvlvCompletion final
 {
 public:
-  ApvlvCompletion ();
-  ~ApvlvCompletion ();
+  explicit ApvlvCompletion (const std::vector<std::string> &items)
+      : mItems (items)
+  {
+  }
+  ApvlvCompletion () = default;
+  ~ApvlvCompletion () = default;
 
-  gboolean add_items (GList *);
+  void addItems (const std::vector<std::string> &items);
+  void addPath (const std::string &path);
 
-  GList *complete (const gchar *, gchar **);
+  std::string complete (const std::string &np);
 
 private:
-#ifdef APVLV_NO_G_COMP
-  GPtrArray *mArray;
-  GList *mCache;
-#else
-  GCompletion *mComp;
-#endif
+  std::vector<std::string> mItems;
 };
 
 };

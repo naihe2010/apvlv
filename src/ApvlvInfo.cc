@@ -23,35 +23,34 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2010/02/23 15:00:42 Alf*/
 
-#include "ApvlvInfo.h"
-
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <ranges>
 #include <sstream>
+
+#include "ApvlvInfo.h"
+#include "ApvlvParams.h"
 
 namespace apvlv
 {
-ApvlvInfo *gInfo = nullptr;
+using namespace std;
 
-ApvlvInfo::ApvlvInfo (const char *filename)
+void
+ApvlvInfo::loadFile (std::string_view file)
 {
-  mFileName = filename;
+  mFileName = file;
 
-  mFileHead = nullptr;
-  mFileMax = 10;
-
-  ifstream is (mFileName.c_str (), ios::in);
+  ifstream is (mFileName, ios::in);
   if (is.is_open ())
     {
       string line;
-      const char *p;
 
       while (getline (is, line))
         {
-          p = line.c_str ();
+          auto p = line.c_str ();
 
           if (*p != '\''              /* the ' */
               || !isdigit (*(p + 1))) /* the digit */
@@ -59,113 +58,88 @@ ApvlvInfo::ApvlvInfo (const char *filename)
               continue;
             }
 
-          ini_add_position (p);
+          addPosition (p);
         }
-
-      mFileHead = g_slist_reverse (mFileHead);
 
       is.close ();
     }
 }
 
-ApvlvInfo::~ApvlvInfo ()
-{
-  for (GSList *list = mFileHead; list != nullptr; list = g_slist_next (list))
-    {
-      auto *fp = (infofile *)(list->data);
-      delete fp;
-    }
-  g_slist_free (mFileHead);
-}
-
 bool
 ApvlvInfo::update ()
 {
-  ofstream os (mFileName.c_str (), ios::out);
+  ofstream os (mFileName, ios::out);
   if (!os.is_open ())
     {
       return false;
     }
 
-  int i;
-  GSList *lfp;
-  infofile *fp;
-  for (i = 0, lfp = mFileHead; i < mFileMax && lfp != nullptr;
-       ++i, lfp = g_slist_next (lfp))
+  int i = 0;
+  for (const auto &infofile : mInfoFiles)
     {
-      fp = (infofile *)(lfp->data);
-      if (fp)
-        {
-          os << "'" << i << "\t";
-          os << fp->page << ':' << fp->skip << "\t";
-          os << fp->rate << "\t";
-          os << fp->file << endl;
-        }
+      os << "'" << i++ << "\t";
+      os << infofile.page << ':' << infofile.skip << "\t";
+      os << infofile.rate << "\t";
+      os << infofile.file << endl;
     }
 
   os.close ();
   return true;
 }
 
-infofile *
-ApvlvInfo::file (int id)
+std::optional<InfoFile *>
+ApvlvInfo::lastFile ()
 {
-  auto *fp = (infofile *)g_slist_nth_data (mFileHead, id);
-  return fp;
+  if (mInfoFiles.empty ())
+    return nullopt;
+  else
+    return &*(mInfoFiles.rbegin ());
 }
 
-infofile *
-ApvlvInfo::file (const char *filename)
+optional<InfoFile *>
+ApvlvInfo::file (const string &filename)
 {
-  GSList *lfp;
-  infofile *fp;
-
-  for (lfp = mFileHead; lfp != nullptr; lfp = g_slist_next (lfp))
+  auto itr = std::ranges::find_if (
+      std::views::reverse (mInfoFiles),
+      [filename] (auto const &infofile) { return infofile.file == filename; });
+  if (itr != mInfoFiles.rend ())
     {
-      fp = (infofile *)(lfp->data);
-      if (fp->file == filename)
-        {
-          break;
-        }
+      return &(*itr);
     }
 
-  if (lfp == nullptr)
+  return nullopt;
+}
+
+bool
+ApvlvInfo::updateFile (int page, int skip, double rate, const string &filename)
+{
+  InfoFile infofile{ page, skip, rate, filename };
+  auto optinfofile = file (filename);
+  if (optinfofile)
     {
-      fp = new infofile;
-      fp->page = 0;
-      fp->skip = 0;
-      fp->rate = 0.0;
-      fp->file = filename;
-      mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
+      *optinfofile.value () = infofile;
     }
   else
     {
-      mFileHead = g_slist_remove (mFileHead, fp);
-      mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
+      mInfoFiles.push_back (infofile);
+      if (mInfoFiles.size () > mMaxInfo)
+        mInfoFiles.pop_front ();
     }
 
-  return fp;
+  return update ();
+}
+
+ApvlvInfo::ApvlvInfo ()
+{
+  mMaxInfo = ApvlvParams::instance ()->getIntOrDefault ("max_info",
+                                                        DEFAULT_MAX_INFO);
 }
 
 bool
-ApvlvInfo::file (int page, double rate, const char *filename, int skip)
+ApvlvInfo::addPosition (const char *str)
 {
-  infofile *fp;
-
-  fp = file (filename);
-
-  fp->page = page;
-  fp->rate = rate;
-  fp->skip = skip;
-  update ();
-
-  return true;
-}
-
-bool
-ApvlvInfo::ini_add_position (const char *str)
-{
-  const char *p, *s;
+  const char *p;
+  const char *s;
 
   p = strchr (str + 2, '\t'); /* Skip the ' and the digit */
   if (p == nullptr)
@@ -225,12 +199,8 @@ ApvlvInfo::ini_add_position (const char *str)
       return false;
     }
 
-  auto *fp = new infofile;
-  fp->page = page;
-  fp->rate = rate;
-  fp->skip = skip;
-  fp->file = p;
-  mFileHead = g_slist_insert_before (mFileHead, mFileHead, fp);
+  auto fp = InfoFile{ page, skip, rate, p };
+  mInfoFiles.emplace_back (fp);
   return true;
 }
 };

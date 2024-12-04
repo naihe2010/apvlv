@@ -24,190 +24,223 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2008/09/30 00:00:00 Alf */
 
 #ifndef _APVLV_VIEW_H_
 #define _APVLV_VIEW_H_
 
-#include "ApvlvCmds.h"
-#include "ApvlvCompletion.h"
-#include "ApvlvDoc.h"
-#include "ApvlvMenuAndTool.h"
-#include "ApvlvWindow.h"
-
-#include <gtk/gtk.h>
-
+#include <QLineEdit>
+#include <QMainWindow>
+#include <QMenuBar>
+#include <QTabWidget>
+#include <QToolBar>
+#include <QVBoxLayout>
+#include <iosfwd>
 #include <iostream>
 #include <list>
+#include <sstream>
+#include <string_view>
+
+#include "ApvlvCmds.h"
+#include "ApvlvCompletion.h"
+#include "ApvlvFrame.h"
+#include "ApvlvWindow.h"
 
 namespace apvlv
 {
-typedef enum
-{
-  SEARCH = '/',
-  BACKSEARCH = '?',
-  COMMANDMODE = ':',
-  FIND = 'F'
-} cmd_mode_type;
 
-class ApvlvDoc;
+namespace CommandModeType
+{
+const char SEARCH = '/';
+const char BACKSEARCH = '?';
+const char COMMANDMODE = ':';
+const char FIND = 'F';
+}
+
+class ApvlvFrame;
 class ApvlvWindow;
 
-class ApvlvView
+class ApvlvCommandBar : public QLineEdit
 {
+  Q_OBJECT
 public:
-  explicit ApvlvView (ApvlvView *);
+  ApvlvCommandBar () { installEventFilter (this); };
 
-  ~ApvlvView ();
+protected:
+  void keyPressEvent (QKeyEvent *evt) override;
+  bool eventFilter (QObject *obj, QEvent *event) override;
 
-  GtkWidget *widget ();
+signals:
+  void keyPressed (QKeyEvent *evt);
+};
+
+class ApvlvView final : public QMainWindow
+{
+  Q_OBJECT
+public:
+  explicit ApvlvView (ApvlvView *view = nullptr);
+
+  ~ApvlvView () override;
 
   ApvlvWindow *currentWindow ();
 
-  void delcurrentWindow ();
+  void delCurrentWindow ();
 
-  bool newtab (const char *filename, bool disable_content = false);
+  bool newTab (const std::string &filename);
 
-  bool newtab (ApvlvCore *core);
+  bool newTab (ApvlvFrame *core);
 
-  __attribute__ ((unused)) bool newview (const char *filename, gint pn,
-                                         bool disable_content = false);
+  void promptCommand (char ch);
 
-  void promptcommand (char ch);
+  void promptCommand (const char *str);
 
-  void promptcommand (const char *str);
+  template <typename... T>
+  void
+  errorMessage (T... args)
+  {
+    std::stringstream msg;
+    msg << "ERROR: ";
+    msg << (... + args);
+    mCommandBar.setText (QString::fromLocal8Bit (msg.str ()));
+    cmdShow (CmdStatusType::CMD_MESSAGE);
+  }
 
-  void errormessage (const char *str, ...);
-
-  void infomessage (const char *str, ...);
-
-  static gchar *input (const char *str, int w = 400, int h = 150,
-                       string content = "");
+  static char *input (const char *str, int width = 400, int height = 150,
+                      const std::string &content = "");
 
   bool run (const char *str);
 
-  bool loadfile (const string &file);
+  bool loadFile (const std::string &filename);
 
-  bool loadfile (const char *filename);
+  bool loadDir (const std::string &path);
 
-  bool loaddir (const char *path);
+  std::optional<ApvlvFrame *> hasLoaded (std::string_view abpath);
 
-  ApvlvCore *hasloaded (const char *filename);
+  void regLoaded (ApvlvFrame *doc);
 
-  void regloaded (ApvlvCore *);
+  CmdReturn process (int hastimes, int times, uint keyval);
+
+  CmdReturn subProcess (int times, uint keyval);
+
+  void cmdShow (CmdStatusType cmdtype);
+
+  void cmdHide ();
+
+  void cmdAuto (const char *str);
+
+  void setTitle (const std::string &title);
+
+  ApvlvFrame *currentFrame ();
+
+  void appendChild (ApvlvView *view);
+
+  void eraseChild (ApvlvView *view);
+
+public slots:
+  void loadFileOnPage (const std::string &filename, int pn);
 
   void open ();
 
-  void opendir ();
+  void openDir ();
 
-  void quit ();
+  void openRrl ();
 
-  void fullscreen ();
+  void quit (bool only_tab = true);
 
-  returnType process (int hastimes, int times, guint keyval);
+  void search ();
 
-  returnType subprocess (int times, guint keyval);
+  void backSearch ();
 
-  void cmd_show (int ct);
+  void advancedSearch ();
 
-  void cmd_hide ();
+  void dired ();
 
-  void cmd_auto (const char *);
+  void fullScreen ();
 
-  void settitle (const char *);
+  void nextPage ();
 
-  ApvlvCore *crtadoc ();
+  void previousPage ();
 
-  void append_child (ApvlvView *);
+  void toggleContent ();
 
-  void erase_child (ApvlvView *);
+  void toggleToolBar ();
+
+  void toggleStatus ();
+
+  void newTab ();
+
+  void closeTab ();
+
+  void horizontalSplit ();
+
+  void verticalSplit ();
+
+  void unBirth ();
 
 private:
-  static ApvlvCompletion *filecompleteinit (const char *s);
+  void setupMenuBar (const std::string &guiopt);
 
-  bool runcmd (const char *cmd);
+  void setupToolBar ();
 
-  long new_tabcontext (ApvlvCore *core);
+  bool runCommand (const char *cmd);
 
-  void delete_tabcontext (long tabPos);
-
-  void switch_tabcontext (long tabPos);
-
-  void switchtab (long tabPos);
+  void switchTab (int tabPos);
 
   // Update the tab's context and update tab label.
-  void windowadded ();
+  void windowAdded ();
 
-  void updatetabname ();
+  void updateTabName ();
 
-  int mCmdType;
+  CmdStatusType mCmdType;
+  std::chrono::time_point<std::chrono::steady_clock> mCmdTime;
 
-  guint mProCmd;
+  uint mProCmd;
   int mProCmdCnt;
 
-  GtkWidget *mMainWindow;
+  QFrame mCentral;
+  QVBoxLayout mVBoxLayout;
 
-  ApvlvMenuAndTool *mMenu;
+  QTabWidget mTabContainer;
+  ApvlvCommandBar mCommandBar;
 
-  GtkWidget *mViewBox;
+  QMenuBar mMenuBar;
+  QToolBar mToolBar;
 
-  GtkWidget *mTabContainer;
-  GtkWidget *mCommandBar;
-
-  struct TabEntry
-  {
-    ApvlvWindow *mRootWindow;
-
-    int mWindowCount;
-
-    TabEntry (ApvlvWindow *_r, int _n) : mRootWindow (_r), mWindowCount (_n) {}
-  };
-  std::vector<TabEntry> mTabList;
-  long mCurrTabPos;
-
-  gboolean mHasFull;
+  bool mHasFull;
 
   struct keyNode
   {
     ;
     int Has;
     int Ct;
-    guint Key;
+    uint Key;
     bool End;
   };
   bool keyLastEnd;
   bool processInLast;
-  vector<keyNode> keySquence;
+  std::vector<keyNode> keySquence;
 
-  void saveKey (int has, int ct, guint key, bool end);
+  void saveKey (int has, int ct, uint key, bool end);
 
   void processLastKey ();
 
-  static void apvlv_view_delete_cb (__attribute__ ((unused)) GtkWidget *wid,
-                                    __attribute__ ((unused)) GtkAllocation *al,
-                                    ApvlvView *view);
-  static gint apvlv_view_keypress_cb (__attribute__ ((unused)) GtkWidget *wid,
-                                      GdkEvent *ev, ApvlvView *view);
-
-  static gint apvlv_view_commandbar_cb (__attribute__ ((unused))
-                                        GtkWidget *wid,
-                                        GdkEvent *ev, ApvlvView *view);
-
-  static void apvlv_notebook_switch_cb (__attribute__ ((unused))
-                                        GtkWidget *wid,
-                                        __attribute__ ((unused))
-                                        GtkNotebook *notebook,
-                                        guint num, ApvlvView *view);
+  void closeEvent (QCloseEvent *evt) override;
+  void keyPressEvent (QKeyEvent *evt) override;
 
   ApvlvCmds mCmds;
 
-  std::vector<ApvlvCore *> mDocs;
+  std::vector<std::unique_ptr<ApvlvFrame>> mDocs;
 
-  std::vector<string> mCmdHistroy;
+  std::vector<std::string> mCmdHistroy;
   size_t mCurrHistroy;
 
   ApvlvView *mParent;
   std::vector<ApvlvView *> mChildren;
+
+private slots:
+  void commandbarEdited (const QString &str);
+  void commandbarReturn ();
+  void commandbarKeyPressed (QKeyEvent *gek);
+  void tabSwitched (int ind);
 };
 
 }

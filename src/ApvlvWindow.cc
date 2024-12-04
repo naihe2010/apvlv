@@ -24,97 +24,52 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2008/09/30 00:00:00 Alf */
 
-#include "ApvlvWindow.h"
+#include <QSplitter>
+#include <QStackedWidget>
+#include <stack>
+
 #include "ApvlvParams.h"
-#include "ApvlvUtil.h"
 #include "ApvlvView.h"
-
-#include <gtk/gtk.h>
+#include "ApvlvWindow.h"
 
 namespace apvlv
 {
-ApvlvWindow::ApvlvWindow (ApvlvCore *doc, ApvlvView *view)
+ApvlvWindow::ApvlvWindow ()
 {
-  mPaned = nullptr;
-
-  mActiveWindow = this;
-
-  mType = AW_CORE;
-  if (doc == nullptr)
-    {
-      mCore = new ApvlvDoc (view, gParams->values ("zoom"));
-    }
-  else
-    {
-      mCore = doc;
-    }
-  m_child_1 = m_child_2 = m_parent = nullptr;
-
-  mView = view;
+  qDebug () << "win: " << this << ", init";
+  setLayout (&mLayout);
+  mLayout.addWidget (&mPaned);
 }
 
 ApvlvWindow::~ApvlvWindow ()
 {
-  if (mType == AW_CORE)
+  qDebug () << "win: " << this << ", released";
+  if (mType == WindowType::FRAME)
     {
-      debug ("release doc: %p\n", mCore);
-      mCore->inuse (false);
-    }
-  else
-    {
-      g_object_unref (mPaned);
+      auto frame = stealFrame ();
+      if (frame)
+        frame->inuse (false);
     }
 }
 
-GtkWidget *
-ApvlvWindow::widget ()
-{
-  if (mType == AW_CORE)
-    {
-      return mCore->widget ();
-    }
-  else
-    {
-      return mPaned;
-    }
-}
-
-void
-ApvlvWindow::setcurrentWindow (ApvlvWindow *win)
-{
-  if (mType == AW_CORE)
-    {
-      getCore ()->setactive (false);
-    }
-
-  if (win->mType == AW_CORE)
-    {
-      win->getCore ()->setactive (true);
-    }
-
-  getAncestor ()->mActiveWindow = win;
-}
-
-returnType
-ApvlvWindow::process (int ct, guint key)
+CmdReturn
+ApvlvWindow::process (int ct, uint key)
 {
   ApvlvWindow *nwin;
-  debug ("input [%d]", key);
+  qDebug () << "input [" << key << "]";
 
   switch (key)
     {
-    case CTRL ('w'):
+    case ctrlValue ('w'):
     case 'k':
     case 'j':
     case 'h':
     case 'l':
-      nwin = getneighbor (ct, key);
-      if (nwin != nullptr)
+      nwin = getNeighbor (ct, key);
+      if (nwin != nullptr && nwin != this)
         {
-          getCore ()->setactive (false);
-          setcurrentWindow (nwin);
+          nwin->setActive (true);
         }
       break;
 
@@ -129,362 +84,476 @@ ApvlvWindow::process (int ct, guint key)
     default:
       break;
     }
-  return MATCH;
+  return CmdReturn::MATCH;
 }
 
 ApvlvWindow *
-ApvlvWindow::getneighbor (int ct, guint key)
+ApvlvWindow::findWindowByWidget (QWidget *widget)
 {
-  switch (key)
+  auto doc = ApvlvFrame::findByWidget (widget);
+  if (doc == nullptr)
+    return nullptr;
+
+  std::stack<ApvlvWindow *> winstack;
+  winstack.push (this);
+  while (!winstack.empty ())
     {
-    case CTRL ('w'):
-      return getnext (ct);
-    case 'k':
-      return getkj (1, false);
-    case 'j':
-      return getkj (1, true);
-    case 'h':
-      return gethl (1, false);
-    case 'l':
-      return gethl (1, true);
-    default:
-      break;
+      auto win = winstack.top ();
+      winstack.pop ();
+      if (win->mType == ApvlvWindow::WindowType::FRAME)
+        {
+          if (win->getFrame () == doc)
+            return win;
+        }
+      else
+        {
+          winstack.push (win->firstWindow ());
+          winstack.push (win->secondWindow ());
+        }
     }
 
   return nullptr;
 }
 
-inline ApvlvWindow *
-ApvlvWindow::getkj (__attribute__ ((unused)) int num, bool down)
+ApvlvWindow *
+ApvlvWindow::getNeighbor (int count, uint key)
 {
-  ApvlvWindow *cw, *w, *nw, *fw;
-  bool right = false;
+  ApvlvWindow *last_win = nullptr;
+  ApvlvWindow *win = this;
 
-  g_return_val_if_fail (mType == AW_CORE, nullptr);
-
-  for (cw = fw = nullptr, w = this; w != nullptr; cw = w, w = w->m_parent)
+  for (int c = 0; c < count; ++c)
     {
-      if (w->mType == AW_SP)
+      switch (key)
         {
-          if ((cw == w->m_child_2 && down) || (cw == w->m_child_1 && !down))
-            {
-              continue;
-            }
-          else
-            {
-              fw = down ? w->m_child_2 : w->m_child_1;
-              break;
-            }
-        }
-      else if (w->mType == AW_VSP)
-        {
-          if (cw != nullptr && cw == w->m_child_2)
-            {
-              right = true;
-            }
-          else
-            {
-              right = false;
-            }
-        }
-    }
-
-  for (nw = w = fw; w != nullptr;)
-    {
-      if (w->mType == AW_CORE)
-        {
-          nw = w;
+        case ctrlValue ('w'):
+          win = win->getNext ();
+          break;
+        case 'k':
+          win = win->getTop ();
+          break;
+        case 'j':
+          win = win->getBottom ();
+          break;
+        case 'h':
+          win = win->getLeft ();
+          break;
+        case 'l':
+          win = win->getRight ();
+          break;
+        default:
           break;
         }
-      else if (w->mType == AW_SP)
-        {
-          w = down ? w->m_child_1 : w->m_child_2;
-        }
-      else if (w->mType == AW_VSP)
-        {
-          w = right ? w->m_child_2 : w->m_child_1;
-        }
+
+      if (win != nullptr)
+        last_win = win;
       else
-        {
-          debug ("error type: %d", w->mType);
-          return nullptr;
-        }
+        break;
     }
 
-  return nw;
+  return last_win;
 }
 
-inline ApvlvWindow *
-ApvlvWindow::gethl (__attribute__ ((unused)) int num, bool right)
+ApvlvWindow *
+ApvlvWindow::getLeft ()
 {
-  ApvlvWindow *cw, *w, *nw, *fw;
-  bool down = false;
-
-  g_return_val_if_fail (mType == AW_CORE, nullptr);
-
-  if (mCore->toggledControlContent (right))
+  if (mType == WindowType::FRAME && getFrame ()->toggledControlContent (false))
     {
       return this;
     }
 
-  for (cw = fw = nullptr, w = this; w != nullptr; cw = w, w = w->m_parent)
+  ApvlvWindow *fwin = this;
+
+  while (fwin->parentWindow ())
     {
-      if (w->mType == AW_VSP)
+      fwin = fwin->parentWindow ();
+      if (fwin->mType == WindowType::SP && fwin->firstWindow () != this)
         {
-          if ((cw == w->m_child_2 && right) || (cw == w->m_child_1 && !right))
+          if (fwin->secondWindow () == this)
+            return fwin->firstWindow ();
+
+          while (fwin->mType != WindowType::FRAME)
             {
-              continue;
+              fwin = fwin->secondWindow ();
             }
-          else
-            {
-              fw = right ? w->m_child_2 : w->m_child_1;
-              break;
-            }
-        }
-      else if (w->mType == AW_SP)
-        {
-          if (cw != nullptr && cw == w->m_child_2)
-            {
-              down = true;
-            }
-          else
-            {
-              down = false;
-            }
+          return fwin;
         }
     }
 
-  for (nw = w = fw; w != nullptr;)
-    {
-      if (w->mType == AW_CORE)
-        {
-          nw = w;
-          break;
-        }
-      else if (w->mType == AW_VSP)
-        {
-          w = right ? w->m_child_1 : w->m_child_2;
-        }
-      else if (w->mType == AW_SP)
-        {
-          w = down ? w->m_child_2 : w->m_child_1;
-        }
-      else
-        {
-          debug ("error type: %d", w->mType);
-          return nullptr;
-        }
-    }
-
-  return nw;
+  return nullptr;
 }
 
 ApvlvWindow *
-ApvlvWindow::getnext (int num)
+ApvlvWindow::getRight ()
 {
-  g_return_val_if_fail (mType == AW_CORE, nullptr);
-
-  ApvlvWindow *n = getkj (num, true);
-  if (n == nullptr)
+  if (mType == WindowType::FRAME && getFrame ()->toggledControlContent (true))
     {
-      n = gethl (num, true);
-      if (n == nullptr)
+      return this;
+    }
+
+  ApvlvWindow *fwin = this;
+
+  while (fwin->parentWindow ())
+    {
+      fwin = fwin->parentWindow ();
+      if (fwin->mType == WindowType::SP && fwin->secondWindow () != this)
         {
-          n = gethl (num, false);
-          if (n == nullptr)
-            n = getkj (num, false);
-        }
-    }
-  return n;
-}
+          if (fwin->firstWindow () == this)
+            return fwin->secondWindow ();
 
-// birth a new AW_CORE window, and the new window beyond the input doc
-// this made a AW_CORE window to AW_SP|AW_VSP
-ApvlvWindow *
-ApvlvWindow::birth (WindowType type, ApvlvCore *doc)
-{
-  g_return_val_if_fail (mType == AW_CORE, nullptr);
-
-  if (doc == mCore)
-    {
-      doc = nullptr;
-    }
-
-  if (doc == nullptr)
-    {
-      doc = mCore->copy ();
-      mCore->mView->regloaded (doc);
-    }
-
-  if (doc == nullptr)
-    {
-      mCore->mView->errormessage ("can't split");
-      return nullptr;
-    }
-
-  auto current_doc = mCore;
-  debug ("steal current doc: %p\n", current_doc);
-  auto orig_parent = gtk_widget_get_parent (current_doc->widget ());
-  gtk_container_remove (GTK_CONTAINER (orig_parent), current_doc->widget ());
-
-  m_child_1 = new ApvlvWindow (doc, mView);
-  m_child_1->m_parent = this;
-
-  m_child_2 = new ApvlvWindow (mCore, mView);
-  m_child_2->m_parent = this;
-
-  debug ("%p birth -> %p doc:%p <-> %p doc:%p\n", this, m_child_1, doc,
-         m_child_2, mCore);
-
-  mPaned = gtk_paned_new (type == AW_SP ? GTK_ORIENTATION_VERTICAL
-                                        : GTK_ORIENTATION_HORIZONTAL);
-  g_object_ref (mPaned);
-
-  if (m_parent == nullptr)
-    {
-      gtk_box_pack_start (GTK_BOX (orig_parent), mPaned, TRUE, TRUE, 0);
-    }
-  else
-    {
-      if (m_parent->m_child_1 == this)
-        {
-          gtk_paned_pack1 (GTK_PANED (orig_parent), mPaned, TRUE, TRUE);
-        }
-      else
-        {
-          gtk_paned_pack2 (GTK_PANED (orig_parent), mPaned, TRUE, TRUE);
+          while (fwin->mType != WindowType::FRAME)
+            {
+              fwin = fwin->firstWindow ();
+            }
+          return fwin;
         }
     }
 
-  gtk_paned_pack1 (GTK_PANED (mPaned), m_child_1->widget (), TRUE, TRUE);
-  gtk_paned_pack2 (GTK_PANED (mPaned), m_child_2->widget (), TRUE, TRUE);
-
-  setcurrentWindow (m_child_1);
-
-  gtk_widget_show_all (mPaned);
-
-  mType = type;
-
-  return m_child_1;
+  return nullptr;
 }
 
 ApvlvWindow *
-ApvlvWindow::unbirth ()
+ApvlvWindow::getTop ()
 {
-  g_return_val_if_fail (mType == AW_CORE, nullptr);
-  g_return_val_if_fail (m_parent != nullptr, nullptr);
+  ApvlvWindow *fwin = this;
 
-  auto other = m_parent->m_child_1;
-  if (other == this)
-    other = m_parent->m_child_2;
-
-  other->m_parent = m_parent->m_parent;
-
-  gtk_container_remove (GTK_CONTAINER (m_parent->mPaned), other->widget ());
-
-  auto orig_parent = gtk_widget_get_parent (m_parent->mPaned);
-  gtk_container_remove (GTK_CONTAINER (orig_parent), m_parent->mPaned);
-
-  if (m_parent->m_parent == nullptr)
+  while (fwin->parentWindow ())
     {
-      gtk_box_pack_start (GTK_BOX (orig_parent), other->widget (), TRUE, TRUE,
-                          0);
-    }
-  else
-    {
-      if (m_parent->m_parent->m_child_1 == m_parent)
+      fwin = fwin->parentWindow ();
+      if (fwin->mType == WindowType::VSP && (fwin->firstWindow () != this))
         {
-          gtk_paned_pack1 (GTK_PANED (orig_parent), other->widget (), TRUE,
-                           TRUE);
-          m_parent->m_parent->m_child_1 = other;
-        }
-      else
-        {
-          gtk_paned_pack2 (GTK_PANED (orig_parent), other->widget (), TRUE,
-                           TRUE);
-          m_parent->m_parent->m_child_2 = other;
+          if (fwin->secondWindow () == this)
+            return fwin->firstWindow ();
+
+          while (fwin->mType != WindowType::FRAME)
+            {
+              fwin = fwin->secondWindow ();
+            }
+          return fwin;
         }
     }
 
-  auto win = other;
-  while (win->mType != AW_CORE)
-    win = win->m_child_1;
-  setcurrentWindow (win);
-  debug ("now current core window: %p\n", win);
+  return nullptr;
+}
 
-  delete m_parent;
-  delete this;
-  debug ("%p unbirth %p -> %p\n", this, m_parent, other);
+ApvlvWindow *
+ApvlvWindow::getBottom ()
+{
+  ApvlvWindow *fwin = this;
 
-  win = other->getAncestor ();
-  gtk_widget_show_all (win->widget ());
-  return win;
+  while (fwin->parentWindow ())
+    {
+      fwin = fwin->parentWindow ();
+      if (fwin->mType == WindowType::VSP && fwin->secondWindow () != this)
+        {
+          if (fwin->firstWindow () == this)
+            return fwin->secondWindow ();
+
+          while (fwin->mType != WindowType::FRAME)
+            {
+              fwin = fwin->firstWindow ();
+            }
+          return fwin;
+        }
+    }
+
+  return nullptr;
 }
 
 void
-ApvlvWindow::setCore (ApvlvCore *doc)
+ApvlvWindow::splitWidget (WindowType type, QWidget *one, QWidget *other)
 {
-  debug ("widget (): %p, doc->widget (): %p", widget (), doc->widget ());
-  if (mType == AW_CORE)
-    {
-      mCore->inuse (false);
-    }
-  replace_widget (widget (), doc->widget ());
-  doc->inuse (true);
-  mType = AW_CORE;
-  mCore = doc;
+  setFrameStyle (QFrame::NoFrame);
+  setLineWidth (0);
+
+  mPaned.setOrientation (type == WindowType::SP ? Qt::Horizontal
+                                                : Qt::Vertical);
+  mPaned.setHandleWidth (10);
+  mPaned.setStretchFactor (0, 1);
+  mPaned.setStretchFactor (1, 1);
+
+  mPaned.addWidget (one);
+  mPaned.addWidget (other);
+
+  mType = type;
 }
 
-ApvlvCore *
-ApvlvWindow::getCore ()
+void
+ApvlvWindow::perishWidget ()
 {
-  return mCore;
+  auto par = parentWindow ();
+  auto win1 = par->firstWindow ();
+  auto win2 = par->secondWindow ();
+  auto rewin = (this == win1 ? win2 : win1);
+
+  auto par_par = par->parent ();
+  if (par_par->inherits ("QStackedWidget"))
+    {
+      win1->setParent (nullptr);
+      win2->setParent (nullptr);
+
+      if (rewin->mType == WindowType::FRAME)
+        {
+          auto frame = rewin->stealFrame ();
+          par->setFrame (frame);
+        }
+      else
+        {
+          par->splitWidget (rewin->mType, rewin->firstWindow (),
+                            rewin->secondWindow ());
+        }
+
+      qDebug () << win1 << " will be deleted ";
+      win1->deleteLater ();
+      qDebug () << win2 << " will be deleted ";
+      win2->deleteLater ();
+    }
+  else
+    {
+      auto par_splitter = dynamic_cast<QSplitter *> (par_par);
+      auto par0 = dynamic_cast<ApvlvWindow *> (par_splitter->widget ((0)));
+      auto par1 = dynamic_cast<ApvlvWindow *> (par_splitter->widget ((1)));
+      rewin->setParent (nullptr);
+      par0->setParent (nullptr);
+      par1->setParent (nullptr);
+      if (par0 == par)
+        {
+          qDebug () << rewin << " and " << par1 << " will be inserted ";
+          par_splitter->addWidget (rewin);
+          par_splitter->addWidget (par1);
+          qDebug () << par0 << " will be deleted ";
+          par0->deleteLater ();
+        }
+      else
+        {
+          qDebug () << par0 << " and " << rewin << " will be inserted ";
+          par_splitter->addWidget (par0);
+          par_splitter->addWidget (rewin);
+          qDebug () << par1 << " will be deleted ";
+          par1->deleteLater ();
+        }
+    }
+}
+
+void
+ApvlvWindow::setAsRootActive ()
+{
+  auto root_win = rootWindow ();
+  if (root_win)
+    root_win->setActiveWindow (this);
 }
 
 ApvlvWindow *
-ApvlvWindow::activeCoreWindow ()
+ApvlvWindow::getNext ()
 {
-  return mActiveWindow;
+  auto *n = getRight ();
+  if (n)
+    return n;
+
+  n = getBottom ();
+  if (n)
+    return n;
+
+  n = getLeft ();
+  if (n)
+    return n;
+
+  n = getTop ();
+  return n;
+}
+
+// birth a new FRAME window, and the new window beyond the input doc
+// this made a FRAME window to SP|VSP
+bool
+ApvlvWindow::birth (WindowType type, ApvlvFrame *doc)
+{
+  Q_ASSERT (mType == WindowType::FRAME);
+
+  auto frame = dynamic_cast<ApvlvFrame *> (mPaned.widget (0));
+  frame->setParent (nullptr);
+
+  if (doc == nullptr)
+    {
+      doc = frame->clone ();
+      if (doc == nullptr)
+        {
+          frame->mView->errorMessage ("can't split");
+          return false;
+        }
+
+      frame->mView->regLoaded (doc);
+    }
+
+  auto win1 = new ApvlvWindow ();
+  win1->setFrame (frame);
+
+  auto win2 = new ApvlvWindow ();
+  win2->setFrame (doc);
+
+  qDebug () << "win: " << this << " birth two: " << win1 << " and " << win2;
+  splitWidget (type, win1, win2);
+
+  if (auto root = rootWindow (); root && root->mActive == this)
+    {
+      root->mActive = win1;
+    }
+
+  return true;
+}
+
+void
+ApvlvWindow::perish ()
+{
+  qDebug () << "win: " << this << " try to perish ";
+  if (mType != WindowType::FRAME)
+    return;
+
+  if (auto root = rootWindow (); root && root->mActive == this)
+    {
+      root->mActive = nullptr;
+    }
+
+  perishWidget ();
+}
+
+void
+ApvlvWindow::setActive (bool act)
+{
+  Q_ASSERT (mType == WindowType::FRAME);
+  QTimer::singleShot (50, getFrame (), SLOT (setFocus ()));
+}
+
+void
+ApvlvWindow::setFrame (ApvlvFrame *doc)
+{
+  qDebug () << "win: " << this << ", set core: " << doc;
+  setFrameStyle (QFrame::Raised | QFrame::Box);
+  setLineWidth (1);
+
+  if (mType == WindowType::FRAME)
+    {
+      auto frame = stealFrame ();
+      if (frame)
+        {
+          frame->inuse (false);
+        }
+    }
+
+  mPaned.setStretchFactor (0, 1);
+  mPaned.addWidget (doc);
+  doc->inuse (true);
+  mType = WindowType::FRAME;
+
+  QObject::connect (doc, SIGNAL (focusIn ()), this, SLOT (setAsRootActive ()));
+}
+
+ApvlvFrame *
+ApvlvWindow::stealFrame ()
+{
+  Q_ASSERT (mType == WindowType::FRAME);
+  auto frame = dynamic_cast<ApvlvFrame *> (mPaned.widget (0));
+  if (frame)
+    {
+      frame->setParent (nullptr);
+    }
+  return frame;
+}
+
+ApvlvFrame *
+ApvlvWindow::getFrame ()
+{
+  Q_ASSERT (mType == WindowType::FRAME);
+  auto frame = dynamic_cast<ApvlvFrame *> (mPaned.widget (0));
+  return frame;
+}
+
+ApvlvWindow *
+ApvlvWindow::firstWindow ()
+{
+  Q_ASSERT (mType != WindowType::FRAME);
+  auto win = dynamic_cast<ApvlvWindow *> (mPaned.widget (0));
+  return win;
+}
+
+ApvlvWindow *
+ApvlvWindow::secondWindow ()
+{
+  Q_ASSERT (mType != WindowType::FRAME);
+  auto win = dynamic_cast<ApvlvWindow *> (mPaned.widget (1));
+  return win;
+}
+
+ApvlvWindow *
+ApvlvWindow::parentWindow ()
+{
+  auto win = parent ();
+  Q_ASSERT (win);
+  if (win->inherits ("QSplitter"))
+    win = win->parent ();
+  return dynamic_cast<ApvlvWindow *> (win);
+}
+
+ApvlvWindow *
+ApvlvWindow::rootWindow ()
+{
+  auto win = this;
+  while (win && !win->isRoot ())
+    win = win->parentWindow ();
+  return win;
+}
+
+ApvlvWindow *
+ApvlvWindow::firstFrameWindow ()
+{
+  auto win = this;
+  while (win->mType != WindowType::FRAME)
+    {
+      win = win->firstWindow ();
+    }
+
+  return win;
+}
+
+bool
+ApvlvWindow::isRoot ()
+{
+  auto par = parentWindow ();
+  if (par == nullptr)
+    return true;
+  else
+    return false;
 }
 
 void
 ApvlvWindow::smaller (int times)
 {
-  if (m_parent == nullptr)
+  if (isRoot ())
     return;
 
-  int val = gtk_paned_get_position (GTK_PANED (m_parent->mPaned));
+  auto pwin = parentWindow ();
+  auto sizes = pwin->mPaned.sizes ();
   int len = 20 * times;
-  m_parent->m_child_1 == this ? val -= len : val += len;
-  gtk_paned_set_position (GTK_PANED (m_parent->mPaned), val);
+  if (pwin->firstWindow () == this)
+    {
+      sizes[0] -= len;
+      sizes[1] += len;
+    }
+  else
+    {
+      sizes[0] += len;
+      sizes[1] -= len;
+    }
+  pwin->mPaned.setSizes (sizes);
 }
 
 void
 ApvlvWindow::bigger (int times)
 {
-  if (m_parent == nullptr)
+  if (isRoot ())
     return;
 
-  int val = gtk_paned_get_position (GTK_PANED (m_parent->mPaned));
-  int len = 20 * times;
-  m_parent->m_child_1 == this ? val += len : val -= len;
-  gtk_paned_set_position (GTK_PANED (m_parent->mPaned), val);
+  smaller (0 - times);
 }
 
-ApvlvWindow *
-ApvlvWindow::getAncestor ()
-{
-  ApvlvWindow *win = this;
-  while (win->m_parent != nullptr)
-    win = win->m_parent;
-  return win;
-}
-
-bool
-ApvlvWindow::isAncestor () const
-{
-  return m_parent == nullptr;
-}
 }
 
 // Local Variables:

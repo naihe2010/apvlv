@@ -11,7 +11,7 @@
 "map O zo
 
 " if start apvlv as fullscreen mode, default is no
-set fullscreen=no
+"set fullscreen=no
 
 " zoom value, default is fitwidth
 " zoom has 4 styles
@@ -22,54 +22,41 @@ set fullscreen=no
 "set zoom=fitwidth
 
 " set window size
-set width=800
-set height=600
+"set width=800
+"set height=600
 
 " set command timeout between two key press 
-set commandtimeout=2000
+"set commandtimeout=2000
 
 " set default dir
-set defaultdir=C:\
+"set defaultdir=C:\
 
-" set if use content view
-set content=yes
-
-" set weather use continuous view 
+" set weather use continuous view
 " make sure the autoscrollpage is set to "yes" if you want to set this to yes
-set continuous=yes
+"set continuous=yes
 
 " set a pad to continuous page
-set continuouspad=2
+"set continuouspad=2
 
 " set if auto scroll page when at the end or begin of one pdf page
-set autoscrollpage=yes
+"set autoscrollpage=yes
 
 " set if auto scroll doc from 1st page when goto the last page
-set autoscrolldoc=yes
+"set autoscrolldoc=yes
 
 " set if disable ~/.apvlvinfo, default is no
-set noinfo=no
-
-" set pdf object cache size
-set pdfcache = 4
-
-" set if use visual mode to select and copy text
-set visualmode = no
+"set noinfo=no
 
 " set if wrapscan text
-set wrapscan = yes
+"set wrapscan = yes
 
 " set double click action
 " option value is 'word', 'line' or 'page'
-set doubleclick = page
+"set doubleclick = page
 
 " set GUI options
 " m means menu, T means toolbar
-" set guioptions = 
-
-" set if use auto reload document
-" > 0 means auto reload after some seconds. = 0 means not auto reload
-" set autoreload = 3
+"set guioptions = mT
 
 " set if reverted pdf page
-" set reverted = no
+"set reverted = no

@@ -19,35 +19,36 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/* @CPPFILE ApvlvFile.h
+/* @CPPFILE File.h
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2009/11/20 19:37:44 Alf*/
 
 #ifndef _APVLV_FILE_H_
 #define _APVLV_FILE_H_
 
-#include <glib/poppler.h>
-#include <gtk/gtk.h>
-
-#include <iostream>
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
-using namespace std;
+
+#include "ApvlvFileIndex.h"
+#include "ApvlvNote.h"
+#include "ApvlvParams.h"
+#include "ApvlvSearch.h"
 
 namespace apvlv
 {
 
-typedef enum
+enum class DISPLAY_TYPE
 {
-  DISPLAY_TYPE_IMAGE = 0,
-  DISPLAY_TYPE_HTML = 1,
-} DISPLAY_TYPE;
+  IMAGE,
+  HTML,
+  CUSTOM,
+};
 
 //
-// link to a url, or a page num
+// link to an url, or a page num
 //
 struct ApvlvLink
 {
@@ -56,146 +57,252 @@ struct ApvlvLink
 
 struct ApvlvCover
 {
-  string content;
-  string mime_type;
+  std::string content;
+  std::string mime_type;
 };
 
-typedef vector<ApvlvLink> ApvlvLinks;
+using ApvlvLinks = std::vector<ApvlvLink>;
 
 struct ApvlvPoint
 {
-  double x, y;
+  double x;
+  double y;
 };
 
-//
-// position of a search result, or just a area
-//
-struct ApvlvPos
+struct Size
 {
-  double x1, x2, y1, y2;
+  int width;
+  int height;
 };
 
-typedef vector<ApvlvPos> ApvlvPoses;
-
-enum ApvlvAnnotType
+struct SizeF
 {
-  APVLV_ANNOT_UNDERLINE,
-  APVLV_ANNOT_TEXT,
+  double width;
+  double height;
 };
 
-struct ApvlvAnnotText
+/*
+ * position of a search result, or just an area
+ */
+struct Rectangle
 {
-  ApvlvAnnotType type;
-  ApvlvPos pos;
-  string text;
+  double p1x;
+  double p1y;
+  double p2x;
+  double p2y;
 };
 
-typedef vector<ApvlvAnnotText> ApvlvAnnotTexts;
+using CharRectangle = Rectangle;
 
-enum ApvlvFileIndexType
+struct WordRectangle
 {
-  FILE_INDEX_PAGE,
-  FILE_INDEX_FILE,
-  FILE_INDEX_DIR
+  std::string word;
+  std::vector<CharRectangle> rect_list;
 };
 
-class ApvlvFileIndex
-{
-public:
-  ApvlvFileIndex () = default;
-  ApvlvFileIndex (string title, int page, string path,
-                  ApvlvFileIndexType type);
-  ~ApvlvFileIndex ();
+using WordListRectangle = std::vector<WordRectangle>;
 
-  void load_dir (const gchar *path);
-
-  string title;
-  int page;
-  string path;
-  string anchor;
-  ApvlvFileIndexType type;
-  vector<ApvlvFileIndex> children;
-};
-
-class ApvlvFile
+class WebView;
+class FileWidget;
+class File
 {
 public:
-  const static map<string, vector<string> > &supportMimeTypes ();
-  const static vector<string> &supportFileExts ();
+  virtual ~File ();
 
-  ApvlvFile (__attribute__ ((unused)) const char *filename,
-             __attribute__ ((unused)) bool check);
+  virtual bool load (const std::string &filename) = 0;
 
-  virtual ~ApvlvFile ();
+  /* File methods */
+  [[nodiscard]] virtual DISPLAY_TYPE
+  getDisplayType () const
+  {
+    return DISPLAY_TYPE::HTML;
+  }
 
-  static ApvlvFile *newFile (const char *filename,
-                             __attribute__ ((unused)) bool check = false);
+  virtual FileWidget *
+  getWidget ()
+  {
+    return nullptr;
+  }
 
-  virtual bool writefile (const char *filename) = 0;
+  const std::string &
+  getFilename ()
+  {
+    return mFilename;
+  }
 
-  virtual bool pagesize (int page, int rot, double *x, double *y) = 0;
+  bool
+  setFilename (const std::string &filename)
+  {
+    if (load (filename))
+      {
+        mFilename = filename;
 
-  virtual int pagesum () = 0;
+        mNote.load ();
 
-  virtual bool pagetext (int, gdouble, gdouble, gdouble, gdouble, char **) = 0;
+        return true;
+      }
 
-  virtual bool render (int, int, int, double, int, GdkPixbuf *, char *buffer);
-
-  virtual bool annot_underline (int, gdouble, gdouble, gdouble, gdouble);
-
-  virtual bool annot_text (int, gdouble, gdouble, gdouble, gdouble,
-                           const char *text);
-
-  virtual bool annot_update (int, ApvlvAnnotText *text);
-
-  virtual bool renderweb (int pn, int, int, double, int, GtkWidget *widget);
-
-  virtual ApvlvPoses *pagesearch (int pn, const char *str, bool reverse) = 0;
-
-  virtual bool pageselectsearch (int, int, int, double, int, GdkPixbuf *,
-                                 char *, int, ApvlvPoses *)
-      = 0;
-
-  virtual ApvlvAnnotTexts getAnnotTexts (int pn);
-
-  virtual ApvlvLinks *getlinks (int pn) = 0;
-
-  virtual bool pageprint (int pn, cairo_t *cr) = 0;
-
-  virtual gchar *get_ocf_file (const gchar *path, gssize *);
-
-  virtual const gchar *get_ocf_mime_type (const gchar *path);
-
-  virtual int get_ocf_page (const gchar *path);
-
-  virtual DISPLAY_TYPE get_display_type ();
+    return false;
+  }
 
   const ApvlvCover &
-  get_cover ()
+  getCover ()
   {
     return mCover;
   }
 
-  const ApvlvFileIndex &
-  get_index ()
+  Note *
+  getNote ()
+  {
+    return &mNote;
+  }
+
+  const FileIndex &
+  getIndex ()
   {
     return mIndex;
   }
 
-protected:
-  ApvlvFileIndex mIndex;
+  virtual std::unique_ptr<SearchFileMatch>
+  grepFile (const std::string &seq, bool is_case, bool is_regex,
+            std::atomic<bool> &is_abort);
 
-  gchar *mRawdata;
-  guint mRawdataSize;
-  std::vector<string> mPages;
-  std::map<string, int> srcPages;
-  std::map<string, string> srcMimeTypes;
+  virtual int
+  sum ()
+  {
+    return 1;
+  };
+
+  // Page methods
+  Size
+  pageSize (int page, int rot)
+  {
+    auto sizef = pageSizeF (page, rot);
+    return { static_cast<int> (sizef.width), static_cast<int> (sizef.height) };
+  }
+
+  virtual SizeF
+  pageSizeF (int page, int rot)
+  {
+    return { 0, 0 };
+  }
+
+  virtual int
+  pageNumberWrap (int page)
+  {
+    auto scrdoc = ApvlvParams::instance ()->getBoolOrDefault ("autoscrolldoc");
+    int c = sum ();
+
+    if (page >= 0 && page < c)
+      {
+        return page;
+      }
+    else if (page >= c && scrdoc)
+      {
+        return page % c;
+      }
+    else if (page < 0 && scrdoc)
+      {
+        while (page < 0)
+          page += c;
+        return page;
+      }
+    else
+      {
+        return -1;
+      }
+  }
+
+  virtual bool pageRenderToImage (int pn, double zm, int rot, QImage *img);
+
+  virtual bool pageRenderToWebView (int pn, double zm, int rot,
+                                    WebView *webview);
+
+  // some ebooks only have image as page
+  virtual bool
+  pageIsOnlyImage (int pn)
+  {
+    return false;
+  }
+
+  virtual std::unique_ptr<ApvlvLinks>
+  pageLinks (int pn)
+  {
+    return nullptr;
+  }
+
+  virtual bool
+  pageText (int pn, const Rectangle &rect, std::string &text)
+  {
+    return false;
+  }
+
+  virtual std::unique_ptr<WordListRectangle>
+  pageSearch (int pn, const char *str)
+  {
+    return nullptr;
+  }
+
+  virtual std::optional<std::vector<Rectangle>>
+  pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb)
+  {
+    return std::nullopt;
+  }
+
+  // path methods
+  virtual std::optional<QByteArray> pathContent (const std::string &path);
+
+  virtual std::string pathMimeType (const std::string &path);
+
+  virtual int pathPageNumber (const std::string &path);
+
+protected:
+  File () : mNote (this) {}
+
+  std::string mFilename;
+  FileIndex mIndex;
+  std::vector<std::string> mPages;
+  std::map<std::string, int> srcPages;
+  std::map<std::string, std::string> srcMimeTypes;
   ApvlvCover mCover;
+  Note mNote;
 
 private:
-  const static std::map<string, std::vector<string> > mSupportMimeTypes;
-  const static std::vector<string> mSupportFileExts;
+  std::optional<QByteArray> pathContentHtml (int, double, int);
+  std::optional<QByteArray> pathContentPng (int, double, int);
 };
+
+class FileFactory
+{
+public:
+  static int registerClass (const std::string &name,
+                            const std::function<File *()> &fun,
+                            std::initializer_list<std::string> exts);
+
+  static const std::map<std::string, std::vector<std::string>> &
+  supportMimeTypes ();
+
+  static std::vector<std::string> supportFileExts ();
+
+  static std::ostream &typeEngineDescription (std::ostream &os);
+
+  using ExtClass = std::pair<std::string, std::function<File *()>>;
+  using ExtClassList = std::vector<ExtClass>;
+
+  static std::optional<ExtClass> findMatchClass (const std::string &filename);
+  static std::unique_ptr<File> loadFile (const std::string &filename);
+
+private:
+  static std::map<std::string, std::vector<std::string>> mSupportMimeTypes;
+  static std::map<std::string, ExtClassList> mSupportClass;
+};
+
+#define FILE_TYPE_DECLARATION(cls)                                            \
+private:                                                                      \
+  static int class_id_of_##cls
+#define FILE_TYPE_DEFINITION(name, cls, ...)                                  \
+  int cls::class_id_of_##cls = FileFactory::registerClass (                   \
+      name, [] () -> File * { return new cls (); }, __VA_ARGS__)
 
 };
 

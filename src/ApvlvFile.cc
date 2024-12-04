@@ -19,230 +19,284 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/* @CPPFILE ApvlvFile.cc
+/* @CPPFILE File.cc
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2009/11/20 19:38:30 Alf*/
 
-#include "ApvlvFile.h"
-#include "ApvlvEpub.h"
-#include "ApvlvHtm.h"
-#include "ApvlvPdf.h"
-#include "ApvlvUtil.h"
+#include <QBuffer>
 #include <algorithm>
 #include <filesystem>
 #include <functional>
-#include <glib.h>
 #include <iostream>
-#include <sys/stat.h>
+#include <optional>
+#include <sstream>
 #include <utility>
 
-#ifdef APVLV_WITH_DJVU
-#include "ApvlvDjvu.h"
-#endif
-#include "ApvlvFb2.h"
-#include "ApvlvTxt.h"
+#include "ApvlvFile.h"
+#include "ApvlvUtil.h"
+#include "ApvlvWebViewWidget.h"
 
 namespace apvlv
 {
-#ifndef MAX
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#endif
 
 using namespace std;
-using namespace std::filesystem;
 
-const map<string, vector<string> > &
-ApvlvFile::supportMimeTypes ()
+const string html_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
+                             "<html xmlns=\"http://www.w3.org/1999/xhtml\" "
+                             "lang=\"en\" xml:lang=\"en\">\n"
+                             "  <head>\n"
+                             "    <title></title>\n"
+                             "    <meta http-equiv=\"Content-Type\" "
+                             "content=\"text/html; charset=utf-8\"/>\n"
+                             "  </head>\n"
+                             "  <body>\n"
+                             "    <div content>"
+                             "      <image src=%s />"
+                             "    </div>"
+                             "  </body>\n"
+                             "</html>\n";
+
+map<string, vector<string>> FileFactory::mSupportMimeTypes;
+map<string, FileFactory::ExtClassList> FileFactory::mSupportClass;
+
+const map<string, vector<string>> &
+FileFactory::supportMimeTypes ()
 {
   return mSupportMimeTypes;
 }
 
-const map<string, vector<string> > ApvlvFile::mSupportMimeTypes = {
-  { "PDF File", { "*.pdf", "*.PDF" } },
-  { "HTML File", { ".HTM", ".htm", "*.HTML", ".html" } },
-  { "ePub File", { "*.EPUB", "*.epub" } },
-#ifdef APVLV_WITH_DJVU
-  { "DJVU File", { "*.DJV", "*.djv", "*.DJVU", "*.djvu" } },
-#endif
-  { "TXT File", { "*.TXT", "*.txt" } },
-  { "FB2 File", { "*.FB2", "*.fb2" } },
-};
-
-const vector<string> &
-ApvlvFile::supportFileExts ()
+vector<string>
+FileFactory::supportFileExts ()
 {
-  return mSupportFileExts;
+  vector<string> exts;
+  for (const auto &pair : mSupportMimeTypes)
+    {
+      exts.insert (exts.end (), pair.second.begin (), pair.second.end ());
+    }
+  return exts;
 }
 
-const vector<string> ApvlvFile::mSupportFileExts
-    = { ".pdf", ".html", ".htm", ".epub", ".djv", ".djvu", ".txt", ".fb2" };
-
-ApvlvFile::ApvlvFile (__attribute__ ((unused)) const char *filename,
-                      __attribute__ ((unused)) bool check)
+ostream &
+FileFactory::typeEngineDescription (ostream &os)
 {
-  mRawdata = nullptr;
-  mRawdataSize = 0;
+  os << "Engines: " << endl;
+  for (auto &pair : mSupportClass)
+    {
+      string ext = pair.first;
+      string engines;
+      std::ranges::for_each (pair.second, [&engines] (ExtClass &cls) {
+        engines.append (" ");
+        engines.append (cls.first);
+      });
+      os << "\t" << pair.first << ":\t\t" << engines << endl;
+    }
+  os << endl;
+  return os;
 }
 
-ApvlvFile::~ApvlvFile ()
+int
+FileFactory::registerClass (const string &name, const function<File *()> &fun,
+                            initializer_list<string> exts)
 {
-  delete[] mRawdata;
-  mRawdata = nullptr;
+  mSupportMimeTypes.insert ({ name, exts });
+  std::ranges::for_each (exts, [=] (const string &t) {
+    auto iter = mSupportClass.find (t);
+    if (iter != mSupportClass.end ())
+      {
+        auto &cls_list = iter->second;
+        cls_list.emplace_back (name, fun);
+      }
+    else
+      {
+        auto cls_list = ExtClassList{ { name, fun } };
+        mSupportClass.insert ({ t, cls_list });
+      }
+  });
+  return static_cast<int> (mSupportMimeTypes.size ());
+}
 
+optional<FileFactory::ExtClass>
+FileFactory::findMatchClass (const std::string &filename)
+{
+  auto ext = filenameExtension (filename);
+  if (ext.empty ())
+    return nullopt;
+
+  if (mSupportClass.find (ext) == mSupportClass.end ())
+    return nullopt;
+
+  auto cls_list = mSupportClass[ext];
+  if (cls_list.size () == 1)
+    return cls_list[0];
+
+  auto cls_name
+      = ApvlvParams::instance ()->getGroupStringOrDefault (ext, "engine", "");
+  if (cls_name.empty ())
+    return cls_list[0];
+
+  for (auto const &cls : cls_list)
+    {
+      if (strcasecmp (cls.first.c_str (), cls_name.c_str ()) == 0)
+        return cls;
+    }
+
+  return cls_list[0];
+}
+
+unique_ptr<File>
+FileFactory::loadFile (const string &filename)
+{
+  auto cls = findMatchClass (filename);
+  if (!cls.has_value ())
+    {
+      qWarning () << "no engine to open " << filename;
+      return nullptr;
+    }
+
+  auto file = unique_ptr<File> (cls->second ());
+  if (file->setFilename (filename))
+    return file;
+  else
+    {
+      qWarning () << "open " << filename << " error";
+      return nullptr;
+    }
+}
+
+File::~File ()
+{
   mPages.clear ();
   srcPages.clear ();
   srcMimeTypes.clear ();
 }
 
-ApvlvFile *
-ApvlvFile::newFile (const char *filename, __attribute__ ((unused)) bool check)
+unique_ptr<SearchFileMatch>
+File::grepFile (const string &seq, bool is_case, bool is_regex,
+                atomic<bool> &is_abort)
 {
-  ApvlvFile *file;
-  map<string, function<ApvlvFile *()> > type_class;
-
-  type_class[".pdf"]
-      = [filename] () -> ApvlvFile * { return new ApvlvPDF (filename); };
-  type_class[".html"]
-      = [filename] () -> ApvlvFile * { return new ApvlvHTML (filename); };
-  type_class[".htm"]
-      = [filename] () -> ApvlvFile * { return new ApvlvHTML (filename); };
-  type_class[".epub"]
-      = [filename] () -> ApvlvFile * { return new ApvlvEPUB (filename); };
-#ifdef APVLV_WITH_DJVU
-  type_class[".djv"]
-      = [filename] () -> ApvlvFile * { return new ApvlvDJVU (filename); };
-  type_class[".djvu"]
-      = [filename] () -> ApvlvFile * { return new ApvlvDJVU (filename); };
-#endif
-  type_class[".txt"]
-      = [filename] () -> ApvlvFile * { return new ApvlvTXT (filename); };
-  type_class[".fb2"]
-      = [filename] () -> ApvlvFile * { return new ApvlvFB2 (filename); };
-
-  auto ext = filename_ext (filename);
-  if (ext.empty ())
-    return nullptr;
-
-  if (type_class.find (ext) == type_class.end ())
-    return nullptr;
-
-  file = nullptr;
-  try
+  vector<SearchPageMatch> page_matches;
+  for (int pn = 0; pn < sum (); ++pn)
     {
-      file = type_class[ext]();
+      if (is_abort.load () == true)
+        return nullptr;
+
+      auto size = pageSizeF (pn, 0);
+      string content;
+      if (pageText (pn, { 0, 0, size.width, size.height }, content) == false)
+        continue;
+
+      istringstream iss{ content };
+      string line;
+      SearchMatchList matches;
+      while (getline (iss, line))
+        {
+          if (is_abort.load () == true)
+            return nullptr;
+
+          auto founds = apvlv::grep (line, seq, is_case, is_regex);
+          for (auto const &found : founds)
+            {
+              SearchMatch match{ line.substr (found.first, found.second), line,
+                                 found.first, found.second };
+              matches.push_back (match);
+            }
+        }
+      if (!matches.empty ())
+        {
+          page_matches.push_back ({ pn, matches });
+        }
     }
 
-  catch (const bad_alloc &e)
-    {
-      delete file;
-      file = nullptr;
-    }
+  if (page_matches.empty ())
+    return nullptr;
 
-  return file;
+  auto file_match = make_unique<SearchFileMatch> ();
+  file_match->filename = getFilename ();
+  file_match->page_matches = std::move (page_matches);
+  return file_match;
 }
 
 bool
-ApvlvFile::render (int pn, int ix, int iy, double zm, int rot, GdkPixbuf *pix,
-                   char *buffer)
+File::pageRenderToImage (int pn, double zm, int rot, QImage *img)
 {
   return false;
 }
 
 bool
-ApvlvFile::renderweb (int pn, int, int, double, int, GtkWidget *widget)
+File::pageRenderToWebView (int pn, double zm, int rot, WebView *webview)
 {
-  return false;
+  webview->setZoomFactor (zm);
+  QUrl pdfuri = QString ("apvlv:///%1-%2-%3-%4.html")
+                    .arg (pn)
+                    .arg (zm)
+                    .arg (rot)
+                    .arg (rand ());
+  webview->load (pdfuri);
+  return true;
 }
 
-gchar *
-ApvlvFile::get_ocf_file (const gchar *path, gssize *sizep)
-{
-  return nullptr;
-}
-
-const gchar *
-ApvlvFile::get_ocf_mime_type (const gchar *path)
+string
+File::pathMimeType (const string &path)
 {
   if (srcMimeTypes.find (path) != srcMimeTypes.end ())
-    return srcMimeTypes[path].c_str ();
-  return "text/html";
+    return srcMimeTypes[path];
+  else if (QString::fromLocal8Bit (path).endsWith (".png"))
+    return "image/png";
+  else
+    return "text/html";
 }
 
 int
-ApvlvFile::get_ocf_page (const gchar *path)
+File::pathPageNumber (const string &path)
 {
   if (srcPages.find (path) != srcPages.end ())
     return srcPages[path];
   return -1;
 }
 
-DISPLAY_TYPE
-ApvlvFile::get_display_type () { return DISPLAY_TYPE_IMAGE; }
-
-bool
-ApvlvFile::annot_underline (int, gdouble, gdouble, gdouble, gdouble)
+optional<QByteArray>
+File::pathContent (const string &path)
 {
-  return false;
+  auto words = QString::fromLocal8Bit (path).split ("-");
+  int pn = words[0].toInt ();
+  double zm = words[1].toDouble ();
+  int rot = words[2].toInt ();
+
+  if (QString::fromLocal8Bit (path).endsWith (".html"))
+    return pathContentHtml (pn, zm, rot);
+  else
+    return pathContentPng (pn, zm, rot);
 }
 
-bool
-ApvlvFile::annot_text (int, gdouble, gdouble, gdouble, gdouble,
-                       const char *text)
+optional<QByteArray>
+File::pathContentHtml (int pn, double zm, int rot)
 {
-  return false;
+  auto src = QString ("apvlv:///%1-%2-%3-%4.png")
+                 .arg (pn)
+                 .arg (zm)
+                 .arg (rot)
+                 .arg (rand ());
+  auto html = QString::asprintf (html_template.c_str (),
+                                 src.toStdString ().c_str ());
+  return QByteArray::fromStdString (html.toStdString ());
 }
 
-ApvlvAnnotTexts
-ApvlvFile::getAnnotTexts (int pn)
+optional<QByteArray>
+File::pathContentPng (int pn, double zm, int rot)
 {
-  ApvlvAnnotTexts texts;
-  return texts;
-}
-bool
-ApvlvFile::annot_update (int, ApvlvAnnotText *text)
-{
-  return false;
+  QImage image;
+  if (pageRenderToImage (pn, zm, rot, &image) == false)
+    return nullopt;
+
+  QByteArray array;
+  QBuffer buffer (&array);
+  buffer.open (QIODevice::WriteOnly);
+  image.save (&buffer, "PNG");
+  buffer.close ();
+  return array;
 }
 
-void
-ApvlvFileIndex::load_dir (const gchar *path1)
-{
-  for (auto &entry :
-       directory_iterator (path1, directory_options::follow_directory_symlink))
-    {
-      if (entry.is_directory ())
-        {
-          auto index = ApvlvFileIndex (entry.path ().filename (), 0,
-                                       entry.path (), FILE_INDEX_DIR);
-          index.load_dir (entry.path ().c_str ());
-          children.emplace_back (index);
-        }
-      else if (entry.file_size () > 0)
-        {
-          auto file_ext = filename_ext (entry.path ().filename ().c_str ());
-          auto exts = ApvlvFile::supportFileExts ();
-          if (count (exts.rbegin (), exts.rend (), file_ext) > 0)
-            {
-              auto index = ApvlvFileIndex (entry.path ().filename (), 0,
-                                           entry.path (), FILE_INDEX_FILE);
-              children.emplace_back (index);
-            }
-        }
-    }
-}
-
-ApvlvFileIndex::ApvlvFileIndex (string title, int page, string path,
-                                ApvlvFileIndexType type)
-{
-  this->title = std::move (title);
-  this->page = page;
-  this->path = std::move (path);
-  this->type = type;
-}
-
-ApvlvFileIndex::~ApvlvFileIndex () {}
 }
 
 // Local Variables:

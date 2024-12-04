@@ -24,91 +24,58 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
-#include "ApvlvCompletion.h"
+#include <QDebug>
+#include <filesystem>
+#include <string>
 
-#include <cstring>
+#include "ApvlvCompletion.h"
+#include "ApvlvUtil.h"
 
 namespace apvlv
 {
-ApvlvCompletion::ApvlvCompletion ()
+using namespace std;
+
+string
+ApvlvCompletion::complete (const string &prefix)
 {
-#ifdef APVLV_NO_G_COMP
-  mArray = g_ptr_array_new ();
-  mCache = nullptr;
-#else
-  mComp = g_completion_new (nullptr);
-#endif
+  auto iter = std::ranges::find_if (mItems, [prefix] (const string &item) {
+    return item.find (prefix) == 0;
+  });
+  if (iter != mItems.cend ())
+    return *iter;
+  else
+    return "";
 }
 
-ApvlvCompletion::~ApvlvCompletion ()
+void
+ApvlvCompletion::addItems (const vector<string> &items)
 {
-#ifdef APVLV_NO_G_COMP
-  g_ptr_array_free (mArray, TRUE);
-  if (mCache)
-    {
-      g_list_free (mCache);
-      mCache = nullptr;
-    }
-#else
-  g_completion_free (mComp);
-#endif
+  mItems.insert (mItems.end (), items.begin (), items.end ());
 }
 
-GList *
-ApvlvCompletion::complete (const gchar *prefix, gchar **context)
+void
+ApvlvCompletion::addPath (const string &path)
 {
-#ifdef APVLV_NO_G_COMP
-  size_t i, count;
+  vector<string> items;
 
-  if (mCache)
+  auto fspath = filesystem::path{ path };
+  auto filename = fspath.filename ();
+  auto dirname = fspath.parent_path ();
+  for (auto &entry : filesystem::directory_iterator (dirname))
     {
-      g_list_free (mCache);
-      mCache = nullptr;
-    }
-
-  for (count = 0, i = 0; i < mArray->len; ++i)
-    {
-      gchar *str;
-
-      str = static_cast<gchar *> (g_ptr_array_index (mArray, i));
-      if (memcmp (prefix, str, strlen (prefix)) == 0)
+      auto entry_filename = entry.path ().filename ().string ();
+      if (filename.empty () || entry_filename.find (filename.string ()) == 0)
         {
-          mCache = g_list_append (mCache, str);
-          ++count;
+          auto item = entry.path ().string ()
+                      + (entry.is_directory () ? PATH_SEP_S : "");
+          qDebug () << "add a item: " << item;
+          items.emplace_back (item);
         }
     }
 
-  if (count == 1)
-    {
-      if (context)
-        {
-          *context = static_cast<gchar *> (mCache->data);
-        }
-    }
-
-  return mCache;
-#else
-  return g_completion_complete (mComp, prefix, context);
-#endif
+  addItems (items);
 }
 
-gboolean
-ApvlvCompletion::add_items (GList *items)
-{
-#ifdef APVLV_NO_G_COMP
-  GList *list;
-
-  for (list = items; list; list = g_list_next (list))
-    {
-      auto *str = static_cast<gchar *> (list->data);
-      g_ptr_array_add (mArray, str);
-    }
-#else
-  g_completion_add_items (mComp, items);
-#endif
-
-  return TRUE;
-}
 }
 
 // Local Variables:

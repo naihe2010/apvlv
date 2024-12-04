@@ -24,89 +24,103 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2008/09/30 00:00:00 Alf */
+
+#include <Qt>
+#include <cctype>
+#include <cstring>
 
 #include "ApvlvCmds.h"
-#include "ApvlvParams.h"
-#include "ApvlvUtil.h"
 #include "ApvlvView.h"
-
-#include <gdk/gdkkeysyms.h>
-#ifdef __linux__
-#include <gdk/gdkx.h>
-#endif
-
-#include <cstdlib>
-#include <sstream>
 
 namespace apvlv
 {
-StringKeyMap SK;
+using namespace std;
+using namespace Qt;
 
-static ApvlvCmdMap mMaps;
+StringKeyMap Command::mKeyMap = {
+  { "<BS>", Key_Backspace },      { "<Tab>", Key_Tab },
+  { "<CR>", Key_Return },         { "<Esc>", Key_Escape },
+  { "<Space>", Key_Space },       { "<lt>", Key_Less },
+  { "<Bslash>", Key_Backslash },  { "<Bar>", Key_Bar },
+  { "<Del>", Key_Delete },        { "<Up>", Key_Up },
+  { "<Down>", Key_Down },         { "<Left>", Key_Left },
+  { "<Right>", Key_Right },       { "<Help>", Key_Help },
+  { "<Insert>", Key_Insert },     { "<Home>", Key_Home },
+  { "<End>", Key_End },           { "<PageUp>", Key_PageUp },
+  { "<PageDown>", Key_PageDown }, { "<KP_Up>", Key_Up },
+  { "<KP_Down>", Key_Down },      { "<KP_Left>", Key_Left },
+  { "<KP_Right>", Key_Right },    { "<KP_Prior>", Key_MediaPrevious },
+  { "<KP_Next>", Key_MediaNext }, { "<KP_Home>", Key_Home },
+  { "<KP_End>", Key_End },
+};
 
-#define gek2guint(g)                                                          \
-  ((g)->state == GDK_CONTROL_MASK ? CTRL ((g)->keyval) : (g)->keyval)
+CommandMap ApvlvCmds::mMaps;
 
-static inline bool
-modifierKey (guint k)
+static int
+keyToControlChar (QKeyEvent *key)
+{
+  int char_key = key->key ();
+  if (key->modifiers () & Qt::ShiftModifier)
+    {
+      char_key = toupper (char_key);
+    }
+  else
+    {
+      char_key = tolower (char_key);
+    }
+  if (key->modifiers () & ControlModifier)
+    char_key = ctrlValue (char_key);
+
+  return char_key;
+}
+
+constexpr static bool
+isModifierKey (uint k)
 {
   switch (k)
     {
-    case GDK_KEY_Shift_L:
-    case GDK_KEY_Shift_R:
-    case GDK_KEY_Shift_Lock:
-    case GDK_KEY_Meta_L:
-    case GDK_KEY_Meta_R:
-    case GDK_KEY_Alt_L:
-    case GDK_KEY_Alt_R:
-    case GDK_KEY_Super_L:
-    case GDK_KEY_Super_R:
-    case GDK_KEY_Hyper_L:
-    case GDK_KEY_Hyper_R:
-    case GDK_KEY_Control_L:
-    case GDK_KEY_Control_R:
+    case Key_Shift:
+    case Key_CapsLock:
+    case Key_Meta:
+    case Key_Alt:
+    case Key_Super_L:
+    case Key_Super_R:
+    case Key_Hyper_L:
+    case Key_Hyper_R:
+    case Key_Control:
       return true;
     default:
       return false;
     }
 }
 
-ApvlvCmd::ApvlvCmd ()
+Command::Command ()
+    : mType (CmdType::CT_CMD), mHasPreCount (false), mPreCount (1),
+      mOrigin (nullptr)
 {
-  mType = CT_CMD;
-
-  mHasPreCount = false;
-
-  mPreCount = 1;
-
-  mNext = nullptr;
-
-  mOrigin = nullptr;
 }
 
 void
-ApvlvCmd::type (cmdType type)
+Command::type (CmdType type)
 {
   mType = type;
 }
 
-cmdType
-ApvlvCmd::type ()
+CmdType
+Command::type ()
 {
   return mType;
 }
 
 void
-ApvlvCmd::push (const char *s, cmdType type)
+Command::push (string_view sv, CmdType type)
 {
   mType = type;
 
   mHasPreCount = false;
   mPreCount = 1;
 
-  mNext = nullptr;
-
+  auto s = sv.data ();
   if (isdigit (*s))
     {
       mHasPreCount = true;
@@ -121,17 +135,17 @@ ApvlvCmd::push (const char *s, cmdType type)
   if (*s == ':' || *s == '/' || *s == '?')
     {
       mStrCommand = s;
-      mType = CT_STRING;
+      mType = CmdType::CT_STRING;
 
       size_t off = mStrCommand.find ("<CR>");
       if (off != string::npos)
         {
           mStrCommand.erase (off, mStrCommand.length () - off);
-          mType = CT_STRING_RETURN;
-          mNext = new ApvlvCmd ();
+          mType = CmdType::CT_STRING_RETURN;
+          mNext = make_unique<Command> ();
           mNext->push (s + off + 4);
         }
-      debug ("set string type command: [%s]", mStrCommand.c_str ());
+      qDebug () << "set string type command: [" << mStrCommand << "]";
       return;
     }
 
@@ -141,26 +155,24 @@ ApvlvCmd::push (const char *s, cmdType type)
     }
 }
 
-ApvlvCmd::~ApvlvCmd () { delete mNext; }
-
 void
-ApvlvCmd::process (ApvlvView *view)
+Command::process (ApvlvView *view)
 {
-  if (type () == CT_STRING)
+  if (type () == CmdType::CT_STRING)
     {
-      view->promptcommand (c_str ());
+      view->promptCommand (mStrCommand.c_str ());
     }
-  else if (type () == CT_STRING_RETURN)
+  else if (type () == CmdType::CT_STRING_RETURN)
     {
-      view->run (c_str ());
+      view->run (mStrCommand.c_str ());
     }
   else
     {
-      for (guint k = 0; k < keyvalv_p ()->size (); ++k)
+      for (uint k = 0; k < keyVals ()->size (); ++k)
         {
-          gint key = keyval (k);
+          int key = keyval (k);
           if (key > 0)
-            view->process (mHasPreCount, precount (), keyval (k));
+            view->process (mHasPreCount, preCount (), keyval (k));
         }
     }
 
@@ -171,36 +183,30 @@ ApvlvCmd::process (ApvlvView *view)
 }
 
 bool
-ApvlvCmd::append (GdkEventKey *gek)
+Command::append (QKeyEvent *key)
 {
-  if (modifierKey (gek->keyval))
+  if (isModifierKey (key->key ()))
     return false;
 
-  if (gek->state & GDK_CONTROL_MASK)
-    {
-      mKeyVals.push_back (CTRL (gek->keyval));
-    }
-  else
-    {
-      mKeyVals.push_back (int (gek->keyval));
-    }
+  auto char_key = keyToControlChar (key);
+  mKeyVals.push_back (char_key);
   return true;
 }
 
 const char *
-ApvlvCmd::append (const char *s)
+Command::append (const char *s)
 {
   size_t len;
-  char *e = strchr ((char *)s, '>');
+  const char *e = strchr (s, '>');
 
   len = strlen (s);
 
   if (len >= 4 && *s == '<' && (*e != '\0' && *(s + 2) != '-'))
     {
       e++;
-      for (auto &it : SK)
+      for (const auto &it : mKeyMap)
         {
-          if (strncmp (it.first, s, e - s) == 0)
+          if (it.first.compare (0, e - s, s) == 0)
             {
               mKeyVals.push_back (it.second);
               return e;
@@ -212,18 +218,11 @@ ApvlvCmd::append (const char *s)
     {
       if (s[1] == 'C')
         {
-          mKeyVals.push_back (CTRL (s[3]));
+          mKeyVals.push_back (ctrlValue (s[3]));
         }
-      /* commet as above
-         else if (s[1] == 'S')
-         {
-         mKeyVals.push_back (SHIFT (s[3]));
-         } */
       else
         {
-          char ts[6];
-          g_snprintf (ts, 6, "%s", s);
-          errp ("Can't recognize the symbol: %s", ts);
+          qWarning () << "Can't recognize the symbol: " << s;
         }
       return s + 5;
     }
@@ -235,67 +234,61 @@ ApvlvCmd::append (const char *s)
 }
 
 void
-ApvlvCmd::precount (gint precount)
+Command::setPreCount (int precount)
 {
   mPreCount = precount;
   mHasPreCount = true;
 }
 
-gint
-ApvlvCmd::precount () const
+int
+Command::preCount () const
 {
   return mPreCount;
 }
 
 void
-ApvlvCmd::origin (ApvlvCmd *ori)
+Command::origin (Command *ori)
 {
   mOrigin = ori;
 }
 
-ApvlvCmd *
-ApvlvCmd::origin ()
+Command *
+Command::origin ()
 {
   return mOrigin;
 }
 
-const char *
-ApvlvCmd::c_str ()
-{
-  return mStrCommand.c_str ();
-}
-
-ApvlvCmdKeyv *
-ApvlvCmd::keyvalv_p ()
+CommandKeyList *
+Command::keyVals ()
 {
   return &mKeyVals;
 }
 
-ApvlvCmdKeyv
-ApvlvCmd::keyvalv ()
+CommandKeyList
+Command::keyvalv ()
 {
   return mKeyVals;
 }
 
-ApvlvCmd *
-ApvlvCmd::next ()
+Command *
+Command::next ()
 {
-  return mNext;
+  return mNext.get ();
 }
 
-gint
-ApvlvCmd::keyval (guint id)
+int
+Command::keyval (uint id)
 {
   return id >= mKeyVals.size () ? -1 : mKeyVals[id];
 }
 
 void
-ApvlvCmds::buildmap (const char *os, const char *ms)
+ApvlvCmds::buildCommandMap (string_view os, string_view ms)
 {
-  ApvlvCmd fir;
+  Command fir;
   fir.push (os);
 
-  auto *secp = new ApvlvCmd ();
+  auto *secp = new Command ();
   secp->push (ms);
 
   for (auto &mMap : mMaps)
@@ -315,106 +308,71 @@ ApvlvCmds::ApvlvCmds (ApvlvView *view)
 {
   mView = view;
 
-  mTimeoutTimer = 0;
-  mState = CMD_OK;
+  mState = CmdState::CMD_OK;
 
-  mCmdHead = nullptr;
-
-  if (SK.empty ())
-    {
-      SK["<BS>"] = GDK_KEY_BackSpace;
-      SK["<Tab>"] = GDK_KEY_Tab;
-      SK["<CR>"] = GDK_KEY_Return;
-      SK["<Esc>"] = GDK_KEY_Escape;
-      SK["<Space>"] = GDK_KEY_space;
-      SK["<lt>"] = GDK_KEY_less;
-      SK["<Bslash>"] = GDK_KEY_backslash;
-      SK["<Bar>"] = GDK_KEY_bar;
-      SK["<Del>"] = GDK_KEY_Delete;
-      SK["<Up>"] = GDK_KEY_Up;
-      SK["<Down>"] = GDK_KEY_Down;
-      SK["<Left>"] = GDK_KEY_Left;
-      SK["<Right>"] = GDK_KEY_Right;
-      SK["<Help>"] = GDK_KEY_Help;
-      SK["<Insert>"] = GDK_KEY_Insert;
-      SK["<Home>"] = GDK_KEY_Home;
-      SK["<End>"] = GDK_KEY_End;
-      SK["<PageUp>"] = GDK_KEY_Page_Up;
-      SK["<PageDown>"] = GDK_KEY_Page_Down;
-      SK["<KP_Up>"] = GDK_KEY_KP_Up;
-      SK["<KP_Down>"] = GDK_KEY_KP_Down;
-      SK["<KP_Left>"] = GDK_KEY_KP_Left;
-      SK["<KP_Right>"] = GDK_KEY_KP_Right;
-      SK["<KP_Prior>"] = GDK_KEY_KP_Prior;
-      SK["<KP_Next>"] = GDK_KEY_KP_Next;
-      SK["<KP_Home>"] = GDK_KEY_KP_Home;
-      SK["<KP_End>"] = GDK_KEY_KP_End;
-    }
+  mTimeoutTimer = make_unique<QTimer> (this);
+  QObject::connect (mTimeoutTimer.get (), SIGNAL (timeout ()), this,
+                    SLOT (timeoutCallback ()));
 }
 
 ApvlvCmds::~ApvlvCmds ()
 {
-  if (mTimeoutTimer > 0)
+  if (mTimeoutTimer->isActive ())
     {
-      g_source_remove (mTimeoutTimer);
-      mTimeoutTimer = 0;
+      mTimeoutTimer->stop ();
     }
 }
 
 void
-ApvlvCmds::append (GdkEventKey *gev)
+ApvlvCmds::append (QKeyEvent *gev)
 {
-  if (mTimeoutTimer > 0)
+  if (mTimeoutTimer->isActive ())
     {
-      g_source_remove (mTimeoutTimer);
-      mTimeoutTimer = 0;
+      mTimeoutTimer->stop ();
     }
 
-  if (mState == GETTING_CMD)
+  if (mState == CmdState::GETTING_CMD)
     {
-      ApvlvCmdKeyv v = mCmdHead->keyvalv ();
-      v.push_back (gek2guint (gev));
-      returnType r = ismap (&v);
-      if (r == NO_MATCH)
+      CommandKeyList v = mCmdHead->keyvalv ();
+      v.push_back (keyToControlChar (gev));
+      CmdReturn r = isMapCommand (&v);
+      if (r == CmdReturn::NO_MATCH)
         {
-          process (mCmdHead);
-          delete mCmdHead;
-          mCmdHead = nullptr;
-          mState = CMD_OK;
+          process (mCmdHead.get ());
+          mCmdHead.release ();
+          mState = CmdState::CMD_OK;
         }
     }
 
   if (mCmdHead == nullptr)
-    mCmdHead = new ApvlvCmd;
+    mCmdHead = make_unique<Command> ();
 
-  if (mState == CMD_OK)
+  if (mState == CmdState::CMD_OK)
     {
-      if (isdigit (int (gev->keyval)) && gev->keyval != '0')
+      if (isdigit (int (gev->key ())) && gev->key () != '0')
         {
-          char s[2] = { 0 };
-          s[0] = char (gev->keyval);
-          mCountString += s;
-          mState = GETTING_COUNT;
-          mTimeoutTimer = g_timeout_add (3000, apvlv_cmds_timeout_cb, this);
+          auto c = char (gev->key ());
+          mCountString += c;
+          mState = CmdState::GETTING_COUNT;
+          mTimeoutTimer->start (3000);
           return;
         }
     }
 
-  else if (mState == GETTING_COUNT)
+  else if (mState == CmdState::GETTING_COUNT)
     {
-      if (isdigit (int (gev->keyval)))
+      if (isdigit (int (gev->key ())))
         {
-          char s[2] = { 0 };
-          s[0] = char (gev->keyval);
-          mCountString += s;
-          mTimeoutTimer = g_timeout_add (3000, apvlv_cmds_timeout_cb, this);
+          auto c = char (gev->key ());
+          mCountString += c;
+          mTimeoutTimer->start (3000);
           return;
         }
       else
         {
           if (!mCountString.empty ())
             {
-              mCmdHead->precount (
+              mCmdHead->setPreCount (
                   int (strtol (mCountString.c_str (), nullptr, 10)));
               mCountString = "";
             }
@@ -424,101 +382,97 @@ ApvlvCmds::append (GdkEventKey *gev)
   bool valid = mCmdHead->append (gev);
   if (!valid)
     {
-      mTimeoutTimer = g_timeout_add (3000, apvlv_cmds_timeout_cb, this);
+      mTimeoutTimer->start (3000);
       return;
     }
 
-  mState = GETTING_CMD;
-  returnType ret = ismap (mCmdHead->keyvalv_p ());
-  if (ret == NEED_MORE)
+  mState = CmdState::GETTING_CMD;
+  CmdReturn ret = isMapCommand (mCmdHead->keyVals ());
+  if (ret == CmdReturn::NEED_MORE)
     {
-      mTimeoutTimer = g_timeout_add (3000, apvlv_cmds_timeout_cb, this);
+      mTimeoutTimer->start (3000);
       return;
     }
 
-  ApvlvCmd *pcmd;
-  if (ret == MATCH)
+  Command *pcmd;
+  if (ret == CmdReturn::MATCH)
     {
-      pcmd = getmap (mCmdHead);
-      pcmd->origin (mCmdHead);
+      pcmd = getMapCommand (mCmdHead.get ());
+      pcmd->origin (mCmdHead.get ());
       process (pcmd);
       pcmd->origin (nullptr);
       pcmd = nullptr;
     }
   else
     {
-      pcmd = process (mCmdHead);
+      pcmd = process (mCmdHead.get ());
     }
 
-  delete mCmdHead;
-  mCmdHead = pcmd;
-  mState = CMD_OK;
+  mCmdHead.reset (pcmd);
+  mState = CmdState::CMD_OK;
 }
 
-ApvlvCmd *
-ApvlvCmds::process (ApvlvCmd *cmd)
+Command *
+ApvlvCmds::process (Command *cmd)
 {
-  guint times = 1;
-  ApvlvCmd *orig = cmd->origin ();
+  uint times = 1;
+  Command *orig = cmd->origin ();
   if (orig != nullptr)
     {
-      times = orig->precount ();
+      times = orig->preCount ();
     }
 
-  for (guint i = 0; i < times; ++i)
+  for (uint i = 0; i < times; ++i)
     {
       cmd->process (mView);
     }
   return orig;
 }
 
-returnType
-ApvlvCmds::ismap (ApvlvCmdKeyv *cvp)
+CmdReturn
+ApvlvCmds::isMapCommand (CommandKeyList *ack)
 {
   for (auto &mMap : mMaps)
     {
-      if (*cvp == mMap.first)
+      if (*ack == mMap.first)
         {
-          return MATCH;
+          return CmdReturn::MATCH;
         }
       else
         {
-          guint i;
-          for (i = 0; i < cvp->size (); ++i)
+          uint i;
+          for (i = 0; i < ack->size (); ++i)
             {
-              if ((*cvp)[i] != mMap.first[i])
+              if ((*ack)[i] != mMap.first[i])
                 break;
             }
 
-          if (i == cvp->size ())
+          if (i == ack->size ())
             {
-              return NEED_MORE;
+              return CmdReturn::NEED_MORE;
             }
         }
     }
 
-  return NO_MATCH;
+  return CmdReturn::NO_MATCH;
 }
 
-ApvlvCmd *
-ApvlvCmds::getmap (ApvlvCmd *cmd)
+Command *
+ApvlvCmds::getMapCommand (Command *cmd)
 {
-  auto it = mMaps.find (*cmd->keyvalv_p ());
+  auto it = mMaps.find (*cmd->keyVals ());
   return it != mMaps.end () ? it->second : nullptr;
 }
 
-gboolean
-ApvlvCmds::apvlv_cmds_timeout_cb (gpointer data)
+void
+ApvlvCmds::timeoutCallback ()
 {
-  auto *cmds = (ApvlvCmds *)data;
-  if (cmds->mCmdHead != nullptr)
+  if (mCmdHead != nullptr)
     {
-      cmds->process (cmds->mCmdHead);
-      delete cmds->mCmdHead;
-      cmds->mCmdHead = nullptr;
+      process (mCmdHead.get ());
+      mCmdHead.release ();
     }
-  cmds->mState = CMD_OK;
-  return FALSE;
+  mState = CmdState::CMD_OK;
 }
 }
 

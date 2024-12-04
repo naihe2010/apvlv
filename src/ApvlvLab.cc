@@ -23,17 +23,15 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2024/03/24 12:06:27 Alf*/
 
 #include "ApvlvLab.h"
 #include "ApvlvUtil.h"
-
-#include <libxml/tree.h>
-#include <sstream>
-#include <webkit2/webkit2.h>
+#include "ApvlvWebViewWidget.h"
 
 namespace apvlv
 {
+using namespace std;
+
 const string stylesheet_content = ".block_c {\n"
                                   "  display: block;\n"
                                   "  font-size: 2.5em;\n"
@@ -93,27 +91,20 @@ const string section_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
                                 "    %s\n"
                                 "  </body>\n"
                                 "</html>\n";
-ApvlvLab::ApvlvLab (const char *filename, bool check)
-    : ApvlvFile (filename, check)
-{
-}
-
-ApvlvLab::~ApvlvLab () {}
-
 bool
-ApvlvLab::render (int, int, int, double, int, GdkPixbuf *, char *)
+ApvlvLab::load (const string &filename)
 {
   return false;
 }
 
+ApvlvLab::~ApvlvLab () = default;
+
 bool
-ApvlvLab::renderweb (int pn, int ix, int iy, double zm, int rot,
-                     GtkWidget *widget)
+ApvlvLab::pageRenderToWebView (int pn, double zm, int rot, WebView *webview)
 {
-  char uri[0x100];
-  webkit_web_view_set_zoom_level (WEBKIT_WEB_VIEW (widget), zm);
-  snprintf (uri, sizeof uri, "apvlv:///%d", pn);
-  webkit_web_view_load_uri (WEBKIT_WEB_VIEW (widget), uri);
+  webview->setZoomFactor (zm);
+  QUrl url = QString ("apvlv:///") + QString::number (pn);
+  webview->load (url);
   return true;
 }
 

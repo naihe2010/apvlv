@@ -24,110 +24,64 @@
  *
  *  Author: Alf <naihe2010@126.com>
  */
-/* @date Created: 2008/09/30 00:00:00 Alf */
 
 #ifndef _APVLV_UTIL_H_
 #define _APVLV_UTIL_H_
 
-#include <gtk/gtk.h>
-
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <libxml/xpath.h>
-using namespace std;
+#include <QImage>
+#include <QXmlStreamReader>
+#include <filesystem>
+#include <string>
+#include <vector>
 
 namespace apvlv
 {
+
 // Global files
-extern string helppdf;
-extern string mainmenubar_glade;
-extern string iniexam;
-extern string inifile;
-extern string icondir;
-extern string iconreg;
-extern string iconpdf;
-extern string sessionfile;
+extern std::string HelpPdf;
+extern std::string IniExam;
+extern std::string IconDir;
+extern std::string IconFile;
+extern std::string IconPage;
+extern std::string Translations;
 
-#ifndef PATH_MAX
-#define PATH_MAX 4096
-#endif
+extern std::string IniFile;
+extern std::string SessionFile;
+extern std::string LogFile;
+extern std::string NotesDir;
+
+void getRuntimePaths ();
 
 #ifdef WIN32
-#define PATH_SEP_C '\\'
-#define PATH_SEP_S "\\"
+const char PATH_SEP_C = '\\';
+const char *const PATH_SEP_S = "\\";
 #else
-#define PATH_SEP_C '/'
-#define PATH_SEP_S "/"
+const char PATH_SEP_C = '/';
+const char *const PATH_SEP_S = "/";
 #endif
 
-int apvlv_system (const char *);
+std::optional<std::unique_ptr<QXmlStreamReader>>
+xmlContentGetElement (const char *content, size_t length,
+                      const std::vector<std::string> &names);
 
-char *absolutepath (const char *path);
+std::string xmlStreamGetAttributeValue (QXmlStreamReader *xml,
+                                        const std::string &key);
 
-GtkWidget *replace_widget (GtkWidget *owid, GtkWidget *nwid);
+std::string xmlContentGetAttributeValue (const char *content, size_t length,
+                                         const std::vector<std::string> &names,
+                                         const std::string &key);
 
-void apvlv_widget_set_background (GtkWidget *wid);
+std::string filenameExtension (const std::string &filename);
 
-bool apvlv_text_to_pixbuf_buffer (GString *content, int width, int height,
-                                  double zoomrate, unsigned char *buffer,
-                                  size_t buffer_size, int *o_width,
-                                  int *o_height);
+void imageArgb32ToRgb32 (QImage &image, int left, int top, int right,
+                         int bottom);
 
-xmlNodeSetPtr xmldoc_get_nodeset (xmlDocPtr doc, const char *xpath,
-                                  const char *pre, const char *ns);
+std::string templateBuild (std::string_view temp, std::string_view token,
+                           std::string_view real);
 
-xmlNodePtr xmldoc_get_node (xmlDocPtr doc, const char *xpath, const char *pre,
-                            const char *ns);
+qint64 parseFormattedDataSize (const QString &sizeStr);
 
-string xmlnode_attr_get (xmlNodePtr node, const char *attr);
-
-string filename_ext (const char *filename);
-
-// command type
-enum
-{
-  CMD_NONE,
-  CMD_MESSAGE,
-  CMD_CMD
-};
-
-// function return type
-typedef enum
-{
-  MATCH,
-  NEED_MORE,
-  NO_MATCH,
-} returnType;
-
-// some windows macro
-#ifdef WIN32
-#include <winbase.h>
-#include <wtypes.h>
-#define usleep(x) Sleep ((x) / 1000)
-#define __func__ __FUNCTION__
-#define strcasecmp _strcmpi
-
-#ifndef S_ISDIR
-#define S_ISDIR(mode) (((mode) & 0170000) == (0040000))
-#endif /*                                                                     \
-        */
-
-#endif
-
-// log system
-#if defined DEBUG || defined _DEBUG
-#define debug(...) logv ("DEBUG", __FILE__, __LINE__, __func__, __VA_ARGS__)
-#else
-#define debug(...)
-#endif
-#define errp(...) logv ("ERROR", __FILE__, __LINE__, __func__, __VA_ARGS__)
-void logv (const char *, const char *, int, const char *, const char *, ...);
-
-// char macro
-// because every unsigned char is < 256, so use this marco to stand for
-// Ctrl+char, Shift+char
-#define CTRL(c) ((c) + 256)
+qint64 filesystemTimeToMSeconds (std::filesystem::file_time_type ftt);
 
 }
 #endif
