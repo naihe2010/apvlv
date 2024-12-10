@@ -368,11 +368,11 @@ ApvlvContent::findTreeWidgetItem (QTreeWidgetItem *itr, FileIndexType type,
                                   const string &path, int pn,
                                   const string &anchor)
 {
-  auto index = getFileIndexFromTreeItem (itr);
-  if (index == nullptr)
+  if (itr == nullptr)
     return nullptr;
 
-  if (index->type != type)
+  auto index = getFileIndexFromTreeItem (itr);
+  if (index == nullptr || index->type != type)
     {
       for (auto ind = 0; ind < itr->childCount (); ++ind)
         {
