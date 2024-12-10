@@ -52,13 +52,13 @@ protected:
 };
 
 class ApvlvFrame;
-class ApvlvContent final : public QFrame
+class Directory final : public QFrame
 {
   Q_OBJECT
 public:
-  ApvlvContent ();
+  Directory ();
 
-  ~ApvlvContent () override = default;
+  ~Directory () override = default;
 
   bool isReady ();
 

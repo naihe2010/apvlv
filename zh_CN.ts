@@ -118,27 +118,27 @@
     </message>
     <message>
         <source>Expand All</source>
-        <translation>展开所有</translation>
+        <translation type="vanished">展开所有</translation>
     </message>
     <message>
         <source>Collapse All</source>
-        <translation>收起所有</translation>
+        <translation type="vanished">收起所有</translation>
     </message>
     <message>
         <source>Refresh</source>
-        <translation>刷新</translation>
+        <translation type="vanished">刷新</translation>
     </message>
     <message>
         <source>Sort By Title</source>
-        <translation>以标题排序</translation>
+        <translation type="vanished">以标题排序</translation>
     </message>
     <message>
         <source>Sort By Modified Time</source>
-        <translation>以更改时间排序</translation>
+        <translation type="vanished">以更改时间排序</translation>
     </message>
     <message>
         <source>Sort By File Size</source>
-        <translation>以文件大小排序</translation>
+        <translation type="vanished">以文件大小排序</translation>
     </message>
     <message>
         <source>size</source>
@@ -150,15 +150,15 @@
     </message>
     <message>
         <source>Title</source>
-        <translation>标题</translation>
+        <translation type="vanished">标题</translation>
     </message>
     <message>
         <source>File Size</source>
-        <translation>文件大小</translation>
+        <translation type="vanished">文件大小</translation>
     </message>
     <message>
         <source>Modified Time</source>
-        <translation>更改时间</translation>
+        <translation type="vanished">更改时间</translation>
     </message>
     <message>
         <source>None</source>
@@ -166,35 +166,35 @@
     </message>
     <message>
         <source>Filter Title</source>
-        <translation>过滤标题</translation>
+        <translation type="vanished">过滤标题</translation>
     </message>
     <message>
         <source>Filter File Name</source>
-        <translation>过滤文件名</translation>
+        <translation type="vanished">过滤文件名</translation>
     </message>
     <message>
         <source>Filter File Size &gt;=</source>
-        <translation>过滤文件&gt;=</translation>
+        <translation type="vanished">过滤文件&gt;=</translation>
     </message>
     <message>
         <source>Filter FileSize &lt;=</source>
-        <translation>过滤文件&lt;=</translation>
+        <translation type="vanished">过滤文件&lt;=</translation>
     </message>
     <message>
         <source>Filter Modified Time &gt;=</source>
-        <translation>过滤更改时间&gt;=</translation>
+        <translation type="vanished">过滤更改时间&gt;=</translation>
     </message>
     <message>
         <source>Filter Modified Time &lt;=</source>
-        <translation>过滤更改时间&lt;=</translation>
+        <translation type="vanished">过滤更改时间&lt;=</translation>
     </message>
     <message>
         <source>Filter Type is invalid</source>
-        <translation>过滤类型错误</translation>
+        <translation type="vanished">过滤类型错误</translation>
     </message>
     <message>
         <source>Confirm</source>
-        <translation>确认</translation>
+        <translation type="vanished">确认</translation>
     </message>
     <message>
         <source>Delete This File</source>
@@ -203,31 +203,31 @@
     <message>
         <source>Will delete the 
 %1, confirm ?</source>
-        <translation>将要删除%1，确定吗？</translation>
+        <translation type="vanished">将要删除%1，确定吗？</translation>
     </message>
     <message>
         <source>Input new name of %1</source>
-        <translation>输入%1的新文件名</translation>
+        <translation type="vanished">输入%1的新文件名</translation>
     </message>
     <message>
         <source>Rename</source>
-        <translation>重命名</translation>
+        <translation type="vanished">重命名</translation>
     </message>
     <message>
         <source>Rename %1 to %2 failed</source>
-        <translation>重命名%1为%2失败</translation>
+        <translation type="vanished">重命名%1为%2失败</translation>
     </message>
     <message>
         <source>Warning</source>
-        <translation>警告</translation>
+        <translation type="vanished">警告</translation>
     </message>
     <message>
         <source>Rename File</source>
-        <translation>重命名文件</translation>
+        <translation type="vanished">重命名文件</translation>
     </message>
     <message>
         <source>Delete File</source>
-        <translation>删除文件</translation>
+        <translation type="vanished">删除文件</translation>
     </message>
 </context>
 <context>
@@ -431,6 +431,106 @@
     <message>
         <source>OpenUrl</source>
         <translation>打开网址</translation>
+    </message>
+</context>
+<context>
+    <name>apvlv::Directory</name>
+    <message>
+        <source>Title</source>
+        <translation>标题</translation>
+    </message>
+    <message>
+        <source>Modified Time</source>
+        <translation>更改时间</translation>
+    </message>
+    <message>
+        <source>File Size</source>
+        <translation>文件大小</translation>
+    </message>
+    <message>
+        <source>Sort By Title</source>
+        <translation>以标题排序</translation>
+    </message>
+    <message>
+        <source>Sort By Modified Time</source>
+        <translation>以更改时间排序</translation>
+    </message>
+    <message>
+        <source>Sort By File Size</source>
+        <translation>以文件大小排序</translation>
+    </message>
+    <message>
+        <source>Filter Title</source>
+        <translation>过滤标题</translation>
+    </message>
+    <message>
+        <source>Filter File Name</source>
+        <translation>过滤文件名</translation>
+    </message>
+    <message>
+        <source>Filter Modified Time &gt;=</source>
+        <translation>过滤更改时间&gt;=</translation>
+    </message>
+    <message>
+        <source>Filter Modified Time &lt;=</source>
+        <translation>过滤更改时间&lt;=</translation>
+    </message>
+    <message>
+        <source>Filter File Size &gt;=</source>
+        <translation>过滤文件&gt;=</translation>
+    </message>
+    <message>
+        <source>Filter FileSize &lt;=</source>
+        <translation>过滤文件&lt;=</translation>
+    </message>
+    <message>
+        <source>Refresh</source>
+        <translation>刷新</translation>
+    </message>
+    <message>
+        <source>Expand All</source>
+        <translation>展开所有</translation>
+    </message>
+    <message>
+        <source>Collapse All</source>
+        <translation>收起所有</translation>
+    </message>
+    <message>
+        <source>Input new name of %1</source>
+        <translation>输入%1的新文件名</translation>
+    </message>
+    <message>
+        <source>Rename</source>
+        <translation>重命名</translation>
+    </message>
+    <message>
+        <source>Rename %1 to %2 failed</source>
+        <translation>重命名%1为%2失败</translation>
+    </message>
+    <message>
+        <source>Warning</source>
+        <translation>警告</translation>
+    </message>
+    <message>
+        <source>Will delete the 
+%1, confirm ?</source>
+        <translation>将要删除%1，确定吗？</translation>
+    </message>
+    <message>
+        <source>Confirm</source>
+        <translation>确认</translation>
+    </message>
+    <message>
+        <source>Filter Type is invalid</source>
+        <translation>过滤类型错误</translation>
+    </message>
+    <message>
+        <source>Rename File</source>
+        <translation>重命名文件</translation>
+    </message>
+    <message>
+        <source>Delete File</source>
+        <translation>删除文件</translation>
     </message>
 </context>
 <context>

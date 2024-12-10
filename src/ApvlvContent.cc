@@ -45,17 +45,17 @@ namespace apvlv
 {
 using namespace std;
 
-std::vector<const char *> ApvlvContent::ColumnString = {
+std::vector<const char *> Directory::ColumnString = {
   QT_TR_NOOP ("Title"),
   QT_TR_NOOP ("Modified Time"),
   QT_TR_NOOP ("File Size"),
 };
-std::vector<const char *> ApvlvContent::SortByColumnString = {
+std::vector<const char *> Directory::SortByColumnString = {
   QT_TR_NOOP ("Sort By Title"),
   QT_TR_NOOP ("Sort By Modified Time"),
   QT_TR_NOOP ("Sort By File Size"),
 };
-std::vector<const char *> ApvlvContent::FilterTypeString = {
+std::vector<const char *> Directory::FilterTypeString = {
   QT_TR_NOOP ("Filter Title"),
   QT_TR_NOOP ("Filter File Name"),
   QT_TR_NOOP ("Filter Modified Time >="),
@@ -70,7 +70,7 @@ ContentTree::keyPressEvent (QKeyEvent *event)
   event->ignore ();
 }
 
-ApvlvContent::ApvlvContent ()
+Directory::Directory ()
 {
   setLayout (&mLayout);
   mLayout.addWidget (&mToolBar, 0);
@@ -87,7 +87,7 @@ ApvlvContent::ApvlvContent ()
 }
 
 void
-ApvlvContent::setupToolBar ()
+Directory::setupToolBar ()
 {
   mToolBar.addWidget (&mFilterText);
   QObject::connect (&mFilterText, SIGNAL (textEdited (const QString &)), this,
@@ -128,7 +128,7 @@ ApvlvContent::setupToolBar ()
 }
 
 void
-ApvlvContent::setupTree ()
+Directory::setupTree ()
 {
   mTreeWidget.setColumnCount (3);
   mTreeWidget.setColumnWidth (static_cast<int> (Column::Title), 400);
@@ -172,13 +172,13 @@ ApvlvContent::setupTree ()
 }
 
 bool
-ApvlvContent::isReady ()
+Directory::isReady ()
 {
   return (mTreeWidget.topLevelItemCount () > 0);
 }
 
 void
-ApvlvContent::setIndex (const FileIndex &index)
+Directory::setIndex (const FileIndex &index)
 {
   using enum FileIndexType;
   if (mTreeWidget.topLevelItemCount () == 0 || index.type == DIR)
@@ -203,7 +203,7 @@ ApvlvContent::setIndex (const FileIndex &index)
 }
 
 void
-ApvlvContent::setItemSelected (QTreeWidgetItem *item)
+Directory::setItemSelected (QTreeWidgetItem *item)
 {
   auto selitems = mTreeWidget.selectedItems ();
   for (auto selitem : selitems)
@@ -225,7 +225,7 @@ ApvlvContent::setItemSelected (QTreeWidgetItem *item)
 }
 
 void
-ApvlvContent::setIndex (FileIndex &index, QTreeWidgetItem *root_itr)
+Directory::setIndex (FileIndex &index, QTreeWidgetItem *root_itr)
 {
   auto itr = new QTreeWidgetItem ();
   setFileIndexToTreeItem (itr, &index);
@@ -239,7 +239,7 @@ ApvlvContent::setIndex (FileIndex &index, QTreeWidgetItem *root_itr)
 }
 
 void
-ApvlvContent::refreshIndex (const FileIndex &index)
+Directory::refreshIndex (const FileIndex &index)
 {
   mTreeWidget.clear ();
 
@@ -256,7 +256,7 @@ ApvlvContent::refreshIndex (const FileIndex &index)
 }
 
 void
-ApvlvContent::setFileIndexToTreeItem (QTreeWidgetItem *item, FileIndex *index)
+Directory::setFileIndexToTreeItem (QTreeWidgetItem *item, FileIndex *index)
 {
   using enum Column;
   auto variant = QVariant::fromValue<FileIndex *> (index);
@@ -281,7 +281,7 @@ ApvlvContent::setFileIndexToTreeItem (QTreeWidgetItem *item, FileIndex *index)
 }
 
 FileIndex *
-ApvlvContent::getFileIndexFromTreeItem (QTreeWidgetItem *item)
+Directory::getFileIndexFromTreeItem (QTreeWidgetItem *item)
 {
   if (item == nullptr)
     return nullptr;
@@ -292,7 +292,7 @@ ApvlvContent::getFileIndexFromTreeItem (QTreeWidgetItem *item)
 }
 
 FileIndex *
-ApvlvContent::treeItemToFileIndex (QTreeWidgetItem *item)
+Directory::treeItemToFileIndex (QTreeWidgetItem *item)
 {
   while (item != nullptr)
     {
@@ -307,7 +307,7 @@ ApvlvContent::treeItemToFileIndex (QTreeWidgetItem *item)
 }
 
 void
-ApvlvContent::filterItemBy (QTreeWidgetItem *root,
+Directory::filterItemBy (QTreeWidgetItem *root,
                             const filterFunc &filter_func)
 {
   std::stack<QTreeWidgetItem *> item_stack;
@@ -356,7 +356,7 @@ ApvlvContent::filterItemBy (QTreeWidgetItem *root,
 }
 
 void
-ApvlvContent::setItemChildrenFilter (QTreeWidgetItem *root, bool is_filter)
+Directory::setItemChildrenFilter (QTreeWidgetItem *root, bool is_filter)
 {
   filterItemBy (root, [is_filter] (const FileIndex *a) -> filterFuncReturn {
     return { is_filter, false };
@@ -364,7 +364,7 @@ ApvlvContent::setItemChildrenFilter (QTreeWidgetItem *root, bool is_filter)
 }
 
 QTreeWidgetItem *
-ApvlvContent::findTreeWidgetItem (QTreeWidgetItem *itr, FileIndexType type,
+Directory::findTreeWidgetItem (QTreeWidgetItem *itr, FileIndexType type,
                                   const string &path, int pn,
                                   const string &anchor)
 {
@@ -406,7 +406,7 @@ ApvlvContent::findTreeWidgetItem (QTreeWidgetItem *itr, FileIndexType type,
 }
 
 bool
-ApvlvContent::setCurrentIndex (const string &path, int pn,
+Directory::setCurrentIndex (const string &path, int pn,
                                const string &anchor)
 {
   auto itr = selectedTreeItem ();
@@ -431,7 +431,7 @@ ApvlvContent::setCurrentIndex (const string &path, int pn,
 }
 
 void
-ApvlvContent::scrollUp (int times)
+Directory::scrollUp (int times)
 {
   auto item = selectedTreeItem ();
   if (item == nullptr)
@@ -453,7 +453,7 @@ ApvlvContent::scrollUp (int times)
 }
 
 void
-ApvlvContent::scrollDown (int times)
+Directory::scrollDown (int times)
 {
   auto item = selectedTreeItem ();
   if (item == nullptr)
@@ -473,7 +473,7 @@ ApvlvContent::scrollDown (int times)
 }
 
 void
-ApvlvContent::scrollLeft (int times)
+Directory::scrollLeft (int times)
 {
   auto item = selectedTreeItem ();
   if (item == nullptr)
@@ -493,7 +493,7 @@ ApvlvContent::scrollLeft (int times)
 }
 
 void
-ApvlvContent::scrollRight (int times)
+Directory::scrollRight (int times)
 {
   auto item = selectedTreeItem ();
   if (item == nullptr)
@@ -512,7 +512,7 @@ ApvlvContent::scrollRight (int times)
 }
 
 void
-ApvlvContent::onFileRename ()
+Directory::onFileRename ()
 {
   auto items = mTreeWidget.selectedItems ();
   if (items.isEmpty ())
@@ -545,7 +545,7 @@ ApvlvContent::onFileRename ()
 }
 
 void
-ApvlvContent::onFileDelete ()
+Directory::onFileDelete ()
 {
   auto items = mTreeWidget.selectedItems ();
   if (items.isEmpty ())
@@ -597,13 +597,13 @@ ApvlvContent::onFileDelete ()
 }
 
 void
-ApvlvContent::onRefresh ()
+Directory::onRefresh ()
 {
   refreshIndex (mIndex);
 }
 
 void
-ApvlvContent::onFilter ()
+Directory::onFilter ()
 {
   auto root = mTreeWidget.invisibleRootItem ();
   auto cur = mFilterType.currentIndex ();
@@ -677,7 +677,7 @@ ApvlvContent::onFilter ()
 }
 
 void
-ApvlvContent::sortItems (QTreeWidgetItem *tree_iter)
+Directory::sortItems (QTreeWidgetItem *tree_iter)
 {
   stack<QTreeWidgetItem *> needSort;
   needSort.push (tree_iter);
@@ -786,21 +786,21 @@ ApvlvContent::sortItems (QTreeWidgetItem *tree_iter)
 }
 
 void
-ApvlvContent::onRowActivated ([[maybe_unused]] QTreeWidgetItem *item,
+Directory::onRowActivated ([[maybe_unused]] QTreeWidgetItem *item,
                               [[maybe_unused]] int column)
 {
-  mFrame->contentShowPage (currentItemFileIndex (), true);
-  mFrame->toggledControlContent (true);
+  mFrame->directoryShowPage (currentItemFileIndex (), true);
+  mFrame->toggledControlDirectory (true);
 }
 
 void
-ApvlvContent::onRowDoubleClicked ()
+Directory::onRowDoubleClicked ()
 {
   parentWidget ()->setFocus ();
 }
 
 void
-ApvlvContent::onContextMenuRequest (const QPoint &point)
+Directory::onContextMenuRequest (const QPoint &point)
 {
   auto items = mTreeWidget.selectedItems ();
   if (items.isEmpty ())
@@ -834,7 +834,7 @@ ApvlvContent::onContextMenuRequest (const QPoint &point)
 }
 
 void
-ApvlvContent::selectFirstItem ()
+Directory::selectFirstItem ()
 {
   if (setCurrentIndex (mFrame->filename (), mFrame->pageNumber (), ""))
     return;
@@ -847,7 +847,7 @@ ApvlvContent::selectFirstItem ()
 }
 
 FileIndex *
-ApvlvContent::currentItemFileIndex ()
+Directory::currentItemFileIndex ()
 {
   auto item = selectedTreeItem ();
   auto index = getFileIndexFromTreeItem (item);
@@ -855,7 +855,7 @@ ApvlvContent::currentItemFileIndex ()
 }
 
 FileIndex *
-ApvlvContent::currentFileFileIndex ()
+Directory::currentFileFileIndex ()
 {
   auto item = selectedTreeItem ();
   auto index = treeItemToFileIndex (item);

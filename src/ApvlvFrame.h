@@ -133,7 +133,7 @@ public:
 
   void setDirIndex (const std::string &path);
 
-  bool loadFile (const std::string &file, bool check, bool show_content);
+  bool loadFile (const std::string &file, bool check, bool show_directory);
 
   bool loadUri (const std::string &uri);
 
@@ -186,20 +186,20 @@ public:
   bool loadLastPosition (const std::string &filename);
   bool saveLastPosition (const std::string &filename);
 
-  void contentShowPage (const FileIndex *index, bool force);
+  void directoryShowPage (const FileIndex *index, bool force);
 
   int getSkip ();
   void setSkip (int ct);
 
-  void toggleContent ();
+  void toggleDirectory ();
 
-  void toggleContent (bool enabled);
+  void toggleDirectory (bool enabled);
 
-  bool toggledControlContent (bool is_right);
+  bool toggledControlDirectory (bool is_right);
 
-  bool isShowContent ();
+  bool isShowDirectory ();
 
-  bool isControlledContent ();
+  bool isControlledDirectory ();
 
   void wheelEvent (QWheelEvent *event) override;
 
@@ -253,12 +253,12 @@ private:
 
   // the main panel
   QSplitter mPaned;
-  int mContentWidth;
+  int mDirectoryWidth;
 
   QHBoxLayout mHBoxLayout;
 
-  // content panel
-  ApvlvContent mContent;
+  // directory panel
+  Directory mDirectory;
 
   QFrame mTextFrame;
   QVBoxLayout mTextLayout;

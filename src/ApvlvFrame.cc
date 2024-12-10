@@ -71,7 +71,7 @@ ApvlvFrame::ApvlvFrame (ApvlvView *view) : mToolStatus (this)
   setLayout (&mVbox);
 
   mPaned.setHandleWidth (4);
-  mContentWidth = DEFAULT_CONTENT_WIDTH;
+  mDirectoryWidth = DEFAULT_CONTENT_WIDTH;
 
   auto f_width = ApvlvParams::instance ()->getIntOrDefault ("fix_width");
   auto f_height = ApvlvParams::instance ()->getIntOrDefault ("fix_height");
@@ -88,12 +88,12 @@ ApvlvFrame::ApvlvFrame (ApvlvView *view) : mToolStatus (this)
       mVbox.addWidget (&mPaned, 1);
     }
 
-  mContent.setFrame (this);
+  mDirectory.setFrame (this);
   QObject::connect (this, SIGNAL (indexGenerited (const FileIndex &)),
-                    &mContent, SLOT (setIndex (const FileIndex &)));
+                    &mDirectory, SLOT (setIndex (const FileIndex &)));
 
-  // left is Content
-  mPaned.addWidget (&mContent);
+  // left is Directory
+  mPaned.addWidget (&mDirectory);
 
   // Right is Text
   mPaned.addWidget (&mTextFrame);
@@ -166,20 +166,20 @@ ApvlvFrame::setSkip (int ct)
 }
 
 void
-ApvlvFrame::toggleContent ()
+ApvlvFrame::toggleDirectory ()
 {
-  auto show = !isShowContent ();
-  toggleContent (show);
+  auto show = !isShowDirectory ();
+  toggleDirectory (show);
 }
 
 void
-ApvlvFrame::toggleContent (bool show)
+ApvlvFrame::toggleDirectory (bool show)
 {
   if (show)
     {
-      if (!mContent.isReady ())
+      if (!mDirectory.isReady ())
         {
-          qWarning () << "file " << mFilestr << " has no content";
+          qWarning () << "file " << mFilestr << " has no directory";
           show = false;
         }
     }
@@ -191,7 +191,7 @@ ApvlvFrame::toggleContent (bool show)
       if (sizes[0] == 0)
         {
           auto psize = mPaned.size ();
-          sizes = { mContentWidth, psize.width () - mPaned.handleWidth ()
+          sizes = { mDirectoryWidth, psize.width () - mPaned.handleWidth ()
                                        - DEFAULT_CONTENT_WIDTH };
           mPaned.setSizes (sizes);
         }
@@ -199,7 +199,7 @@ ApvlvFrame::toggleContent (bool show)
   else
     {
       if (sizes[0] != 0)
-        mContentWidth = sizes[0];
+        mDirectoryWidth = sizes[0];
 
       auto psize = mPaned.size ();
       sizes = { 0, psize.width () - mPaned.handleWidth () };
@@ -239,25 +239,25 @@ ApvlvFrame::setDirIndex (const string &path)
   mDirIndex = { "", 0, path, FileIndexType::DIR };
   mDirIndex.loadDirectory (path);
   emit indexGenerited (mDirIndex);
-  toggleContent (true);
+  toggleDirectory (true);
 }
 
 bool
-ApvlvFrame::toggledControlContent (bool is_right)
+ApvlvFrame::toggledControlDirectory (bool is_right)
 {
-  if (!isShowContent ())
+  if (!isShowDirectory ())
     {
       return false;
     }
 
-  if (auto controlled = isControlledContent (); !controlled && !is_right)
+  if (auto controlled = isControlledDirectory (); !controlled && !is_right)
     {
-      mContent.setActive (true);
+      mDirectory.setActive (true);
       return true;
     }
   else if (controlled && is_right)
     {
-      mContent.setActive (false);
+      mDirectory.setActive (false);
       return true;
     }
 
@@ -265,19 +265,19 @@ ApvlvFrame::toggledControlContent (bool is_right)
 }
 
 bool
-ApvlvFrame::isShowContent ()
+ApvlvFrame::isShowDirectory ()
 {
   auto sizes = mPaned.sizes ();
   return sizes[0] > 1;
 }
 
 bool
-ApvlvFrame::isControlledContent ()
+ApvlvFrame::isControlledDirectory ()
 {
-  if (!isShowContent ())
+  if (!isShowDirectory ())
     return false;
 
-  return mContent.isActive ();
+  return mDirectory.isActive ();
 }
 
 ApvlvFrame *
@@ -602,9 +602,9 @@ ApvlvFrame::process (int has, int ct, uint key)
     case '/':
     case '?':
     case 'F':
-      if (isControlledContent ())
+      if (isControlledDirectory ())
         {
-          mContent.focusFilter ();
+          mDirectory.focusFilter ();
         }
       else
         {
@@ -629,9 +629,9 @@ ApvlvFrame::process (int has, int ct, uint key)
     case ctrlValue ('p'):
     case Key_Up:
     case 'k':
-      if (isControlledContent ())
+      if (isControlledDirectory ())
         {
-          mContent.scrollUp (ct);
+          mDirectory.scrollUp (ct);
         }
       else
         {
@@ -643,9 +643,9 @@ ApvlvFrame::process (int has, int ct, uint key)
     case ctrlValue ('j'):
     case Key_Down:
     case 'j':
-      if (isControlledContent ())
+      if (isControlledDirectory ())
         {
-          mContent.scrollDown (ct);
+          mDirectory.scrollDown (ct);
         }
       else
         {
@@ -657,9 +657,9 @@ ApvlvFrame::process (int has, int ct, uint key)
     case Key_Left:
     case ctrlValue ('h'):
     case 'h':
-      if (isControlledContent ())
+      if (isControlledDirectory ())
         {
-          mContent.scrollLeft (ct);
+          mDirectory.scrollLeft (ct);
         }
       else
         {
@@ -671,9 +671,9 @@ ApvlvFrame::process (int has, int ct, uint key)
     case Key_Right:
     case ctrlValue ('l'):
     case 'l':
-      if (isControlledContent ())
+      if (isControlledDirectory ())
         {
-          mContent.scrollRight (ct);
+          mDirectory.scrollRight (ct);
         }
       else
         {
@@ -682,7 +682,7 @@ ApvlvFrame::process (int has, int ct, uint key)
         }
       break;
     case Key_Return:
-      contentShowPage (mContent.currentItemFileIndex (), false);
+      directoryShowPage (mDirectory.currentItemFileIndex (), false);
       break;
     case 'R':
       reload ();
@@ -755,7 +755,7 @@ ApvlvFrame::process (int has, int ct, uint key)
       setSkip (ct);
       break;
     case 'c':
-      toggleContent ();
+      toggleDirectory ();
       break;
     default:
       return CmdReturn::NO_MATCH;
@@ -881,7 +881,7 @@ ApvlvFrame::loadLastPosition (const string &filename)
 bool
 ApvlvFrame::reload ()
 {
-  return loadFile (mFilestr, false, isShowContent ());
+  return loadFile (mFilestr, false, isShowDirectory ());
 }
 
 int
@@ -891,7 +891,7 @@ ApvlvFrame::pageNumber ()
 }
 
 bool
-ApvlvFrame::loadFile (const std::string &file, bool check, bool show_content)
+ApvlvFrame::loadFile (const std::string &file, bool check, bool show_directory)
 {
   if (check && file == mFilestr)
     {
@@ -944,13 +944,13 @@ ApvlvFrame::loadFile (const std::string &file, bool check, bool show_content)
         }
     }
 
-  if (show_content && mFile != nullptr)
+  if (show_directory && mFile != nullptr)
     {
-      toggleContent (true);
+      toggleDirectory (true);
     }
   else
     {
-      toggleContent (false);
+      toggleDirectory (false);
     }
 
   return mFile != nullptr;
@@ -1256,7 +1256,7 @@ ApvlvFrame::returnLink ([[maybe_unused]] int ct)
 }
 
 void
-ApvlvFrame::contentShowPage (const FileIndex *index, bool force)
+ApvlvFrame::directoryShowPage (const FileIndex *index, bool force)
 {
   if (index == nullptr)
     return;
@@ -1267,7 +1267,7 @@ ApvlvFrame::contentShowPage (const FileIndex *index, bool force)
       return;
     }
 
-  auto file = mContent.currentFileFileIndex ();
+  auto file = mDirectory.currentFileFileIndex ();
   if (file && file->path != mFilestr)
     loadFile (file->path, true, true);
 
@@ -1369,7 +1369,7 @@ ApvlvFrame::updateStatus ()
 
       mToolStatus.updateValue (pn, totpn, zm, sr);
 
-      mContent.setCurrentIndex (mFilestr, mWidget->pageNumber (),
+      mDirectory.setCurrentIndex (mFilestr, mWidget->pageNumber (),
                                 mWidget->anchor ());
     }
 }

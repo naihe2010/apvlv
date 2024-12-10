@@ -160,7 +160,7 @@ public slots:
 
   void previousPage ();
 
-  void toggleContent ();
+  void toggleDirectory ();
 
   void toggleToolBar ();
 

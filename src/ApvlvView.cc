@@ -579,9 +579,9 @@ ApvlvView::setupToolBar ()
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (openDir ()));
 
-  action = mToolBar.addAction (tr ("Toggle Content"));
+  action = mToolBar.addAction (tr ("Toggle Directory"));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
-                    SLOT (toggleContent ()));
+                    SLOT (toggleDirectory ()));
 
   action = mToolBar.addAction (tr ("Quit"));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
@@ -697,7 +697,7 @@ ApvlvView::fullScreen ()
     {
       ApvlvFrame *core = currentFrame ();
       if (core)
-        core->toggleContent (false);
+        core->toggleDirectory (false);
 
       showFullScreen ();
       mHasFull = true;
@@ -722,9 +722,9 @@ ApvlvView::previousPage ()
 }
 
 void
-ApvlvView::toggleContent ()
+ApvlvView::toggleDirectory ()
 {
-  currentFrame ()->toggleContent ();
+  currentFrame ()->toggleDirectory ();
 }
 
 void
@@ -1068,9 +1068,9 @@ ApvlvView::runCommand (const char *str)
             currentFrame ()->previousPage (
                 int (strtol (subcmd.c_str (), nullptr, 10)));
         }
-      else if (cmd == "content")
+      else if (cmd == "directory")
         {
-          currentFrame ()->toggleContent ();
+          currentFrame ()->toggleDirectory ();
         }
       else if (cmd == "goto" || cmd == "g")
         {
