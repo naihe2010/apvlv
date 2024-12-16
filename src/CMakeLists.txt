@@ -80,7 +80,7 @@ SET(HEADERS
         ApvlvView.h
         ApvlvWindow.h
         ApvlvCompletion.h
-        ApvlvContent.h
+        ApvlvDirectory.h
         ApvlvLab.h
         ApvlvLog.h
         ApvlvSearch.h
@@ -113,7 +113,7 @@ SET(SOURCES
         ApvlvView.cc
         ApvlvWindow.cc
         ApvlvCompletion.cc
-        ApvlvContent.cc
+        ApvlvDirectory.cc
         ApvlvLab.cc
         ApvlvLog.cc
         ApvlvSearch.cc

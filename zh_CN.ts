@@ -397,7 +397,7 @@
     </message>
     <message>
         <source>Toggle Content</source>
-        <translation>显示/隐藏目录</translation>
+        <translation type="vanished">显示/隐藏目录</translation>
     </message>
     <message>
         <source>OpenDir</source>
@@ -431,6 +431,10 @@
     <message>
         <source>OpenUrl</source>
         <translation>打开网址</translation>
+    </message>
+    <message>
+        <source>Toggle Directory</source>
+        <translation>切换目录</translation>
     </message>
 </context>
 <context>

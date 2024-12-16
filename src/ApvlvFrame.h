@@ -37,7 +37,7 @@
 #include <map>
 
 #include "ApvlvCmds.h"
-#include "ApvlvContent.h"
+#include "ApvlvDirectory.h"
 #include "ApvlvFile.h"
 #include "ApvlvFileWidget.h"
 #include "ApvlvWidget.h"

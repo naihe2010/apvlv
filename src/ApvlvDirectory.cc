@@ -26,8 +26,6 @@
  */
 
 #include <QApplication>
-#include <QComboBox>
-#include <QDateTime>
 #include <QFile>
 #include <QHeaderView>
 #include <QInputDialog>
@@ -36,7 +34,7 @@
 #include <QTimeZone>
 #include <stack>
 
-#include "ApvlvContent.h"
+#include "ApvlvDirectory.h"
 #include "ApvlvFrame.h"
 #include "ApvlvParams.h"
 #include "ApvlvUtil.h"
