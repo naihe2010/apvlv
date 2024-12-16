@@ -32,17 +32,16 @@
 #include <QMainWindow>
 #include <QMenuBar>
 #include <QTabWidget>
-#include <QToolBar>
 #include <QVBoxLayout>
 #include <iosfwd>
 #include <iostream>
-#include <list>
 #include <sstream>
 #include <string_view>
 
 #include "ApvlvCmds.h"
 #include "ApvlvCompletion.h"
 #include "ApvlvFrame.h"
+#include "ApvlvSearchDialog.h"
 #include "ApvlvWindow.h"
 
 namespace apvlv
@@ -227,6 +226,8 @@ private:
   void keyPressEvent (QKeyEvent *evt) override;
 
   ApvlvCmds mCmds;
+
+  SearchDialog mSearchDialog;
 
   std::vector<std::unique_ptr<ApvlvFrame>> mDocs;
 

@@ -67,8 +67,8 @@ private:
   void displayResult (std::unique_ptr<SearchFileMatch> result);
 
   QVBoxLayout mVBox;
-  QHBoxLayout mHBox;
   QHBoxLayout mHBox2;
+  QHBoxLayout mHBox;
   QHBoxLayout mHBox3;
   QSplitter mSplitter;
 

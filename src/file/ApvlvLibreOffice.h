@@ -57,6 +57,7 @@ protected:
 private:
   static std::unique_ptr<lok::Office> mOffice;
   static std::mutex mLokMutex;
+  static TokenDispatcher mDispatcher;
 
   static void initLokInstance ();
 };

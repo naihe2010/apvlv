@@ -86,7 +86,7 @@ ApvlvCommandBar::eventFilter (QObject *obj, QEvent *event)
     }
 }
 
-ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
+ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this), mSearchDialog (this)
 {
   mParent = parent;
   if (mParent)
@@ -156,6 +156,10 @@ ApvlvView::ApvlvView (ApvlvView *parent) : mCmds (this)
                     SLOT (commandbarReturn ()));
   QObject::connect (&mCommandBar, SIGNAL (keyPressed (QKeyEvent *)), this,
                     SLOT (commandbarKeyPressed (QKeyEvent *)));
+
+  QObject::connect (&mSearchDialog,
+                    SIGNAL (loadFile (const std::string &, int)), this,
+                    SLOT (loadFileOnPage (const std::string &, int)));
 
   cmdHide ();
 }
@@ -321,10 +325,7 @@ ApvlvView::backSearch ()
 void
 ApvlvView::advancedSearch ()
 {
-  auto diag = SearchDialog (this);
-  QObject::connect (&diag, SIGNAL (loadFile (const string &, int)), this,
-                    SLOT (loadFileOnPage (const string &, int)));
-  diag.exec ();
+  mSearchDialog.show ();
 }
 
 void

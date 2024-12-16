@@ -42,19 +42,6 @@ SearchDialog::SearchDialog (QWidget *parent)
 {
   setLayout (&mVBox);
 
-  // search line
-  mVBox.addLayout (&mHBox);
-
-  mHBox.addWidget (&mSearchEdit, 1);
-  QObject::connect (&mSearchEdit, SIGNAL (returnPressed ()), this,
-                    SLOT (search ()));
-
-  mCaseSensitive.setText (tr ("Case sensitive"));
-  mHBox.addWidget (&mCaseSensitive);
-
-  mRegex.setText (tr ("Regular expression"));
-  mHBox.addWidget (&mRegex);
-
   mVBox.addLayout (&mHBox2);
   mLabel.setText (tr ("Find Directory: "));
   mHBox2.addWidget (&mLabel, 0);
@@ -71,17 +58,28 @@ SearchDialog::SearchDialog (QWidget *parent)
       mFromDir.setText (dir);
   });
 
+  // search line
+  mVBox.addLayout (&mHBox);
+
+  mHBox.addWidget (&mSearchEdit, 1);
+  QObject::connect (&mSearchEdit, SIGNAL (returnPressed ()), this,
+                    SLOT (search ()));
+
+  mCaseSensitive.setText (tr ("Case sensitive"));
+  mHBox.addWidget (&mCaseSensitive);
+
+  mRegex.setText (tr ("Regular expression"));
+  mHBox.addWidget (&mRegex);
+
   // file type line
   mVBox.addLayout (&mHBox3);
 
-  auto mime_types = FileFactory::supportMimeTypes ();
-  std::ranges::for_each (mime_types, [&] (const auto &pair) {
-    std::ranges::for_each (pair.second, [&] (const auto &ext) {
-      auto checkbox = new QCheckBox (QString::fromLocal8Bit (ext));
-      checkbox->setChecked (true);
-      mHBox3.addWidget (checkbox);
-      mTypes.emplace_back (checkbox);
-    });
+  auto exts = FileFactory::supportFileExts ();
+  std::ranges::for_each (exts, [&] (const auto &ext) {
+    auto checkbox = new QCheckBox (QString::fromLocal8Bit (ext));
+    checkbox->setChecked (true);
+    mHBox3.addWidget (checkbox);
+    mTypes.emplace_back (checkbox);
   });
 
   mVBox.addWidget (&mSplitter);
@@ -170,7 +168,7 @@ SearchDialog::activateItem (QListWidgetItem *item)
   auto path = words[0];
   auto pn = words[1].toInt ();
   emit loadFile (path.toStdString (), pn);
-  accept ();
+  // accept ();
 }
 
 void

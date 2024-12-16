@@ -57,10 +57,10 @@ const string html_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
                              "  </body>\n"
                              "</html>\n";
 
-map<string, vector<string>> FileFactory::mSupportMimeTypes;
+map<string, vector<string> > FileFactory::mSupportMimeTypes;
 map<string, FileFactory::ExtClassList> FileFactory::mSupportClass;
 
-const map<string, vector<string>> &
+const map<string, vector<string> > &
 FileFactory::supportMimeTypes ()
 {
   return mSupportMimeTypes;
@@ -69,11 +69,12 @@ FileFactory::supportMimeTypes ()
 vector<string>
 FileFactory::supportFileExts ()
 {
-  vector<string> exts;
+  unordered_set<string> extSet;
   for (const auto &pair : mSupportMimeTypes)
     {
-      exts.insert (exts.end (), pair.second.begin (), pair.second.end ());
+      extSet.insert (pair.second.begin (), pair.second.end ());
     }
+  vector<string> exts (extSet.begin (), extSet.end ());
   return exts;
 }
 
@@ -159,7 +160,7 @@ FileFactory::loadFile (const string &filename)
     return file;
   else
     {
-      qWarning () << "open " << filename << " error";
+      qWarning () << "open " << QString::fromLocal8Bit (filename) << " error";
       return nullptr;
     }
 }
@@ -176,10 +177,15 @@ File::grepFile (const string &seq, bool is_case, bool is_regex,
                 atomic<bool> &is_abort)
 {
   vector<SearchPageMatch> page_matches;
-  for (int pn = 0; pn < sum (); ++pn)
+  auto pageSum = sum ();
+  for (auto pn = 0; pn < pageSum; ++pn)
     {
       if (is_abort.load () == true)
-        return nullptr;
+        {
+          qDebug () << "grep " << QString::fromLocal8Bit (mFilename)
+                    << " abort before page " << pn;
+          return nullptr;
+        }
 
       auto size = pageSizeF (pn, 0);
       string content;
@@ -192,7 +198,11 @@ File::grepFile (const string &seq, bool is_case, bool is_regex,
       while (getline (iss, line))
         {
           if (is_abort.load () == true)
-            return nullptr;
+            {
+              qDebug () << "grep " << QString::fromLocal8Bit (mFilename)
+                        << " abort at page " << pn;
+              return nullptr;
+            }
 
           auto founds = apvlv::grep (line, seq, is_case, is_regex);
           for (auto const &found : founds)

@@ -121,7 +121,8 @@ Searcher::dispatch ()
 void
 Searcher::dirFunc ()
 {
-  qDebug () << "searching " << mOptions.mText << " from " << mOptions.mFromDir;
+  qDebug () << "searching " << QString::fromLocal8Bit (mOptions.mText)
+            << " from " << QString::fromLocal8Bit (mOptions.mFromDir);
   stack<string> dirs;
   dirs.push (mOptions.mFromDir);
   while (!dirs.empty ())
@@ -188,6 +189,7 @@ Searcher::fileFunc (const string &path)
   auto file = FileFactory::loadFile (path);
   if (file)
     {
+      qDebug () << "searching for " << QString::fromLocal8Bit (path);
       auto result = file->grepFile (mOptions.mText, mOptions.mCaseSensitive,
                                     mOptions.mRegex, mRestart);
       if (result)
@@ -195,10 +197,10 @@ Searcher::fileFunc (const string &path)
     }
 }
 
-vector<pair<size_t, size_t>>
+vector<pair<size_t, size_t> >
 grep (const string &source, const string &text, bool is_case, bool is_regex)
 {
-  vector<pair<size_t, size_t>> results;
+  vector<pair<size_t, size_t> > results;
   if (is_regex == true)
     {
       regex regex_1{ text };

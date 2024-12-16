@@ -119,6 +119,7 @@ SET(SOURCES
         ApvlvSearch.cc
         ApvlvSearchDialog.cc
         ApvlvDired.cc
+        ApvlvQueue.cc
         ApvlvImageWidget.cc
         ApvlvWebViewWidget.cc
         ApvlvEditor.cc

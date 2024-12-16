@@ -28,6 +28,7 @@
 #ifndef _APVLV_QUEUE_H_
 #define _APVLV_QUEUE_H_
 
+#include <condition_variable>
 #include <mutex>
 #include <queue>
 
@@ -85,6 +86,52 @@ public:
 private:
   std::queue<T> mQueueInternal;
   std::mutex mMutex;
+};
+
+class Token;
+class TokenDispatcher final
+{
+public:
+  TokenDispatcher (int count, bool enable)
+      : mCount (count), mEnableSpecial (enable)
+  {
+    mDispatchedCount = 0;
+  }
+  ~TokenDispatcher () = default;
+
+  std::unique_ptr<Token> getToken (bool isSpecial);
+
+  void returnToken (Token *token);
+
+  TokenDispatcher (const TokenDispatcher &) = delete;
+  TokenDispatcher &operator= (const TokenDispatcher &) = delete;
+  TokenDispatcher (TokenDispatcher &&) = delete;
+  TokenDispatcher &operator= (TokenDispatcher &&) = delete;
+
+private:
+  int mCount;
+  bool mEnableSpecial;
+  int mDispatchedCount;
+  std::mutex mMutex;
+  std::condition_variable mCondition;
+};
+
+class Token final
+{
+public:
+  explicit Token (TokenDispatcher *parent)
+      : mParent (parent), mIsReturned (false)
+  {
+  }
+  ~Token ()
+  {
+    if (!mIsReturned)
+      mParent->returnToken (this);
+  }
+
+private:
+  TokenDispatcher *mParent;
+  bool mIsReturned;
 };
 
 }

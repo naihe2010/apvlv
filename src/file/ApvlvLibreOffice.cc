@@ -25,25 +25,40 @@
  */
 
 #include <LibreOfficeKit/LibreOfficeKit.hxx>
+#include <QDebug>
 #include <QDir>
 #include <QTemporaryFile>
+#include <filesystem>
 
 #include "ApvlvLibreOffice.h"
 
 namespace apvlv
 {
 FILE_TYPE_DEFINITION ("libreOffice", ApvlvOFFICE,
-                      { ".doc", ".docx", ".xls", ".xlsx" });
+                      { ".doc", ".docx", ".xls", ".xlsx", "ppt", "pptx" });
 
 using namespace std;
 
+mutex ApvlvOFFICE::mLokMutex;
+TokenDispatcher ApvlvOFFICE::mDispatcher{ 1, true };
 unique_ptr<lok::Office> ApvlvOFFICE::mOffice;
 
 bool
 ApvlvOFFICE::load (const string &filename)
 {
+  auto filepath = filesystem::path (filename);
+  if (filepath.filename ().string ().starts_with ("~"))
+    {
+      qWarning () << "filename: " << QString::fromLocal8Bit (filename)
+                  << " maybe a temporary file, skip.";
+      return false;
+    }
+
+  auto token = mDispatcher.getToken (true);
+
   initLokInstance ();
 
+  lock_guard<mutex> lk (mLokMutex);
   mDoc
       = unique_ptr<lok::Document>{ mOffice->documentLoad (filename.c_str ()) };
   if (mDoc == nullptr)
@@ -53,22 +68,35 @@ ApvlvOFFICE::load (const string &filename)
   return true;
 }
 
-ApvlvOFFICE::~ApvlvOFFICE () { mDoc = nullptr; }
+ApvlvOFFICE::~ApvlvOFFICE ()
+{
+  auto token = mDispatcher.getToken (true);
+  lock_guard<mutex> lk (mLokMutex);
+  mDoc = nullptr;
+}
 
 int
 ApvlvOFFICE::sum ()
 {
-  return mDoc->getParts ();
+  auto token = mDispatcher.getToken (true);
+  lock_guard<mutex> lk (mLokMutex);
+  auto num = mDoc->getParts ();
+  return num;
 }
 
 bool
 ApvlvOFFICE::pageText (int pn, const Rectangle &rect, string &text)
 {
-  mDoc->setPart (pn);
   auto tmpname = QString ("%1/apvlv.%2.txt")
                      .arg (QDir::temp ().path ())
                      .arg (random ());
+
+  auto token = mDispatcher.getToken (false);
+  unique_lock<mutex> lk (mLokMutex);
+  mDoc->setPart (pn);
   mDoc->saveAs (tmpname.toStdString ().c_str (), "txt");
+  lk.unlock ();
+  token.reset ();
 
   QFile file (tmpname);
   if (file.open (QIODeviceBase::ReadOnly) == false)
@@ -84,6 +112,8 @@ ApvlvOFFICE::pageText (int pn, const Rectangle &rect, string &text)
 bool
 ApvlvOFFICE::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 {
+  auto token = mDispatcher.getToken (true);
+  lock_guard<mutex> lk (mLokMutex);
   mDoc->setPart (pn);
   QTemporaryFile file;
   if (file.open ())
@@ -98,12 +128,14 @@ ApvlvOFFICE::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
 void
 ApvlvOFFICE::initLokInstance ()
 {
-  static std::once_flag flag;
-  std::call_once (flag, [] () {
-    auto lok_path = ApvlvParams::instance ()->getStringOrDefault (
-        "lok_path", DEFAULT_LOK_PATH);
-    mOffice = unique_ptr<lok::Office>{ lok::lok_cpp_init (lok_path.c_str ()) };
-  });
+  lock_guard<mutex> lk (mLokMutex);
+  if (mOffice == nullptr)
+    {
+      auto lok_path = ApvlvParams::instance ()->getStringOrDefault (
+          "lok_path", DEFAULT_LOK_PATH);
+      mOffice
+          = unique_ptr<lok::Office>{ lok::lok_cpp_init (lok_path.c_str ()) };
+    }
 }
 
 }
