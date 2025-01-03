@@ -305,8 +305,7 @@ Directory::treeItemToFileIndex (QTreeWidgetItem *item)
 }
 
 void
-Directory::filterItemBy (QTreeWidgetItem *root,
-                            const filterFunc &filter_func)
+Directory::filterItemBy (QTreeWidgetItem *root, const filterFunc &filter_func)
 {
   std::stack<QTreeWidgetItem *> item_stack;
   for (auto i = 0; i < root->childCount (); ++i)
@@ -363,8 +362,8 @@ Directory::setItemChildrenFilter (QTreeWidgetItem *root, bool is_filter)
 
 QTreeWidgetItem *
 Directory::findTreeWidgetItem (QTreeWidgetItem *itr, FileIndexType type,
-                                  const string &path, int pn,
-                                  const string &anchor)
+                               const string &path, int pn,
+                               const string &anchor)
 {
   if (itr == nullptr)
     return nullptr;
@@ -404,8 +403,7 @@ Directory::findTreeWidgetItem (QTreeWidgetItem *itr, FileIndexType type,
 }
 
 bool
-Directory::setCurrentIndex (const string &path, int pn,
-                               const string &anchor)
+Directory::setCurrentIndex (const string &path, int pn, const string &anchor)
 {
   auto itr = selectedTreeItem ();
 
@@ -785,7 +783,7 @@ Directory::sortItems (QTreeWidgetItem *tree_iter)
 
 void
 Directory::onRowActivated ([[maybe_unused]] QTreeWidgetItem *item,
-                              [[maybe_unused]] int column)
+                           [[maybe_unused]] int column)
 {
   mFrame->directoryShowPage (currentItemFileIndex (), true);
   mFrame->toggledControlDirectory (true);

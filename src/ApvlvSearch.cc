@@ -197,10 +197,10 @@ Searcher::fileFunc (const string &path)
     }
 }
 
-vector<pair<size_t, size_t> >
+vector<pair<size_t, size_t>>
 grep (const string &source, const string &text, bool is_case, bool is_regex)
 {
-  vector<pair<size_t, size_t> > results;
+  vector<pair<size_t, size_t>> results;
   if (is_regex == true)
     {
       regex regex_1{ text };

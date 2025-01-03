@@ -57,10 +57,10 @@ const string html_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
                              "  </body>\n"
                              "</html>\n";
 
-map<string, vector<string> > FileFactory::mSupportMimeTypes;
+map<string, vector<string>> FileFactory::mSupportMimeTypes;
 map<string, FileFactory::ExtClassList> FileFactory::mSupportClass;
 
-const map<string, vector<string> > &
+const map<string, vector<string>> &
 FileFactory::supportMimeTypes ()
 {
   return mSupportMimeTypes;

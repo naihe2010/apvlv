@@ -62,10 +62,10 @@ IF (UNIX)
     SET(CPACK_PACKAGE_CONTACT "Alf <naihe2010@126.com>")
     SET(CPACK_GENERATOR DEB)
     SET(CPACK_DEBIAN_PACKAGE_DEPENDS
-            "qt6 poppler-qt6 quazip")
+            "qt6 quazip cmark")
     IF (EXISTS "/etc/redhat-release")
         SET(CPACK_GENERATOR RPM)
-        SET(CPACK_RPM_PACKAGE_REQUIRES "qt6-qtwebengine poppler-qt6 quazip-qt6")
+        SET(CPACK_RPM_PACKAGE_REQUIRES "qt6-qtwebengine quazip-qt6 cmark")
     ENDIF ()
     SET(CPACK_SOURCE_GENERATOR TGZ)
     SET(CPACK_SOURCE_IGNORE_FILES

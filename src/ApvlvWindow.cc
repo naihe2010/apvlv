@@ -156,7 +156,8 @@ ApvlvWindow::getNeighbor (int count, uint key)
 ApvlvWindow *
 ApvlvWindow::getLeft ()
 {
-  if (mType == WindowType::FRAME && getFrame ()->toggledControlDirectory (false))
+  if (mType == WindowType::FRAME
+      && getFrame ()->toggledControlDirectory (false))
     {
       return this;
     }
@@ -185,7 +186,8 @@ ApvlvWindow::getLeft ()
 ApvlvWindow *
 ApvlvWindow::getRight ()
 {
-  if (mType == WindowType::FRAME && getFrame ()->toggledControlDirectory (true))
+  if (mType == WindowType::FRAME
+      && getFrame ()->toggledControlDirectory (true))
     {
       return this;
     }

@@ -192,7 +192,7 @@ ApvlvFrame::toggleDirectory (bool show)
         {
           auto psize = mPaned.size ();
           sizes = { mDirectoryWidth, psize.width () - mPaned.handleWidth ()
-                                       - DEFAULT_CONTENT_WIDTH };
+                                         - DEFAULT_CONTENT_WIDTH };
           mPaned.setSizes (sizes);
         }
     }
@@ -1370,7 +1370,7 @@ ApvlvFrame::updateStatus ()
       mToolStatus.updateValue (pn, totpn, zm, sr);
 
       mDirectory.setCurrentIndex (mFilestr, mWidget->pageNumber (),
-                                mWidget->anchor ());
+                                  mWidget->anchor ());
     }
 }
 

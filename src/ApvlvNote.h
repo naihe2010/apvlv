@@ -29,18 +29,18 @@
 #define _APVLV_NOTE_H_
 
 #include <map>
-#include <memory>
+#include <ranges>
 #include <string>
 #include <string_view>
 #include <unordered_set>
-
-#include "ApvlvEditor.h"
+#include <vector>
 
 namespace apvlv
 {
-const float NoteScoreMin = 0.0f;
-const float NoteScoreMax = 10.0f;
+constexpr float NoteScoreMin = 0.0f;
+constexpr float NoteScoreMax = 10.0f;
 
+class MarkdownNode;
 struct ApvlvPoint;
 struct Location
 {
@@ -67,59 +67,11 @@ struct Location
     return false;
   }
 
-  friend std::istream &
-  operator>> (std::istream &is, Location &location)
-  {
-    is >> location.page >> location.x >> location.y >> location.offset;
-
-    std::string path;
-    while (!is.eof ())
-      {
-        is >> path;
-        if (path.empty ())
-          {
-            return is;
-          }
-
-        if (path.ends_with ("||"))
-          {
-            path = path.substr (0, path.length () - 2);
-            location.path += path;
-            break;
-          }
-        else
-          {
-            location.path += path;
-          }
-      }
-
-    while (!is.eof ())
-      {
-        is >> path;
-        if (path.empty ())
-          {
-            break;
-          }
-        location.anchor += path;
-      }
-
-    return is;
-  }
-
-  friend std::ostream &
-  operator<< (std::ostream &os, const Location &location)
-  {
-    os << location.page << " " << location.x << " " << location.y << " "
-       << location.offset;
-    if (!location.path.empty ())
-      {
-        os << " " << location.path << "|| " << location.anchor << "||";
-      }
-    return os;
-  }
-
   void set (int page1, const ApvlvPoint *point1, int offset1 = 0,
             const std::string &path1 = "", const std::string &anchor1 = "");
+
+  void fromMarkdownNode (MarkdownNode *node);
+  void toMarkdownNode (MarkdownNode *node) const;
 };
 
 class File;
@@ -138,80 +90,15 @@ struct Comment
   Location end;
   time_t time;
 
-  friend std::istream &
-  operator>> (std::istream &is, Comment &comment)
-  {
-    std::string line;
-    getline (is, line);
-    while (line.starts_with ("> "))
-      {
-        auto content = line.substr (2);
-        content += '\n';
-        comment.quoteText += content;
-        getline (is, line);
-      }
-
-    if (line.starts_with ("```"))
-      {
-        do
-          {
-            getline (is, line);
-
-            line += '\n';
-            comment.commentText += line;
-          }
-        while (!line.starts_with ("```"));
-      }
-
-    getline (is, line);
-    std::stringstream bs (line.substr (2));
-    bs >> comment.begin;
-
-    getline (is, line);
-    std::stringstream es (line.substr (2));
-    es >> comment.end;
-
-    getline (is, line);
-    std::stringstream ts (line.substr (2));
-    std::tm tm;
-    ts >> std::get_time (&tm, "%a %b %d %H:%M:%S %Y");
-    comment.time = std::mktime (&tm);
-
-    return is;
-  }
-
-  friend std::ostream &
-  operator<< (std::ostream &os, const Comment &comment)
-  {
-    // put "> " at beginning of every line
-    auto remain = comment.quoteText + '\n';
-    auto pos = remain.find ('\n');
-    while (pos != std::string::npos)
-      {
-        os << "> " << remain.substr (0, pos) << std::endl;
-        remain = remain.substr (pos + 1);
-        pos = remain.find ('\n');
-      }
-
-    os << "```" << std::endl;
-    os << comment.commentText << std::endl;
-    os << "```" << std::endl;
-
-    os << "- " << comment.begin << std::endl;
-    os << "- " << comment.end << std::endl;
-    os << "- " << std::ctime (&comment.time) << std::endl;
-    os << std::endl;
-    return os;
-  }
+  void fromMarkdownNode (MarkdownNode *node);
+  void toMarkdownNode (MarkdownNode *node) const;
 };
 
-class Note : public QObject
+class Note
 {
-  Q_OBJECT
-
 public:
   explicit Note (File *file);
-  ~Note () override;
+  ~Note ();
 
   bool loadStreamV1 (std::ifstream &is);
   bool loadStream (std::ifstream &is);
@@ -324,12 +211,11 @@ public:
   getCommentsInPage (int page)
   {
     std::vector<Comment> comments;
-    std::ranges::for_each (
-        mCommentList,
-        [page, &comments] (const std::pair<Location, Comment> &pair1) {
-          if (pair1.first.page == page)
-            comments.push_back (pair1.second);
-        });
+    for (const auto &pair1 : mCommentList)
+      {
+        if (pair1.first.page == page)
+          comments.push_back (pair1.second);
+      };
     return comments;
   }
 
@@ -337,16 +223,26 @@ public:
   getCommentsInPath (const std::string &path)
   {
     std::vector<Comment> comments;
-    std::ranges::for_each (
-        mCommentList,
-        [path, &comments] (const std::pair<Location, Comment> &pair1) {
-          if (pair1.first.path == path)
-            comments.push_back (pair1.second);
-        });
+    for (const auto &pair1 : mCommentList)
+      {
+        if (pair1.first.path == path)
+          comments.push_back (pair1.second);
+      }
     return comments;
   }
 
 private:
+  void loadV1Version (MarkdownNode *node);
+  void loadV1MetaData (MarkdownNode *node);
+  void loadV1Comments (MarkdownNode *node);
+  void loadV1References (MarkdownNode *node);
+  void loadV1Links (MarkdownNode *node);
+  void appendV1Version (MarkdownNode *doc);
+  void appendV1MetaData (MarkdownNode *doc);
+  void appendV1Comments (MarkdownNode *doc);
+  void appendV1References (MarkdownNode *doc);
+  void appendV1Links (MarkdownNode *doc);
+
   std::string notePathOfFile (File *file);
 
   std::string mPath;
@@ -364,23 +260,6 @@ private:
   std::map<Location, Comment> mCommentList;
 };
 
-class CommentEdit : public Editor
-{
-  Q_OBJECT
-
-public:
-private:
-  Comment *mComment;
-};
-
-class NoteEdit : public QFrame
-{
-  Q_OBJECT
-
-public:
-private:
-  Note *mNote;
-};
 }
 
 #endif

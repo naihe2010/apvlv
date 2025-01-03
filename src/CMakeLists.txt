@@ -66,6 +66,10 @@ SET(APVLV_REQ_LIBRARIES
 
 ADD_DEFINITIONS(-DQT_MESSAGELOGCONTEXT)
 
+PKG_CHECK_MODULES(CMARK libcmark REQUIRED)
+INCLUDE_DIRECTORIES(${CMARK_INCLUDE_DIRS})
+SET(APVLV_REQ_LIBRARIES ${CMARK_LIBRARIES} ${APVLV_REQ_LIBRARIES})
+
 SET(HEADERS
         ApvlvCmds.h
         ApvlvFrame.h
@@ -91,6 +95,8 @@ SET(HEADERS
         ApvlvWebViewWidget.h
         ApvlvEditor.h
         ApvlvNote.h
+        ApvlvNoteWidget.h
+        ApvlvMarkdown.h
         file/ApvlvHtm.h
         file/ApvlvImage.h
         file/ApvlvQtPdf.h
@@ -124,6 +130,8 @@ SET(SOURCES
         ApvlvWebViewWidget.cc
         ApvlvEditor.cc
         ApvlvNote.cc
+        ApvlvNoteWidget.cc
+        ApvlvMarkdown.cc
         file/ApvlvHtm.cc
         file/ApvlvImage.cc
         file/ApvlvQtPdf.cc
@@ -215,6 +223,10 @@ MESSAGE("-- link libraries: ${APVLV_REQ_LIBRARIES}")
 ADD_EXECUTABLE(apvlv ${HEADERS} ${SOURCES})
 SET_PROPERTY(TARGET apvlv PROPERTY AUTOMOC ON)
 TARGET_LINK_LIBRARIES(apvlv ${APVLV_REQ_LIBRARIES})
+
+ADD_EXECUTABLE(testNote ApvlvNote.cc ApvlvMarkdown.cc testNote.cc)
+SET_PROPERTY(TARGET testNote PROPERTY AUTOMOC ON)
+TARGET_LINK_LIBRARIES(testNote ${APVLV_REQ_LIBRARIES})
 
 # for debug
 IF (WIN32)
