@@ -169,8 +169,17 @@ Note::loadStreamV1 (std::ifstream &is)
         break;
 
       list = node->childAt (i + 1);
-      i++;
+      if (list == nullptr)
+        break;
+
+      // skip empty list of heading
+      if (list->node_type == CMARK_NODE_HEADING && list->heading_level == 1)
+        {
+          continue;
+        }
+
       auto res = n->headText ();
+      i++;
       if (res.second == "Meta Data")
         {
           loadV1MetaData (list);
