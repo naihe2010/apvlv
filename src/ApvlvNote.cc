@@ -44,8 +44,11 @@ Location::set (int page1, const ApvlvPoint *point1, int offset1,
                const std::string &path1, const std::string &anchor1)
 {
   page = page1;
-  x = point1->x;
-  y = point1->y;
+  if (point1)
+    {
+      x = point1->x;
+      y = point1->y;
+    }
   offset = offset1;
   path = path1;
   anchor = anchor1;

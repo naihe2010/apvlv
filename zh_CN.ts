@@ -590,4 +590,23 @@
         <translation>……</translation>
     </message>
 </context>
+<context>
+    <name>apvlv::WebView</name>
+    <message>
+        <source>Copy</source>
+        <translation>复制</translation>
+    </message>
+    <message>
+        <source>Underline</source>
+        <translation>划线</translation>
+    </message>
+    <message>
+        <source>Comment</source>
+        <translation>注释</translation>
+    </message>
+    <message>
+        <source>Input</source>
+        <translation>输入</translation>
+    </message>
+</context>
 </TS>

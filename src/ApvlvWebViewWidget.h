@@ -30,6 +30,7 @@
 
 #include <QBuffer>
 #include <QByteArray>
+#include <QMenu>
 #include <QWebEngineFindTextResult>
 #include <QWebEngineProfile>
 #include <QWebEngineUrlRequestJob>
@@ -51,6 +52,11 @@ public:
   setFile (File *file)
   {
     mFile = file;
+  }
+  File *
+  file () const
+  {
+    return mFile;
   }
   void requestStarted (QWebEngineUrlRequestJob *job) override;
 
@@ -74,15 +80,31 @@ public:
     mSchemeHandler.setFile (file);
   }
 
+protected:
+  void contextMenuEvent (QContextMenuEvent *event) override;
+
 private:
   QWebEngineProfile mProfile;
   std::unique_ptr<QWebEnginePage> mPage;
   ApvlvSchemeHandler mSchemeHandler;
+  QMenu mMenu;
 
   bool isScrolledToTop ();
   bool isScrolledToBottom ();
 
+  std::pair<int, int> getSelectionPosition () const;
+  void underLinePosition(int begin, int end);
+
+  QAction mCopyAction;
+  QAction mUnderlineAction;
+  QAction mCommentAction;
+
   friend class WebViewWidget;
+
+private slots:
+  void copy () const;
+  void underline ();
+  void comment ();
 };
 
 class WebViewWidget : public FileWidget
@@ -143,6 +165,8 @@ private:
   bool mIsInternalScroll{ false };
   bool mIsScrollUp{ false };
   QWebEngineFindTextResult mSearchResult;
+
+  void setComment();
 
 signals:
   void webpageUpdated (const std::string &msg);
