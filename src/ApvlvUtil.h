@@ -38,6 +38,7 @@ namespace apvlv
 {
 
 // Global files
+extern std::string ScriptDir;
 extern std::string HelpPdf;
 extern std::string IniExam;
 extern std::string IconDir;
@@ -49,6 +50,7 @@ extern std::string IniFile;
 extern std::string SessionFile;
 extern std::string LogFile;
 extern std::string NotesDir;
+extern std::string UserScriptDir;
 
 void getRuntimePaths ();
 

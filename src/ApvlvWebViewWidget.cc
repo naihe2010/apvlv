@@ -25,20 +25,21 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
-#include <QBuffer>
 #include <filesystem>
 #include <iostream>
 #include <sstream>
 
-#include "ApvlvWebViewWidget.h"
-
 #include <QClipboard>
+#include <QFile>
 #include <QInputDialog>
+#include <QWebEngineScriptCollection>
 #include <qevent.h>
+
+#include "ApvlvUtil.h"
+#include "ApvlvWebViewWidget.h"
 
 namespace apvlv
 {
-
 using namespace std;
 
 void
@@ -83,6 +84,55 @@ WebView::WebView ()
   QObject::connect (&mCommentAction, SIGNAL (triggered (bool)), this,
                     SLOT (comment ()));
   mMenu.addAction (&mCommentAction);
+}
+
+WebViewWidget::WebViewWidget ()
+{
+  QObject::connect (&mWebView, SIGNAL (loadFinished (bool)), this,
+                    SLOT (webviewLoadFinished (bool)));
+  QObject::connect (&mWebView.mSchemeHandler,
+                    SIGNAL (webpageUpdated (const string &)), this,
+                    SLOT (webviewUpdate (const string &)));
+  loadJavaScriptFromDir (ScriptDir);
+}
+
+bool
+WebViewWidget::loadJavaScriptFromDir (const std::string &dir)
+{
+  std::filesystem::path script_dir{ dir };
+  if (!is_directory (script_dir))
+    return false;
+
+  QList<QWebEngineScript> script_list;
+  for (auto &entry : std::filesystem::directory_iterator (
+           script_dir,
+           std::filesystem::directory_options::follow_directory_symlink))
+    {
+      auto const &path = entry.path ();
+      if (entry.is_regular_file () && path.extension () == ".js")
+        {
+          QFile file (path);
+          if (!file.open (QIODevice::ReadOnly | QIODevice::Text))
+            {
+              qWarning () << "open " << path.c_str () << "to read error";
+              continue;
+            }
+
+          auto contents = file.readAll ();
+
+          auto script = QWebEngineScript{};
+          script.setName (QString::fromStdString (path.filename ()));
+          script.setSourceCode (contents);
+          script.setInjectionPoint (QWebEngineScript::DocumentCreation);
+          script.setWorldId (QWebEngineScript::MainWorld);
+          script.setRunsOnSubFrames (true);
+          script_list.push_back (script);
+        }
+    }
+
+  auto page = mWebView.page ();
+  page->scripts ().insert (script_list);
+  return true;
 }
 
 void
@@ -259,26 +309,7 @@ WebView::getSelectionPosition () const
   int end = -1;
   QEventLoop loop;
   mPage->runJavaScript (
-      R"(
-    var selection = window.getSelection();
-    if (selection.rangeCount > 0) {
-      let range = selection.getRangeAt(0);
-
-      let start = document.createRange();
-      start.setStart(document.documentElement, 0);
-      start.setEnd(range.startContainer, range.startOffset);
-      let startOffset = start.toString().length;
-
-      let end = document.createRange();
-      end.setStart(document.documentElement, 0);
-      end.setEnd(range.endContainer, range.endOffset);
-      let endOffset = end.toString().length;
-
-      [startOffset, endOffset];
-    } else {
-      [null, null];
-    }
-  )",
+      "get_selection_offset(0);",
       [&loop, &begin, &end] (const QVariant &result) {
         if (result.isValid () && result.typeId () == QMetaType::QVariantList)
           {
@@ -297,106 +328,8 @@ WebView::getSelectionPosition () const
 void
 WebView::underLinePosition (int begin, int end)
 {
-  qDebug () << "underLinePosition";
-  QString src = QString(
-      R"(
-function underlineTextByOffset(startOffset, endOffset) {
-    // 获取文档的根元素
-    const root = document.documentElement;
-    let currentOffset = 0;
-    let startNode = null;
-    let endNode = null;
-    let startNodeOffset = 0;
-    let endNodeOffset = 0;
-
-    // 递归遍历文档树，找到起始和结束节点
-    function traverse(node) {
-        if (node.nodeType === Node.TEXT_NODE) {
-            const nodeLength = node.nodeValue.length;
-            if (currentOffset <= startOffset && currentOffset + nodeLength > startOffset) {
-                startNode = node;
-                startNodeOffset = startOffset - currentOffset;
-            }
-            if (currentOffset <= endOffset && currentOffset + nodeLength > endOffset) {
-                endNode = node;
-                endNodeOffset = endOffset - currentOffset;
-            }
-            currentOffset += nodeLength;
-        }
-        for (let i = 0; i < node.childNodes.length; i++) {
-            traverse(node.childNodes[i]);
-        }
-    }
-
-    traverse(root);
-
-    if (startNode && endNode) {
-        if (startNode === endNode) {
-            // 起始和结束节点相同
-            const text = startNode.nodeValue;
-            const beforeText = text.slice(0, startNodeOffset);
-            const underlinedText = text.slice(startNodeOffset, endNodeOffset);
-            const afterText = text.slice(endNodeOffset);
-
-            const u = document.createElement('u');
-            u.textContent = underlinedText;
-
-            const parent = startNode.parentNode;
-            const newBeforeText = document.createTextNode(beforeText);
-            const newAfterText = document.createTextNode(afterText);
-
-            parent.insertBefore(newBeforeText, startNode);
-            parent.insertBefore(u, startNode);
-            parent.insertBefore(newAfterText, startNode);
-            parent.removeChild(startNode);
-        } else {
-            // 起始和结束节点不同
-            // 处理起始节点
-            const startText = startNode.nodeValue;
-            const startBeforeText = startText.slice(0, startNodeOffset);
-            const startUnderlinedText = startText.slice(startNodeOffset);
-
-            const startU = document.createElement('u');
-            startU.textContent = startUnderlinedText;
-
-            const startParent = startNode.parentNode;
-            const startNewBeforeText = document.createTextNode(startBeforeText);
-
-            startParent.insertBefore(startNewBeforeText, startNode);
-            startParent.insertBefore(startU, startNode);
-            startParent.removeChild(startNode);
-
-            // 处理中间节点
-            let currentNode = startU.nextSibling;
-            while (currentNode && currentNode!== endNode) {
-                const nextNode = currentNode.nextSibling;
-                const u = document.createElement('u');
-                u.textContent = currentNode.nodeValue;
-                currentNode.parentNode.replaceChild(u, currentNode);
-                currentNode = nextNode;
-            }
-
-            // 处理结束节点
-            const endText = endNode.nodeValue;
-            const endUnderlinedText = endText.slice(0, endNodeOffset);
-            const endAfterText = endText.slice(endNodeOffset);
-
-            const endU = document.createElement('u');
-            endU.textContent = endUnderlinedText;
-
-            const endParent = endNode.parentNode;
-            const endNewAfterText = document.createTextNode(endAfterText);
-
-            endParent.insertBefore(endU, endNode);
-            endParent.insertBefore(endNewAfterText, endNode);
-            endParent.removeChild(endNode);
-        }
-    }
-}
-
-underlineTextByOffset(%1, %2);
-      )").arg(begin).arg(end);
-
+  qDebug () << "underLinePosition" << begin << " -> " << end;
+  QString src = QString ("underline_by_offset(%1, %2);").arg (begin).arg (end);
   mPage->runJavaScript (src);
 }
 

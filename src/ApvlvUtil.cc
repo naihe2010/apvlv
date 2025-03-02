@@ -42,6 +42,7 @@ namespace apvlv
 
 using namespace std;
 
+string ScriptDir;
 string HelpPdf;
 string IniExam;
 string IconDir;
@@ -53,6 +54,7 @@ string IniFile;
 string SessionFile;
 string LogFile;
 string NotesDir;
+string UserScriptDir;
 
 static void
 getXdgOrHomeIni (const QString &appdir)
@@ -110,6 +112,9 @@ getRuntimePaths ()
   auto dirpath = QDir (QCoreApplication::applicationDirPath ());
   dirpath.cdUp ();
   auto prefix = dirpath.path ().toStdString ();
+
+  ScriptDir = prefix + "/share/scripts";
+
   auto apvlvdir = prefix + "/share/doc/apvlv";
 
   HelpPdf = apvlvdir + "/Startup.pdf";

@@ -28,6 +28,9 @@
 #ifndef _APVLV_WEBVIEW_WIDGET_H_
 #define _APVLV_WEBVIEW_WIDGET_H_
 
+#include <memory>
+#include <string>
+
 #include <QBuffer>
 #include <QByteArray>
 #include <QMenu>
@@ -36,8 +39,6 @@
 #include <QWebEngineUrlRequestJob>
 #include <QWebEngineUrlSchemeHandler>
 #include <QWebEngineView>
-#include <memory>
-#include <string>
 
 #include "ApvlvFileWidget.h"
 
@@ -92,8 +93,8 @@ private:
   bool isScrolledToTop ();
   bool isScrolledToBottom ();
 
-  std::pair<int, int> getSelectionPosition () const;
-  void underLinePosition(int begin, int end);
+  [[nodiscard]] std::pair<int, int> getSelectionPosition () const;
+  void underLinePosition (int begin, int end);
 
   QAction mCopyAction;
   QAction mUnderlineAction;
@@ -111,14 +112,7 @@ class WebViewWidget : public FileWidget
 {
   Q_OBJECT
 public:
-  WebViewWidget ()
-  {
-    QObject::connect (&mWebView, SIGNAL (loadFinished (bool)), this,
-                      SLOT (webviewLoadFinished (bool)));
-    QObject::connect (&mWebView.mSchemeHandler,
-                      SIGNAL (webpageUpdated (const string &)), this,
-                      SLOT (webviewUpdate (const string &)));
-  }
+  WebViewWidget ();
 
   [[nodiscard]] QWidget *
   widget () override
@@ -166,7 +160,9 @@ private:
   bool mIsScrollUp{ false };
   QWebEngineFindTextResult mSearchResult;
 
-  void setComment();
+  bool loadJavaScriptFromDir (const std::string &dir);
+
+  void setComment ();
 
 signals:
   void webpageUpdated (const std::string &msg);
