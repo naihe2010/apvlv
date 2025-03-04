@@ -1,3 +1,4 @@
+// 115452,115532
 function get_selection_offset(index) {
     let selection = window.getSelection();
     if (selection.rangeCount >= index) {
@@ -19,8 +20,44 @@ function get_selection_offset(index) {
     }
 }
 
+function underline_node_offset(container, startOffset, endOffset = -1) {
+    console.log("container: " + container + " start: " + startOffset + " end: " + endOffset);
+    const text = container.nodeValue;
+
+    if (endOffset === -1) {
+        endOffset = text.length;
+    }
+
+    const beforeText = text.slice(0, startOffset);
+    const underlinedText = text.slice(startOffset, endOffset);
+    const afterText = text.slice(endOffset);
+
+    const u = document.createElement('u');
+    u.textContent = underlinedText;
+
+    const parent = container.parentNode;
+
+    if (beforeText.length > 0) {
+        const beforeTextNode = document.createTextNode(beforeText);
+        parent.insertBefore(beforeTextNode, container);
+    }
+
+    parent.insertBefore(u, container);
+
+    container.nodeValue = afterText;
+}
+
+function traverse(node, type, func) {
+    if (node.nodeType === type) {
+        func(node);
+    }
+
+    for (let i = 0; i < node.childNodes.length; i++) {
+        traverse(node.childNodes[i], type, func);
+    }
+}
+
 function underline_by_offset(startOffset, endOffset) {
-    // 获取文档的根元素
     const root = document.documentElement;
     let currentOffset = 0;
     let startNode = null;
@@ -29,86 +66,43 @@ function underline_by_offset(startOffset, endOffset) {
     let endNodeOffset = 0;
 
     // 递归遍历文档树，找到起始和结束节点
-    function traverse(node) {
-        if (node.nodeType === Node.TEXT_NODE) {
-            const nodeLength = node.nodeValue.length;
-            if (currentOffset <= startOffset && currentOffset + nodeLength > startOffset) {
-                startNode = node;
-                startNodeOffset = startOffset - currentOffset;
-            }
-            if (currentOffset <= endOffset && currentOffset + nodeLength > endOffset) {
-                endNode = node;
-                endNodeOffset = endOffset - currentOffset;
-            }
-            currentOffset += nodeLength;
+    traverse(root, Node.TEXT_NODE, (node) => {
+        const nodeLength = node.nodeValue.length;
+        if (currentOffset <= startOffset && currentOffset + nodeLength > startOffset) {
+            startNode = node;
+            startNodeOffset = startOffset - currentOffset;
         }
-        for (let i = 0; i < node.childNodes.length; i++) {
-            traverse(node.childNodes[i]);
-        }
-    }
 
-    traverse(root);
+        if (currentOffset <= endOffset && currentOffset + nodeLength > endOffset) {
+            endNode = node;
+            endNodeOffset = endOffset - currentOffset;
+        }
+
+        currentOffset += nodeLength;
+    });
 
     if (startNode && endNode) {
         if (startNode === endNode) {
-            // 起始和结束节点相同
-            const text = startNode.nodeValue;
-            const beforeText = text.slice(0, startNodeOffset);
-            const underlinedText = text.slice(startNodeOffset, endNodeOffset);
-            const afterText = text.slice(endNodeOffset);
-
-            const u = document.createElement('u');
-            u.textContent = underlinedText;
-
-            const parent = startNode.parentNode;
-            const newBeforeText = document.createTextNode(beforeText);
-            const newAfterText = document.createTextNode(afterText);
-
-            parent.insertBefore(newBeforeText, startNode);
-            parent.insertBefore(u, startNode);
-            parent.insertBefore(newAfterText, startNode);
-            parent.removeChild(startNode);
-        } else {
-            // 起始和结束节点不同
-            // 处理起始节点
-            const startText = startNode.nodeValue;
-            const startBeforeText = startText.slice(0, startNodeOffset);
-            const startUnderlinedText = startText.slice(startNodeOffset);
-
-            const startU = document.createElement('u');
-            startU.textContent = startUnderlinedText;
-
-            const startParent = startNode.parentNode;
-            const startNewBeforeText = document.createTextNode(startBeforeText);
-
-            startParent.insertBefore(startNewBeforeText, startNode);
-            startParent.insertBefore(startU, startNode);
-            startParent.removeChild(startNode);
-
-            // 处理中间节点
-            let currentNode = startU.nextSibling;
-            while (currentNode && currentNode!== endNode) {
-                const nextNode = currentNode.nextSibling;
-                const u = document.createElement('u');
-                u.textContent = currentNode.nodeValue;
-                currentNode.parentNode.replaceChild(u, currentNode);
-                currentNode = nextNode;
-            }
-
-            // 处理结束节点
-            const endText = endNode.nodeValue;
-            const endUnderlinedText = endText.slice(0, endNodeOffset);
-            const endAfterText = endText.slice(endNodeOffset);
-
-            const endU = document.createElement('u');
-            endU.textContent = endUnderlinedText;
-
-            const endParent = endNode.parentNode;
-            const endNewAfterText = document.createTextNode(endAfterText);
-
-            endParent.insertBefore(endU, endNode);
-            endParent.insertBefore(endNewAfterText, endNode);
-            endParent.removeChild(endNode);
+            underline_node_offset(startNode, startNodeOffset, endNodeOffset);
+            return;
         }
+
+        let inUnderline = false;
+        let nodes = [];
+        traverse(root, Node.TEXT_NODE, (node) => {
+            if (node === startNode) {
+                inUnderline = true;
+            } else if (node === endNode) {
+                inUnderline = false;
+            } else if (inUnderline) {
+                nodes[nodes.length] = node;
+            }
+        });
+
+        underline_node_offset(startNode, startNodeOffset);
+        for (let node of nodes) {
+            underline_node_offset(node, 0);
+        }
+        underline_node_offset(endNode, 0, endNodeOffset);
     }
 }
