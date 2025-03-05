@@ -309,7 +309,7 @@ WebView::getSelectionPosition () const
   int end = -1;
   QEventLoop loop;
   mPage->runJavaScript (
-      "get_selection_offset(0);",
+      "getSelectionOffset(0);",
       [&loop, &begin, &end] (const QVariant &result) {
         if (result.isValid () && result.typeId () == QMetaType::QVariantList)
           {
@@ -329,7 +329,7 @@ void
 WebView::underLinePosition (int begin, int end)
 {
   qDebug () << "underLinePosition" << begin << " -> " << end;
-  QString src = QString ("underline_by_offset(%1, %2);").arg (begin).arg (end);
+  QString src = QString ("underlineByOffset(%1, %2);").arg (begin).arg (end);
   mPage->runJavaScript (src);
 }
 
