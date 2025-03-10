@@ -156,10 +156,9 @@ WebViewWidget::scroll (int times, int h, int v)
   if (!mFile)
     return;
 
-  stringstream scripts;
-  scripts << "window.scrollBy(" << times * h << "," << times * v << ")";
+  auto scripts = QString("scrollBy(%1, %2, %3);").arg(times).arg(h).arg(v);
   auto page = mWebView.page ();
-  page->runJavaScript (QString::fromLocal8Bit (scripts.str ()));
+  page->runJavaScript (scripts);
 }
 
 void
@@ -168,12 +167,9 @@ WebViewWidget::scrollTo (double xrate, double yrate)
   if (!mFile)
     return;
 
-  stringstream scripts;
-  scripts << "window.scroll(window.screenX * " << xrate << ",";
-  scripts << " (document.body.offsetHeight - window.innerHeight) * " << yrate
-          << ");";
+  auto scripts = QString("scrollToPosition(%1, %2);").arg(xrate).arg(yrate);
   auto page = mWebView.page ();
-  page->runJavaScript (QString::fromLocal8Bit (scripts.str ()));
+  page->runJavaScript (scripts);
 }
 
 void
@@ -185,19 +181,9 @@ WebViewWidget::scrollUp (int times)
     {
       if (mIsInternalScroll)
         {
-          // clang-format off
-          auto rs = R"(
-            var event = document.createEvent ('Event');
-            event.initEvent('keydown', true, true);
-            event.keyCode = 37;
-            document.dispatchEvent(event);
-          )";
-          // clang-format on
-
+          auto scripts = QString("dispatchKeydownEvent(%1);").arg(37);
           auto page = mWebView.page ();
-          page->runJavaScript (
-              QString::fromLocal8Bit (rs),
-              [] (const QVariant &v) { qDebug () << v.toString (); });
+          page->runJavaScript (scripts);
         }
       else
         {
@@ -220,18 +206,9 @@ WebViewWidget::scrollDown (int times)
     {
       if (mIsInternalScroll)
         {
-          // clang-format off
-          auto rs = R"(
-              var event = document.createEvent ('Event');
-              event.initEvent('keydown', true, true);
-              event.keyCode = 39;
-              document.dispatchEvent(event);
-          )";
-          // clang-format on
+          auto scripts = QString("dispatchKeydownEvent(%1);").arg(39);
           auto page = mWebView.page ();
-          page->runJavaScript (
-              QString::fromLocal8Bit (rs),
-              [] (const QVariant &v) { qDebug () << v.toString (); });
+          page->runJavaScript (scripts);
         }
       else
         {
@@ -425,11 +402,8 @@ WebViewWidget::webviewLoadFinished (bool suc)
       if (!mAnchor.empty ())
         {
           auto page = mWebView.page ();
-          stringstream javasrc;
-          javasrc << "document.getElementById('";
-          javasrc << mAnchor.substr (1);
-          javasrc << "').scrollIntoView();";
-          page->runJavaScript (QString::fromLocal8Bit (javasrc.str ()));
+          auto scripts = QString("scrollToAnchor('%1');").arg(mAnchor.c_str());
+          page->runJavaScript (scripts);
         }
       else if (mIsScrollUp)
         {

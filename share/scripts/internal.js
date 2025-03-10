@@ -1,9 +1,4 @@
 // internal.js
-/**
- * 获取指定索引选区对应的全局文本偏移量
- * @param {number} index - 选区索引
- * @returns {[number|null, number|null]} 起始和结束偏移量
- */
 function getSelectionOffset(index) {
     const selection = window.getSelection();
 
@@ -27,12 +22,6 @@ function getSelectionOffset(index) {
     }
 }
 
-/**
- * 在指定文本节点创建下划线
- * @param {Node} textNode - 文本节点
- * @param {number} startOffset - 起始偏移量
- * @param {number} [endOffset=-1] - 结束偏移量
- */
 function underlineTextNode(textNode, startOffset, endOffset = -1) {
     if (!(textNode instanceof Text)) {
         throw new Error('Invalid text node provided');
@@ -50,16 +39,13 @@ function underlineTextNode(textNode, startOffset, endOffset = -1) {
         throw new Error('Text node has no parent element');
     }
 
-    // 分割原始文本节点
     const beforeText = textContent.slice(0, startOffset);
     const underlinedText = textContent.slice(startOffset, validEndOffset);
     const afterText = textContent.slice(validEndOffset);
 
-    // 创建新节点
     const underlineElement = document.createElement('u');
     underlineElement.textContent = underlinedText;
 
-    // 批量DOM操作
     const fragment = document.createDocumentFragment();
     if (beforeText) fragment.appendChild(document.createTextNode(beforeText));
     fragment.appendChild(underlineElement);
@@ -68,26 +54,15 @@ function underlineTextNode(textNode, startOffset, endOffset = -1) {
     parent.replaceChild(fragment, textNode);
 }
 
-/**
- * 递归遍历文本节点
- * @param {Node} root - 根节点
- * @param {Function} callback - 回调函数
- */
 function traverseTextNodes(root, callback) {
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null,);
 
     let node;
     while ((node = walker.nextNode())) {
-        if (callback(node) === false)
-            break;
+        if (callback(node) === false) break;
     }
 }
 
-/**
- * 根据全局偏移量添加下划线
- * @param {number} startOffset - 全局起始偏移量
- * @param {number} endOffset - 全局结束偏移量
- */
 function underlineByOffset(startOffset, endOffset) {
     if (startOffset >= endOffset || startOffset < 0) {
         throw new Error('Invalid offset range');
@@ -98,25 +73,21 @@ function underlineByOffset(startOffset, endOffset) {
         start: {node: null, offset: 0}, end: {node: null, offset: 0}, between: []
     };
 
-    // 单次遍历收集所有必要信息
     traverseTextNodes(document.documentElement, (textNode) => {
         const nodeLength = textNode.nodeValue.length;
         const nodeEnd = currentOffset + nodeLength;
 
-        // 检测起始节点
         if (!nodesInfo.start.node && currentOffset <= startOffset && nodeEnd > startOffset) {
             nodesInfo.start.node = textNode;
             nodesInfo.start.offset = startOffset - currentOffset;
         }
 
-        // 检测结束节点
         if (!nodesInfo.end.node && currentOffset <= endOffset && nodeEnd > endOffset) {
             nodesInfo.end.node = textNode;
             nodesInfo.end.offset = endOffset - currentOffset;
             return false;
         }
 
-        // 收集中间节点
         if (nodesInfo.start.node && !nodesInfo.end.node && textNode !== nodesInfo.start.node) {
             nodesInfo.between.push(textNode);
         }
@@ -125,19 +96,41 @@ function underlineByOffset(startOffset, endOffset) {
         return true;
     });
 
-    // 处理下划线逻辑
     if (nodesInfo.start.node && nodesInfo.end.node) {
-        // 处理起始节点
         underlineTextNode(nodesInfo.start.node, nodesInfo.start.offset, nodesInfo.start.node === nodesInfo.end.node ? nodesInfo.end.offset : -1);
 
-        // 处理中间完整节点
         nodesInfo.between.forEach(node => {
             underlineTextNode(node, 0);
         });
 
-        // 处理结束节点（当与起始节点不同时）
         if (nodesInfo.start.node !== nodesInfo.end.node) {
             underlineTextNode(nodesInfo.end.node, 0, nodesInfo.end.offset);
         }
     }
+}
+
+function scrollBy(times, h, v) {
+    window.scrollBy(times * h, times * v);
+}
+
+function scrollToAnchor(anchor) {
+    if (typeof anchor === 'string' && anchor.startsWith('#')) {
+        const element = document.getElementById(anchor.substr(1));
+        if (element) {
+            element.scrollIntoView();
+        }
+    }
+}
+
+function scrollToPosition(xrate, yrate) {
+    const x = window.screenX * xrate;
+    const y = (document.body.offsetHeight - window.innerHeight) * yrate;
+    window.scroll(x, y);
+}
+
+function dispatchKeydownEvent(keyCode) {
+    const event = new KeyboardEvent('keydown', {
+        keyCode: keyCode, bubbles: true, cancelable: true
+    });
+    document.dispatchEvent(event);
 }
