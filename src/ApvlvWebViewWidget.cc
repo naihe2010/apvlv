@@ -156,7 +156,7 @@ WebViewWidget::scroll (int times, int h, int v)
   if (!mFile)
     return;
 
-  auto scripts = QString("scrollBy(%1, %2, %3);").arg(times).arg(h).arg(v);
+  auto scripts = QString("scrollByTimes(%1, %2, %3);").arg(times).arg(h).arg(v);
   auto page = mWebView.page ();
   page->runJavaScript (scripts);
 }

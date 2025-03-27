@@ -109,7 +109,7 @@ function underlineByOffset(startOffset, endOffset) {
     }
 }
 
-function scrollBy(times, h, v) {
+function scrollByTimes(times, h, v) {
     window.scrollBy(times * h, times * v);
 }
 
