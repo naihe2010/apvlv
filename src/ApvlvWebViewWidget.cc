@@ -156,7 +156,8 @@ WebViewWidget::scroll (int times, int h, int v)
   if (!mFile)
     return;
 
-  auto scripts = QString("scrollByTimes(%1, %2, %3);").arg(times).arg(h).arg(v);
+  auto scripts
+      = QString ("scrollByTimes(%1, %2, %3);").arg (times).arg (h).arg (v);
   auto page = mWebView.page ();
   page->runJavaScript (scripts);
 }
@@ -167,7 +168,7 @@ WebViewWidget::scrollTo (double xrate, double yrate)
   if (!mFile)
     return;
 
-  auto scripts = QString("scrollToPosition(%1, %2);").arg(xrate).arg(yrate);
+  auto scripts = QString ("scrollToPosition(%1, %2);").arg (xrate).arg (yrate);
   auto page = mWebView.page ();
   page->runJavaScript (scripts);
 }
@@ -181,7 +182,7 @@ WebViewWidget::scrollUp (int times)
     {
       if (mIsInternalScroll)
         {
-          auto scripts = QString("dispatchKeydownEvent(%1);").arg(37);
+          auto scripts = QString ("dispatchKeydownEvent(%1);").arg (37);
           auto page = mWebView.page ();
           page->runJavaScript (scripts);
         }
@@ -206,7 +207,7 @@ WebViewWidget::scrollDown (int times)
     {
       if (mIsInternalScroll)
         {
-          auto scripts = QString("dispatchKeydownEvent(%1);").arg(39);
+          auto scripts = QString ("dispatchKeydownEvent(%1);").arg (39);
           auto page = mWebView.page ();
           page->runJavaScript (scripts);
         }
@@ -285,19 +286,18 @@ WebView::getSelectionPosition () const
   int begin = -1;
   int end = -1;
   QEventLoop loop;
-  mPage->runJavaScript (
-      "getSelectionOffset(0);",
-      [&loop, &begin, &end] (const QVariant &result) {
-        if (result.isValid () && result.typeId () == QMetaType::QVariantList)
-          {
-            auto offsets = result.toList ();
-            begin = offsets[0].toInt ();
-            end = offsets[1].toInt ();
-            qDebug () << "Begin offset:" << offsets[0].toInt ();
-            qDebug () << "End offset:" << offsets[1].toInt ();
-            loop.quit ();
-          }
-      });
+  mPage->runJavaScript ("getSelectionOffset(0);", [&loop, &begin, &end] (
+                                                      const QVariant &result) {
+    if (result.isValid () && result.typeId () == QMetaType::QVariantList)
+      {
+        auto offsets = result.toList ();
+        begin = offsets[0].toInt ();
+        end = offsets[1].toInt ();
+        qDebug () << "Begin offset:" << offsets[0].toInt ();
+        qDebug () << "End offset:" << offsets[1].toInt ();
+        loop.quit ();
+      }
+  });
   loop.exec ();
   return std::make_pair (begin, end);
 }
@@ -402,7 +402,8 @@ WebViewWidget::webviewLoadFinished (bool suc)
       if (!mAnchor.empty ())
         {
           auto page = mWebView.page ();
-          auto scripts = QString("scrollToAnchor('%1');").arg(mAnchor.c_str());
+          auto scripts
+              = QString ("scrollToAnchor('%1');").arg (mAnchor.c_str ());
           page->runJavaScript (scripts);
         }
       else if (mIsScrollUp)

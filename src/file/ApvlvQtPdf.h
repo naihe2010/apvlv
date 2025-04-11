@@ -95,7 +95,8 @@ public:
                                                  const char *s) override;
 
 private:
-  void pageRenderComments(int pn, QImage *img, const std::vector<Comment> &comments);
+  void pageRenderComments (int pn, QImage *img,
+                           const std::vector<Comment> &comments);
   bool generateIndex ();
   void getIndexIter (FileIndex &file_index,
                      const QPdfBookmarkModel *bookmark_model,

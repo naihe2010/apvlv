@@ -183,7 +183,7 @@ ApvlvPDF::pageText (int pn, const Rectangle &rect, string &text)
 
 void
 ApvlvPDF::pageRenderComments (int pn, QImage *img,
-                          const std::vector<Comment> &comments)
+                              const std::vector<Comment> &comments)
 {
   auto model = make_unique<QPdfSearchModel> ();
   model->setDocument (mDoc.get ());
@@ -204,7 +204,8 @@ ApvlvPDF::pageRenderComments (int pn, QImage *img,
           auto rects = link.rectangles ();
           auto brect = rects[0];
           auto erect = rects[rects.count () - 1];
-          painter.drawLine (brect.x(), brect.y() + brect.height (), erect.x(), brect.y() + brect.height ());
+          painter.drawLine (brect.x (), brect.y () + brect.height (),
+                            erect.x (), brect.y () + brect.height ());
         }
     }
 
