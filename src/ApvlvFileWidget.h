@@ -36,10 +36,10 @@
 namespace apvlv
 {
 
-const int WORD_WIDTH_DEFAULT = 40;
-const int LINE_HEIGHT_DEFAULT = 15;
+const int APVLV_HL_PIXELS_DEFAULT = 40;
+const int APVLV_KJ_PIXELS_DEFAULT = 15;
 
-const double DEFAULT_ZOOMRATE = 1.3f;
+const double APVLV_ZOOMRATE_DEFAULT = 1.3f;
 const int INVALID_PAGENUM = -1;
 
 class File;
@@ -192,7 +192,7 @@ protected:
   int mPageNumber{ INVALID_PAGENUM };
   double mScrollValue{ 0.0f };
   std::string mAnchor;
-  double mZoomrate{ DEFAULT_ZOOMRATE };
+  double mZoomrate{ APVLV_ZOOMRATE_DEFAULT };
   int mRotate{ 0 };
 
   std::string mSearchStr;

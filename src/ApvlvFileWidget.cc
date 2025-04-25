@@ -78,7 +78,9 @@ FileWidget::scrollUp (int times)
   if (mValScrollBar == nullptr)
     return;
 
-  auto rate = LINE_HEIGHT_DEFAULT * times;
+  auto const kj_pixels = ApvlvParams::instance ()->getIntOrDefault (
+      "kj_pixels", APVLV_KJ_PIXELS_DEFAULT);
+  auto rate = kj_pixels * times;
   if (mValScrollBar->value () - rate >= mValScrollBar->minimum ())
     {
       mValScrollBar->setValue (mValScrollBar->value () - rate);
@@ -113,7 +115,9 @@ FileWidget::scrollDown (int times)
   if (!mValScrollBar)
     return;
 
-  auto rate = LINE_HEIGHT_DEFAULT * times;
+  auto const kj_pixels = ApvlvParams::instance ()->getIntOrDefault (
+      "kj_pixels", APVLV_KJ_PIXELS_DEFAULT);
+  auto rate = kj_pixels * times;
   if (mValScrollBar->value () + rate <= mValScrollBar->maximum ())
     {
       mValScrollBar->setValue (mValScrollBar->value () + rate);
@@ -148,7 +152,9 @@ FileWidget::scrollLeft (int times)
   if (!mHalScrollBar)
     return;
 
-  auto val = mHalScrollBar->value () - WORD_WIDTH_DEFAULT * times;
+  auto const hl_pixels = ApvlvParams::instance ()->getIntOrDefault (
+      "hl_pixels", APVLV_HL_PIXELS_DEFAULT);
+  auto val = mHalScrollBar->value () - hl_pixels * times;
   if (val > mHalScrollBar->minimumWidth ())
     {
       mHalScrollBar->setValue (val);
@@ -165,7 +171,9 @@ FileWidget::scrollRight (int times)
   if (!mHalScrollBar)
     return;
 
-  auto val = mHalScrollBar->value () + WORD_WIDTH_DEFAULT * times;
+  auto const hl_pixels = ApvlvParams::instance ()->getIntOrDefault (
+      "hl_pixels", APVLV_HL_PIXELS_DEFAULT);
+  auto val = mHalScrollBar->value () + hl_pixels * times;
   if (val + mHalScrollBar->width () < mHalScrollBar->maximumWidth ())
     {
       mHalScrollBar->setValue (val);
