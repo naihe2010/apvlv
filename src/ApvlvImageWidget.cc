@@ -29,9 +29,12 @@
 #include <QClipboard>
 #include <QInputDialog>
 #include <QMouseEvent>
+#include <QToolTip>
 #include <iostream>
 
 #include "ApvlvImageWidget.h"
+
+#include <QTimer>
 
 namespace apvlv
 {
@@ -64,6 +67,12 @@ ImageContainer::ImageContainer (QWidget *parent) : QLabel (parent)
   addAction (&mCommentAction);
 
   setContextMenuPolicy (Qt::ContextMenuPolicy::ActionsContextMenu);
+
+  setMouseTracking (true);
+  mHoverTimer = new QTimer (this);
+  mHoverTimer->setSingleShot (true);
+  QObject::connect (mHoverTimer, SIGNAL (timeout ()), this,
+                    SLOT (handleHover ()));
 }
 
 void
@@ -80,6 +89,9 @@ ImageContainer::mousePressEvent (QMouseEvent *event)
 void
 ImageContainer::mouseMoveEvent (QMouseEvent *event)
 {
+  QToolTip::hideText ();
+  mLastMousePos = event->pos ();
+  mHoverTimer->start (1000);
   if (!mIsSelected)
     return;
 
@@ -93,6 +105,13 @@ ImageContainer::mouseMoveEvent (QMouseEvent *event)
 
   mImageWidget->setSelects (rect_list.value ());
   redraw ();
+}
+
+void
+ImageContainer::leaveEvent (QEvent *event)
+{
+  mHoverTimer->stop ();
+  QLabel::leaveEvent (event);
 }
 
 void
@@ -159,6 +178,31 @@ ImageContainer::selectionText ()
 }
 
 void
+ImageContainer::displayComment (QPoint pos)
+{
+  qDebug () << "display comment at: " << pos.x () << ":" << pos.y ();
+  auto image_pos = pos;
+  image_pos /= mImageWidget->zoomrate ();
+
+  auto note = mImageWidget->file ()->getNote ();
+  auto comments = note->getCommentsInPage (mImageWidget->pageNumber ());
+  for (auto const &comment : comments)
+    {
+      QRectF rect{ comment.begin.x, comment.begin.y,
+                   comment.end.x - comment.begin.x,
+                   comment.end.y - comment.begin.y };
+      if (rect.contains (image_pos))
+        {
+          qDebug () << "isVisible: " << QToolTip::isVisible ();
+          QToolTip::showText (QCursor::pos (),
+                              QString::fromStdString (comment.commentText),
+                              this);
+          break;
+        }
+    }
+}
+
+void
 ImageContainer::copy ()
 {
   qDebug () << "copy text";
@@ -220,6 +264,17 @@ ImageContainer::comment ()
 
   mImageWidget->setSelects ({});
   redraw ();
+}
+
+void
+ImageContainer::handleHover ()
+{
+  auto pos = mapFromGlobal (QCursor::pos ());
+  if (rect ().contains (pos) && pos == mLastMousePos)
+    {
+      qDebug () << "hovered";
+      displayComment (pos);
+    }
 }
 
 ApvlvImage::ApvlvImage ()

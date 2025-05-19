@@ -61,8 +61,9 @@ public:
   explicit ImageContainer (QWidget *parent = nullptr);
 
   void mousePressEvent (QMouseEvent *event) override;
-  void mouseMoveEvent (QMouseEvent *event) override;
   void mouseReleaseEvent (QMouseEvent *event) override;
+  void mouseMoveEvent (QMouseEvent *event) override;
+  void leaveEvent(QEvent *event) override;
 
   virtual bool renderImage (int pn, double zm, int rot);
   virtual void redraw ();
@@ -79,6 +80,9 @@ private:
   QPointF mPressPosition;
   QPointF mMovePosition;
 
+  QTimer *mHoverTimer;
+  QPoint mLastMousePos;
+
   ImageWidget *mImageWidget{ nullptr };
 
   friend class ImageWidget;
@@ -91,11 +95,13 @@ private:
   std::pair<ApvlvPoint, ApvlvPoint> selectionRange ();
   std::vector<Rectangle> selectionArea ();
   std::string selectionText ();
+  void displayComment (QPoint pos);
 
 private slots:
   void copy ();
   void underline ();
   void comment ();
+  void handleHover ();
 };
 
 class ApvlvImage : public QScrollArea
