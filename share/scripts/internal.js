@@ -22,7 +22,7 @@ function getSelectionOffset(index) {
     }
 }
 
-function underlineTextNode(textNode, startOffset, endOffset = -1) {
+function underlineTextNode(textNode, startOffset, endOffset, tooltipText) {
     if (!(textNode instanceof Text)) {
         throw new Error('Invalid text node provided');
     }
@@ -45,6 +45,9 @@ function underlineTextNode(textNode, startOffset, endOffset = -1) {
 
     const underlineElement = document.createElement('u');
     underlineElement.textContent = underlinedText;
+    if (tooltipText.length !== 0) {
+        underlineElement.setAttribute('title', tooltipText);
+    }
 
     const fragment = document.createDocumentFragment();
     if (beforeText) fragment.appendChild(document.createTextNode(beforeText));
@@ -63,7 +66,7 @@ function traverseTextNodes(root, callback) {
     }
 }
 
-function underlineByOffset(startOffset, endOffset) {
+function underlineByOffset(startOffset, endOffset, tooltip_msg) {
     if (startOffset >= endOffset || startOffset < 0) {
         throw new Error('Invalid offset range');
     }
@@ -97,14 +100,14 @@ function underlineByOffset(startOffset, endOffset) {
     });
 
     if (nodesInfo.start.node && nodesInfo.end.node) {
-        underlineTextNode(nodesInfo.start.node, nodesInfo.start.offset, nodesInfo.start.node === nodesInfo.end.node ? nodesInfo.end.offset : -1);
+        underlineTextNode(nodesInfo.start.node, nodesInfo.start.offset, nodesInfo.start.node === nodesInfo.end.node ? nodesInfo.end.offset : -1, tooltip_msg);
 
         nodesInfo.between.forEach(node => {
-            underlineTextNode(node, 0);
+            underlineTextNode(node, 0, -1, tooltip_msg);
         });
 
         if (nodesInfo.start.node !== nodesInfo.end.node) {
-            underlineTextNode(nodesInfo.end.node, 0, nodesInfo.end.offset);
+            underlineTextNode(nodesInfo.end.node, 0, nodesInfo.end.offset, tooltip_msg);
         }
     }
 }

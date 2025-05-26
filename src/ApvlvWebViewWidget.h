@@ -94,7 +94,7 @@ private:
   bool isScrolledToBottom ();
 
   [[nodiscard]] std::pair<int, int> getSelectionPosition () const;
-  void underLinePosition (int begin, int end);
+  void underLinePosition (int begin, int end, const std::string &);
 
   QAction mCopyAction;
   QAction mUnderlineAction;

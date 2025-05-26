@@ -303,10 +303,10 @@ WebView::getSelectionPosition () const
 }
 
 void
-WebView::underLinePosition (int begin, int end)
+WebView::underLinePosition (int begin, int end, const std::string &tooltip)
 {
   qDebug () << "underLinePosition" << begin << " -> " << end;
-  QString src = QString ("underlineByOffset(%1, %2);").arg (begin).arg (end);
+  QString src = QString ("underlineByOffset(%1, %2, '%3');").arg (begin).arg (end).arg(tooltip);
   mPage->runJavaScript (src);
 }
 
@@ -355,11 +355,13 @@ WebView::comment ()
       if (text.isEmpty ())
         break;
 
-      auto input_text = QInputDialog::getMultiLineText (this, tr ("Input"),
+      auto input_text = QInputDialog::getText (this, tr ("Input"),
                                                         tr ("Comment"));
       auto commentText = input_text.trimmed ();
       if (commentText.isEmpty ())
         break;
+
+      commentText = commentText.toHtmlEscaped ();
 
       auto offset = getSelectionPosition ();
       if (offset.first < 0 || offset.second < 0)
@@ -390,7 +392,7 @@ WebViewWidget::setComment ()
     {
       auto begin_offset = comment.begin.offset;
       auto end_offset = comment.end.offset;
-      mWebView.underLinePosition (begin_offset, end_offset);
+      mWebView.underLinePosition (begin_offset, end_offset, comment.commentText);
     }
 }
 
