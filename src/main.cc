@@ -89,20 +89,24 @@ parseCommandLine (const QCoreApplication &app)
 {
   QCommandLineParser parser;
 
-  auto versionOption = QCommandLineOption (QStringList () << "v" << "version",
+  auto versionOption = QCommandLineOption (QStringList () << "v"
+                                                          << "version",
                                            QObject::tr ("version number"));
   parser.addOption (versionOption);
 
-  auto helpOption = QCommandLineOption (QStringList () << "h" << "help",
+  auto helpOption = QCommandLineOption (QStringList () << "h"
+                                                       << "help",
                                         QObject::tr ("help information"));
   parser.addOption (helpOption);
 
   auto configFileOption
-      = QCommandLineOption (QStringList () << "c" << "config-file",
+      = QCommandLineOption (QStringList () << "c"
+                                           << "config-file",
                             QObject::tr ("config file"), "config");
   parser.addOption (configFileOption);
 
-  auto logFileOption = QCommandLineOption (QStringList () << "l" << "log-file",
+  auto logFileOption = QCommandLineOption (QStringList () << "l"
+                                                          << "log-file",
                                            QObject::tr ("log file"), "log");
   parser.addOption (logFileOption);
 
