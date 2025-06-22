@@ -25,7 +25,6 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
-#include <QByteArray>
 #include <QCoreApplication>
 #include <QDir>
 #include <QProcessEnvironment>

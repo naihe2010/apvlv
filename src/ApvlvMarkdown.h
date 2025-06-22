@@ -29,7 +29,6 @@
 #define _APVLV_MARKDOWN_H_
 
 #include <cmark.h>
-#include <list>
 #include <memory>
 #include <queue>
 #include <string>

@@ -29,7 +29,6 @@
 #include <algorithm>
 #include <filesystem>
 #include <iostream>
-#include <stack>
 
 #include "ApvlvFile.h"
 #include "ApvlvFileIndex.h"

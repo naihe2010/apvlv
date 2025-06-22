@@ -24,7 +24,6 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
-#include <QFile>
 #include <QFileInfo>
 #include <QLoggingCategory>
 #include <QTime>

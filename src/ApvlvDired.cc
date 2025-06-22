@@ -27,7 +27,6 @@
 
 #include <QFileDialog>
 #include <QPushButton>
-#include <QVBoxLayout>
 #include <regex>
 
 #include "ApvlvDired.h"

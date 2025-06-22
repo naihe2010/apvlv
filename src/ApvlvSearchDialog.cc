@@ -27,8 +27,6 @@
 
 #include <QFileDialog>
 #include <algorithm>
-#include <regex>
-#include <stack>
 
 #include "ApvlvFile.h"
 #include "ApvlvSearchDialog.h"
