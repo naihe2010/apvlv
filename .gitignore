@@ -4,5 +4,6 @@ cscope.files
 cscope.out
 /.idea
 /.vscode
+/.cache
 share/doc/apvlv/translations/*
 share/doc/apvlv/Startup.pdf
