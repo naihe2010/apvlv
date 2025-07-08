@@ -1,7 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_EXPORT_COMPILE_COMMANDS 1)
-FILE(COPY ${CMAKE_BINARY_DIR}/compile_commands.json DESTINATION ${CMAKE_SOURCE_DIR})
 
 PROJECT(apvlv)
 
@@ -39,6 +38,16 @@ ADD_DEFINITIONS(-DPACKAGE_NAME="apvlv"
 )
 
 ADD_SUBDIRECTORY(src)
+
+IF (NOT WIN32)
+    ADD_CUSTOM_TARGET(CopyCompileCommands ALL
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_BINARY_DIR}/compile_commands.json"
+            "${CMAKE_SOURCE_DIR}/compile_commands.json"
+            COMMENT "Copying compile_commands.json to ${CMAKE_SOURCE_DIR}"
+            DEPENDS ${CMAKE_BINARY_DIR}/compile_commands.json
+    )
+ENDIF ()
 
 INSTALL(DIRECTORY share DESTINATION ".")
 IF (WIN32)
