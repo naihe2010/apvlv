@@ -25,6 +25,19 @@
  *  Author: Alf <naihe2010@126.com>
  */
 
+#include "ApvlvNoteWidget.h"
+
+#include <QInputDialog>
+
 namespace apvlv
 {
+using namespace std;
+
+QString
+NoteDialog::getTag (const unordered_set<string> &tags)
+{
+  auto tag = QInputDialog::getText (nullptr, tr ("tag"), tr ("input tag:"));
+  return tag;
+}
+
 }

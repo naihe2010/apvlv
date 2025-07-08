@@ -114,6 +114,8 @@ public:
 
   void scrollRight (int times);
 
+  void tag();
+
   void
   setActive (bool active)
   {

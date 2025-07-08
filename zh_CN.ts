@@ -572,6 +572,17 @@
     </message>
 </context>
 <context>
+    <name>apvlv::NoteDialog</name>
+    <message>
+        <source>tag</source>
+        <translation>标签</translation>
+    </message>
+    <message>
+        <source>input tag:</source>
+        <translation>输入标签：</translation>
+    </message>
+</context>
+<context>
     <name>apvlv::SearchDialog</name>
     <message>
         <source>Case sensitive</source>

@@ -40,7 +40,7 @@ using namespace apvlv;
 int
 main (int argc, const char *argv[])
 {
-  auto note = Note{ nullptr };
+  auto note = Note{};
   note.setScore (8.0);
   note.addTag ("abc");
   note.addTag ("def");
@@ -68,7 +68,7 @@ main (int argc, const char *argv[])
   note.dumpStream (fos);
   fos.close ();
   auto fis = ifstream{ "/tmp/testNote1.md" };
-  auto note1 = Note{ nullptr };
+  auto note1 = Note{};
   note1.loadStream (fis);
   auto fos2 = ofstream{ "/tmp/testNote2.md" };
   note1.dumpStream (fos2);

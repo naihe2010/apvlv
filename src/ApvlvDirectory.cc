@@ -36,6 +36,8 @@
 
 #include "ApvlvDirectory.h"
 #include "ApvlvFrame.h"
+#include "ApvlvNote.h"
+#include "ApvlvNoteWidget.h"
 #include "ApvlvParams.h"
 #include "ApvlvUtil.h"
 
@@ -505,6 +507,27 @@ Directory::scrollRight (int times)
       item = item->child (0);
     }
   setItemSelected (item);
+}
+
+void
+Directory::tag ()
+{
+  auto cur = currentItemFileIndex ();
+  if (cur == nullptr)
+    return;
+  if (cur->type != FileIndexType::FILE)
+    return;
+  auto path = Note::notePathOfPath (cur->path);
+  auto note = make_unique<Note> ();
+  if (note->load (path) == false)
+    return;
+
+  auto ans = NoteDialog::getTag (note->tag ());
+  if (!ans.isEmpty ())
+    {
+      note->addTag (ans.toStdString ());
+      note->dump (path);
+    }
 }
 
 void

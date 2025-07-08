@@ -137,7 +137,8 @@ public:
       {
         mFilename = filename;
 
-        mNote.load ();
+	auto note_path = Note::notePathOfFile(this);
+        mNote.load (note_path);
 
         return true;
       }
@@ -257,7 +258,7 @@ public:
   virtual int pathPageNumber (const std::string &path);
 
 protected:
-  File () : mNote (this) {}
+  File () {}
 
   std::string mFilename;
   FileIndex mIndex;

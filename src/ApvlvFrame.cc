@@ -694,8 +694,15 @@ ApvlvFrame::process (int has, int ct, uint key)
       returnLink (ct);
       break;
     case 't':
-      mView->newTab (HelpPdf);
-      mView->open ();
+      if (isControlledDirectory ())
+        {
+          mDirectory.tag ();
+        }
+      else
+        {
+          mView->newTab (HelpPdf);
+          mView->open ();
+        }
       break;
     case 'T':
       mView->newTab (HelpPdf);

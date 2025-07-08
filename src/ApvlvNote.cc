@@ -141,8 +141,6 @@ Comment::toMarkdownNode (MarkdownNode *node) const
   t->literal = std::ctime (&time);
 }
 
-Note::Note (File *file) : mFile (file) {}
-
 Note::~Note () = default;
 
 bool
@@ -236,7 +234,12 @@ Note::load (std::string_view sv)
 {
   string path = string (sv);
   if (path.empty ())
-    path = notePathOfFile (mFile);
+    path = mPath;
+
+  if (path.empty())
+    return false;
+
+  mPath = path;
 
   ifstream ifs{ path };
   if (!ifs.is_open ())
@@ -467,12 +470,12 @@ Note::dumpStream (std::ostream &os)
 bool
 Note::dump (std::string_view sv)
 {
-  if (mFile == nullptr)
-    return false;
-
   string path = string (sv);
   if (path.empty ())
-    path = notePathOfFile (mFile);
+    path = mPath;
+
+  if (path.empty())
+    return false;
 
   auto fspath = filesystem::path (path).parent_path ();
   std::error_code code;
@@ -490,8 +493,15 @@ Note::dump (std::string_view sv)
 std::string
 Note::notePathOfFile (File *file)
 {
-  auto homedir = QDir::home ().filesystemAbsolutePath ().string ();
   auto filename = file->getFilename ();
+  return notePathOfPath (filename);
+}
+
+std::string
+Note::notePathOfPath (std::string_view sv)
+{
+  auto homedir = QDir::home ().filesystemAbsolutePath ().string ();
+  string filename = string (sv);
   if (filename.find (homedir) == 0)
     filename = filename.substr (homedir.size () + 1);
   if (filename[0] == filesystem::path::preferred_separator)
@@ -501,4 +511,5 @@ Note::notePathOfFile (File *file)
   auto path = NotesDir + filesystem::path::preferred_separator + filename;
   return path + ".md";
 }
+
 }

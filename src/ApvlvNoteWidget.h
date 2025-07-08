@@ -28,7 +28,8 @@
 #ifndef _APVLV_NOTE_WIDGET_H_
 #define _APVLV_NOTE_WIDGET_H_
 
-#include <map>
+#include <QDialog>
+#include <QFrame>
 #include <unordered_set>
 
 #include "ApvlvEditor.h"
@@ -53,6 +54,15 @@ public:
 private:
   Note *mNote;
 };
+
+class NoteDialog : QObject
+{
+  Q_OBJECT
+
+public:
+  static QString getTag (const std::unordered_set<std::string> &tags);
+};
+
 }
 
 #endif

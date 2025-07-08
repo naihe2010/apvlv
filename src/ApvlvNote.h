@@ -29,7 +29,6 @@
 #define _APVLV_NOTE_H_
 
 #include <map>
-#include <ranges>
 #include <string>
 #include <string_view>
 #include <unordered_set>
@@ -97,8 +96,12 @@ struct Comment
 class Note
 {
 public:
-  explicit Note (File *file);
+  Note () {}
   ~Note ();
+
+  static std::string notePathOfFile (File *file);
+
+  static std::string notePathOfPath (std::string_view sv);
 
   bool loadStreamV1 (std::ifstream &is);
   bool loadStream (std::ifstream &is);
@@ -243,10 +246,7 @@ private:
   void appendV1References (MarkdownNode *doc);
   void appendV1Links (MarkdownNode *doc);
 
-  std::string notePathOfFile (File *file);
-
   std::string mPath;
-  File *mFile{ nullptr };
 
   float mScore{ 0.0f };
 
