@@ -34,9 +34,10 @@ namespace apvlv
 using namespace std;
 
 QString
-NoteDialog::getTag (const unordered_set<string> &tags)
+NoteDialog::getTag (const string &filename, const unordered_set<string> &tags)
 {
-  auto tag = QInputDialog::getText (nullptr, tr ("tag"), tr ("input tag:"));
+  auto tag = QInputDialog::getText (nullptr, QString::fromStdString (filename),
+                                    tr ("input tag:"));
   return tag;
 }
 

@@ -46,14 +46,13 @@ namespace apvlv
 using namespace std;
 
 std::vector<const char *> Directory::ColumnString = {
-  QT_TR_NOOP ("Title"),
-  QT_TR_NOOP ("Modified Time"),
-  QT_TR_NOOP ("File Size"),
+  QT_TR_NOOP ("Title"), QT_TR_NOOP ("Modified Time"), QT_TR_NOOP ("File Size"),
+  QT_TR_NOOP ("Tags"),  QT_TR_NOOP ("Score"),
 };
 std::vector<const char *> Directory::SortByColumnString = {
-  QT_TR_NOOP ("Sort By Title"),
-  QT_TR_NOOP ("Sort By Modified Time"),
-  QT_TR_NOOP ("Sort By File Size"),
+  QT_TR_NOOP ("Sort By Title"),     QT_TR_NOOP ("Sort By Modified Time"),
+  QT_TR_NOOP ("Sort By File Size"), QT_TR_NOOP ("Sort By Tags"),
+  QT_TR_NOOP ("Sort By Score"),
 };
 std::vector<const char *> Directory::FilterTypeString = {
   QT_TR_NOOP ("Filter Title"),
@@ -61,7 +60,10 @@ std::vector<const char *> Directory::FilterTypeString = {
   QT_TR_NOOP ("Filter Modified Time >="),
   QT_TR_NOOP ("Filter Modified Time <="),
   QT_TR_NOOP ("Filter File Size >="),
-  QT_TR_NOOP ("Filter FileSize <="),
+  QT_TR_NOOP ("Filter File Size <="),
+  QT_TR_NOOP ("Filter Tag"),
+  QT_TR_NOOP ("Filter Score >="),
+  QT_TR_NOOP ("Filter Score <="),
 };
 
 void
@@ -131,9 +133,11 @@ void
 Directory::setupTree ()
 {
   mTreeWidget.setColumnCount (3);
-  mTreeWidget.setColumnWidth (static_cast<int> (Column::Title), 400);
+  mTreeWidget.setColumnWidth (static_cast<int> (Column::Title), 300);
   mTreeWidget.setColumnWidth (static_cast<int> (Column::MTime), 150);
-  mTreeWidget.setColumnWidth (static_cast<int> (Column::FileSize), 150);
+  mTreeWidget.setColumnWidth (static_cast<int> (Column::FileSize), 50);
+  mTreeWidget.setColumnWidth (static_cast<int> (Column::Tags), 100);
+  mTreeWidget.setColumnWidth (static_cast<int> (Column::Score), 50);
   mTreeWidget.setSortingEnabled (false);
   mTreeWidget.setHeaderHidden (false);
   QStringList labels;
@@ -270,13 +274,19 @@ Directory::setFileIndexToTreeItem (QTreeWidgetItem *item, FileIndex *index)
   using enum FileIndexType;
   if (index->type == FILE)
     {
-      auto date = QDateTime::fromSecsSinceEpoch (index->mtime,
-                                                 QTimeZone::systemTimeZone ());
-      item->setText (static_cast<int> (Column::MTime),
+      const auto date = QDateTime::fromSecsSinceEpoch (
+          index->mtime, QTimeZone::systemTimeZone ());
+      item->setText (static_cast<int> (MTime),
                      date.toString ("yyyy-MM-dd HH:mm:ss"));
-      auto size
-          = QLocale ().formattedDataSize (static_cast<qint64> (index->size));
-      item->setText (static_cast<int> (Column::FileSize), size);
+      auto size = QLocale ().formattedDataSize (index->size);
+      item->setText (static_cast<int> (FileSize), size);
+      item->setText (static_cast<int> (Tags),
+                     QString::fromLocal8Bit (index->tags));
+      item->setToolTip (static_cast<int> (Tags),
+                        QString::fromLocal8Bit (index->tags));
+      const auto score
+          = index->score > 0 ? QString::number (index->score) : "";
+      item->setText (static_cast<int> (Score), score);
     }
 }
 
@@ -512,21 +522,45 @@ Directory::scrollRight (int times)
 void
 Directory::tag ()
 {
-  auto cur = currentItemFileIndex ();
+  auto item = selectedTreeItem ();
+  auto cur = getFileIndexFromTreeItem (item);
   if (cur == nullptr)
     return;
   if (cur->type != FileIndexType::FILE)
     return;
   auto path = Note::notePathOfPath (cur->path);
   auto note = make_unique<Note> ();
-  if (note->load (path) == false)
-    return;
-
-  auto ans = NoteDialog::getTag (note->tag ());
-  if (!ans.isEmpty ())
+  filesystem::path note_path (path);
+  if (exists (note_path))
     {
-      note->addTag (ans.toStdString ());
+      if (note->load (path) == false)
+        {
+          auto msg = QString (tr ("load note of %s error")).arg (cur->path);
+          QMessageBox::warning (nullptr, tr ("error"), msg);
+          return;
+        }
+    }
+
+  filesystem::path file_path{ cur->path };
+  string filename = file_path.filename ();
+  auto ans = NoteDialog::getTag (filename, note->tag ());
+  if (ans.isEmpty ())
+    {
+      return;
+    }
+
+  note->addTag (ans.toStdString ());
+  if (!exists (note_path))
+    {
       note->dump (path);
+    }
+
+  auto tags = note->tagString ();
+  if (cur->tags != tags)
+    {
+      cur->tags = tags;
+      item->setText (static_cast<int> (Column::Tags),
+                     QString::fromLocal8Bit (cur->tags));
     }
 }
 
@@ -637,6 +671,7 @@ Directory::onFilter ()
   QDateTime datetime;
   qint64 qsize;
   decltype (FileIndex::size) size;
+  float score;
 
   switch (type)
     {
@@ -687,6 +722,29 @@ Directory::onFilter ()
         return { a->type == FileIndexType::FILE && a->size <= size, true };
       });
       break;
+
+    case FilterType::Tags:
+      filterItemBy (root, [text] (const FileIndex *a) -> filterFuncReturn {
+        return { a->type == FileIndexType::FILE
+                     && a->tags.find (text.toStdString ()) != string::npos,
+                 true };
+      });
+      break;
+
+    case FilterType::ScoreBe:
+      score = QString (text).toFloat ();
+      filterItemBy (root, [score] (const FileIndex *a) -> filterFuncReturn {
+        return { a->type == FileIndexType::FILE && a->score >= score, true };
+      });
+      break;
+
+    case FilterType::ScoreLe:
+      score = QString (text).toFloat ();
+      filterItemBy (root, [score] (const FileIndex *a) -> filterFuncReturn {
+        return { a->type == FileIndexType::FILE && a->score <= score, true };
+      });
+      break;
+
     default:
       qWarning () << tr ("Filter Type is invalid");
       break;
@@ -736,21 +794,35 @@ Directory::sortItems (QTreeWidgetItem *tree_iter)
               std::ranges::sort (
                   item_list, std::ranges::greater (), [this] (itemState &p) {
                     auto index = getFileIndexFromTreeItem (p.first);
-                    return index->title;
+                    return index ? index->title : "";
                   });
               break;
             case MTime:
               std::ranges::sort (
                   item_list, std::ranges::greater (), [this] (itemState &p) {
                     auto index = getFileIndexFromTreeItem (p.first);
-                    return index->mtime;
+                    return index ? index->mtime : 0;
                   });
               break;
             case FileSize:
               std::ranges::sort (
                   item_list, std::ranges::greater (), [this] (itemState &p) {
                     auto index = getFileIndexFromTreeItem (p.first);
-                    return index->size;
+                    return index ? index->size : 0;
+                  });
+              break;
+            case Tags:
+              std::ranges::sort (
+                  item_list, std::ranges::greater (), [this] (itemState &p) {
+                    auto index = getFileIndexFromTreeItem (p.first);
+                    return index ? index->tags : "";
+                  });
+              break;
+            case Score:
+              std::ranges::sort (
+                  item_list, std::ranges::greater (), [this] (itemState &p) {
+                    auto index = getFileIndexFromTreeItem (p.first);
+                    return index ? index->score : 0.0f;
                   });
               break;
             }
@@ -764,21 +836,35 @@ Directory::sortItems (QTreeWidgetItem *tree_iter)
               std::ranges::sort (
                   item_list, std::ranges::less (), [this] (itemState &p) {
                     auto index = getFileIndexFromTreeItem (p.first);
-                    return index->title;
+                    return index ? index->title : "";
                   });
               break;
             case MTime:
               std::ranges::sort (
                   item_list, std::ranges::less (), [this] (itemState &p) {
                     auto index = getFileIndexFromTreeItem (p.first);
-                    return index->mtime;
+                    return index ? index->mtime : 0;
                   });
               break;
             case FileSize:
               std::ranges::sort (
                   item_list, std::ranges::less (), [this] (itemState &p) {
                     auto index = getFileIndexFromTreeItem (p.first);
-                    return index->size;
+                    return index ? index->size : 0;
+                  });
+              break;
+            case Tags:
+              std::ranges::sort (
+                  item_list, std::ranges::less (), [this] (itemState &p) {
+                    auto index = getFileIndexFromTreeItem (p.first);
+                    return index ? index->tags : "";
+                  });
+              break;
+            case Score:
+              std::ranges::sort (
+                  item_list, std::ranges::less (), [this] (itemState &p) {
+                    auto index = getFileIndexFromTreeItem (p.first);
+                    return index ? index->score : 0.0f;
                   });
               break;
             }

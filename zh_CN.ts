@@ -485,7 +485,7 @@
     </message>
     <message>
         <source>Filter FileSize &lt;=</source>
-        <translation>过滤文件&lt;=</translation>
+        <translation type="vanished">过滤文件&lt;=</translation>
     </message>
     <message>
         <source>Refresh</source>
@@ -536,6 +536,46 @@
         <source>Delete File</source>
         <translation>删除文件</translation>
     </message>
+    <message>
+        <source>Tags</source>
+        <translation>标签</translation>
+    </message>
+    <message>
+        <source>Score</source>
+        <translation>评分</translation>
+    </message>
+    <message>
+        <source>Sort By Tags</source>
+        <translation>以标签排序</translation>
+    </message>
+    <message>
+        <source>Sort By Score</source>
+        <translation>以评分排序</translation>
+    </message>
+    <message>
+        <source>Filter File Size &lt;=</source>
+        <translation>过滤文件&lt;=</translation>
+    </message>
+    <message>
+        <source>Filter Tag</source>
+        <translation>过滤标签</translation>
+    </message>
+    <message>
+        <source>Filter Score &gt;=</source>
+        <translation>过滤评分&gt;=</translation>
+    </message>
+    <message>
+        <source>Filter Score &lt;=</source>
+        <translation>过滤评分&lt;=</translation>
+    </message>
+    <message>
+        <source>load note of %s error</source>
+        <translation>加载%s的笔记错误</translation>
+    </message>
+    <message>
+        <source>error</source>
+        <translation>错误</translation>
+    </message>
 </context>
 <context>
     <name>apvlv::DiredDialog</name>
@@ -575,7 +615,7 @@
     <name>apvlv::NoteDialog</name>
     <message>
         <source>tag</source>
-        <translation>标签</translation>
+        <translation type="vanished">标签</translation>
     </message>
     <message>
         <source>input tag:</source>

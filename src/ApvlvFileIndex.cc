@@ -106,6 +106,17 @@ FileIndex::FileIndex (const string &title, int page, const string &path,
   this->page = page;
   this->path = path;
   this->type = type;
+  if (const filesystem::path p (path); exists (p))
+    {
+      auto note_path = Note::notePathOfPath (path);
+      if (const filesystem::path np (note_path); exists (np))
+        {
+          const auto note = make_unique<Note> ();
+          note->load (note_path);
+          this->score = note->score();
+          this->tags = note->tagString ();
+        }
+    }
 }
 
 FileIndex::~FileIndex () = default;

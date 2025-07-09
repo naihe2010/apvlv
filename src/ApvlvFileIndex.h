@@ -73,6 +73,8 @@ public:
   /* public file variables */
   std::int64_t size{ 0 };
   std::int64_t mtime{ 0 };
+  std::string tags;
+  float score{ 0.0f };
 };
 
 }

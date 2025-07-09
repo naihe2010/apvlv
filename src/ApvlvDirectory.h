@@ -67,6 +67,8 @@ public:
     Title = 0,
     MTime,
     FileSize,
+    Tags,
+    Score
   };
   static std::vector<const char *> ColumnString;
   static std::vector<const char *> SortByColumnString;
@@ -79,6 +81,9 @@ public:
     MTimeLe,
     FileSizeBe,
     FileSizeLe,
+    Tags,
+    ScoreBe,
+    ScoreLe
   };
   static std::vector<const char *> FilterTypeString;
 
@@ -114,7 +119,7 @@ public:
 
   void scrollRight (int times);
 
-  void tag();
+  void tag ();
 
   void
   setActive (bool active)
