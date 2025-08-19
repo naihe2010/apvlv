@@ -619,6 +619,18 @@
     </message>
     <message>
         <source>input tag:</source>
+        <translation type="vanished">输入标签：</translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>确定</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <source>Input tag:</source>
         <translation>输入标签：</translation>
     </message>
 </context>

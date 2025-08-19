@@ -28,17 +28,56 @@
 #include "ApvlvNoteWidget.h"
 
 #include <QInputDialog>
+#include <QLabel>
+#include <QPushButton>
+#include <QCompleter>
+#include <QVBoxLayout>
 
 namespace apvlv
 {
 using namespace std;
 
 QString
-NoteDialog::getTag (const string &filename, const unordered_set<string> &tags)
+NoteDialog::getTag (const string &filename, const unordered_set<string> &tags,
+                    const QStringList &tagList)
 {
-  auto tag = QInputDialog::getText (nullptr, QString::fromStdString (filename),
-                                    tr ("input tag:"));
-  return tag;
+  auto dia = make_unique<QDialog> (nullptr);
+  dia->setWindowTitle (QString::fromLocal8Bit (filename));
+  dia->setModal (true);
+  dia->setSizeGripEnabled (true);
+
+  auto layout = new QVBoxLayout (dia.get ());
+  dia->setLayout (layout);
+
+  auto hbox = new QHBoxLayout ();
+  auto label = new QLabel (dia.get ());
+  label->setText (tr ("Input tag:"));
+  hbox->addWidget (label);
+  auto entry = new QLineEdit (dia.get ());
+  hbox->addWidget (entry);
+  layout->addLayout (hbox);
+
+  hbox = new QHBoxLayout ();
+  auto ob = new QPushButton (tr ("OK"), dia.get ());
+  hbox->addWidget (ob);
+  QObject::connect (ob, SIGNAL (clicked (bool)), dia.get (), SLOT (accept ()));
+  auto oc = new QPushButton (tr ("Cancel"), dia.get ());
+  hbox->addWidget (oc);
+  QObject::connect (oc, SIGNAL (clicked (bool)), dia.get (), SLOT (reject ()));
+  layout->addLayout (hbox);
+
+  auto completer = new QCompleter(tagList, dia.get());
+  completer->setFilterMode (Qt::MatchContains);
+  entry->setCompleter (completer);
+
+  auto res = dia->exec ();
+  if (res != QDialog::Accepted)
+    {
+      return {};
+    }
+
+  auto str = entry->text ();
+  return str;
 }
 
 }

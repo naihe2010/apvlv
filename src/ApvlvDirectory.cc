@@ -207,6 +207,39 @@ Directory::setIndex (const FileIndex &index)
 }
 
 void
+Directory::preloadTags (const std::string &path)
+{
+  if (path.empty ())
+    {
+      return;
+    }
+
+  const auto &exts = FileFactory::supportFileExts ();
+  for (const auto &entry :
+       filesystem::recursive_directory_iterator (filesystem::path (path)))
+    {
+      if (!entry.is_regular_file ())
+        continue;
+
+      const auto &p = entry.path ();
+      if (std::find (exts.begin (), exts.end (), p.extension ())
+          == exts.end ())
+        continue;
+
+      const auto &np = Note::notePathOfPath (p.string ());
+      const auto &n = make_unique<Note> ();
+      if (n->load (np))
+        {
+          const auto &tags = n->tag ();
+          for (const auto &tag : tags)
+            {
+              mTags.append (QString::fromLocal8Bit (tag));
+            }
+        }
+    }
+}
+
+void
 Directory::setItemSelected (QTreeWidgetItem *item)
 {
   auto selitems = mTreeWidget.selectedItems ();
@@ -255,6 +288,8 @@ Directory::refreshIndex (const FileIndex &index)
     }
 
   sortItems (mTreeWidget.invisibleRootItem ());
+
+  preloadTags (mIndex.path);
 
   QTimer::singleShot (50, this, SLOT (selectFirstItem ()));
 }
@@ -543,7 +578,7 @@ Directory::tag ()
 
   filesystem::path file_path{ cur->path };
   string filename = file_path.filename ();
-  auto ans = NoteDialog::getTag (filename, note->tag ());
+  auto ans = NoteDialog::getTag (filename, note->tag (), mTags);
   if (ans.isEmpty ())
     {
       return;

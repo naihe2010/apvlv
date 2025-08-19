@@ -61,7 +61,8 @@ class NoteDialog : QObject
 
 public:
   static QString getTag (const std::string &filename,
-                         const std::unordered_set<std::string> &tags);
+                         const std::unordered_set<std::string> &tags,
+                         const QStringList &tagList);
 };
 
 }

@@ -153,6 +153,7 @@ private:
   std::map<FileIndexType, QIcon> mTypeIcons;
 
   FileIndex mIndex;
+  QStringList mTags;
   Column mSortColumn{ Column::Title };
 
   ApvlvFrame *mFrame{ nullptr };
@@ -203,6 +204,7 @@ private slots:
   void onContextMenuRequest (const QPoint &point);
   void selectFirstItem ();
   void setIndex (const FileIndex &index);
+  void preloadTags (const std::string &path);
 };
 }
 
