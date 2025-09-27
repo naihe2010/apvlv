@@ -4,7 +4,7 @@ IF (WIN32)
 ELSE ()
     SET(CMAKE_CXX_FLAGS "-std=c++20 -Wall -fno-strict-aliasing")
 
-    IF (${CMAKE_BUILD_TYPE} STREQUAL Debug)
+    IF (x${CMAKE_BUILD_TYPE} STREQUAL xDebug)
         SET(CMAKE_CXX_FLAGS "-D_DEBUG -g ${CMAKE_CXX_FLAGS}")
     ELSE ()
         SET(CMAKE_CXX_FLAGS "-O2 ${CMAKE_CXX_FLAGS}")
