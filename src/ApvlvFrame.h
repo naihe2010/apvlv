@@ -32,6 +32,8 @@
 #include <QCheckBox>
 #include <QFileSystemWatcher>
 #include <QLabel>
+#include <QPrintDialog>
+#include <QPrinter>
 #include <QSplitter>
 #include <iostream>
 #include <map>

@@ -148,9 +148,11 @@ ApvlvFrame::filename ()
 }
 
 bool
-ApvlvFrame::print ([[maybe_unused]] int ct)
+ApvlvFrame::print (int ct)
 {
-  return false;
+  if (!mFile)
+    return false;
+  return mFile->print (ct);
 }
 
 int

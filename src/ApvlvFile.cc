@@ -25,6 +25,9 @@
  */
 
 #include <QBuffer>
+#include <QPainter>
+#include <QPrintDialog>
+#include <QPrinter>
 #include <algorithm>
 #include <filesystem>
 #include <functional>
@@ -305,6 +308,31 @@ File::pathContentPng (int pn, double zm, int rot)
   image.save (&buffer, "PNG");
   buffer.close ();
   return array;
+}
+
+bool
+File::print (int page)
+{
+  QPrinter printer;
+  QPrintDialog dialog(&printer);
+  if (dialog.exec() != QDialog::Accepted) return false;
+  
+  QPainter painter(&printer);
+  int startPage = (page >= 0) ? page : 0;
+  int endPage = (page >= 0) ? page : sum() - 1;
+  
+  for (int pn = startPage; pn <= endPage; ++pn) {
+    if (pn > startPage) printer.newPage();
+    
+    QImage image;
+    if (pageRenderToImage(pn, 1.0, 0, &image)) {
+      QRect rect = painter.viewport();
+      QSize size = image.size();
+      size.scale(rect.size(), Qt::KeepAspectRatio);
+      painter.drawImage(0, 0, image.scaled(size));
+    }
+  }
+  return true;
 }
 
 }
