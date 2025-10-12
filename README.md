@@ -74,3 +74,6 @@ apvlv is licensed under the GNU General Public License (GPL).
 + CLion (https://www.jetbrains.com/clion/)
   
   Thanks these great tools.
+
+# Github Actions
+![CI Status](https://github.com/naihe2010/apvlv/actions/workflows/cmake-multi-platform.yml/badge.svg)
