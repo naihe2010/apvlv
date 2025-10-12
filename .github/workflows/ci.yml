@@ -1,0 +1,35 @@
+name: Multi-Platform CI
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    build:
+        strategy:
+            matrix:
+                os: [ubuntu-latest, debian-latest, fedora-latest]
+                include:
+                    - os: ubuntu-latest
+                      install_cmd: sudo apt-get update && sudo apt-get install -y build-essential cmake make
+                    - os: debian-latest
+                      install_cmd: sudo apt-get update && sudo apt-get install -y build-essential cmake make
+                    - os: fedora-latest
+                      install_cmd: sudo dnf install -y gcc make cmake
+
+        runs-on: ${{ matrix.os }}
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Install dependencies
+              run: ${{ matrix.install_cmd }}
+
+            - name: Build project
+              run: |
+                  mkdir build
+                  cd build
+                  cmake ..
+                  make
