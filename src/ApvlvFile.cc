@@ -89,10 +89,12 @@ FileFactory::typeEngineDescription (ostream &os)
     {
       string ext = pair.first;
       string engines;
-      std::ranges::for_each (pair.second, [&engines] (ExtClass &cls) {
-        engines.append (" ");
-        engines.append (cls.first);
-      });
+      std::ranges::for_each (pair.second,
+                             [&engines] (ExtClass &cls)
+                               {
+                                 engines.append (" ");
+                                 engines.append (cls.first);
+                               });
       os << "\t" << pair.first << ":\t\t" << engines << endl;
     }
   os << endl;
@@ -104,19 +106,22 @@ FileFactory::registerClass (const string &name, const function<File *()> &fun,
                             initializer_list<string> exts)
 {
   mSupportMimeTypes.insert ({ name, exts });
-  std::ranges::for_each (exts, [=] (const string &t) {
-    auto iter = mSupportClass.find (t);
-    if (iter != mSupportClass.end ())
-      {
-        auto &cls_list = iter->second;
-        cls_list.emplace_back (name, fun);
-      }
-    else
-      {
-        auto cls_list = ExtClassList{ { name, fun } };
-        mSupportClass.insert ({ t, cls_list });
-      }
-  });
+  std::ranges::for_each (exts,
+                         [=] (const string &t)
+                           {
+                             auto iter = mSupportClass.find (t);
+                             if (iter != mSupportClass.end ())
+                               {
+                                 auto &cls_list = iter->second;
+                                 cls_list.emplace_back (name, fun);
+                               }
+                             else
+                               {
+                                 auto cls_list
+                                     = ExtClassList{ { name, fun } };
+                                 mSupportClass.insert ({ t, cls_list });
+                               }
+                           });
   return static_cast<int> (mSupportMimeTypes.size ());
 }
 
@@ -210,8 +215,8 @@ File::grepFile (const string &seq, bool is_case, bool is_regex,
           auto founds = apvlv::grep (line, seq, is_case, is_regex);
           for (auto const &found : founds)
             {
-              SearchMatch match{ line.substr (found.first, found.second), line,
-                                 found.first, found.second };
+              SearchMatch match{ line.substr (found.first, found.second),
+                                 line, found.first, found.second };
               matches.push_back (match);
             }
         }
@@ -314,24 +319,28 @@ bool
 File::print (int page)
 {
   QPrinter printer;
-  QPrintDialog dialog(&printer);
-  if (dialog.exec() != QDialog::Accepted) return false;
-  
-  QPainter painter(&printer);
+  QPrintDialog dialog (&printer);
+  if (dialog.exec () != QDialog::Accepted)
+    return false;
+
+  QPainter painter (&printer);
   int startPage = (page >= 0) ? page : 0;
-  int endPage = (page >= 0) ? page : sum() - 1;
-  
-  for (int pn = startPage; pn <= endPage; ++pn) {
-    if (pn > startPage) printer.newPage();
-    
-    QImage image;
-    if (pageRenderToImage(pn, 1.0, 0, &image)) {
-      QRect rect = painter.viewport();
-      QSize size = image.size();
-      size.scale(rect.size(), Qt::KeepAspectRatio);
-      painter.drawImage(0, 0, image.scaled(size));
+  int endPage = (page >= 0) ? page : sum () - 1;
+
+  for (int pn = startPage; pn <= endPage; ++pn)
+    {
+      if (pn > startPage)
+        printer.newPage ();
+
+      QImage image;
+      if (pageRenderToImage (pn, 1.0, 0, &image))
+        {
+          QRect rect = painter.viewport ();
+          QSize size = image.size ();
+          size.scale (rect.size (), Qt::KeepAspectRatio);
+          painter.drawImage (0, 0, image.scaled (size));
+        }
     }
-  }
   return true;
 }
 

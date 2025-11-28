@@ -64,7 +64,8 @@ private:
 
   bool ncxSetIndex (const std::string &ncxfile);
 
-  void ncxNodeSetIndex (QXmlStreamReader *xml, const std::string &element_name,
+  void ncxNodeSetIndex (QXmlStreamReader *xml,
+                        const std::string &element_name,
                         const std::string &ncxfile, FileIndex &index);
 
   std::unique_ptr<QuaZip> mQuaZip;

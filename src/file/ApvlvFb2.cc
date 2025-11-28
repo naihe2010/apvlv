@@ -64,38 +64,40 @@ const string stylesheet_content = ".block_c {\n"
                                   "  margin: 0 0 7pt;\n"
                                   "  padding: 0;\n"
                                   "}\n";
-const string title_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
-                              "<html xmlns=\"http://www.w3.org/1999/xhtml\" "
-                              "lang=\"en\" xml:lang=\"en\">\n"
-                              "  <head>\n"
-                              "    <title></title>\n"
-                              "    <link rel=\"stylesheet\" type=\"text/css\" "
-                              "href=\"stylesheet.css\"/>\n"
-                              "    <meta http-equiv=\"Content-Type\" "
-                              "content=\"text/html; charset=utf-8\"/>\n"
-                              "  </head>\n"
-                              "  <body>\n"
-                              "  <br />\n"
-                              "  <br />\n"
-                              "  <br />\n"
-                              "  <br />\n"
-                              "    %s\n"
-                              "  </body>\n"
-                              "</html>\n";
-const string section_template = "<?xml version='1.0' encoding='UTF-8'?>\n"
-                                "<html xmlns=\"http://www.w3.org/1999/xhtml\" "
-                                "lang=\"en\" xml:lang=\"en\">\n"
-                                "  <head>\n"
-                                "    <title></title>\n"
-                                "    <link rel=\"stylesheet\" "
-                                "type=\"text/css\" href=\"stylesheet.css\"/>\n"
-                                "    <meta http-equiv=\"Content-Type\" "
-                                "content=\"text/html; charset=utf-8\"/>\n"
-                                "  </head>\n"
-                                "  <body>\n"
-                                "    %s\n"
-                                "  </body>\n"
-                                "</html>\n";
+const string title_template
+    = "<?xml version='1.0' encoding='UTF-8'?>\n"
+      "<html xmlns=\"http://www.w3.org/1999/xhtml\" "
+      "lang=\"en\" xml:lang=\"en\">\n"
+      "  <head>\n"
+      "    <title></title>\n"
+      "    <link rel=\"stylesheet\" type=\"text/css\" "
+      "href=\"stylesheet.css\"/>\n"
+      "    <meta http-equiv=\"Content-Type\" "
+      "content=\"text/html; charset=utf-8\"/>\n"
+      "  </head>\n"
+      "  <body>\n"
+      "  <br />\n"
+      "  <br />\n"
+      "  <br />\n"
+      "  <br />\n"
+      "    %s\n"
+      "  </body>\n"
+      "</html>\n";
+const string section_template
+    = "<?xml version='1.0' encoding='UTF-8'?>\n"
+      "<html xmlns=\"http://www.w3.org/1999/xhtml\" "
+      "lang=\"en\" xml:lang=\"en\">\n"
+      "  <head>\n"
+      "    <title></title>\n"
+      "    <link rel=\"stylesheet\" "
+      "type=\"text/css\" href=\"stylesheet.css\"/>\n"
+      "    <meta http-equiv=\"Content-Type\" "
+      "content=\"text/html; charset=utf-8\"/>\n"
+      "  </head>\n"
+      "  <body>\n"
+      "    %s\n"
+      "  </body>\n"
+      "</html>\n";
 
 FILE_TYPE_DEFINITION ("Web", ApvlvFB2, { ".fb2" });
 
@@ -128,8 +130,8 @@ ApvlvFB2::parseFb2 (const char *content, size_t length)
 bool
 ApvlvFB2::parseDescription (const char *content, size_t length)
 {
-  vector<string> keys{ "FictionBook", "description", "title-info", "coverpage",
-                       "image" };
+  vector<string> keys{ "FictionBook", "description", "title-info",
+                       "coverpage", "image" };
   auto value = xmlContentGetAttributeValue (content, length, keys, "href");
   mCoverHref = value;
   return true;
@@ -176,7 +178,8 @@ ApvlvFB2::parseBody (const char *content, size_t length)
           auto htmlstr = templateBuild (title_template, "%s", ss.str ());
           appendTitle (htmlstr, "application/xhtml+xml");
         }
-      else if (xml->isStartElement () && xml->name ().toString () == "section")
+      else if (xml->isStartElement ()
+               && xml->name ().toString () == "section")
         {
           stringstream ss;
           string title;

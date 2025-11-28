@@ -69,8 +69,8 @@ ApvlvDJVU::load (const string &filename)
       return false;
     }
 
-  mDoc
-      = ddjvu_document_create_by_filename (mContext, filename.c_str (), false);
+  mDoc = ddjvu_document_create_by_filename (mContext, filename.c_str (),
+                                            false);
   if (mDoc == nullptr)
     {
       qCritical ("djvu create document error");

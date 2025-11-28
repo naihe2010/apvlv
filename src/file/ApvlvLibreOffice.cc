@@ -59,8 +59,8 @@ ApvlvOFFICE::load (const string &filename)
   initLokInstance ();
 
   lock_guard<mutex> lk (mLokMutex);
-  mDoc
-      = unique_ptr<lok::Document>{ mOffice->documentLoad (filename.c_str ()) };
+  mDoc = unique_ptr<lok::Document>{ mOffice->documentLoad (
+      filename.c_str ()) };
   if (mDoc == nullptr)
     return false;
 

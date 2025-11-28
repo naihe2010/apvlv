@@ -445,7 +445,8 @@ ApvlvWindow::setFrame (ApvlvFrame *doc)
   doc->inuse (true);
   mType = WindowType::FRAME;
 
-  QObject::connect (doc, SIGNAL (focusIn ()), this, SLOT (setAsRootActive ()));
+  QObject::connect (doc, SIGNAL (focusIn ()), this,
+                    SLOT (setAsRootActive ()));
 }
 
 ApvlvFrame *

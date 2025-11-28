@@ -236,7 +236,7 @@ Note::load (std::string_view sv)
   if (path.empty ())
     path = mPath;
 
-  if (path.empty())
+  if (path.empty ())
     return false;
 
   mPath = path;
@@ -474,7 +474,7 @@ Note::dump (std::string_view sv)
   if (path.empty ())
     path = mPath;
 
-  if (path.empty())
+  if (path.empty ())
     return false;
 
   auto fspath = filesystem::path (path).parent_path ();

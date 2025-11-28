@@ -62,7 +62,10 @@ class ApvlvCommandBar : public QLineEdit
 {
   Q_OBJECT
 public:
-  ApvlvCommandBar () { installEventFilter (this); };
+  ApvlvCommandBar ()
+  {
+    installEventFilter (this);
+  };
 
 protected:
   void keyPressEvent (QKeyEvent *evt) override;

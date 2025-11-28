@@ -1,0 +1,16 @@
+# Windows-specific document engines
+
+if(WIN32 AND APVLV_WITH_OFFICE)
+    message(STATUS "Enable MSOffice as office file engine")
+    find_package(Qt6AxContainer REQUIRED)
+    include_directories(${Qt6AxContainer_INCLUDE_DIRS})
+    list(APVLV_ENGINE_LIBRARIES ${Qt6AxContainer_LIBRARIES} Shlwapi.lib)
+    list(APPEND APVLV_ENGINE_HEADERS file/ApvlvAxOffice.h)
+    list(APPEND APVLV_ENGINE_SOURCES file/ApvlvAxOffice.cc)
+elseif(NOT WIN32 AND APVLV_WITH_OFFICE)
+    message(STATUS "Enable libreOffice as office file engine")
+    list(APPEND APVLV_ENGINE_LIBRARIES -llibreofficekitgtk)
+    add_definitions(-DLIBO_INTERNAL_ONLY=1)
+    list(APPEND APVLV_ENGINE_HEADERS file/ApvlvLibreOffice.h)
+    list(APPEND APVLV_ENGINE_SOURCES file/ApvlvLibreOffice.cc)
+endif()

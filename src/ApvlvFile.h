@@ -179,7 +179,8 @@ public:
   pageSize (int page, int rot)
   {
     auto sizef = pageSizeF (page, rot);
-    return { static_cast<int> (sizef.width), static_cast<int> (sizef.height) };
+    return { static_cast<int> (sizef.width),
+             static_cast<int> (sizef.height) };
   }
 
   virtual SizeF
@@ -191,7 +192,8 @@ public:
   virtual int
   pageNumberWrap (int page)
   {
-    auto scrdoc = ApvlvParams::instance ()->getBoolOrDefault ("autoscrolldoc");
+    auto scrdoc
+        = ApvlvParams::instance ()->getBoolOrDefault ("autoscrolldoc");
     int c = sum ();
 
     if (page >= 0 && page < c)
@@ -300,12 +302,17 @@ private:
   static std::map<std::string, ExtClassList> mSupportClass;
 };
 
-#define FILE_TYPE_DECLARATION(cls)                                            \
-private:                                                                      \
+#define FILE_TYPE_DECLARATION(cls)                                           \
+private:                                                                     \
   static int class_id_of_##cls
-#define FILE_TYPE_DEFINITION(name, cls, ...)                                  \
-  int cls::class_id_of_##cls = FileFactory::registerClass (                   \
-      name, [] () -> File * { return new cls (); }, __VA_ARGS__)
+#define FILE_TYPE_DEFINITION(name, cls, ...)                                 \
+  int cls::class_id_of_##cls = FileFactory::registerClass (                  \
+      name,                                                                  \
+      [] () -> File *                                                        \
+        {                                                                    \
+          return new cls ();                                                 \
+        },                                                                   \
+      __VA_ARGS__)
 
 };
 

@@ -69,9 +69,10 @@ xmlContentGetElement (const char *content, size_t length,
 std::string xmlStreamGetAttributeValue (QXmlStreamReader *xml,
                                         const std::string &key);
 
-std::string xmlContentGetAttributeValue (const char *content, size_t length,
-                                         const std::vector<std::string> &names,
-                                         const std::string &key);
+std::string
+xmlContentGetAttributeValue (const char *content, size_t length,
+                             const std::vector<std::string> &names,
+                             const std::string &key);
 
 std::string filenameExtension (const std::string &filename);
 

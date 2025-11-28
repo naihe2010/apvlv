@@ -121,7 +121,10 @@ void
 MarkdownNode::removeChild (MarkdownNode *n)
 {
   auto iter = std::find_if (children.begin (), children.end (),
-                            [n] (const auto &i) { return i.get () == n; });
+                            [n] (const auto &i)
+                              {
+                                return i.get () == n;
+                              });
   if (iter != children.end ())
     {
       children.erase (iter);

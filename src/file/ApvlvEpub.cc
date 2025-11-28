@@ -79,7 +79,10 @@ ApvlvEPUB::load (const string &filename)
   return true;
 }
 
-ApvlvEPUB::~ApvlvEPUB () { mQuaZip->close (); }
+ApvlvEPUB::~ApvlvEPUB ()
+{
+  mQuaZip->close ();
+}
 
 int
 ApvlvEPUB::sum ()
@@ -163,9 +166,9 @@ ApvlvEPUB::contentGetMedia (const string &contentfile)
   if (optcover)
     {
       auto xml = optcover->get ();
-      while (
-          !xml->atEnd ()
-          && !(xml->isEndElement () && xml->name ().toString () == "metadata"))
+      while (!xml->atEnd ()
+             && !(xml->isEndElement ()
+                  && xml->name ().toString () == "metadata"))
         {
           xml->readNext ();
           if (xml->isStartElement () && xml->name ().toString () == "meta")
@@ -206,7 +209,8 @@ ApvlvEPUB::contentGetMedia (const string &contentfile)
 
           if (contentfile.rfind ('/') != string::npos)
             {
-              string dirname = contentfile.substr (0, contentfile.rfind ('/'));
+              string dirname
+                  = contentfile.substr (0, contentfile.rfind ('/'));
               href = dirname + "/" + href;
             }
 

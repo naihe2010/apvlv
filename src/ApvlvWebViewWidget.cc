@@ -168,7 +168,8 @@ WebViewWidget::scrollTo (double xrate, double yrate)
   if (!mFile)
     return;
 
-  auto scripts = QString ("scrollToPosition(%1, %2);").arg (xrate).arg (yrate);
+  auto scripts
+      = QString ("scrollToPosition(%1, %2);").arg (xrate).arg (yrate);
   auto page = mWebView.page ();
   page->runJavaScript (scripts);
 }
@@ -286,18 +287,21 @@ WebView::getSelectionPosition () const
   int begin = -1;
   int end = -1;
   QEventLoop loop;
-  mPage->runJavaScript ("getSelectionOffset(0);", [&loop, &begin, &end] (
-                                                      const QVariant &result) {
-    if (result.isValid () && result.typeId () == QMetaType::QVariantList)
-      {
-        auto offsets = result.toList ();
-        begin = offsets[0].toInt ();
-        end = offsets[1].toInt ();
-        qDebug () << "Begin offset:" << offsets[0].toInt ();
-        qDebug () << "End offset:" << offsets[1].toInt ();
-        loop.quit ();
-      }
-  });
+  mPage->runJavaScript (
+      "getSelectionOffset(0);",
+      [&loop, &begin, &end] (const QVariant &result)
+        {
+          if (result.isValid ()
+              && result.typeId () == QMetaType::QVariantList)
+            {
+              auto offsets = result.toList ();
+              begin = offsets[0].toInt ();
+              end = offsets[1].toInt ();
+              qDebug () << "Begin offset:" << offsets[0].toInt ();
+              qDebug () << "End offset:" << offsets[1].toInt ();
+              loop.quit ();
+            }
+        });
   loop.exec ();
   return std::make_pair (begin, end);
 }
@@ -426,7 +430,8 @@ WebViewWidget::webviewLoadFinished (bool suc)
 }
 
 void
-WebViewWidget::webviewFindTextFinished (const QWebEngineFindTextResult &result)
+WebViewWidget::webviewFindTextFinished (
+    const QWebEngineFindTextResult &result)
 {
   mSearchResult = result;
 }

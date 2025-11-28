@@ -46,7 +46,11 @@ TokenDispatcher::getToken (bool isSpecial)
       return make_unique<Token> (this);
     }
 
-  mCondition.wait (lk, [this] { return mDispatchedCount < mCount; });
+  mCondition.wait (lk,
+                   [this]
+                     {
+                       return mDispatchedCount < mCount;
+                     });
   mDispatchedCount++;
   return make_unique<Token> (this);
 }

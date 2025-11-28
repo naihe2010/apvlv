@@ -46,8 +46,9 @@ namespace apvlv
 using namespace std;
 
 std::vector<const char *> Directory::ColumnString = {
-  QT_TR_NOOP ("Title"), QT_TR_NOOP ("Modified Time"), QT_TR_NOOP ("File Size"),
-  QT_TR_NOOP ("Tags"),  QT_TR_NOOP ("Score"),
+  QT_TR_NOOP ("Title"),     QT_TR_NOOP ("Modified Time"),
+  QT_TR_NOOP ("File Size"), QT_TR_NOOP ("Tags"),
+  QT_TR_NOOP ("Score"),
 };
 std::vector<const char *> Directory::SortByColumnString = {
   QT_TR_NOOP ("Sort By Title"),     QT_TR_NOOP ("Sort By Modified Time"),
@@ -171,8 +172,8 @@ Directory::setupTree ()
                     SLOT (onRowDoubleClicked ()));
   mTreeWidget.setContextMenuPolicy (Qt::ContextMenuPolicy::CustomContextMenu);
   QObject::connect (&mTreeWidget,
-                    SIGNAL (customContextMenuRequested (const QPoint &)), this,
-                    SLOT (onContextMenuRequest (const QPoint &)));
+                    SIGNAL (customContextMenuRequested (const QPoint &)),
+                    this, SLOT (onContextMenuRequest (const QPoint &)));
 }
 
 bool
@@ -402,9 +403,11 @@ Directory::filterItemBy (QTreeWidgetItem *root, const filterFunc &filter_func)
 void
 Directory::setItemChildrenFilter (QTreeWidgetItem *root, bool is_filter)
 {
-  filterItemBy (root, [is_filter] (const FileIndex *a) -> filterFuncReturn {
-    return { is_filter, false };
-  });
+  filterItemBy (root,
+                [is_filter] (const FileIndex *a) -> filterFuncReturn
+                  {
+                    return { is_filter, false };
+                  });
 }
 
 QTreeWidgetItem *
@@ -647,15 +650,16 @@ Directory::onFileDelete ()
         continue;
 
       auto qpath = QString::fromLocal8Bit (index->path);
-      auto text = QString (tr ("Will delete the \n%1, confirm ?")).arg (qpath);
+      auto text
+          = QString (tr ("Will delete the \n%1, confirm ?")).arg (qpath);
       if (msg_res == QMessageBox::No || msg_res == QMessageBox::Yes)
         {
           auto buttons = QMessageBox::Yes | QMessageBox::No;
           if (items.size () > 1)
             buttons = QMessageBox::Yes | QMessageBox::YesToAll
                       | QMessageBox::No | QMessageBox::NoToAll;
-          msg_res = QMessageBox::question (this, tr ("Confirm"), text, buttons,
-                                           QMessageBox::No);
+          msg_res = QMessageBox::question (this, tr ("Confirm"), text,
+                                           buttons, QMessageBox::No);
         }
 
       if (msg_res == QMessageBox::NoToAll)
@@ -711,73 +715,105 @@ Directory::onFilter ()
   switch (type)
     {
     case FilterType::Title:
-      filterItemBy (root, [text] (const FileIndex *a) -> filterFuncReturn {
-        return { a->title.find (text.toStdString ()) != string::npos, false };
-      });
+      filterItemBy (root,
+                    [text] (const FileIndex *a) -> filterFuncReturn
+                      {
+                        return { a->title.find (text.toStdString ())
+                                     != string::npos,
+                                 false };
+                      });
       break;
 
     case FilterType::FileName:
-      filterItemBy (root, [text] (const FileIndex *a) -> filterFuncReturn {
-        return { a->type == FileIndexType::FILE
-                     && a->title.find (text.toStdString ()) != string::npos,
-                 true };
-      });
+      filterItemBy (root,
+                    [text] (const FileIndex *a) -> filterFuncReturn
+                      {
+                        return { a->type == FileIndexType::FILE
+                                     && a->title.find (text.toStdString ())
+                                            != string::npos,
+                                 true };
+                      });
       break;
 
     case FilterType::MTimeBe:
       datetime = QDateTime::fromString (text);
-      filterItemBy (root, [datetime] (const FileIndex *a) -> filterFuncReturn {
-        return { a->type == FileIndexType::FILE
-                     && a->mtime >= datetime.toMSecsSinceEpoch (),
-                 true };
-      });
+      filterItemBy (root,
+                    [datetime] (const FileIndex *a) -> filterFuncReturn
+                      {
+                        return { a->type == FileIndexType::FILE
+                                     && a->mtime
+                                            >= datetime.toMSecsSinceEpoch (),
+                                 true };
+                      });
       break;
 
     case FilterType::MTimeLe:
       datetime = QDateTime::fromString (text);
-      filterItemBy (root, [datetime] (const FileIndex *a) -> filterFuncReturn {
-        return { a->type == FileIndexType::FILE
-                     && a->mtime <= datetime.toMSecsSinceEpoch (),
-                 true };
-      });
+      filterItemBy (root,
+                    [datetime] (const FileIndex *a) -> filterFuncReturn
+                      {
+                        return { a->type == FileIndexType::FILE
+                                     && a->mtime
+                                            <= datetime.toMSecsSinceEpoch (),
+                                 true };
+                      });
       break;
 
     case FilterType::FileSizeBe:
       qsize = parseFormattedDataSize (text);
       size = static_cast<decltype (size)> (qsize);
-      filterItemBy (root, [size] (const FileIndex *a) -> filterFuncReturn {
-        return { a->type == FileIndexType::FILE && a->size >= size, true };
-      });
+      filterItemBy (root,
+                    [size] (const FileIndex *a) -> filterFuncReturn
+                      {
+                        return { a->type == FileIndexType::FILE
+                                     && a->size >= size,
+                                 true };
+                      });
       break;
 
     case FilterType::FileSizeLe:
       qsize = parseFormattedDataSize (text);
       size = static_cast<decltype (size)> (qsize);
-      filterItemBy (root, [size] (const FileIndex *a) -> filterFuncReturn {
-        return { a->type == FileIndexType::FILE && a->size <= size, true };
-      });
+      filterItemBy (root,
+                    [size] (const FileIndex *a) -> filterFuncReturn
+                      {
+                        return { a->type == FileIndexType::FILE
+                                     && a->size <= size,
+                                 true };
+                      });
       break;
 
     case FilterType::Tags:
-      filterItemBy (root, [text] (const FileIndex *a) -> filterFuncReturn {
-        return { a->type == FileIndexType::FILE
-                     && a->tags.find (text.toStdString ()) != string::npos,
-                 true };
-      });
+      filterItemBy (root,
+                    [text] (const FileIndex *a) -> filterFuncReturn
+                      {
+                        return { a->type == FileIndexType::FILE
+                                     && a->tags.find (text.toStdString ())
+                                            != string::npos,
+                                 true };
+                      });
       break;
 
     case FilterType::ScoreBe:
       score = QString (text).toFloat ();
-      filterItemBy (root, [score] (const FileIndex *a) -> filterFuncReturn {
-        return { a->type == FileIndexType::FILE && a->score >= score, true };
-      });
+      filterItemBy (root,
+                    [score] (const FileIndex *a) -> filterFuncReturn
+                      {
+                        return { a->type == FileIndexType::FILE
+                                     && a->score >= score,
+                                 true };
+                      });
       break;
 
     case FilterType::ScoreLe:
       score = QString (text).toFloat ();
-      filterItemBy (root, [score] (const FileIndex *a) -> filterFuncReturn {
-        return { a->type == FileIndexType::FILE && a->score <= score, true };
-      });
+      filterItemBy (root,
+                    [score] (const FileIndex *a) -> filterFuncReturn
+                      {
+                        return { a->type == FileIndexType::FILE
+                                     && a->score <= score,
+                                 true };
+                      });
       break;
 
     default:
@@ -809,16 +845,19 @@ Directory::sortItems (QTreeWidgetItem *tree_iter)
             item_list.emplace_back (item, item->isExpanded ());
         }
 
-      std::ranges::for_each (item_list, [this, &needSort] (itemState &p) {
-        if (p.first->childCount () > 1)
-          {
-            auto index = getFileIndexFromTreeItem (p.first);
-            if (index && index->type == FileIndexType::DIR)
-              {
-                needSort.push (p.first);
-              }
-          }
-      });
+      std::ranges::for_each (
+          item_list,
+          [this, &needSort] (itemState &p)
+            {
+              if (p.first->childCount () > 1)
+                {
+                  auto index = getFileIndexFromTreeItem (p.first);
+                  if (index && index->type == FileIndexType::DIR)
+                    {
+                      needSort.push (p.first);
+                    }
+                }
+            });
 
       if (mSortAscending)
         {
@@ -826,39 +865,49 @@ Directory::sortItems (QTreeWidgetItem *tree_iter)
             {
               using enum Column;
             case Title:
-              std::ranges::sort (
-                  item_list, std::ranges::greater (), [this] (itemState &p) {
-                    auto index = getFileIndexFromTreeItem (p.first);
-                    return index ? index->title : "";
-                  });
+              std::ranges::sort (item_list, std::ranges::greater (),
+                                 [this] (itemState &p)
+                                   {
+                                     auto index
+                                         = getFileIndexFromTreeItem (p.first);
+                                     return index ? index->title : "";
+                                   });
               break;
             case MTime:
-              std::ranges::sort (
-                  item_list, std::ranges::greater (), [this] (itemState &p) {
-                    auto index = getFileIndexFromTreeItem (p.first);
-                    return index ? index->mtime : 0;
-                  });
+              std::ranges::sort (item_list, std::ranges::greater (),
+                                 [this] (itemState &p)
+                                   {
+                                     auto index
+                                         = getFileIndexFromTreeItem (p.first);
+                                     return index ? index->mtime : 0;
+                                   });
               break;
             case FileSize:
-              std::ranges::sort (
-                  item_list, std::ranges::greater (), [this] (itemState &p) {
-                    auto index = getFileIndexFromTreeItem (p.first);
-                    return index ? index->size : 0;
-                  });
+              std::ranges::sort (item_list, std::ranges::greater (),
+                                 [this] (itemState &p)
+                                   {
+                                     auto index
+                                         = getFileIndexFromTreeItem (p.first);
+                                     return index ? index->size : 0;
+                                   });
               break;
             case Tags:
-              std::ranges::sort (
-                  item_list, std::ranges::greater (), [this] (itemState &p) {
-                    auto index = getFileIndexFromTreeItem (p.first);
-                    return index ? index->tags : "";
-                  });
+              std::ranges::sort (item_list, std::ranges::greater (),
+                                 [this] (itemState &p)
+                                   {
+                                     auto index
+                                         = getFileIndexFromTreeItem (p.first);
+                                     return index ? index->tags : "";
+                                   });
               break;
             case Score:
-              std::ranges::sort (
-                  item_list, std::ranges::greater (), [this] (itemState &p) {
-                    auto index = getFileIndexFromTreeItem (p.first);
-                    return index ? index->score : 0.0f;
-                  });
+              std::ranges::sort (item_list, std::ranges::greater (),
+                                 [this] (itemState &p)
+                                   {
+                                     auto index
+                                         = getFileIndexFromTreeItem (p.first);
+                                     return index ? index->score : 0.0f;
+                                   });
               break;
             }
         }
@@ -868,39 +917,49 @@ Directory::sortItems (QTreeWidgetItem *tree_iter)
             {
               using enum Column;
             case Title:
-              std::ranges::sort (
-                  item_list, std::ranges::less (), [this] (itemState &p) {
-                    auto index = getFileIndexFromTreeItem (p.first);
-                    return index ? index->title : "";
-                  });
+              std::ranges::sort (item_list, std::ranges::less (),
+                                 [this] (itemState &p)
+                                   {
+                                     auto index
+                                         = getFileIndexFromTreeItem (p.first);
+                                     return index ? index->title : "";
+                                   });
               break;
             case MTime:
-              std::ranges::sort (
-                  item_list, std::ranges::less (), [this] (itemState &p) {
-                    auto index = getFileIndexFromTreeItem (p.first);
-                    return index ? index->mtime : 0;
-                  });
+              std::ranges::sort (item_list, std::ranges::less (),
+                                 [this] (itemState &p)
+                                   {
+                                     auto index
+                                         = getFileIndexFromTreeItem (p.first);
+                                     return index ? index->mtime : 0;
+                                   });
               break;
             case FileSize:
-              std::ranges::sort (
-                  item_list, std::ranges::less (), [this] (itemState &p) {
-                    auto index = getFileIndexFromTreeItem (p.first);
-                    return index ? index->size : 0;
-                  });
+              std::ranges::sort (item_list, std::ranges::less (),
+                                 [this] (itemState &p)
+                                   {
+                                     auto index
+                                         = getFileIndexFromTreeItem (p.first);
+                                     return index ? index->size : 0;
+                                   });
               break;
             case Tags:
-              std::ranges::sort (
-                  item_list, std::ranges::less (), [this] (itemState &p) {
-                    auto index = getFileIndexFromTreeItem (p.first);
-                    return index ? index->tags : "";
-                  });
+              std::ranges::sort (item_list, std::ranges::less (),
+                                 [this] (itemState &p)
+                                   {
+                                     auto index
+                                         = getFileIndexFromTreeItem (p.first);
+                                     return index ? index->tags : "";
+                                   });
               break;
             case Score:
-              std::ranges::sort (
-                  item_list, std::ranges::less (), [this] (itemState &p) {
-                    auto index = getFileIndexFromTreeItem (p.first);
-                    return index ? index->score : 0.0f;
-                  });
+              std::ranges::sort (item_list, std::ranges::less (),
+                                 [this] (itemState &p)
+                                   {
+                                     auto index
+                                         = getFileIndexFromTreeItem (p.first);
+                                     return index ? index->score : 0.0f;
+                                   });
               break;
             }
         }
@@ -958,10 +1017,11 @@ Directory::onContextMenuRequest (const QPoint &point)
                             SLOT (onFileRename ()));
         }
       if (std::all_of (items.begin (), items.end (),
-                       [this] (QTreeWidgetItem *a) {
-                         auto i = getFileIndexFromTreeItem (a);
-                         return i && i->type == FileIndexType::FILE;
-                       }))
+                       [this] (QTreeWidgetItem *a)
+                         {
+                           auto i = getFileIndexFromTreeItem (a);
+                           return i && i->type == FileIndexType::FILE;
+                         }))
         {
           auto del_action = mItemMenu.addAction (tr ("Delete File"));
           del_action->setIcon (

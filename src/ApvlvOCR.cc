@@ -40,7 +40,10 @@ OCR::OCR ()
   mTessBaseAPI.Init (nullptr, lang.c_str ());
 }
 
-OCR::~OCR () { mTessBaseAPI.End (); }
+OCR::~OCR ()
+{
+  mTessBaseAPI.End ();
+}
 
 std::unique_ptr<TextAreaVector>
 OCR::getTextArea (const QPixmap &pixmap)

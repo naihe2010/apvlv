@@ -157,7 +157,8 @@ private:
 bool imageSelectSearch (QImage *pix, double zm, int select,
                         const WordListRectangle &poses);
 
-bool imageSelect (QImage *pix, double zm, const std::vector<Rectangle> &poses);
+bool imageSelect (QImage *pix, double zm,
+                  const std::vector<Rectangle> &poses);
 
 bool imageUnderline (QImage *pix, double zm,
                      const std::vector<Rectangle> &poses);

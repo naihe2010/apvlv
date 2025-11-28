@@ -193,8 +193,8 @@ main (int argc, char *argv[])
 
   auto paths = parseCommandLine (app);
 
-  NotesDir = ApvlvParams::instance ()->getGroupStringOrDefault ("notes", "dir",
-                                                                NotesDir);
+  NotesDir = ApvlvParams::instance ()->getGroupStringOrDefault (
+      "notes", "dir", NotesDir);
 
   ApvlvLog::instance ()->setLogFile (LogFile);
 

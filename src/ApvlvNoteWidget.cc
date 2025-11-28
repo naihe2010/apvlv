@@ -27,10 +27,10 @@
 
 #include "ApvlvNoteWidget.h"
 
+#include <QCompleter>
 #include <QInputDialog>
 #include <QLabel>
 #include <QPushButton>
-#include <QCompleter>
 #include <QVBoxLayout>
 
 namespace apvlv
@@ -60,13 +60,15 @@ NoteDialog::getTag (const string &filename, const unordered_set<string> &tags,
   hbox = new QHBoxLayout ();
   auto ob = new QPushButton (tr ("OK"), dia.get ());
   hbox->addWidget (ob);
-  QObject::connect (ob, SIGNAL (clicked (bool)), dia.get (), SLOT (accept ()));
+  QObject::connect (ob, SIGNAL (clicked (bool)), dia.get (),
+                    SLOT (accept ()));
   auto oc = new QPushButton (tr ("Cancel"), dia.get ());
   hbox->addWidget (oc);
-  QObject::connect (oc, SIGNAL (clicked (bool)), dia.get (), SLOT (reject ()));
+  QObject::connect (oc, SIGNAL (clicked (bool)), dia.get (),
+                    SLOT (reject ()));
   layout->addLayout (hbox);
 
-  auto completer = new QCompleter(tagList, dia.get());
+  auto completer = new QCompleter (tagList, dia.get ());
   completer->setFilterMode (Qt::MatchContains);
   entry->setCompleter (completer);
 

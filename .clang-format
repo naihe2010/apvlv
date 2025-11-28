@@ -1,1 +1,4 @@
 BasedOnStyle: GNU
+ColumnLimit: 78
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: Empty

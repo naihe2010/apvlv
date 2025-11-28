@@ -49,8 +49,8 @@ Searcher::Searcher () : mRestart (false), mQuit (false)
       = ApvlvParams::instance ()->getStringOrDefault ("thread_count", "auto");
   if (thread_value != "auto")
     {
-      thread_count = ApvlvParams::instance ()->getIntOrDefault ("thread_count",
-                                                                thread_count);
+      thread_count = ApvlvParams::instance ()->getIntOrDefault (
+          "thread_count", thread_count);
     }
 
   for (auto ind = 0u; ind < thread_count; ++ind)
@@ -64,7 +64,11 @@ Searcher::~Searcher ()
 {
   mRestart.store (true);
   mQuit.store (true);
-  std::ranges::for_each (mTasks, [] (thread &task) { task.join (); });
+  std::ranges::for_each (mTasks,
+                         [] (thread &task)
+                           {
+                             task.join ();
+                           });
   qDebug ("all search threads ended");
 }
 
@@ -207,8 +211,8 @@ grep (const string &source, const string &text, bool is_case, bool is_regex)
       const sregex_token_iterator end;
       sregex_token_iterator iter;
       vector<string> regex_texts;
-      while ((iter
-              = regex_token_iterator (source.begin (), source.end (), regex_1))
+      while ((iter = regex_token_iterator (source.begin (), source.end (),
+                                           regex_1))
              != end)
         {
           regex_texts.push_back (iter->str ());

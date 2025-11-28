@@ -50,11 +50,13 @@ SearchDialog::SearchDialog (QWidget *parent)
   mDirButton.setText (tr ("..."));
   mDirButton.setFocusPolicy (Qt::NoFocus);
   mHBox2.addWidget (&mDirButton, 0);
-  QObject::connect (&mDirButton, &QPushButton::clicked, this, [&] () {
-    auto dir = QFileDialog::getExistingDirectory ();
-    if (!dir.isEmpty ())
-      mFromDir.setText (dir);
-  });
+  QObject::connect (&mDirButton, &QPushButton::clicked, this,
+                    [&] ()
+                      {
+                        auto dir = QFileDialog::getExistingDirectory ();
+                        if (!dir.isEmpty ())
+                          mFromDir.setText (dir);
+                      });
 
   // search line
   mVBox.addLayout (&mHBox);
@@ -73,12 +75,15 @@ SearchDialog::SearchDialog (QWidget *parent)
   mVBox.addLayout (&mHBox3);
 
   auto exts = FileFactory::supportFileExts ();
-  std::ranges::for_each (exts, [&] (const auto &ext) {
-    auto checkbox = new QCheckBox (QString::fromLocal8Bit (ext));
-    checkbox->setChecked (true);
-    mHBox3.addWidget (checkbox);
-    mTypes.emplace_back (checkbox);
-  });
+  std::ranges::for_each (exts,
+                         [&] (const auto &ext)
+                           {
+                             auto checkbox = new QCheckBox (
+                                 QString::fromLocal8Bit (ext));
+                             checkbox->setChecked (true);
+                             mHBox3.addWidget (checkbox);
+                             mTypes.emplace_back (checkbox);
+                           });
 
   mVBox.addWidget (&mSplitter);
 
@@ -89,8 +94,8 @@ SearchDialog::SearchDialog (QWidget *parent)
   mPreview.resize (400, 300);
   QObject::connect (
       &mResults,
-      SIGNAL (currentItemChanged (QListWidgetItem *, QListWidgetItem *)), this,
-      SLOT (previewItem (QListWidgetItem *)));
+      SIGNAL (currentItemChanged (QListWidgetItem *, QListWidgetItem *)),
+      this, SLOT (previewItem (QListWidgetItem *)));
   QObject::connect (&mResults, SIGNAL (itemActivated (QListWidgetItem *)),
                     this, SLOT (activateItem (QListWidgetItem *)));
   QObject::connect (&mPreview, SIGNAL (loadFinished (bool)), this,
@@ -177,14 +182,15 @@ SearchDialog::displayResult (unique_ptr<SearchFileMatch> result)
     {
       auto pos = line + ':' + QString::number (page.page + 1);
       for_each (page.matches.begin (), page.matches.end (),
-                [&] (const auto &match) {
-                  auto matchitem = new QListWidgetItem (
-                      { QString::fromLocal8Bit (match.line) });
-                  matchitem->setToolTip (pos);
-                  QStringList data{ line, QString::number (page.page) };
-                  matchitem->setData (Qt::UserRole, data);
-                  mResults.addItem (matchitem);
-                });
+                [&] (const auto &match)
+                  {
+                    auto matchitem = new QListWidgetItem (
+                        { QString::fromLocal8Bit (match.line) });
+                    matchitem->setToolTip (pos);
+                    QStringList data{ line, QString::number (page.page) };
+                    matchitem->setData (Qt::UserRole, data);
+                    mResults.addItem (matchitem);
+                  });
     }
 }
 

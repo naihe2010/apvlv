@@ -66,7 +66,8 @@ int
 ApvlvOfficeWord::sum ()
 {
   auto content = mDoc->querySubObject ("Content");
-  auto pages = content->dynamicCall ("Information(wdNumberOfPagesInDocument)");
+  auto pages
+      = content->dynamicCall ("Information(wdNumberOfPagesInDocument)");
   return pages.toInt ();
 }
 
@@ -197,8 +198,8 @@ ApvlvOfficeWord::pathContent (const string &path)
   auto pn = QString::fromLocal8Bit (path).toInt ();
   auto pageRange = mDoc->querySubObject (
       "GoTo(int, int, int, const QVariant&)", 1, 1, pn + 1);
-  auto endRange = mDoc->querySubObject ("GoTo(int, int, int, const QVariant&)",
-                                        1, 1, pn + 2);
+  auto endRange = mDoc->querySubObject (
+      "GoTo(int, int, int, const QVariant&)", 1, 1, pn + 2);
   if (pageRange && endRange)
     {
       int endPosition;

@@ -29,8 +29,8 @@
 #define _APVLV_NOTE_H_
 
 #include <map>
-#include <string>
 #include <sstream>
+#include <string>
 #include <string_view>
 #include <unordered_set>
 #include <vector>
@@ -144,23 +144,24 @@ public:
     return mTagSet;
   }
 
-  std::string tagString()
+  std::string
+  tagString ()
   {
-    if (mTagSet.empty())
+    if (mTagSet.empty ())
       {
         return "";
       }
 
     std::ostringstream oss;
-    auto itr = mTagSet.begin();
+    auto itr = mTagSet.begin ();
     oss << *itr;
     ++itr;
-    while (itr != mTagSet.end())
+    while (itr != mTagSet.end ())
       {
         oss << "," << *itr;
         ++itr;
       }
-    return oss.str();
+    return oss.str ();
   }
 
   void

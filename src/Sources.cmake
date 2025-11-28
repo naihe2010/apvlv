@@ -1,0 +1,74 @@
+# Source files configuration
+
+# Core headers
+set(HEADERS
+    ApvlvCmds.h
+    ApvlvFrame.h
+    ApvlvFile.h
+    ApvlvFileIndex.h
+    ApvlvFileWidget.h
+    ApvlvWidget.h
+    ApvlvWeb.h
+    ApvlvInfo.h
+    ApvlvParams.h
+    ApvlvUtil.h
+    ApvlvView.h
+    ApvlvWindow.h
+    ApvlvCompletion.h
+    ApvlvDirectory.h
+    ApvlvLab.h
+    ApvlvLog.h
+    ApvlvSearch.h
+    ApvlvSearchDialog.h
+    ApvlvDired.h
+    ApvlvQueue.h
+    ApvlvImageWidget.h
+    ApvlvWebViewWidget.h
+    ApvlvEditor.h
+    ApvlvNote.h
+    ApvlvNoteWidget.h
+    ApvlvMarkdown.h
+    file/ApvlvHtm.h
+    file/ApvlvImage.h
+    file/ApvlvQtPdf.h
+    file/ApvlvEpub.h
+    file/ApvlvFb2.h
+    file/ApvlvTxt.h
+)
+
+# Core sources
+set(SOURCES
+    ApvlvCmds.cc
+    ApvlvFrame.cc
+    ApvlvFile.cc
+    ApvlvFileIndex.cc
+    ApvlvFileWidget.cc
+    ApvlvWidget.cc
+    ApvlvWeb.cc
+    ApvlvInfo.cc
+    ApvlvParams.cc
+    ApvlvUtil.cc
+    ApvlvView.cc
+    ApvlvWindow.cc
+    ApvlvCompletion.cc
+    ApvlvDirectory.cc
+    ApvlvLab.cc
+    ApvlvLog.cc
+    ApvlvSearch.cc
+    ApvlvSearchDialog.cc
+    ApvlvDired.cc
+    ApvlvQueue.cc
+    ApvlvImageWidget.cc
+    ApvlvWebViewWidget.cc
+    ApvlvEditor.cc
+    ApvlvNote.cc
+    ApvlvNoteWidget.cc
+    ApvlvMarkdown.cc
+    file/ApvlvHtm.cc
+    file/ApvlvImage.cc
+    file/ApvlvQtPdf.cc
+    file/ApvlvEpub.cc
+    file/ApvlvFb2.cc
+    file/ApvlvTxt.cc
+    main.cc
+)

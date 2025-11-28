@@ -99,9 +99,11 @@ ApvlvInfo::lastFile ()
 optional<InfoFile *>
 ApvlvInfo::file (const string &filename)
 {
-  auto itr = std::ranges::find_if (
-      std::views::reverse (mInfoFiles),
-      [filename] (auto const &infofile) { return infofile.file == filename; });
+  auto itr = std::ranges::find_if (std::views::reverse (mInfoFiles),
+                                   [filename] (auto const &infofile)
+                                     {
+                                       return infofile.file == filename;
+                                     });
   if (itr != mInfoFiles.rend ())
     {
       return &(*itr);
@@ -111,7 +113,8 @@ ApvlvInfo::file (const string &filename)
 }
 
 bool
-ApvlvInfo::updateFile (int page, int skip, double rate, const string &filename)
+ApvlvInfo::updateFile (int page, int skip, double rate,
+                       const string &filename)
 {
   InfoFile infofile{ page, skip, rate, filename };
   auto optinfofile = file (filename);

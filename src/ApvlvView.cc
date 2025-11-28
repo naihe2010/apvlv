@@ -497,7 +497,8 @@ ApvlvView::setupMenuBar (const string &guiopt)
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (openRrl ()));
   action = mfile->addAction (tr ("New Tab"));
-  QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (newTab ()));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (newTab ()));
   action = mfile->addAction (tr ("Close Tab"));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (closeTab ()));
@@ -509,7 +510,8 @@ ApvlvView::setupMenuBar (const string &guiopt)
   auto medit = new QMenu (tr ("Edit"));
   mMenuBar.addMenu (medit);
   action = medit->addAction (tr ("Search"));
-  QObject::connect (action, SIGNAL (triggered (bool)), this, SLOT (search ()));
+  QObject::connect (action, SIGNAL (triggered (bool)), this,
+                    SLOT (search ()));
   action = medit->addAction (tr ("Back Search"));
   QObject::connect (action, SIGNAL (triggered (bool)), this,
                     SLOT (backSearch ()));

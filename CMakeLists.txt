@@ -1,40 +1,35 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.10...3.31)
-SET(CMAKE_CXX_STANDARD 20)
-SET(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+cmake_minimum_required(VERSION 3.16)
+project(apvlv VERSION 0.7.0)
 
-PROJECT(apvlv)
+# Include cmake modules
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(Options)
+include(CompileFlags)
+include(Dependencies)
 
-SET(PROJECT_MAJOR "0")
-SET(PROJECT_MINOR "7")
-SET(PROJECT_PATCH "0")
-FIND_PACKAGE(Git)
-IF (GIT_FOUND)
-    EXECUTE_PROCESS(COMMAND ${GIT_EXECUTABLE}
-            log -1 --format=%h
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            OUTPUT_VARIABLE VERSION_HASH
-            OUTPUT_STRIP_TRAILING_WHITESPACE
+# Version info
+find_package(Git)
+if(Git_FOUND)
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} log -1 --format=%h
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE VERSION_HASH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
     )
+    if(VERSION_HASH)
+        message(STATUS "Git hash: ${VERSION_HASH}")
+        set(PROJECT_PATCH ${VERSION_HASH})
+    endif()
+endif()
 
-    IF (NOT VERSION_HASH STREQUAL "")
-        MESSAGE(STATUS "Configure git: ${VERSION_HASH}")
-        SET(PROJECT_PATCH ${VERSION_HASH})
-    ENDIF ()
-ENDIF (GIT_FOUND)
+# Package definitions
+set(SYSCONFDIR "/etc" CACHE PATH "System config directory")
+add_definitions(-DSYSCONFDIR="${SYSCONFDIR}")
 
-SET(PACKAGE_VERSION "${PROJECT_MAJOR}.${PROJECT_MINOR}.${PROJECT_PATCH}")
-
-SET(SYSCONFDIR
-        "/etc"
-        CACHE PATH
-        "Directory for system configuration of apvlv [/etc]"
-)
-ADD_DEFINITIONS(-DSYSCONFDIR="${SYSCONFDIR}")
-
-ADD_DEFINITIONS(-DPACKAGE_NAME="apvlv"
-        -DPACKAGE_VERSION="${PACKAGE_VERSION}"
-        -DPACKAGE_BUGREPORT="Alf <naihe2010@126.com>"
-        -DRELEASE="rel"
+add_definitions(-DPACKAGE_NAME="apvlv"
+    -DPACKAGE_VERSION="${PROJECT_VERSION}"
+    -DPACKAGE_BUGREPORT="Alf <naihe2010@126.com>"
+    -DRELEASE="rel"
 )
 
 ADD_SUBDIRECTORY(src)

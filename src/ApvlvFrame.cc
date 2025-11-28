@@ -900,7 +900,8 @@ ApvlvFrame::pageNumber ()
 }
 
 bool
-ApvlvFrame::loadFile (const std::string &file, bool check, bool show_directory)
+ApvlvFrame::loadFile (const std::string &file, bool check,
+                      bool show_directory)
 {
   if (check && file == mFilestr)
     {
@@ -1123,11 +1124,13 @@ ApvlvFrame::needSearch (const std::string &str, bool reverse)
                 << ", max: " << mSearchResults->size ();
       if (!reverse)
         {
-          setHighlightAndIndex (*mSearchResults, mWidget->searchSelect () + 1);
+          setHighlightAndIndex (*mSearchResults,
+                                mWidget->searchSelect () + 1);
         }
       else
         {
-          setHighlightAndIndex (*mSearchResults, mWidget->searchSelect () - 1);
+          setHighlightAndIndex (*mSearchResults,
+                                mWidget->searchSelect () - 1);
         }
 
       return false;

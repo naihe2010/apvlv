@@ -47,7 +47,8 @@ FileIndex::loadDirectory (const string &path1)
   try
     {
       for (auto &entry : filesystem::directory_iterator (
-               path1, filesystem::directory_options::follow_directory_symlink))
+               path1,
+               filesystem::directory_options::follow_directory_symlink))
         {
           if (entry.is_directory ())
             {
@@ -113,7 +114,7 @@ FileIndex::FileIndex (const string &title, int page, const string &path,
         {
           const auto note = make_unique<Note> ();
           note->load (note_path);
-          this->score = note->score();
+          this->score = note->score ();
           this->tags = note->tagString ();
         }
     }

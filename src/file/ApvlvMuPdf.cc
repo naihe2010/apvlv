@@ -138,8 +138,8 @@ ApvlvMuPDF::pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb)
   auto fa = fz_point{ static_cast<float> (pa.x), static_cast<float> (pa.y) };
   auto fb = fz_point{ static_cast<float> (pb.x), static_cast<float> (pb.y) };
   std::array<fz_quad, 1024> quad_array;
-  auto quads = fz_highlight_selection (mContext, text_page, fa, fb,
-                                       quad_array.data (), quad_array.size ());
+  auto quads = fz_highlight_selection (
+      mContext, text_page, fa, fb, quad_array.data (), quad_array.size ());
   fz_drop_stext_page (mContext, text_page);
   if (quads == 0)
     return nullopt;
