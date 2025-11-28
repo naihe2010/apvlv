@@ -37,7 +37,7 @@ jobs:
 
       - name: Prepare
         run: |
-          dnf install cmake gcc-c++ qt6-qtpdf-devel qt6-qtwebengine-devel quazip-qt6-devel mupdf-devel poppler-qt6-devel tesseract-devel cmark man ps2pdf qt6-linguist djvulibre-devel libreofficekit-devel rpmbuild
+          dnf install cmake cmark-devel gcc-c++ qt6-qtpdf-devel qt6-qtwebengine-devel quazip-qt6-devel mupdf-devel poppler-qt6-devel tesseract-devel cmark man ps2pdf qt6-linguist djvulibre-devel libreofficekit-devel rpmbuild
           mkdir ${{ github.workspace }}/share/apvlv/translations
 
       - name: Configure CMake
