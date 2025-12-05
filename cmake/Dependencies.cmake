@@ -2,35 +2,111 @@
 
 # Platform-specific dependency handling
 if(WIN32)
-    # Windows specific Qt6 configuration
-    set(Qt6_DIR "C:/Qt/6.7.2/msvc2019_64/lib/cmake/Qt6" CACHE STRING "Qt6config.cmake directory")
-    set(Qt6QmlTools_DIR "C:/Qt/6.7.2/msvc2019_64/lib/cmake/Qt6QmlTools" CACHE STRING "Qt6QmlToolsconfig.cmake directory")
-    set(Qt6AxContainer_DIR "C:/Qt/6.7.2/msvc2019_64/lib/cmake/Qt6AxContainer" CACHE STRING "Qt6config.cmake directory")
-
-    # Windows specific library paths
-    set(QUAZIP_INCLUDE_DIRS "C:/Qt/6.7.2/msvc2019_64/include/QuaZip-Qt6-1.4/quazip;C:/Qt/6.7.2/msvc2019_64/include" CACHE STRING "Quazip include directory")
-    set(QUAZIP_LIBRARY_DIRS "C:/Qt/6.7.2/msvc2019_64/lib" CACHE STRING "Quazip lib directory")
-    set(QUAZIP_LIBRARIES "C:/Qt/6.7.2/msvc2019_64/lib/quazip1-qt6.lib" CACHE STRING "Quazip library file")
-    set(DJVULIBRE_DIR "C:/Program Files (x86)/DjVuLibre" CACHE PATH "DjvuLibre dir")
-
-    # CMake policies for Windows
-    cmake_policy(SET CMP0010 NEW)
-    cmake_policy(SET CMP0087 NEW)
+    # Windows - use vcpkg via find_package (vcpkg provides CMake config files)
+    # Required dependencies
+    find_package(cmark REQUIRED)
+    find_package(quazip REQUIRED)
+    find_package(djvulibre REQUIRED)
+    
+    # Setup variables for compatibility with Unix code
+    if(TARGET cmark::cmark)
+        set(CMARK_FOUND TRUE)
+        get_target_property(CMARK_INCLUDE_DIRS cmark::cmark INTERFACE_INCLUDE_DIRECTORIES)
+        if(NOT CMARK_INCLUDE_DIRS)
+            get_target_property(CMARK_INCLUDE_DIRS cmark::cmark INCLUDE_DIRECTORIES)
+        endif()
+        set(CMARK_LIBRARIES cmark::cmark)
+    elseif(cmark_FOUND)
+        set(CMARK_FOUND TRUE)
+        if(cmark_INCLUDE_DIR)
+            set(CMARK_INCLUDE_DIRS ${cmark_INCLUDE_DIR})
+        endif()
+        if(cmark_LIBRARY)
+            set(CMARK_LIBRARIES ${cmark_LIBRARY})
+        endif()
+    endif()
+    
+    if(TARGET quazip::quazip)
+        set(QUAZIP_FOUND TRUE)
+        get_target_property(QUAZIP_INCLUDE_DIRS quazip::quazip INTERFACE_INCLUDE_DIRECTORIES)
+        if(NOT QUAZIP_INCLUDE_DIRS)
+            get_target_property(QUAZIP_INCLUDE_DIRS quazip::quazip INCLUDE_DIRECTORIES)
+        endif()
+        set(QUAZIP_LIBRARIES quazip::quazip)
+    elseif(quazip_FOUND)
+        set(QUAZIP_FOUND TRUE)
+        if(quazip_INCLUDE_DIR)
+            set(QUAZIP_INCLUDE_DIRS ${quazip_INCLUDE_DIR})
+        endif()
+        if(quazip_LIBRARY)
+            set(QUAZIP_LIBRARIES ${quazip_LIBRARY})
+        endif()
+    endif()
+    
+    # DjVu setup for Windows
+    if(TARGET djvulibre::djvulibre)
+        set(DJVULIBRE_FOUND TRUE)
+        get_target_property(DJVULIBRE_INCLUDE_DIR djvulibre::djvulibre INTERFACE_INCLUDE_DIRECTORIES)
+        if(DJVULIBRE_INCLUDE_DIR)
+            get_filename_component(DJVULIBRE_DIR ${DJVULIBRE_INCLUDE_DIR} DIRECTORY)
+        endif()
+    elseif(djvulibre_FOUND)
+        set(DJVULIBRE_FOUND TRUE)
+        if(djvulibre_INCLUDE_DIR)
+            set(DJVULIBRE_INCLUDE_DIR ${djvulibre_INCLUDE_DIR})
+            get_filename_component(DJVULIBRE_DIR ${djvulibre_INCLUDE_DIR} DIRECTORY)
+        endif()
+        if(djvulibre_LIBRARY)
+            get_filename_component(DJVULIBRE_LIB_DIR ${djvulibre_LIBRARY} DIRECTORY)
+            if(NOT DJVULIBRE_DIR)
+                set(DJVULIBRE_DIR ${DJVULIBRE_LIB_DIR})
+            endif()
+        endif()
+    endif()
+    
+    # Optional dependencies for Windows
+    if(APVLV_WITH_POPPLER)
+        find_package(Poppler QUIET)
+        if(Poppler_FOUND)
+            set(POPPLER_FOUND TRUE)
+            if(TARGET Poppler::poppler)
+                set(POPPLER_LIBRARIES Poppler::poppler)
+            elseif(poppler_LIBRARIES)
+                set(POPPLER_LIBRARIES ${poppler_LIBRARIES})
+            endif()
+        endif()
+    endif()
+    
+    if(APVLV_WITH_MUPDF)
+        find_package(mupdf QUIET)
+        if(mupdf_FOUND)
+            set(MUPDF_FOUND TRUE)
+            if(TARGET mupdf::mupdf)
+                set(MUPDF_STATIC_LIBRARIES mupdf::mupdf)
+            elseif(mupdf_LIBRARIES)
+                set(MUPDF_STATIC_LIBRARIES ${mupdf_LIBRARIES})
+            endif()
+        endif()
+    endif()
+    
+    if(APVLV_WITH_OCR)
+        find_package(tesseract QUIET)
+        if(tesseract_FOUND)
+            set(TESSERACT_FOUND TRUE)
+            if(TARGET tesseract::tesseract)
+                set(TESSERACT_LIBRARIES tesseract::tesseract)
+            elseif(tesseract_LIBRARIES)
+                set(TESSERACT_LIBRARIES ${tesseract_LIBRARIES})
+            endif()
+        endif()
+    endif()
 else()
     # Unix/Linux - use pkg-config
-    find_package(PkgConfig QUIET)
+    find_package(PkgConfig REQUIRED)
     pkg_check_modules(CMARK libcmark REQUIRED)
     pkg_check_modules(QUAZIP quazip1-qt6 REQUIRED)
-endif()
-
-# Find Qt6 components
-find_package(Qt6 NAMES Qt6 COMPONENTS
-    Core Gui Widgets WebEngineWidgets Pdf PdfWidgets Xml PrintSupport
-    REQUIRED
-)
-
-# Optional dependencies for Unix
-if(NOT WIN32)
+    
+    # Optional dependencies for Unix
     if(APVLV_WITH_POPPLER)
         pkg_check_modules(POPPLER poppler-qt6)
     endif()
@@ -43,6 +119,12 @@ if(NOT WIN32)
         pkg_check_modules(TESSERACT tesseract)
     endif()
 endif()
+
+# Find Qt6 components
+find_package(Qt6 NAMES Qt6 COMPONENTS
+    Core Gui Widgets WebEngineWidgets Pdf PdfWidgets Xml PrintSupport
+    REQUIRED
+)
 
 # Setup Qt variables
 set(Qt_INCLUDE_DIRS

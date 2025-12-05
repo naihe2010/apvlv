@@ -17,13 +17,16 @@ jobs:
       fail-fast: false
 
       matrix:
-        os: [fedora:42]
-        build_type: [Release]
-        c_compiler: [gcc]
         include:
           - os: fedora:42
             c_compiler: gcc
             cpp_compiler: g++
+            build_type: Release
+          - os: windows-latest
+            c_compiler: cl
+            cpp_compiler: cl
+            build_type: Release
+            vcpkg_triplet: x64-windows
 
     steps:
       - uses: actions/checkout@v4
@@ -36,9 +39,24 @@ jobs:
           echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
       - name: Prepare
+        if: matrix.os == 'fedora:42'
         run: |
           dnf install cmake cmark-devel gcc-c++ qt6-qtpdf-devel qt6-qtwebengine-devel quazip-qt6-devel mupdf-devel poppler-qt6-devel tesseract-devel cmark man ps2pdf qt6-linguist djvulibre-devel libreofficekit-devel rpmbuild
           mkdir ${{ github.workspace }}/share/apvlv/translations
+
+      - name: Setup vcpkg
+        if: matrix.os == 'windows-latest'
+        uses: lukka/run-vcpkg@v10
+        with:
+          vcpkgGitCommitId: 'latest'
+          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+
+      - name: Install dependencies with vcpkg
+        if: matrix.os == 'windows-latest'
+        run: |
+          ${{ github.workspace }}/vcpkg/vcpkg install qt6 quazip cmark djvulibre poppler[qt6] --triplet ${{ matrix.vcpkg_triplet }}
+          # Install optional dependencies for testing
+          ${{ github.workspace }}/vcpkg/vcpkg install tesseract mupdf --triplet ${{ matrix.vcpkg_triplet }}
 
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -48,6 +66,7 @@ jobs:
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          ${{ matrix.os == 'windows-latest' && format('-DCMAKE_TOOLCHAIN_FILE={0}/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET={1}', github.workspace, matrix.vcpkg_triplet) || '' }}
           -S ${{ github.workspace }}
 
       - name: Build

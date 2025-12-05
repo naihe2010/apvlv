@@ -1,0 +1,18 @@
+{
+  "name": "apvlv-system-qt",
+  "version": "0.7.0",
+  "description": "apvlv deps manifest when using system Qt (avoid building vcpkg qtbase)",
+  "license": "GPL-3.0",
+  "dependencies": [
+    "libmupdf",
+    "cmark"
+  ],
+  "features": {
+    "ocr": {
+      "description": "OCR support",
+      "dependencies": ["tesseract"]
+    }
+  }
+}
+
+

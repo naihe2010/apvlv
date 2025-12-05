@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 project(apvlv VERSION 0.7.0)
 
+# vcpkg integration
+if(DEFINED CMAKE_TOOLCHAIN_FILE)
+    message(STATUS "Using vcpkg toolchain: ${CMAKE_TOOLCHAIN_FILE}")
+endif()
+
 # Include cmake modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(Options)
@@ -23,7 +28,12 @@ if(Git_FOUND)
 endif()
 
 # Package definitions
-set(SYSCONFDIR "/etc" CACHE PATH "System config directory")
+if(WIN32)
+    # On Windows, use AppData\Local or install directory
+    set(SYSCONFDIR "$ENV{LOCALAPPDATA}/apvlv" CACHE PATH "System config directory")
+else()
+    set(SYSCONFDIR "/etc" CACHE PATH "System config directory")
+endif()
 add_definitions(-DSYSCONFDIR="${SYSCONFDIR}")
 
 add_definitions(-DPACKAGE_NAME="apvlv"
