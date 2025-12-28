@@ -24,6 +24,31 @@ jobs:
             c_compiler: gcc
             cpp_compiler: g++
             build_type: Release
+            package_manager: dnf
+          - os: ubuntu-latest
+            container: rockylinux:9
+            c_compiler: gcc
+            cpp_compiler: g++
+            build_type: Release
+            package_manager: dnf
+          - os: ubuntu-latest
+            container: debian:11
+            c_compiler: gcc
+            cpp_compiler: g++
+            build_type: Release
+            package_manager: apt
+          - os: ubuntu-latest
+            container: debian:12
+            c_compiler: gcc
+            cpp_compiler: g++
+            build_type: Release
+            package_manager: apt
+          - os: ubuntu-latest
+            container: archlinux:latest
+            c_compiler: gcc
+            cpp_compiler: g++
+            build_type: Release
+            package_manager: pacman
           - os: windows-latest
             c_compiler: cl
             cpp_compiler: cl
@@ -40,13 +65,39 @@ jobs:
         run: |
           echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-      - name: Prepare
-        if: matrix.container == 'fedora:42'
+      - name: Prepare (DNF - Fedora/Rocky Linux)
+        if: matrix.package_manager == 'dnf'
         run: |
-          dnf install -y cmake cmark-devel gcc-c++ qt6-qtpdf-devel qt6-qtwebengine-devel quazip-qt6-devel mupdf-devel poppler-qt6-devel tesseract-devel cmark man ps2pdf qt6-linguist djvulibre-devel libreofficekit-devel rpmbuild
-          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
-          ls -la $GITHUB_WORKSPACE/
-          test -f $GITHUB_WORKSPACE/CMakeLists.txt && echo "CMakeLists.txt found" || echo "CMakeLists.txt NOT found"
+          dnf install -y cmake gcc-c++ \
+            qt6-qtbase-devel qt6-qtwebengine-devel \
+            quazip-qt6-devel poppler-qt6-devel \
+            cmark-devel djvulibre-devel \
+            mupdf-devel tesseract-devel \
+            man ghostscript qt6-linguist
+          mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
+
+      - name: Prepare (APT - Debian)
+        if: matrix.package_manager == 'apt'
+        run: |
+          apt-get update
+          apt-get install -y cmake g++ \
+            qt6-base-dev qt6-webengine-dev \
+            libquazip1-qt6-dev libpoppler-qt6-dev \
+            libcmark-dev libdjvulibre-dev \
+            libmupdf-dev libtesseract-dev \
+            groff ghostscript qt6-tools-dev qt6-l10n-tools
+          mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
+
+      - name: Prepare (Pacman - Arch Linux)
+        if: matrix.package_manager == 'pacman'
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm cmake gcc \
+            qt6-base qt6-webengine \
+            quazip-qt6 poppler-qt6 \
+            cmark djvulibre \
+            mupdf tesseract \
+            groff ghostscript qt6-tools
           mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
       - name: Setup vcpkg
@@ -67,8 +118,8 @@ jobs:
             -A x64
         shell: pwsh
 
-      - name: Configure CMake
-        if: matrix.container == 'fedora:42'
+      - name: Configure CMake (Linux)
+        if: matrix.package_manager != ''
         run: |
           cmake -B $GITHUB_WORKSPACE/build \
             -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
@@ -76,21 +127,21 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -S $GITHUB_WORKSPACE
 
-      - name: Build
+      - name: Build (Windows)
         if: matrix.os == 'windows-latest'
         run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
-      - name: Build
-        if: matrix.container == 'fedora:42'
+      - name: Build (Linux)
+        if: matrix.package_manager != ''
         run: cmake --build $GITHUB_WORKSPACE/build --config ${{ matrix.build_type }}
 
-      - name: Test
+      - name: Test (Windows)
         if: matrix.os == 'windows-latest'
         working-directory: ${{ steps.strings.outputs.build-output-dir }}
         run: ctest --build-config ${{ matrix.build_type }}
 
-      - name: Test
-        if: matrix.container == 'fedora:42'
+      - name: Test (Linux)
+        if: matrix.package_manager != ''
         run: |
           cd $GITHUB_WORKSPACE/build
           ctest --build-config ${{ matrix.build_type }}
