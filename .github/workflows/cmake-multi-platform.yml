@@ -44,39 +44,52 @@ jobs:
         if: matrix.container == 'fedora:42'
         run: |
           dnf install -y cmake cmark-devel gcc-c++ qt6-qtpdf-devel qt6-qtwebengine-devel quazip-qt6-devel mupdf-devel poppler-qt6-devel tesseract-devel cmark man ps2pdf qt6-linguist djvulibre-devel libreofficekit-devel rpmbuild
-          mkdir -p ${{ github.workspace }}/share/apvlv/translations
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+          ls -la $GITHUB_WORKSPACE/
+          test -f $GITHUB_WORKSPACE/CMakeLists.txt && echo "CMakeLists.txt found" || echo "CMakeLists.txt NOT found"
+          mkdir -p $GITHUB_WORKSPACE/share/apvlv/translations
 
       - name: Setup vcpkg
         if: matrix.os == 'windows-latest'
-        uses: lukka/run-vcpkg@v10
+        uses: lukka/run-vcpkg@v11
         with:
           vcpkgGitCommitId: '84bab45d415d22042bd0b9081aea57f362da3f35'
-          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-
-      - name: Install dependencies with vcpkg
-        if: matrix.os == 'windows-latest'
-        run: |
-          ${{ github.workspace }}/vcpkg/vcpkg install qt6 quazip cmark djvulibre poppler[qt6] --triplet ${{ matrix.vcpkg_triplet }}
-          # Install optional dependencies for testing
-          ${{ github.workspace }}/vcpkg/vcpkg install tesseract mupdf --triplet ${{ matrix.vcpkg_triplet }}
 
       - name: Configure CMake
-        # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-        # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-        run: >
-          cmake -B ${{ steps.strings.outputs.build-output-dir }}
-          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
-          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-          ${{ matrix.os == 'windows-latest' && format('-DCMAKE_TOOLCHAIN_FILE={0}/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET={1}', github.workspace, matrix.vcpkg_triplet) || '' }}
-          -S ${{ github.workspace }}
+        if: matrix.os == 'windows-latest'
+        run: |
+          cmake -B ${{ steps.strings.outputs.build-output-dir }} `
+            -S ${{ github.workspace }} `
+            -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=${{ matrix.vcpkg_triplet }} `
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} `
+            -G "Visual Studio 17 2022" `
+            -A x64
+        shell: pwsh
+
+      - name: Configure CMake
+        if: matrix.container == 'fedora:42'
+        run: |
+          cmake -B $GITHUB_WORKSPACE/build \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
+            -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -S $GITHUB_WORKSPACE
 
       - name: Build
-        # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+        if: matrix.os == 'windows-latest'
         run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
+      - name: Build
+        if: matrix.container == 'fedora:42'
+        run: cmake --build $GITHUB_WORKSPACE/build --config ${{ matrix.build_type }}
+
       - name: Test
+        if: matrix.os == 'windows-latest'
         working-directory: ${{ steps.strings.outputs.build-output-dir }}
-        # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-        # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+        run: ctest --build-config ${{ matrix.build_type }}
+
+      - name: Test
+        if: matrix.container == 'fedora:42'
+        working-directory: ${{ env.GITHUB_WORKSPACE }}/build
         run: ctest --build-config ${{ matrix.build_type }}
