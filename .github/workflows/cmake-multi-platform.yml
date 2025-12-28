@@ -50,7 +50,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: lukka/run-vcpkg@v10
         with:
-          vcpkgGitCommitId: 'latest'
+          vcpkgGitCommitId: '84bab45d415d22042bd0b9081aea57f362da3f35'
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
 
       - name: Install dependencies with vcpkg
