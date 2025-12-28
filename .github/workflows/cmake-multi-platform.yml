@@ -87,9 +87,10 @@ jobs:
       - name: Test
         if: matrix.os == 'windows-latest'
         working-directory: ${{ steps.strings.outputs.build-output-dir }}
-        run: ctest --build ${{ steps.strings.outputs.build-output-dir }} --build-config ${{ matrix.build_type }}
+        run: ctest --build-config ${{ matrix.build_type }}
 
       - name: Test
         if: matrix.container == 'fedora:42'
-        working-directory: ${{ env.GITHUB_WORKSPACE }}/build
-        run: ctest --build $GITHUB_WORKSPACE/build --build-config ${{ matrix.build_type }}
+        run: |
+          cd $GITHUB_WORKSPACE/build
+          ctest --build-config ${{ matrix.build_type }}
