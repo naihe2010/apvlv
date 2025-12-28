@@ -47,7 +47,7 @@ jobs:
           echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
           ls -la $GITHUB_WORKSPACE/
           test -f $GITHUB_WORKSPACE/CMakeLists.txt && echo "CMakeLists.txt found" || echo "CMakeLists.txt NOT found"
-          mkdir -p $GITHUB_WORKSPACE/share/apvlv/translations
+          mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
       - name: Setup vcpkg
         if: matrix.os == 'windows-latest'
