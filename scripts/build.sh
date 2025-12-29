@@ -36,80 +36,6 @@ cleanup_vcpkg_locks() {
     fi
 }
 
-invoke_with_retry() {
-    local max_attempts=5
-    local delay_seconds=10
-    local attempt=0
-    local cmd="$1"
-    
-    while [ $attempt -lt $max_attempts ]; do
-        attempt=$((attempt + 1))
-        
-        if eval "$cmd" 2>&1; then
-            return 0
-        fi
-        
-        print_warning "Attempt $attempt failed."
-        
-        if [ $attempt -lt $max_attempts ]; then
-            print_status "Retrying in $delay_seconds seconds..."
-            sleep $delay_seconds
-        fi
-    done
-    
-    print_error "Operation failed after $max_attempts attempts."
-    return 1
-}
-
-invoke_vcpkg_with_retry() {
-    local max_attempts=5
-    local delay_seconds=15
-    local attempt=0
-    local cmd="$1"
-    local lock_file="$VCPKG_ROOT/.vcpkg-root"
-    
-    while [ $attempt -lt $max_attempts ]; do
-        attempt=$((attempt + 1))
-        
-        if [ -f "$lock_file.lock" ]; then
-            print_warning "vcpkg appears to be running (lock file exists), waiting..."
-            sleep 10
-            if [ -f "$lock_file.lock" ] && [ $attempt -gt 2 ]; then
-                print_warning "Removing potentially stale lock file..."
-                rm -f "$lock_file.lock" 2>/dev/null || true
-            fi
-            continue
-        fi
-        
-        if [ $attempt -gt 1 ]; then
-            sleep 5
-        fi
-        
-        if eval "$cmd" 2>&1; then
-            return 0
-        fi
-        
-        print_warning "vcpkg attempt $attempt failed."
-        
-        rm -f "$lock_file.lock" 2>/dev/null || true
-        rm -f "$VCPKG_ROOT/vcpkg.lock" 2>/dev/null || true
-        
-        if [ $attempt -eq $((max_attempts - 1)) ]; then
-            print_warning "Attempting aggressive lock cleanup before final retry..."
-            cleanup_vcpkg_locks
-            sleep 20
-        fi
-        
-        if [ $attempt -lt $max_attempts ]; then
-            print_status "Waiting $delay_seconds seconds before retry..."
-            sleep $delay_seconds
-        fi
-    done
-    
-    print_error "vcpkg operation failed after $max_attempts attempts."
-    return 1
-}
-
 detect_system_qt() {
     SYSTEM_QT_FOUND=0
     SYSTEM_QT_PREFIX=""
@@ -121,7 +47,7 @@ detect_system_qt() {
 
     print_status "Checking for system Qt6 installation..."
 
-    if command -v qmake6 &> /dev/null; then
+    if command -v qmake6 &>/dev/null; then
         SYSTEM_QT_PREFIX=$(qmake6 -query QT_INSTALL_PREFIX 2>/dev/null)
         if [ -n "$SYSTEM_QT_PREFIX" ] && [ -d "$SYSTEM_QT_PREFIX" ]; then
             print_status "Found system Qt6 via qmake6: $SYSTEM_QT_PREFIX"
@@ -130,7 +56,7 @@ detect_system_qt() {
         fi
     fi
 
-    if command -v qmake &> /dev/null; then
+    if command -v qmake &>/dev/null; then
         local qt_version=$(qmake -query QT_VERSION 2>/dev/null)
         if [[ "$qt_version" == 6.* ]]; then
             SYSTEM_QT_PREFIX=$(qmake -query QT_INSTALL_PREFIX 2>/dev/null)
@@ -142,7 +68,7 @@ detect_system_qt() {
         fi
     fi
 
-    if command -v pkg-config &> /dev/null; then
+    if command -v pkg-config &>/dev/null; then
         if pkg-config --exists Qt6Core 2>/dev/null; then
             local qt6_libdir=$(pkg-config --variable=libdir Qt6Core 2>/dev/null)
             if [ -n "$qt6_libdir" ]; then
@@ -163,9 +89,9 @@ detect_system_qt() {
     )
 
     for qt_path in "${common_qt_paths[@]}"; do
-        if [ -f "$qt_path/lib/cmake/Qt6/Qt6Config.cmake" ] || \
-           [ -f "$qt_path/lib64/cmake/Qt6/Qt6Config.cmake" ] || \
-           [ -f "/usr/lib/cmake/Qt6/Qt6Config.cmake" ]; then
+        if [ -f "$qt_path/lib/cmake/Qt6/Qt6Config.cmake" ] ||
+            [ -f "$qt_path/lib64/cmake/Qt6/Qt6Config.cmake" ] ||
+            [ -f "/usr/lib/cmake/Qt6/Qt6Config.cmake" ]; then
             SYSTEM_QT_PREFIX="$qt_path"
             print_status "Found system Qt6 in: $SYSTEM_QT_PREFIX"
             SYSTEM_QT_FOUND=1
@@ -173,8 +99,8 @@ detect_system_qt() {
         fi
     done
 
-    if [ -f "/usr/lib/cmake/Qt6/Qt6Config.cmake" ] || \
-       [ -f "/usr/lib64/cmake/Qt6/Qt6Config.cmake" ]; then
+    if [ -f "/usr/lib/cmake/Qt6/Qt6Config.cmake" ] ||
+        [ -f "/usr/lib64/cmake/Qt6/Qt6Config.cmake" ]; then
         SYSTEM_QT_PREFIX="/usr"
         print_status "Found system Qt6 CMake config in /usr"
         SYSTEM_QT_FOUND=1
@@ -185,7 +111,7 @@ detect_system_qt() {
 }
 
 check_system_qt_deps() {
-    if ! command -v pkg-config &> /dev/null; then
+    if ! command -v pkg-config &>/dev/null; then
         print_warning "pkg-config not found; cannot validate system Qt dependencies."
         return
     fi
@@ -211,6 +137,244 @@ check_system_qt_deps() {
         print_warning "System Qt mode selected, but some required system packages are missing."
         print_warning "Please install distro packages providing: Qt6, quazip-qt6, cmark."
         print_warning "Or force vcpkg Qt by setting USE_VCPKG_QT=1."
+    fi
+}
+
+execute_in_build_dir() {
+    local cmd="$1"
+    cd "$BUILD_DIR"
+    if ! eval "$cmd"; then
+        print_error "Command failed: $cmd"
+        exit 1
+    fi
+    cd "$SRC_DIR"
+}
+
+execute_cmake_command() {
+    local cmake_args=("$@")
+    if [ "$SINGLE_CONFIG" = "false" ]; then
+        cmake_args+=("--config" "$BUILD_TYPE")
+    fi
+
+    print_status "Running CMake command"
+    if [ ! -d "$BUILD_DIR" ]; then
+        print_error "Build directory not found: $BUILD_DIR"
+        exit 1
+    fi
+
+    if ! (cd "$BUILD_DIR" && cmake "${cmake_args[@]}"); then
+        print_error "CMake command failed"
+        exit 1
+    fi
+}
+
+find_and_run_test() {
+    find_file_in_configs "testNote" "$BUILD_DIR"
+    if [ "$FILE_FOUND" = "1" ]; then
+        for config in "$BUILD_TYPE" "Release" "Debug"; do
+            if [ -f "$BUILD_DIR/$config/testNote" ]; then
+                "$BUILD_DIR/$config/testNote"
+                if [ $? -ne 0 ]; then
+                    print_error "Test execution failed."
+                    exit 1
+                fi
+                return
+            fi
+        done
+        if [ -f "$BUILD_DIR/testNote" ]; then
+            "$BUILD_DIR/testNote"
+            if [ $? -ne 0 ]; then
+                print_error "Test execution failed."
+                exit 1
+            fi
+        fi
+    fi
+}
+
+check_tools() {
+    if ! command -v git &>/dev/null; then
+        print_error "Git not found."
+        exit 1
+    fi
+
+    if ! command -v cmake &>/dev/null; then
+        print_error "CMake not found."
+        exit 1
+    fi
+}
+
+setup_vcpkg() {
+    git config --global --add safe.directory "$VCPKG_ROOT" 2>/dev/null || true
+
+    local VCPKG_CLONE_URL="https://github.com/microsoft/vcpkg"
+
+    if [ ! -d "$VCPKG_ROOT/.git" ]; then
+        print_status "Cloning vcpkg..."
+        echo
+        if ! git clone --depth 1 '$VCPKG_CLONE_URL' '$VCPKG_ROOT'; then
+            print_error "Failed to clone vcpkg after multiple attempts."
+            exit 1
+        fi
+    else
+        print_status "Updating vcpkg..."
+        echo
+        if ! git -C "$VCPKG_ROOT" pull --ff-only; then
+            print_error "Failed to update vcpkg after multiple attempts."
+            echo
+            exit 1
+        fi
+    fi
+
+    if [ ! -f "$VCPKG_ROOT/vcpkg" ]; then
+        print_status "Bootstrapping vcpkg..."
+        echo
+
+        cleanup_vcpkg_locks
+
+        if ! cd "$VCPKG_ROOT" && ./bootstrap-vcpkg.sh; then
+            print_error "Failed to bootstrap vcpkg after multiple attempts."
+            exit 1
+        fi
+    fi
+
+    if [ ! -f "$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" ]; then
+        print_error "vcpkg toolchain file not found."
+        exit 1
+    fi
+}
+
+install_dependencies() {
+    print_status "Installing vcpkg dependencies..."
+
+    cleanup_vcpkg_locks
+
+    detect_system_qt
+
+    local vcpkg_args=(
+        "install"
+        "--triplet=$VCPKG_TRIPLET"
+        "--clean-after-build"
+        "--x-install-root=$VCPKG_INSTALLED_DIR"
+    )
+
+    if [ "$APVLV_WITH_OCR" = "1" ]; then
+        vcpkg_args+=("--x-feature=ocr")
+    fi
+    if [ "$APVLV_WITH_MUPDF" = "1" ]; then
+        vcpkg_args+=("--x-feature=mupdf")
+    fi
+
+    local manifest_root="$SRC_DIR"
+    if [ "$SYSTEM_QT_FOUND" = "1" ]; then
+        manifest_root="$SRC_DIR/vcpkg-manifests/system-qt"
+        check_system_qt_deps
+        print_status "Using system Qt. vcpkg manifest root: $manifest_root"
+    else
+        print_status "Using vcpkg Qt. vcpkg manifest root: $manifest_root"
+    fi
+
+    export VCPKG_INSTALLED_DIR
+
+    if ! cd "$SRC_DIR" && "$VCPKG_ROOT/vcpkg" ${vcpkg_args[*]} --x-manifest-root='$manifest_root'; then
+        print_error "Failed to install vcpkg dependencies after multiple attempts."
+        exit 1
+    fi
+}
+
+ensure_vcpkg_and_deps() {
+    setup_vcpkg
+    install_dependencies
+}
+
+clean_build() {
+    print_status "Cleaning build directory: $BUILD_DIR"
+    if [ -d "$BUILD_DIR" ]; then
+        rm -rf "$BUILD_DIR"
+        if [ $? -ne 0 ]; then
+            print_error "Failed to remove build directory."
+            exit 1
+        fi
+    fi
+    mkdir -p "$BUILD_DIR" || {
+        print_error "Failed to create build directory."
+        exit 1
+    }
+}
+
+configure() {
+    local cmake_cmd="cmake \"$SRC_DIR\""
+
+    cmake_cmd+=" -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+    cmake_cmd+=" -DVCPKG_TARGET_TRIPLET=$VCPKG_TRIPLET"
+
+    if [ "$SYSTEM_QT_FOUND" = "1" ]; then
+        print_status "Configuring CMake to use system Qt from: $SYSTEM_QT_PREFIX"
+        cmake_cmd+=" -DCMAKE_PREFIX_PATH=\"$SYSTEM_QT_PREFIX;$VCPKG_INSTALLED_DIR/$VCPKG_TRIPLET\""
+        cmake_cmd+=" -DVCPKG_MANIFEST_MODE=OFF"
+    fi
+
+    local vcpkg_manifest_features=()
+    if [ "$APVLV_WITH_MUPDF" = "1" ]; then
+        cmake_cmd+=" -DAPVLV_WITH_MUPDF=ON"
+        vcpkg_manifest_features+=("mupdf")
+    fi
+    if [ "$APVLV_WITH_OCR" = "1" ]; then
+        cmake_cmd+=" -DAPVLV_WITH_OCR=ON"
+        vcpkg_manifest_features+=("ocr")
+    fi
+
+    if [ ${#vcpkg_manifest_features[@]} -gt 0 ] && [ "$SYSTEM_QT_FOUND" != "1" ]; then
+        cmake_cmd+=" -DVCPKG_MANIFEST_FEATURES=$(
+            IFS=';'
+            echo "${vcpkg_manifest_features[*]}"
+        )"
+    fi
+
+    if command -v ninja &>/dev/null; then
+        cmake_cmd+=' -G "Ninja"'
+    else
+        cmake_cmd+=' -G "Unix Makefiles"'
+    fi
+
+    execute_in_build_dir "$cmake_cmd"
+}
+
+build() {
+    execute_cmake_command "--build" "." "--parallel"
+}
+
+create_package() {
+    execute_cmake_command "--build" "." "--target" "package" "--parallel"
+}
+
+run_tests() {
+    find_and_run_test
+}
+
+find_executable() {
+    find_file_in_configs "apvlv" "$BUILD_DIR"
+}
+
+find_file_in_configs() {
+    local filename="$1"
+    local search_base="$2"
+
+    FILE_FOUND=0
+    for config in "$BUILD_TYPE" "Release" "Debug"; do
+        if [ -f "$search_base/$config/$filename" ]; then
+            print_status "Found: $search_base/$config/$filename"
+            FILE_FOUND=1
+            return
+        fi
+    done
+
+    if [ -f "$search_base/$filename" ]; then
+        print_status "Found: $search_base/$filename"
+        FILE_FOUND=1
+    fi
+
+    if [ "$FILE_FOUND" = "0" ]; then
+        print_warning "Could not locate $filename."
     fi
 }
 
@@ -256,244 +420,6 @@ execute_build() {
     find_executable
 
     print_status "Build completed successfully!"
-}
-
-execute_in_build_dir() {
-    local cmd="$1"
-    cd "$BUILD_DIR"
-    if ! eval "$cmd"; then
-        print_error "Command failed: $cmd"
-        exit 1
-    fi
-    cd "$SRC_DIR"
-}
-
-execute_cmake_command() {
-    local cmake_args=("$@")
-    if [ "$SINGLE_CONFIG" = "false" ]; then
-        cmake_args+=("--config" "$BUILD_TYPE")
-    fi
-
-    print_status "Running CMake command"
-    if [ ! -d "$BUILD_DIR" ]; then
-        print_error "Build directory not found: $BUILD_DIR"
-        exit 1
-    fi
-
-    if ! ( cd "$BUILD_DIR" && cmake "${cmake_args[@]}" ); then
-        print_error "CMake command failed"
-        exit 1
-    fi
-}
-
-find_and_run_test() {
-    find_file_in_configs "testNote" "$BUILD_DIR"
-    if [ "$FILE_FOUND" = "1" ]; then
-        for config in "$BUILD_TYPE" "Release" "Debug"; do
-            if [ -f "$BUILD_DIR/$config/testNote" ]; then
-                "$BUILD_DIR/$config/testNote"
-                if [ $? -ne 0 ]; then
-                    print_error "Test execution failed."
-                    exit 1
-                fi
-                return
-            fi
-        done
-        if [ -f "$BUILD_DIR/testNote" ]; then
-            "$BUILD_DIR/testNote"
-            if [ $? -ne 0 ]; then
-                print_error "Test execution failed."
-                exit 1
-            fi
-        fi
-    fi
-}
-
-ensure_vcpkg_and_deps() {
-    setup_vcpkg
-    install_dependencies
-}
-
-check_tools() {
-    if ! command -v git &> /dev/null; then
-        print_error "Git not found."
-        exit 1
-    fi
-    
-    if ! command -v cmake &> /dev/null; then
-        print_error "CMake not found."
-        exit 1
-    fi
-}
-
-setup_vcpkg() {
-    git config --global --add safe.directory "$VCPKG_ROOT" 2>/dev/null || true
-
-    local VCPKG_CLONE_URL="https://github.com/microsoft/vcpkg"
-
-    if [ ! -d "$VCPKG_ROOT/.git" ]; then
-        print_status "Cloning vcpkg..."
-        echo
-        if ! invoke_with_retry "git clone --depth 1 '$VCPKG_CLONE_URL' '$VCPKG_ROOT'"; then
-            print_error "Failed to clone vcpkg after multiple attempts."
-            exit 1
-        fi
-    else
-        print_status "Updating vcpkg..."
-        echo
-        if ! invoke_with_retry "git -C '$VCPKG_ROOT' pull --ff-only"; then
-            print_error "Failed to update vcpkg after multiple attempts."
-            echo
-            exit 1
-        fi
-    fi
-
-    if [ ! -f "$VCPKG_ROOT/vcpkg" ]; then
-        print_status "Bootstrapping vcpkg..."
-        echo
-        
-        cleanup_vcpkg_locks
-        
-        if ! invoke_vcpkg_with_retry "cd '$VCPKG_ROOT' && ./bootstrap-vcpkg.sh"; then
-            print_error "Failed to bootstrap vcpkg after multiple attempts."
-            exit 1
-        fi
-    fi
-
-    if [ ! -f "$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" ]; then
-        print_error "vcpkg toolchain file not found."
-        exit 1
-    fi
-}
-
-
-
-install_dependencies() {
-    print_status "Installing vcpkg dependencies..."
-    
-    cleanup_vcpkg_locks
-
-    detect_system_qt
-
-    local vcpkg_args=(
-        "install"
-        "--triplet=$VCPKG_TRIPLET"
-        "--clean-after-build"
-        "--x-install-root=$VCPKG_INSTALLED_DIR"
-    )
-
-    if [ "$APVLV_WITH_OCR" = "1" ]; then
-        vcpkg_args+=("--x-feature=ocr")
-    fi
-    if [ "$APVLV_WITH_MUPDF" = "1" ]; then
-        vcpkg_args+=("--x-feature=mupdf")
-    fi
-
-    local manifest_root="$SRC_DIR"
-    if [ "$SYSTEM_QT_FOUND" = "1" ]; then
-        manifest_root="$SRC_DIR/vcpkg-manifests/system-qt"
-        check_system_qt_deps
-        print_status "Using system Qt. vcpkg manifest root: $manifest_root"
-    else
-        print_status "Using vcpkg Qt. vcpkg manifest root: $manifest_root"
-    fi
-
-    export VCPKG_INSTALLED_DIR
-
-    if ! invoke_vcpkg_with_retry "cd '$SRC_DIR' && '$VCPKG_ROOT/vcpkg' ${vcpkg_args[*]} --x-manifest-root='$manifest_root'"; then
-        print_error "Failed to install vcpkg dependencies after multiple attempts."
-        exit 1
-    fi
-}
-
-
-clean_build() {
-    print_status "Cleaning build directory: $BUILD_DIR"
-    if [ -d "$BUILD_DIR" ]; then
-        rm -rf "$BUILD_DIR"
-        if [ $? -ne 0 ]; then
-            print_error "Failed to remove build directory."
-            exit 1
-        fi
-    fi
-    mkdir -p "$BUILD_DIR" || {
-        print_error "Failed to create build directory."
-        exit 1
-    }
-}
-
-configure() {
-    local cmake_cmd="cmake \"$SRC_DIR\""
-
-    cmake_cmd+=" -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
-    cmake_cmd+=" -DVCPKG_TARGET_TRIPLET=$VCPKG_TRIPLET"
-
-    if [ "$SYSTEM_QT_FOUND" = "1" ]; then
-        print_status "Configuring CMake to use system Qt from: $SYSTEM_QT_PREFIX"
-        cmake_cmd+=" -DCMAKE_PREFIX_PATH=\"$SYSTEM_QT_PREFIX;$VCPKG_INSTALLED_DIR/$VCPKG_TRIPLET\""
-        cmake_cmd+=" -DVCPKG_MANIFEST_MODE=OFF"
-    fi
-
-    local vcpkg_manifest_features=()
-    if [ "$APVLV_WITH_MUPDF" = "1" ]; then
-        cmake_cmd+=" -DAPVLV_WITH_MUPDF=ON"
-        vcpkg_manifest_features+=("mupdf")
-    fi
-    if [ "$APVLV_WITH_OCR" = "1" ]; then
-        cmake_cmd+=" -DAPVLV_WITH_OCR=ON"
-        vcpkg_manifest_features+=("ocr")
-    fi
-
-    if [ ${#vcpkg_manifest_features[@]} -gt 0 ] && [ "$SYSTEM_QT_FOUND" != "1" ]; then
-        cmake_cmd+=" -DVCPKG_MANIFEST_FEATURES=$(IFS=';'; echo "${vcpkg_manifest_features[*]}")"
-    fi
-
-    if command -v ninja &> /dev/null; then
-        cmake_cmd+=' -G "Ninja"'
-    else
-        cmake_cmd+=' -G "Unix Makefiles"'
-    fi
-
-    execute_in_build_dir "$cmake_cmd"
-}
-
-build() {
-    execute_cmake_command "--build" "." "--parallel"
-}
-
-create_package() {
-    execute_cmake_command "--build" "." "--target" "package" "--parallel"
-}
-
-run_tests() {
-    find_and_run_test
-}
-
-find_executable() {
-    find_file_in_configs "apvlv" "$BUILD_DIR"
-}
-
-find_file_in_configs() {
-    local filename="$1"
-    local search_base="$2"
-    
-    FILE_FOUND=0
-    for config in "$BUILD_TYPE" "Release" "Debug"; do
-        if [ -f "$search_base/$config/$filename" ]; then
-            print_status "Found: $search_base/$config/$filename"
-            FILE_FOUND=1
-            return
-        fi
-    done
-
-    if [ -f "$search_base/$filename" ]; then
-        print_status "Found: $search_base/$filename"
-        FILE_FOUND=1
-    fi
-
-    if [ "$FILE_FOUND" = "0" ]; then
-        print_warning "Could not locate $filename."
-    fi
 }
 
 show_help() {
@@ -551,8 +477,6 @@ VCPKG_INSTALLED_DIR="${VCPKG_INSTALLED_DIR:-$GLOBAL_BUILD_DIR/vcpkg_installed}"
 VCPKG_TRIPLET="${VCPKG_TARGET_TRIPLET:-x64-linux}"
 
 # Environment variables for features
-APVLV_WITH_MUPDF="${APVLV_WITH_MUPDF:-0}"
-APVLV_WITH_OCR="${APVLV_WITH_OCR:-0}"
 USE_VCPKG_QT="${USE_VCPKG_QT:-0}"
 
 # System Qt detection results (will be set by detect_system_qt)
@@ -561,7 +485,7 @@ SYSTEM_QT_PREFIX=""
 
 # Determine if we're using a single-config generator
 SINGLE_CONFIG="true"
-if command -v ninja &> /dev/null; then
+if command -v ninja &>/dev/null; then
     SINGLE_CONFIG="false"
 fi
 
