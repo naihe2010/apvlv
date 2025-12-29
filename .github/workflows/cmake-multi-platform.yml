@@ -83,7 +83,7 @@ jobs:
           apt-get update
           apt-get install -y cmake cmark g++ \
             qt6-base-dev qt6-webengine-dev \
-            qt6-qtpdf-dev ps2pdf libreooficekit-dev \
+            qt6-pdf-dev libreoficekit-dev \
             libquazip1-qt6-dev libpoppler-qt6-dev \
             libcmark-dev libdjvulibre-dev \
             libmupdf-dev libtesseract-dev \
