@@ -4,9 +4,9 @@ name: CMake on multiple platforms
 
 on:
   push:
-    branches: ["master"]
+    branches: ["master", "feat-*"]
   pull_request:
-    branches: ["master"]
+    branches: ["master", "feat-*"]
 
 jobs:
   build:
@@ -67,24 +67,27 @@ jobs:
       - name: Prepare (DNF - Fedora/Rocky Linux)
         if: matrix.package_manager == 'dnf'
         run: |
-          dnf install -y cmake gcc-c++ \
+          dnf install -y cmake cmark gcc-c++ \
             qt6-qtbase-devel qt6-qtwebengine-devel \
+            qt6-qtpdf-devel ps2pdf libreofficekit-devel \
             quazip-qt6-devel poppler-qt6-devel \
             cmark-devel djvulibre-devel \
             mupdf-devel tesseract-devel \
-            man ghostscript qt6-linguist
+            man ghostscript qt6-linguist \
+            rpmbuild
           mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
       - name: Prepare (APT - Debian)
         if: matrix.package_manager == 'apt'
         run: |
           apt-get update
-          apt-get install -y cmake g++ \
+          apt-get install -y cmake cmark g++ \
             qt6-base-dev qt6-webengine-dev \
+            qt6-qtpdf-dev ps2pdf libreooficekit-dev \
             libquazip1-qt6-dev libpoppler-qt6-dev \
             libcmark-dev libdjvulibre-dev \
             libmupdf-dev libtesseract-dev \
-            groff ghostscript qt6-tools-dev qt6-l10n-tools
+            man groff ghostscript qt6-tools-dev qt6-l10n-tools
           mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
       - name: Prepare (Pacman - Arch Linux)
