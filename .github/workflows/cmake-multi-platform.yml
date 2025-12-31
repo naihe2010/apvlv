@@ -4,9 +4,9 @@ name: CMake on multiple platforms
 
 on:
   push:
-    branches: ["master", "feat-*"]
+    branches: ["**"]
   pull_request:
-    branches: ["master", "feat-*"]
+    branches: ["master"]
 
 jobs:
   build:
@@ -20,7 +20,7 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            container: fedora:42
+            container: fedora:43
             c_compiler: gcc
             cpp_compiler: g++
             build_type: Release
@@ -31,12 +31,6 @@ jobs:
             cpp_compiler: g++
             build_type: Release
             package_manager: dnf
-          - os: ubuntu-latest
-            container: debian:11
-            c_compiler: gcc
-            cpp_compiler: g++
-            build_type: Release
-            package_manager: apt
           - os: ubuntu-latest
             container: debian:12
             c_compiler: gcc

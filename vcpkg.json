@@ -1,23 +1,19 @@
 {
-  "name": "apvlv",
-  "version": "0.7.0",
-  "description": "Alf's PDF/DJVU/EPUB Viewer like Vim",
-  "homepage": "https://github.com/naihe2010/apvlv",
-  "license": "GPL-3.0",
-  "dependencies": [
-    "qtbase",
-    "quazip",
-    "libmupdf",
-    {
-      "name": "poppler",
-      "features": ["qt"]
-    },
-    "cmark"
-  ],
-  "features": {
-    "ocr": {
-      "description": "OCR support", 
-      "dependencies": ["tesseract"]
-    }
-  }
+    "name": "apvlv",
+    "version": "0.7.0",
+    "description": "Alf's PDF/DJVU/EPUB Viewer like Vim",
+    "homepage": "https://github.com/naihe2010/apvlv",
+    "license": "GPL-3.0",
+    "dependencies": [
+	"qtbase",
+	"qtwebengine",
+	"quazip",
+	"libmupdf",
+	{
+	    "name": "poppler",
+	    "features": ["qt"]
+	},
+	"cmark",
+	"tesseract"
+    ]
 }
