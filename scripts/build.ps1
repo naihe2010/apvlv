@@ -129,7 +129,7 @@ if (!(Test-Path $VcpkgRoot) -or !(Test-Path "$VcpkgRoot\.git")) {
     if (Test-Path $VcpkgRoot) { Remove-Item -Recurse -Force $VcpkgRoot }
     Push-Location $BuildDir
     try {
-        git clone --depth 1 https://github.com/microsoft/vcpkg vcpkg
+        git clone https://github.com/microsoft/vcpkg vcpkg
         if ($LASTEXITCODE -ne 0) { Write-Error-Exit "Failed to clone vcpkg" }
     } finally {
         Pop-Location
@@ -138,6 +138,11 @@ if (!(Test-Path $VcpkgRoot) -or !(Test-Path "$VcpkgRoot\.git")) {
     Write-Host "Updating vcpkg..." -ForegroundColor Green
     Push-Location "$VcpkgRoot"
     try {
+        $isShallow = (& git rev-parse --is-shallow-repository).Trim()
+        if ($isShallow -eq "true") {
+            git fetch --unshallow
+            if ($LASTEXITCODE -ne 0) { Write-Error-Exit "Failed to unshallow vcpkg repository" }
+        }
         git pull --ff-only
         if ($LASTEXITCODE -ne 0) { Write-Error-Exit "Failed to update vcpkg" }
     } finally {
