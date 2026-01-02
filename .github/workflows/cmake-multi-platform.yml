@@ -55,6 +55,7 @@ jobs:
             qt6-pdf-dev libreofficekit-dev \
             libquazip1-qt6-dev libpoppler-qt6-dev \
             libcmark-dev libdjvulibre-dev \
+            libharfbuzz-dev \
             libmupdf-dev libtesseract-dev \
             man groff ghostscript qt6-tools-dev qt6-l10n-tools \
             pkg-config
@@ -79,7 +80,7 @@ jobs:
         if: matrix.container == 'archlinux:latest'
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm cmake gcc \
+          pacman -S --noconfirm cmake make gcc \
             qt6-base qt6-webengine \
             libreoffice-fresh \
             quazip-qt6 poppler-qt6 \
