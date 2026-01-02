@@ -9,7 +9,7 @@ on:
     branches: ["master"]
 
 jobs:
-  build:
+  build-linux:
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container }}
 
@@ -21,39 +21,17 @@ jobs:
         include:
           - os: ubuntu-latest
             container: fedora:43
-            c_compiler: gcc
-            cpp_compiler: g++
-            build_type: Release
           - os: ubuntu-latest
             container: rockylinux:9
-            c_compiler: gcc
-            cpp_compiler: g++
-            build_type: Release
             package_manager: dnf
           - os: ubuntu-latest
             container: debian:13
-            c_compiler: gcc
-            cpp_compiler: g++
-            build_type: Release
           - os: ubuntu-latest
             container: archlinux:latest
-            c_compiler: gcc
-            cpp_compiler: g++
-            build_type: Release
-          - os: windows-latest
-            c_compiler: cl
-            cpp_compiler: cl
-            build_type: Release
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set reusable strings
-        # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
-        id: strings
-        shell: bash
-        run: |
-          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Prepare (Fedora 43)
         if: matrix.container == 'fedora:43'
@@ -109,49 +87,18 @@ jobs:
             man groff ghostscript qt6-tools
           mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
-      - name: Setup and run vcpkg
-        if: matrix.os == 'windows-latest'
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgGitCommitId: '84bab45d415d22042bd0b9081aea57f362da3f35'
-          runVcpkgInstall: true
-          vcpkgJsonGlob: 'vcpkg.json'
-
-      - name: Configure CMake
-        if: matrix.os == 'windows-latest'
-        run: |
-          cmake -B ${{ steps.strings.outputs.build-output-dir }} `
-            -S ${{ github.workspace }} `
-            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
-            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} `
-            -G "Visual Studio 17 2022" `
-            -A x64
-        shell: pwsh
-
-      - name: Configure CMake (Linux)
-        if: matrix.container != ''
-        run: |
-          cmake -B $GITHUB_WORKSPACE/build \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
-            -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
-            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -S $GITHUB_WORKSPACE
-
-      - name: Build (Windows)
-        if: matrix.os == 'windows-latest'
-        run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
-
       - name: Build (Linux)
-        if: matrix.container != ''
-        run: cmake --build $GITHUB_WORKSPACE/build --config ${{ matrix.build_type }}
-
-      - name: Test (Windows)
-        if: matrix.os == 'windows-latest'
-        working-directory: ${{ steps.strings.outputs.build-output-dir }}
-        run: ctest --build-config ${{ matrix.build_type }}
-
-      - name: Test (Linux)
-        if: matrix.container != ''
         run: |
-          cd $GITHUB_WORKSPACE/build
-          ctest --build-config ${{ matrix.build_type }}
+          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+
+  build-windows:
+    name: Build (Windows)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build with script
+        run: ./scripts/build.ps1
+
