@@ -64,31 +64,33 @@ jobs:
       - name: Prepare (RockyLinux 9)
         if: matrix.container == 'rockylinux:9'
         run: |
+          dnf install -y epel-release
+          dnf config-manager --enable crb devel
           dnf install -y cmake cmark gcc-c++ \
             qt6-qtbase-devel qt6-qtwebengine-devel \
-            qt6-qtpdf-devel ps2pdf libreofficekit-devel \
-            quazip-qt6-devel poppler-qt6-devel \
+            qt6-qtpdf-devel libreofficekit-devel \
+            quazip-qt5-devel poppler-qt5-devel \
             cmark-devel djvulibre-devel \
             mupdf-devel tesseract-devel \
-            man ghostscript qt6-linguist \
-            rpmbuild
+            man ghostscript qt6-linguist
           mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
       - name: Prepare (Arch Linux)
         if: matrix.container == 'archlinux:latest'
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm cmake cmark gcc \
+          pacman -S --noconfirm cmake gcc \
             qt6-base qt6-webengine \
-            qt6-pdf libreoffice-fresh \
+            libreoffice-fresh \
             quazip-qt6 poppler-qt6 \
             cmark djvulibre \
             mupdf tesseract \
-            man groff ghostscript qt6-tools
+            man-db groff ghostscript qt6-tools
           mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
       - name: Build (Linux)
         run: |
+          test -d /usr/lib/qt6/bin && export PATH=/usr/lib/qt6/bin:$PATH
           cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
           cmake --build build
 
