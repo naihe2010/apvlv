@@ -311,9 +311,9 @@ WebView::underLinePosition (int begin, int end, const std::string &tooltip)
 {
   qDebug () << "underLinePosition" << begin << " -> " << end;
   QString src = QString ("underlineByOffset(%1, %2, '%3');")
-                    .arg (begin)
-                    .arg (end)
-                    .arg (tooltip);
+    .arg (begin)
+    .arg (end)
+    .arg (tooltip.c_str());
   mPage->runJavaScript (src);
 }
 
