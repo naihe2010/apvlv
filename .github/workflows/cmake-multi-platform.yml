@@ -24,7 +24,6 @@ jobs:
             c_compiler: gcc
             cpp_compiler: g++
             build_type: Release
-            package_manager: dnf
           - os: ubuntu-latest
             container: rockylinux:9
             c_compiler: gcc
@@ -32,17 +31,15 @@ jobs:
             build_type: Release
             package_manager: dnf
           - os: ubuntu-latest
-            container: debian:12
+            container: debian:13
             c_compiler: gcc
             cpp_compiler: g++
             build_type: Release
-            package_manager: apt
           - os: ubuntu-latest
             container: archlinux:latest
             c_compiler: gcc
             cpp_compiler: g++
             build_type: Release
-            package_manager: pacman
           - os: windows-latest
             c_compiler: cl
             cpp_compiler: cl
@@ -58,8 +55,8 @@ jobs:
         run: |
           echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-      - name: Prepare (DNF - Fedora/Rocky Linux)
-        if: matrix.package_manager == 'dnf'
+      - name: Prepare (Fedora 43)
+        if: matrix.container == 'fedora:43'
         run: |
           dnf install -y cmake cmark gcc-c++ \
             qt6-qtbase-devel qt6-qtwebengine-devel \
@@ -71,8 +68,8 @@ jobs:
             rpmbuild
           mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
-      - name: Prepare (APT - Debian)
-        if: matrix.package_manager == 'apt'
+      - name: Prepare (Debian 13)
+        if: matrix.container == 'debian:13'
         run: |
           apt-get update
           apt-get install -y cmake cmark g++ \
@@ -81,19 +78,35 @@ jobs:
             libquazip1-qt6-dev libpoppler-qt6-dev \
             libcmark-dev libdjvulibre-dev \
             libmupdf-dev libtesseract-dev \
-            man groff ghostscript qt6-tools-dev qt6-l10n-tools
+            man groff ghostscript qt6-tools-dev qt6-l10n-tools \
+            pkg-config
+          export PATH=/usr/lib/qt6/bin:$PATH
           mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
-      - name: Prepare (Pacman - Arch Linux)
-        if: matrix.package_manager == 'pacman'
+      - name: Prepare (RockyLinux 9)
+        if: matrix.container == 'rockylinux:9'
+        run: |
+          dnf install -y cmake cmark gcc-c++ \
+            qt6-qtbase-devel qt6-qtwebengine-devel \
+            qt6-qtpdf-devel ps2pdf libreofficekit-devel \
+            quazip-qt6-devel poppler-qt6-devel \
+            cmark-devel djvulibre-devel \
+            mupdf-devel tesseract-devel \
+            man ghostscript qt6-linguist \
+            rpmbuild
+          mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
+
+      - name: Prepare (Arch Linux)
+        if: matrix.container == 'archlinux:latest'
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm cmake gcc \
+          pacman -S --noconfirm cmake cmark gcc \
             qt6-base qt6-webengine \
+            qt6-pdf libreoffice-fresh \
             quazip-qt6 poppler-qt6 \
             cmark djvulibre \
             mupdf tesseract \
-            groff ghostscript qt6-tools
+            man groff ghostscript qt6-tools
           mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
       - name: Setup and run vcpkg
@@ -116,7 +129,7 @@ jobs:
         shell: pwsh
 
       - name: Configure CMake (Linux)
-        if: matrix.package_manager != ''
+        if: matrix.container != ''
         run: |
           cmake -B $GITHUB_WORKSPACE/build \
             -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
@@ -129,7 +142,7 @@ jobs:
         run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
       - name: Build (Linux)
-        if: matrix.package_manager != ''
+        if: matrix.container != ''
         run: cmake --build $GITHUB_WORKSPACE/build --config ${{ matrix.build_type }}
 
       - name: Test (Windows)
@@ -138,7 +151,7 @@ jobs:
         run: ctest --build-config ${{ matrix.build_type }}
 
       - name: Test (Linux)
-        if: matrix.package_manager != ''
+        if: matrix.container != ''
         run: |
           cd $GITHUB_WORKSPACE/build
           ctest --build-config ${{ matrix.build_type }}
