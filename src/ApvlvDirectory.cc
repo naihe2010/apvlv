@@ -573,7 +573,7 @@ Directory::tag ()
     {
       if (note->load (path) == false)
         {
-          auto msg = QString (tr ("load note of %s error")).arg (cur->path);
+          auto msg = QString (tr ("load note of %s error")).arg (cur->path.c_str());
           QMessageBox::warning (nullptr, tr ("error"), msg);
           return;
         }
