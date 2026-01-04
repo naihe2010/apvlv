@@ -22,10 +22,9 @@ jobs:
           - os: ubuntu-latest
             container: fedora:43
           - os: ubuntu-latest
-            container: rockylinux:9
-            package_manager: dnf
-          - os: ubuntu-latest
             container: debian:13
+          - os: ubuntu-latest
+            container: rockylinux:9
           - os: ubuntu-latest
             container: archlinux:latest
 
@@ -67,26 +66,30 @@ jobs:
         run: |
           dnf install -y epel-release
           dnf config-manager --enable crb devel
+          dnf install -y --nogpgcheck https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-$(rpm -E %rhel).noarch.rpm
+          dnf install -y --nogpgcheck https://mirrors.rpmfusion.org/nonfree/el/rpmfusion-nonfree-release-$(rpm -E %rhel).noarch.rpm
           dnf install -y cmake cmark gcc-c++ \
             qt6-qtbase-devel qt6-qtwebengine-devel \
             qt6-qtpdf-devel libreofficekit-devel \
-            quazip-qt5-devel poppler-qt5-devel \
             cmark-devel djvulibre-devel \
             mupdf-devel tesseract-devel \
             man ghostscript qt6-linguist
+            # quazip-qt6-devel poppler-qt6-devel
           mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
       - name: Prepare (Arch Linux)
         if: matrix.container == 'archlinux:latest'
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm cmake make gcc \
+          pacman -S --noconfirm base-devel cmake make gcc \
             qt6-base qt6-webengine \
-            libreoffice-fresh \
+            libreoffice-fresh-sdk jdk-openjdk \
             quazip-qt6 poppler-qt6 \
+            pkg-config \
             cmark djvulibre \
-            mupdf tesseract \
-            man-db groff ghostscript qt6-tools
+            mupdf mujs tesseract \
+            man-db groff ghostscript qt6-tools \
+            gtk3
           mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
       - name: Build (Linux)
