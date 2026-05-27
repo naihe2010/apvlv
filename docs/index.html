@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="apvlv is a fast, Vim-like document viewer for PDF, EPUB, TXT, FB2, MOBI, CBZ, HTML, and more."
+    >
+    <title>apvlv | Vim-like document reading</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header" aria-label="Primary">
+      <a class="brand" href="#top" aria-label="apvlv home">
+        <span class="brand-mark" aria-hidden="true">a</span>
+        <span>apvlv</span>
+      </a>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#art">Art</a>
+        <a href="manual.html">Manual</a>
+        <a href="#build">Build</a>
+        <a href="https://github.com/naihe2010/apvlv">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-art" aria-hidden="true">
+          <div class="app-window">
+            <div class="window-bar">
+              <span></span>
+              <span></span>
+              <span></span>
+              <strong>:open notes.pdf</strong>
+            </div>
+            <div class="window-body">
+              <aside class="file-tree">
+                <b>~/library</b>
+                <span class="active">manual.pdf</span>
+                <span>papers/</span>
+                <span>epub/</span>
+                <span>notes.txt</span>
+              </aside>
+              <div class="page-art">
+                <div class="page-toolbar">
+                  <span>normal</span>
+                  <span>42%</span>
+                  <span>j k h l</span>
+                </div>
+                <div class="paper-sheet">
+                  <i></i>
+                  <i></i>
+                  <i></i>
+                  <i></i>
+                  <em></em>
+                  <i></i>
+                  <i></i>
+                  <i></i>
+                </div>
+              </div>
+            </div>
+            <div class="command-line">:tabnew chapter.epub</div>
+          </div>
+        </div>
+        <div class="hero-content">
+          <p class="eyebrow">Vim-style reading for real documents</p>
+          <h1 id="hero-title">apvlv</h1>
+          <p class="hero-copy">
+            A keyboard-first viewer for PDF, EPUB, TXT, FB2, MOBI, CBZ, HTML,
+            and more. Navigate pages, tabs, directories, and annotations with
+            the rhythm of Vim.
+          </p>
+          <div class="hero-actions" aria-label="Project links">
+            <a class="button primary" href="https://github.com/naihe2010/apvlv/releases">Download</a>
+            <a class="button secondary" href="https://github.com/naihe2010/apvlv">View source</a>
+          </div>
+        </div>
+        <div class="hero-status" aria-label="Project status">
+          <span>GPL licensed</span>
+          <span>Qt6</span>
+          <span>Linux and Windows</span>
+        </div>
+      </section>
+
+      <section class="intro" aria-label="Project highlights">
+        <div class="metric">
+          <strong>Vim keys</strong>
+          <span>Use familiar commands such as j, k, h, l, Ctrl-f, and Ctrl-b.</span>
+        </div>
+        <div class="metric">
+          <strong>Many formats</strong>
+          <span>Read PDF, EPUB, TXT, FB2, MOBI, CBZ, HTML, images, and more.</span>
+        </div>
+        <div class="metric">
+          <strong>Directory flow</strong>
+          <span>Browse folders like document outlines and open files in tabs.</span>
+        </div>
+      </section>
+
+      <section class="section" id="features" aria-labelledby="features-title">
+        <div class="section-heading">
+          <p class="eyebrow">Designed for readers who stay on the keyboard</p>
+          <h2 id="features-title">Fast commands, calm pages.</h2>
+        </div>
+        <div class="feature-grid">
+          <article class="feature">
+            <span class="feature-icon" aria-hidden="true">42</span>
+            <h3>Counted motion</h3>
+            <p>Type a number before a command to move exactly as far as you mean, from a single page to a long jump.</p>
+          </article>
+          <article class="feature">
+            <span class="feature-icon" aria-hidden="true">/</span>
+            <h3>Directory navigation</h3>
+            <p>Open a folder, move through entries with Vim keys, expand directories, and launch documents in tabs.</p>
+          </article>
+          <article class="feature">
+            <span class="feature-icon" aria-hidden="true">#</span>
+            <h3>Annotations</h3>
+            <p>Mark, comment, underline, and keep reading without leaving the document-centered workflow.</p>
+          </article>
+          <article class="feature">
+            <span class="feature-icon" aria-hidden="true">:</span>
+            <h3>Search and command line</h3>
+            <p>Use modal commands and completion to find content, jump through files, and control the viewer directly.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="showcase" id="art" aria-labelledby="art-title">
+        <div class="section-heading">
+          <p class="eyebrow">Interface mood</p>
+          <h2 id="art-title">Document control without visual noise.</h2>
+        </div>
+        <div class="art-grid" aria-hidden="true">
+          <div class="poster poster-large">
+            <span class="poster-kicker">normal mode</span>
+            <strong>j</strong>
+            <strong>k</strong>
+            <strong>h</strong>
+            <strong>l</strong>
+            <p>move with intent</p>
+          </div>
+          <div class="poster poster-lines">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <em></em>
+            <b>:search</b>
+          </div>
+          <div class="poster poster-stack">
+            <span>PDF</span>
+            <span>EPUB</span>
+            <span>TXT</span>
+            <span>HTML</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="build" id="build" aria-labelledby="build-title">
+        <div class="build-copy">
+          <p class="eyebrow">Build from source</p>
+          <h2 id="build-title">Qt6, CMake, and a straight path to install.</h2>
+          <p>
+            apvlv builds with CMake and uses Qt6 plus Quazip, with optional
+            engines such as Poppler, MuPDF, and Tesseract for richer document
+            support.
+          </p>
+        </div>
+        <div class="terminal" aria-label="Build commands">
+          <pre><code>cmake -B build -S .
+cmake --build build
+cmake --install build</code></pre>
+        </div>
+      </section>
+
+      <section class="links" aria-label="Repository links">
+        <a href="manual.html">
+          <span>Manual</span>
+          <strong>Read commands, settings, and prompt usage</strong>
+        </a>
+        <a href="https://github.com/naihe2010/apvlv/actions/workflows/cmake-multi-platform.yml">
+          <span>CI status</span>
+          <strong>Multi-platform CMake builds</strong>
+        </a>
+        <a href="https://github.com/naihe2010/apvlv/releases">
+          <span>Releases</span>
+          <strong>Download packages and source archives</strong>
+        </a>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>apvlv is maintained by Alf and contributors.</p>
+      <a href="mailto:naihe2010@126.com">naihe2010@126.com</a>
+    </footer>
+  </body>
+</html>

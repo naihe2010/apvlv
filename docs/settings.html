@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="apvlv settings from the manual page.">
+    <title>apvlv Manual | Settings</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body class="manual-page">
+    <header class="site-header doc-header" aria-label="Manual navigation">
+      <a class="brand" href="index.html" aria-label="apvlv home">
+        <span class="brand-mark" aria-hidden="true">a</span>
+        <span>apvlv</span>
+      </a>
+      <nav>
+        <a href="manual.html">Manual</a>
+        <a href="commands.html">Commands</a>
+        <a href="settings.html" aria-current="page">Settings</a>
+        <a href="prompt.html">Prompt</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="manual-title">
+        <p class="eyebrow">Configuration</p>
+        <h1>Shape the viewer from ~/.apvlvrc.</h1>
+        <p>Use <code>set setting = value</code> in <code>~/.apvlvrc</code>.</p>
+      </section>
+
+      <section class="settings-board">
+        <article><kbd>fullscreen</kbd><p><code>yes/no</code> to enable or disable fullscreen.</p></article>
+        <article><kbd>width</kbd><p>Default window width as an integer.</p></article>
+        <article><kbd>height</kbd><p>Default window height as an integer.</p></article>
+        <article><kbd>fix_width</kbd><p>Fixed window width.</p></article>
+        <article><kbd>fix_height</kbd><p>Fixed window height.</p></article>
+        <article><kbd>defaultdir</kbd><p>Default directory for the open dialog.</p></article>
+        <article><kbd>continuous</kbd><p><code>yes/no</code> to show pages continuously.</p></article>
+        <article><kbd>autoscrollpage</kbd><p><code>yes/no</code> to scroll when hitting a page tail or head.</p></article>
+        <article><kbd>noinfo</kbd><p>Disable or enable usage of <code>~/.apvlvinfo</code>.</p></article>
+        <article><kbd>max_info</kbd><p>Maximum file information entries to save. Default is 100.</p></article>
+        <article><kbd>scrollbar</kbd><p><code>yes/no</code> to show or hide the scrollbar.</p></article>
+        <article><kbd>wrapscan</kbd><p><code>yes/no</code> to wrap searches.</p></article>
+        <article><kbd>guioptions</kbd><p><code>mTsS</code> controls menu, toolbar, status, and status tool display.</p></article>
+        <article><kbd>ocr:lang</kbd><p>Tesseract pretrained languages such as <code>eng+chi_sim</code>.</p></article>
+        <article><kbd>notes:dir</kbd><p>Directory used to save ebook notes.</p></article>
+        <article><kbd>autoreload</kbd><p>Number of seconds before auto reloading a document.</p></article>
+        <article><kbd>inverted</kbd><p><code>yes/no</code> to use inverted mode for PDF pages.</p></article>
+        <article><kbd>background</kbd><p>Set the background color.</p></article>
+      </section>
+
+      <section class="manual-section compact">
+        <div class="manual-heading">
+          <p class="eyebrow">Zoom modes</p>
+          <h2>Default page scale.</h2>
+        </div>
+        <div class="command-list">
+          <article><kbd>zoom = normal</kbd><p>Let the application choose the default zoom value.</p></article>
+          <article><kbd>zoom = fitwidth</kbd><p>Fit pages to window width.</p></article>
+          <article><kbd>zoom = fitheight</kbd><p>Fit pages to window height.</p></article>
+          <article><kbd>zoom = float</kbd><p>Use a scale such as <code>1.0</code> for 100% or <code>2.0</code> for 200%.</p></article>
+        </div>
+      </section>
+
+      <section class="manual-section compact accent">
+        <div class="manual-heading">
+          <p class="eyebrow">Engines and selection</p>
+          <h2>Rendering and double click behavior.</h2>
+        </div>
+        <div class="command-list">
+          <article><kbd>.pdf:engine</kbd><p>Choose <code>MuPDF</code>, <code>Poppler</code>, or <code>QtPdf</code>.</p></article>
+          <article><kbd>.epub:engine</kbd><p>Choose <code>MuPDF</code> or <code>Web</code>.</p></article>
+          <article><kbd>.fb2:engine</kbd><p>Choose <code>MuPDF</code> or <code>Web</code>.</p></article>
+          <article><kbd>doubleclick = none</kbd><p>Select nothing.</p></article>
+          <article><kbd>doubleclick = word</kbd><p>Select the word under the cursor to the clipboard.</p></article>
+          <article><kbd>doubleclick = line</kbd><p>Select the line under the cursor to the clipboard.</p></article>
+          <article><kbd>doubleclick = page</kbd><p>Select the page under the cursor to the clipboard.</p></article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

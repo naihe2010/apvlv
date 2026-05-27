@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="apvlv key commands from the manual page.">
+    <title>apvlv Manual | Commands</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body class="manual-page">
+    <header class="site-header doc-header" aria-label="Manual navigation">
+      <a class="brand" href="index.html" aria-label="apvlv home">
+        <span class="brand-mark" aria-hidden="true">a</span>
+        <span>apvlv</span>
+      </a>
+      <nav>
+        <a href="manual.html">Manual</a>
+        <a href="commands.html" aria-current="page">Commands</a>
+        <a href="settings.html">Settings</a>
+        <a href="prompt.html">Prompt</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="manual-title">
+        <p class="eyebrow">Keyboard map</p>
+        <h1>Commands that keep your hands on the keys.</h1>
+        <p>Commands can be prefixed by a number where a count is meaningful. Unless noted otherwise, the default count is 1.</p>
+      </section>
+
+      <section class="manual-section compact">
+        <div class="manual-heading">
+          <p class="eyebrow">Open and tabs</p>
+          <h2>Files, folders, tabs.</h2>
+        </div>
+        <div class="command-list">
+          <article><kbd>o</kbd><p>Display a file chooser to open a PDF, DJVU, EPUB, HTML, or TXT file.</p></article>
+          <article><kbd>O</kbd><p>Select a directory to display.</p></article>
+          <article><kbd>t</kbd><p>Open a PDF, DJVU, EPUB, HTML, or TXT file in a new tab.</p></article>
+          <article><kbd>T</kbd><p>Select a directory to display in a new tab.</p></article>
+          <article><kbd>R</kbd><p>Reload the current file.</p></article>
+          <article><kbd>gt</kbd><p>Show the next tab.</p></article>
+          <article><kbd>gT</kbd><p>Show the previous tab.</p></article>
+        </div>
+      </section>
+
+      <section class="manual-section compact accent">
+        <div class="manual-heading">
+          <p class="eyebrow">Movement</p>
+          <h2>Pages and scroll.</h2>
+        </div>
+        <div class="command-list">
+          <article><kbd>G</kbd><p>Show page number <code>count</code>.</p></article>
+          <article><kbd>PageDown</kbd><p>Go forward <code>count</code> pages. Also <kbd>C-f</kbd>.</p></article>
+          <article><kbd>PageUp</kbd><p>Go backward <code>count</code> pages. Also <kbd>C-b</kbd>.</p></article>
+          <article><kbd>C-d</kbd><p>Go forward <code>count</code> half pages.</p></article>
+          <article><kbd>C-u</kbd><p>Go backward <code>count</code> half pages.</p></article>
+          <article><kbd>H</kbd><p>Scroll to page head.</p></article>
+          <article><kbd>M</kbd><p>Scroll to page middle.</p></article>
+          <article><kbd>L</kbd><p>Scroll to page bottom.</p></article>
+          <article><kbd>s</kbd><p>Skip <code>count</code> pages.</p></article>
+          <article><kbd>k</kbd><p>Scroll up <code>count</code> units. Also <kbd>C-p</kbd> or <kbd>Up</kbd>.</p></article>
+          <article><kbd>j</kbd><p>Scroll down <code>count</code> units. Also <kbd>C-n</kbd> or <kbd>Down</kbd>.</p></article>
+          <article><kbd>h</kbd><p>Scroll left <code>count</code> units. Also <kbd>Backspace</kbd> or <kbd>Left</kbd>.</p></article>
+          <article><kbd>l</kbd><p>Scroll right <code>count</code> units. Also <kbd>Space</kbd> or <kbd>Right</kbd>.</p></article>
+        </div>
+      </section>
+
+      <section class="manual-section compact">
+        <div class="manual-heading">
+          <p class="eyebrow">Document tools</p>
+          <h2>Search, zoom, marks.</h2>
+        </div>
+        <div class="command-list">
+          <article><kbd>r</kbd><p>Rotate the document clockwise by 90 degrees.</p></article>
+          <article><kbd>/ string</kbd><p>Search forwards for <code>string</code>.</p></article>
+          <article><kbd>? string</kbd><p>Search backwards for <code>string</code>.</p></article>
+          <article><kbd>f</kbd><p>Toggle between fullscreen and window mode.</p></article>
+          <article><kbd>zi</kbd><p>Zoom in.</p></article>
+          <article><kbd>zo</kbd><p>Zoom out.</p></article>
+          <article><kbd>zw</kbd><p>Zoom to fit window width.</p></article>
+          <article><kbd>zh</kbd><p>Zoom to fit window height.</p></article>
+          <article><kbd>m char</kbd><p>Mark the current position to <code>char</code>.</p></article>
+          <article><kbd>' char</kbd><p>Return to the mark position <code>char</code>.</p></article>
+          <article><kbd>''</kbd><p>Return to the last position.</p></article>
+          <article><kbd>c</kbd><p>Toggle directory display.</p></article>
+          <article><kbd>q</kbd><p>Close the current window.</p></article>
+          <article><kbd>ZZ</kbd><p>Quit the viewer with ZZ, like Vim.</p></article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
