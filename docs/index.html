@@ -1,200 +1,546 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta
-      name="description"
-      content="apvlv is a fast, Vim-like document viewer for PDF, EPUB, TXT, FB2, MOBI, CBZ, HTML, and more."
-    >
-    <title>apvlv | Vim-like document reading</title>
-    <link rel="stylesheet" href="styles.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <title>apvlv — Vim-like document reading</title>
+    <meta name="description" content="apvlv is a fast, Vim-like document viewer for PDF, EPUB, TXT, FB2, MOBI, CBZ, HTML, DJVU, and images. Keyboard-first, tabbed, with directory browsing and annotations." />
+    <meta property="og:title" content="apvlv — Vim-like document reading" />
+    <meta property="og:description" content="A keyboard-first document viewer for PDF, EPUB, TXT, FB2, MOBI, CBZ, HTML, and more. Navigate with the rhythm of Vim." />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#0a0b14" />
+    <link rel="icon" type="image/svg+xml" href="./assets/img/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./assets/css/style.css" />
   </head>
   <body>
-    <header class="site-header" aria-label="Primary">
-      <a class="brand" href="#top" aria-label="apvlv home">
-        <span class="brand-mark" aria-hidden="true">a</span>
-        <span>apvlv</span>
-      </a>
-      <nav>
-        <a href="#features">Features</a>
-        <a href="#art">Art</a>
-        <a href="manual.html">Manual</a>
-        <a href="#build">Build</a>
-        <a href="https://github.com/naihe2010/apvlv">GitHub</a>
-      </nav>
+    <div class="bg-orbs" aria-hidden="true">
+      <div class="orb orb-a"></div>
+      <div class="orb orb-b"></div>
+      <div class="orb orb-c"></div>
+      <div class="grid-overlay"></div>
+    </div>
+
+    <header class="nav" id="nav">
+      <div class="container nav-inner">
+        <a class="brand" href="#top" aria-label="apvlv home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="5" y="3" width="14" height="18" rx="2.5" stroke="currentColor" stroke-width="1.8" />
+              <path d="M8.5 8h7M8.5 12h7M8.5 16h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span class="brand-name">apvlv</span>
+        </a>
+        <nav class="nav-links" aria-label="Primary">
+          <a href="#features" data-en="Features" data-zh="特性">Features</a>
+          <a href="#formats" data-en="Formats" data-zh="格式">Formats</a>
+          <a href="#commands" data-en="Commands" data-zh="按键命令">Commands</a>
+          <a href="#settings" data-en="Settings" data-zh="配置">Settings</a>
+          <a href="#prompt" data-en="Prompt" data-zh="命令行">Prompt</a>
+          <a href="#build" data-en="Build" data-zh="构建">Build</a>
+        </nav>
+        <div class="nav-actions">
+          <button class="lang-toggle" id="lang-toggle" type="button" aria-label="Switch language">
+            <span data-lang="en">EN</span>
+            <span class="lang-sep">·</span>
+            <span data-lang="zh">中</span>
+          </button>
+          <a class="btn btn-ghost btn-sm" href="https://github.com/naihe2010/apvlv" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2.18c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.27-1.68-1.27-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.76 2.68 1.25 3.34.95.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.47.11-3.06 0 0 .96-.31 3.15 1.18a10.8 10.8 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.59.23 2.77.11 3.06.74.81 1.18 1.84 1.18 3.1 0 4.42-2.7 5.39-5.27 5.68.41.36.78 1.05.78 2.12v3.14c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+            <span>GitHub</span>
+          </a>
+        </div>
+        <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Toggle menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
     </header>
 
     <main id="top">
-      <section class="hero" aria-labelledby="hero-title">
-        <div class="hero-art" aria-hidden="true">
-          <div class="app-window">
-            <div class="window-bar">
-              <span></span>
-              <span></span>
-              <span></span>
-              <strong>:open notes.pdf</strong>
+      <!-- ============== HERO ============== -->
+      <section class="hero">
+        <div class="container">
+          <div class="badge">
+            <span class="badge-dot"></span>
+            <span data-en="GPL-2.0 · Qt6 · Linux &amp; Windows" data-zh="GPL-2.0 · Qt6 · Linux 与 Windows">GPL-2.0 · Qt6 · Linux &amp; Windows</span>
+          </div>
+          <h1 class="hero-title">
+            <span data-en="Read every document" data-zh="阅读一切文档，">Read every document</span>
+            <br />
+            <span class="gradient-text" data-en="the Vim way." data-zh="以 Vim 的方式。">the Vim way.</span>
+          </h1>
+          <p class="hero-sub" data-en="apvlv is a keyboard-first viewer for PDF, EPUB, TXT, FB2, MOBI, CBZ, HTML, DJVU, and images. Navigate pages, tabs, directories, and annotations with the rhythm of Vim — without ever reaching for the mouse." data-zh="apvlv 是一款以键盘为中心的文档阅读器，支持 PDF、EPUB、TXT、FB2、MOBI、CBZ、HTML、DJVU 与图片。以 Vim 的节奏在页面、标签、目录与批注之间穿梭——全程无需触碰鼠标。">
+            apvlv is a keyboard-first viewer for PDF, EPUB, TXT, FB2, MOBI, CBZ, HTML, DJVU, and images. Navigate pages, tabs, directories, and annotations with the rhythm of Vim — without ever reaching for the mouse.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="https://github.com/naihe2010/apvlv/releases" target="_blank" rel="noopener">
+              <span data-en="Download" data-zh="下载">Download</span>
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+            </a>
+            <a class="btn btn-ghost" href="https://github.com/naihe2010/apvlv" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2.18c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.27-1.68-1.27-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.76 2.68 1.25 3.34.95.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.47.11-3.06 0 0 .96-.31 3.15 1.18a10.8 10.8 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.59.23 2.77.11 3.06.74.81 1.18 1.84 1.18 3.1 0 4.42-2.7 5.39-5.27 5.68.41.36.78 1.05.78 2.12v3.14c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+              <span data-en="View source" data-zh="查看源码">View source</span>
+            </a>
+          </div>
+
+          <div class="hero-terminal" role="presentation">
+            <div class="terminal">
+              <div class="terminal-bar">
+                <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                <span class="terminal-title">~ apvlv</span>
+              </div>
+              <pre class="terminal-body"><code><span class="t-prompt">$</span> <span class="t-cmd">apvlv</span> <span class="t-arg">~/library/manual.pdf</span>
+<span class="t-ok">✓</span> loaded manual.pdf       <span class="t-dim">(QtPdf · 248 pages)</span>
+<span class="t-ok">✓</span> normal mode             <span class="t-dim">(j k h l · : / ?)</span>
+<span class="t-prompt">:</span><span class="t-cmd">tabnew</span> chapter.epub
+<span class="t-prompt">/</span><span class="t-str">keyboard shortcuts</span>      <span class="t-dim">(search forward)</span>
+<span class="t-prompt">:</span><span class="t-cmd">42</span>                     <span class="t-dim">(jump to page 42)</span></code></pre>
             </div>
-            <div class="window-body">
-              <aside class="file-tree">
-                <b>~/library</b>
-                <span class="active">manual.pdf</span>
-                <span>papers/</span>
-                <span>epub/</span>
-                <span>notes.txt</span>
-              </aside>
-              <div class="page-art">
-                <div class="page-toolbar">
-                  <span>normal</span>
-                  <span>42%</span>
-                  <span>j k h l</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============== FEATURES ============== -->
+      <section class="section" id="features">
+        <div class="container">
+          <div class="section-head">
+            <span class="eyebrow" data-en="Features" data-zh="特性">Features</span>
+            <h2 data-en="Fast commands, calm pages." data-zh="命令迅捷，页面安静。">Fast commands, calm pages.</h2>
+            <p class="section-sub" data-en="Designed for readers who stay on the keyboard." data-zh="为始终停留在键盘上的读者而设计。">Designed for readers who stay on the keyboard.</p>
+          </div>
+
+          <div class="grid grid-3">
+            <article class="card">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+              </div>
+              <h3 data-en="Counted motion" data-zh="计数移动">Counted motion</h3>
+              <p data-en="Type a number before a command to move exactly as far as you mean — a single page or a long jump. The default count is 1." data-zh="在命令前输入数字，即可精确移动你想要的距离——一页，或一次长跳转。默认计数为 1。">
+                Type a number before a command to move exactly as far as you mean — a single page or a long jump. The default count is 1.
+              </p>
+            </article>
+
+            <article class="card">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+              </div>
+              <h3 data-en="Directory navigation" data-zh="目录导航">Directory navigation</h3>
+              <p data-en="Open a folder, move through entries with Vim keys, expand directories, and launch documents in tabs — the file tree behaves like a document outline." data-zh="打开文件夹，用 Vim 键浏览条目、展开目录，并在标签页中打开文档——文件树就像文档大纲一样操作。">
+                Open a folder, move through entries with Vim keys, expand directories, and launch documents in tabs — the file tree behaves like a document outline.
+              </p>
+            </article>
+
+            <article class="card">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9a2 2 0 0 0-3-3L5 17v3z"/><path d="M14 7l3 3"/></svg>
+              </div>
+              <h3 data-en="Annotations" data-zh="批注">Annotations</h3>
+              <p data-en="Mark, comment, and underline without ever leaving the document-centered workflow. Notes are saved per document under a directory you choose." data-zh="标记、批注、下划线，全程不离开以文档为中心的工作流。批注按文档保存在你指定的目录中。">
+                Mark, comment, and underline without ever leaving the document-centered workflow. Notes are saved per document under a directory you choose.
+              </p>
+            </article>
+
+            <article class="card">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              </div>
+              <h3 data-en="Search &amp; command line" data-zh="搜索与命令行">Search &amp; command line</h3>
+              <p data-en="Modal commands and completion let you find content, jump between files, split windows, and drive the viewer entirely from a colon prompt." data-zh="模式化命令与自动补全让你查找内容、在文件间跳转、分割窗口，并完全通过冒号命令行操控阅读器。">
+                Modal commands and completion let you find content, jump between files, split windows, and drive the viewer entirely from a colon prompt.
+              </p>
+            </article>
+
+            <article class="card">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 16l9 5 9-5"/></svg>
+              </div>
+              <h3 data-en="Many formats" data-zh="多种格式">Many formats</h3>
+              <p data-en="PDF, EPUB, TXT, FB2, MOBI, CBZ, HTML, DJVU, and images — one viewer for everything, with selectable rendering engines per format." data-zh="PDF、EPUB、TXT、FB2、MOBI、CBZ、HTML、DJVU 与图片——一个阅读器通吃，每种格式都可选择渲染引擎。">
+                PDF, EPUB, TXT, FB2, MOBI, CBZ, HTML, DJVU, and images — one viewer for everything, with selectable rendering engines per format.
+              </p>
+            </article>
+
+            <article class="card">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16"/></svg>
+              </div>
+              <h3 data-en="Tabs &amp; splits" data-zh="标签与分屏">Tabs &amp; splits</h3>
+              <p data-en="Open many documents in tabs, split windows horizontally or vertically, and use marks to return to any position later." data-zh="在标签页中打开多个文档，水平或垂直分屏，并用标记随时回到任意位置。">
+                Open many documents in tabs, split windows horizontally or vertically, and use marks to return to any position later.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============== FORMATS ============== -->
+      <section class="section" id="formats">
+        <div class="container">
+          <div class="section-head">
+            <span class="eyebrow" data-en="Formats" data-zh="格式">Formats</span>
+            <h2 data-en="One viewer for every document." data-zh="一个阅读器，应对所有文档。">One viewer for every document.</h2>
+            <p class="section-sub" data-en="Each format can be rendered by a selectable engine — set it per file type in ~/.apvlvrc." data-zh="每种格式都可选择渲染引擎——在 ~/.apvlvrc 中按文件类型设置。">
+              Each format can be rendered by a selectable engine — set it per file type in ~/.apvlvrc.
+            </p>
+          </div>
+
+          <div class="grid grid-4">
+            <article class="backend">
+              <div class="backend-mark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v4h4"/><path d="M9 13h6M9 17h4"/></svg>
+              </div>
+              <h3>PDF</h3>
+              <p data-en="The default. Render with QtPdf, MuPDF, or Poppler — whichever you prefer per file." data-zh="默认格式。可用 QtPdf、MuPDF 或 Poppler 渲染——按文件自由选择。">
+                The default. Render with QtPdf, MuPDF, or Poppler — whichever you prefer per file.
+              </p>
+              <code class="backend-cli">.pdf:engine = QtPdf</code>
+            </article>
+
+            <article class="backend">
+              <div class="backend-mark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5a2 2 0 0 1 2-2h5v18H6a2 2 0 0 1-2-2z"/><path d="M20 5a2 2 0 0 0-2-2h-5v18h5a2 2 0 0 0 2-2z"/></svg>
+              </div>
+              <h3>EPUB · FB2 · MOBI</h3>
+              <p data-en="Reflowable ebooks rendered through MuPDF or the built-in Web engine, with the same Vim motions." data-zh="可重排电子书，通过 MuPDF 或内置 Web 引擎渲染，使用相同的 Vim 操作。">
+                Reflowable ebooks rendered through MuPDF or the built-in Web engine, with the same Vim motions.
+              </p>
+              <code class="backend-cli">.epub:engine = Web</code>
+            </article>
+
+            <article class="backend">
+              <div class="backend-mark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+              </div>
+              <h3>TXT · HTML</h3>
+              <p data-en="Plain text and web pages, read with the very same keys, search, and command line as everything else." data-zh="纯文本与网页，使用与其他格式完全相同的按键、搜索与命令行阅读。">
+                Plain text and web pages, read with the very same keys, search, and command line as everything else.
+              </p>
+              <code class="backend-cli">.fb2:engine = MuPDF</code>
+            </article>
+
+            <article class="backend">
+              <div class="backend-mark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m4 18 5-5 4 4 3-3 4 4"/></svg>
+              </div>
+              <h3>DJVU · CBZ · Images</h3>
+              <p data-en="Scanned books, comic archives, and image files — paged and navigable just like a PDF." data-zh="扫描书籍、漫画压缩包与图片文件——像 PDF 一样分页、可导航。">
+                Scanned books, comic archives, and image files — paged and navigable just like a PDF.
+              </p>
+              <code class="backend-cli">apvlv comics.cbz</code>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============== COMMANDS ============== -->
+      <section class="section" id="commands">
+        <div class="container">
+          <div class="section-head">
+            <span class="eyebrow" data-en="Keyboard map" data-zh="按键地图">Keyboard map</span>
+            <h2 data-en="Commands that keep your hands on the keys." data-zh="让双手始终停在键盘上的命令。">Commands that keep your hands on the keys.</h2>
+            <p class="section-sub" data-en="Most commands accept a leading count where it is meaningful; count defaults to 1." data-zh="多数命令在有意义时可加前置计数；计数默认为 1。">
+              Most commands accept a leading count where it is meaningful; count defaults to 1.
+            </p>
+          </div>
+
+          <div class="cmd-panel" data-tabgroup>
+            <div class="tabs" role="tablist">
+              <button class="tab is-active" role="tab" data-tab="open" aria-selected="true" data-en="Open &amp; tabs" data-zh="打开与标签">Open &amp; tabs</button>
+              <button class="tab" role="tab" data-tab="move" aria-selected="false" data-en="Movement" data-zh="移动">Movement</button>
+              <button class="tab" role="tab" data-tab="tools" aria-selected="false" data-en="Document tools" data-zh="文档工具">Document tools</button>
+            </div>
+
+            <div class="tabpanel is-active" data-panel="open">
+              <div class="cmd-rows">
+                <div class="cmd-row"><span class="keys"><kbd>o</kbd></span><p data-en="Display a file chooser to open a PDF, DJVU, EPUB, HTML, or TXT file." data-zh="弹出文件选择器，打开 PDF、DJVU、EPUB、HTML 或 TXT 文件。">Display a file chooser to open a PDF, DJVU, EPUB, HTML, or TXT file.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>O</kbd></span><p data-en="Select a directory to display." data-zh="选择一个目录进行浏览。">Select a directory to display.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>t</kbd></span><p data-en="Open a PDF, DJVU, EPUB, HTML, or TXT file in a new tab." data-zh="在新标签页中打开 PDF、DJVU、EPUB、HTML 或 TXT 文件。">Open a PDF, DJVU, EPUB, HTML, or TXT file in a new tab.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>T</kbd></span><p data-en="Select a directory to display in a new tab." data-zh="在新标签页中打开一个目录。">Select a directory to display in a new tab.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>R</kbd></span><p data-en="Reload the current file." data-zh="重新加载当前文件。">Reload the current file.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>gt</kbd></span><p data-en="Show the next tab." data-zh="切换到下一个标签页。">Show the next tab.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>gT</kbd></span><p data-en="Show the previous tab." data-zh="切换到上一个标签页。">Show the previous tab.</p></div>
+              </div>
+            </div>
+
+            <div class="tabpanel" data-panel="move">
+              <div class="cmd-rows">
+                <div class="cmd-row"><span class="keys"><kbd>G</kbd></span><p data-en="Show page number count." data-zh="跳转到第 count 页。">Show page number count.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>C-f</kbd><kbd>PageDown</kbd></span><p data-en="Go forward count pages." data-zh="向后翻 count 页。">Go forward count pages.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>C-b</kbd><kbd>PageUp</kbd></span><p data-en="Go backward count pages." data-zh="向前翻 count 页。">Go backward count pages.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>C-d</kbd></span><p data-en="Go forward count half pages." data-zh="向后翻 count 个半页。">Go forward count half pages.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>C-u</kbd></span><p data-en="Go backward count half pages." data-zh="向前翻 count 个半页。">Go backward count half pages.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>H</kbd></span><p data-en="Scroll to page head." data-zh="滚动到页首。">Scroll to page head.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>M</kbd></span><p data-en="Scroll to page middle." data-zh="滚动到页面中部。">Scroll to page middle.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>L</kbd></span><p data-en="Scroll to page bottom." data-zh="滚动到页尾。">Scroll to page bottom.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>s</kbd></span><p data-en="Skip count pages." data-zh="跳过 count 页。">Skip count pages.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>j</kbd><kbd>C-n</kbd><kbd>Down</kbd></span><p data-en="Scroll down count units." data-zh="向下滚动 count 格。">Scroll down count units.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>k</kbd><kbd>C-p</kbd><kbd>Up</kbd></span><p data-en="Scroll up count units." data-zh="向上滚动 count 格。">Scroll up count units.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>h</kbd><kbd>Backspace</kbd><kbd>Left</kbd></span><p data-en="Scroll left count units." data-zh="向左滚动 count 格。">Scroll left count units.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>l</kbd><kbd>Space</kbd><kbd>Right</kbd></span><p data-en="Scroll right count units." data-zh="向右滚动 count 格。">Scroll right count units.</p></div>
+              </div>
+            </div>
+
+            <div class="tabpanel" data-panel="tools">
+              <div class="cmd-rows">
+                <div class="cmd-row"><span class="keys"><kbd>r</kbd></span><p data-en="Rotate the document clockwise by 90 degrees." data-zh="将文档顺时针旋转 90 度。">Rotate the document clockwise by 90 degrees.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>/ string</kbd></span><p data-en="Search forwards for string." data-zh="向后搜索 string。">Search forwards for string.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>? string</kbd></span><p data-en="Search backwards for string." data-zh="向前搜索 string。">Search backwards for string.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>f</kbd></span><p data-en="Toggle between fullscreen and window mode." data-zh="在全屏与窗口模式间切换。">Toggle between fullscreen and window mode.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>zi</kbd></span><p data-en="Zoom in." data-zh="放大。">Zoom in.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>zo</kbd></span><p data-en="Zoom out." data-zh="缩小。">Zoom out.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>zw</kbd></span><p data-en="Zoom to fit window width." data-zh="缩放至适配窗口宽度。">Zoom to fit window width.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>zh</kbd></span><p data-en="Zoom to fit window height." data-zh="缩放至适配窗口高度。">Zoom to fit window height.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>m char</kbd></span><p data-en="Mark the current position to char." data-zh="将当前位置标记为 char。">Mark the current position to char.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>' char</kbd></span><p data-en="Return to the mark position char." data-zh="跳转到标记位置 char。">Return to the mark position char.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>''</kbd></span><p data-en="Return to the last position." data-zh="返回上一个位置。">Return to the last position.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>c</kbd></span><p data-en="Toggle directory display." data-zh="切换目录显示。">Toggle directory display.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>q</kbd></span><p data-en="Close the current window." data-zh="关闭当前窗口。">Close the current window.</p></div>
+                <div class="cmd-row"><span class="keys"><kbd>ZZ</kbd></span><p data-en="Quit the viewer, like Vim." data-zh="退出阅读器，与 Vim 相同。">Quit the viewer, like Vim.</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============== SETTINGS ============== -->
+      <section class="section" id="settings">
+        <div class="container">
+          <div class="section-head">
+            <span class="eyebrow" data-en="Configuration" data-zh="配置">Configuration</span>
+            <h2 data-en="Shape the viewer from ~/.apvlvrc." data-zh="用 ~/.apvlvrc 定制阅读器。">Shape the viewer from ~/.apvlvrc.</h2>
+            <p class="section-sub" data-en="Write set setting = value in ~/.apvlvrc, Vim-style." data-zh="在 ~/.apvlvrc 中以 Vim 风格写下 set setting = value。">
+              Write set setting = value in ~/.apvlvrc, Vim-style.
+            </p>
+          </div>
+
+          <div class="settings-board">
+            <article class="setting"><kbd>fullscreen</kbd><p data-en="yes/no to enable or disable fullscreen." data-zh="yes/no 开启或关闭全屏。">yes/no to enable or disable fullscreen.</p></article>
+            <article class="setting"><kbd>width</kbd><p data-en="Default window width as an integer." data-zh="默认窗口宽度（整数）。">Default window width as an integer.</p></article>
+            <article class="setting"><kbd>height</kbd><p data-en="Default window height as an integer." data-zh="默认窗口高度（整数）。">Default window height as an integer.</p></article>
+            <article class="setting"><kbd>fix_width</kbd><p data-en="Fixed window width." data-zh="固定窗口宽度。">Fixed window width.</p></article>
+            <article class="setting"><kbd>fix_height</kbd><p data-en="Fixed window height." data-zh="固定窗口高度。">Fixed window height.</p></article>
+            <article class="setting"><kbd>defaultdir</kbd><p data-en="Default directory for the open dialog." data-zh="打开对话框的默认目录。">Default directory for the open dialog.</p></article>
+            <article class="setting"><kbd>continuous</kbd><p data-en="yes/no to show pages continuously." data-zh="yes/no 连续显示页面。">yes/no to show pages continuously.</p></article>
+            <article class="setting"><kbd>autoscrollpage</kbd><p data-en="yes/no to scroll when hitting a page tail or head." data-zh="yes/no 到达页尾或页首时自动翻页。">yes/no to scroll when hitting a page tail or head.</p></article>
+            <article class="setting"><kbd>noinfo</kbd><p data-en="Disable or enable usage of ~/.apvlvinfo." data-zh="启用或禁用 ~/.apvlvinfo。">Disable or enable usage of ~/.apvlvinfo.</p></article>
+            <article class="setting"><kbd>max_info</kbd><p data-en="Maximum file information entries to save. Default is 100." data-zh="保存的文件信息条目上限，默认 100。">Maximum file information entries to save. Default is 100.</p></article>
+            <article class="setting"><kbd>scrollbar</kbd><p data-en="yes/no to show or hide the scrollbar." data-zh="yes/no 显示或隐藏滚动条。">yes/no to show or hide the scrollbar.</p></article>
+            <article class="setting"><kbd>wrapscan</kbd><p data-en="yes/no to wrap searches." data-zh="yes/no 搜索到末尾后回绕。">yes/no to wrap searches.</p></article>
+            <article class="setting"><kbd>guioptions</kbd><p data-en="mTsS controls menu, toolbar, status, and status tool display." data-zh="mTsS 控制菜单、工具栏、状态栏与状态工具的显示。">mTsS controls menu, toolbar, status, and status tool display.</p></article>
+            <article class="setting"><kbd>ocr:lang</kbd><p data-en="Tesseract pretrained languages such as eng+chi_sim." data-zh="Tesseract 训练语言，如 eng+chi_sim。">Tesseract pretrained languages such as eng+chi_sim.</p></article>
+            <article class="setting"><kbd>notes:dir</kbd><p data-en="Directory used to save ebook notes." data-zh="保存电子书批注的目录。">Directory used to save ebook notes.</p></article>
+            <article class="setting"><kbd>autoreload</kbd><p data-en="Number of seconds before auto reloading a document." data-zh="自动重新加载文档的间隔秒数。">Number of seconds before auto reloading a document.</p></article>
+            <article class="setting"><kbd>inverted</kbd><p data-en="yes/no to use inverted mode for PDF pages." data-zh="yes/no 反色显示 PDF 页面。">yes/no to use inverted mode for PDF pages.</p></article>
+            <article class="setting"><kbd>background</kbd><p data-en="Set the background color." data-zh="设置背景颜色。">Set the background color.</p></article>
+          </div>
+
+          <h3 class="subhead" data-en="Zoom modes" data-zh="缩放模式">Zoom modes</h3>
+          <div class="cmd-panel">
+            <div class="cmd-rows">
+              <div class="cmd-row"><span class="keys"><kbd>zoom = normal</kbd></span><p data-en="Let the application choose the default zoom value." data-zh="由程序选择默认缩放值。">Let the application choose the default zoom value.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>zoom = fitwidth</kbd></span><p data-en="Fit pages to window width." data-zh="将页面适配窗口宽度。">Fit pages to window width.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>zoom = fitheight</kbd></span><p data-en="Fit pages to window height." data-zh="将页面适配窗口高度。">Fit pages to window height.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>zoom = float</kbd></span><p data-en="Use a scale such as 1.0 for 100% or 2.0 for 200%." data-zh="使用浮点比例，如 1.0 表示 100%、2.0 表示 200%。">Use a scale such as 1.0 for 100% or 2.0 for 200%.</p></div>
+            </div>
+          </div>
+
+          <h3 class="subhead" data-en="Engines &amp; double click" data-zh="引擎与双击">Engines &amp; double click</h3>
+          <div class="cmd-panel">
+            <div class="cmd-rows">
+              <div class="cmd-row"><span class="keys"><kbd>.pdf:engine</kbd></span><p data-en="Choose MuPDF, Poppler, or QtPdf." data-zh="选择 MuPDF、Poppler 或 QtPdf。">Choose MuPDF, Poppler, or QtPdf.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>.epub:engine</kbd></span><p data-en="Choose MuPDF or Web." data-zh="选择 MuPDF 或 Web。">Choose MuPDF or Web.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>.fb2:engine</kbd></span><p data-en="Choose MuPDF or Web." data-zh="选择 MuPDF 或 Web。">Choose MuPDF or Web.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>doubleclick = none</kbd></span><p data-en="Select nothing." data-zh="不选择任何内容。">Select nothing.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>doubleclick = word</kbd></span><p data-en="Select the word under the cursor to the clipboard." data-zh="将光标处的单词选到剪贴板。">Select the word under the cursor to the clipboard.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>doubleclick = line</kbd></span><p data-en="Select the line under the cursor to the clipboard." data-zh="将光标处的整行选到剪贴板。">Select the line under the cursor to the clipboard.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>doubleclick = page</kbd></span><p data-en="Select the page under the cursor to the clipboard." data-zh="将整页选到剪贴板。">Select the page under the cursor to the clipboard.</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============== PROMPT ============== -->
+      <section class="section" id="prompt">
+        <div class="container">
+          <div class="section-head">
+            <span class="eyebrow" data-en="Colon commands" data-zh="冒号命令">Colon commands</span>
+            <h2 data-en="Command-line control inside the viewer." data-zh="阅读器内的命令行控制。">Command-line control inside the viewer.</h2>
+            <p class="section-sub" data-en="Prompt commands work like key commands, but start with a colon." data-zh="命令行命令与按键命令类似，但以冒号开头。">
+              Prompt commands work like key commands, but start with a colon.
+            </p>
+          </div>
+
+          <div class="cmd-panel">
+            <div class="cmd-rows">
+              <div class="cmd-row"><span class="keys"><kbd>:h[elp]</kbd></span><p data-en="Display the help document." data-zh="显示帮助文档。">Display the help document.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>:q[uit]</kbd></span><p data-en="Close the current window." data-zh="关闭当前窗口。">Close the current window.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>:o[pen] file</kbd></span><p data-en="Open file." data-zh="打开 file。">Open file.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>:doc file</kbd></span><p data-en="Load file into the current window." data-zh="在当前窗口加载 file。">Load file into the current window.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>:TOtext [file]</kbd></span><p data-en="Translate file, or the current page, to a text file." data-zh="将 file 或当前页转换为文本文件。">Translate file, or the current page, to a text file.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>:pr[int]</kbd></span><p data-en="Print the current document." data-zh="打印当前文档。">Print the current document.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>:tabnew</kbd></span><p data-en="Create a new tab." data-zh="新建标签页。">Create a new tab.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>:sp</kbd></span><p data-en="Horizontally split the current window." data-zh="水平分割当前窗口。">Horizontally split the current window.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>:vsp</kbd></span><p data-en="Vertically split the current window." data-zh="垂直分割当前窗口。">Vertically split the current window.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>:fp</kbd></span><p data-en="Go forward pages. Also :forwardpage [int]." data-zh="向后翻页，亦作 :forwardpage [int]。">Go forward pages. Also :forwardpage [int].</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>:bp</kbd></span><p data-en="Go backward pages. Also :prewardpage [int]." data-zh="向前翻页，亦作 :prewardpage [int]。">Go backward pages. Also :prewardpage [int].</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>:g int</kbd></span><p data-en="Go to page int. Also :goto int." data-zh="跳转到第 int 页，亦作 :goto int。">Go to page int. Also :goto int.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>:z[oom] mode</kbd></span><p data-en="Set zoom to a configured zoom mode." data-zh="设置为已配置的缩放模式。">Set zoom to a configured zoom mode.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>:int</kbd></span><p data-en="Go to page int." data-zh="跳转到第 int 页。">Go to page int.</p></div>
+              <div class="cmd-row"><span class="keys"><kbd>:directory</kbd></span><p data-en="Toggle directory display." data-zh="切换目录显示。">Toggle directory display.</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============== BUILD ============== -->
+      <section class="section" id="build">
+        <div class="container">
+          <div class="section-head">
+            <span class="eyebrow" data-en="Build from source" data-zh="从源码构建">Build from source</span>
+            <h2 data-en="Qt6, CMake, and a straight path to install." data-zh="Qt6、CMake，一条笔直的安装路径。">Qt6, CMake, and a straight path to install.</h2>
+          </div>
+
+          <div class="qs">
+            <div class="qs-steps">
+              <div class="qs-step">
+                <span class="qs-num">1</span>
+                <div>
+                  <h4 data-en="Install dependencies" data-zh="安装依赖">Install dependencies</h4>
+                  <p data-en="Qt6, Quazip, and CMake are required. Optional engines — Poppler, MuPDF, and Tesseract — add richer document and OCR support." data-zh="需要 Qt6、Quazip 和 CMake。可选引擎 Poppler、MuPDF 与 Tesseract 可带来更丰富的文档与 OCR 支持。">
+                    Qt6, Quazip, and CMake are required. Optional engines — Poppler, MuPDF, and Tesseract — add richer document and OCR support.
+                  </p>
                 </div>
-                <div class="paper-sheet">
-                  <i></i>
-                  <i></i>
-                  <i></i>
-                  <i></i>
-                  <em></em>
-                  <i></i>
-                  <i></i>
-                  <i></i>
+              </div>
+              <div class="qs-step">
+                <span class="qs-num">2</span>
+                <div>
+                  <h4 data-en="Configure &amp; build" data-zh="配置与构建">Configure &amp; build</h4>
+                  <p data-en="Configure with CMake into a build directory, then compile." data-zh="用 CMake 配置到 build 目录，然后编译。">
+                    Configure with CMake into a build directory, then compile.
+                  </p>
+                </div>
+              </div>
+              <div class="qs-step">
+                <span class="qs-num">3</span>
+                <div>
+                  <h4 data-en="Install &amp; read" data-zh="安装并阅读">Install &amp; read</h4>
+                  <p data-en="Install the binary, then open any document to start reading." data-zh="安装可执行文件，然后打开任意文档即可开始阅读。">
+                    Install the binary, then open any document to start reading.
+                  </p>
                 </div>
               </div>
             </div>
-            <div class="command-line">:tabnew chapter.epub</div>
-          </div>
-        </div>
-        <div class="hero-content">
-          <p class="eyebrow">Vim-style reading for real documents</p>
-          <h1 id="hero-title">apvlv</h1>
-          <p class="hero-copy">
-            A keyboard-first viewer for PDF, EPUB, TXT, FB2, MOBI, CBZ, HTML,
-            and more. Navigate pages, tabs, directories, and annotations with
-            the rhythm of Vim.
-          </p>
-          <div class="hero-actions" aria-label="Project links">
-            <a class="button primary" href="https://github.com/naihe2010/apvlv/releases">Download</a>
-            <a class="button secondary" href="https://github.com/naihe2010/apvlv">View source</a>
-          </div>
-        </div>
-        <div class="hero-status" aria-label="Project status">
-          <span>GPL licensed</span>
-          <span>Qt6</span>
-          <span>Linux and Windows</span>
-        </div>
-      </section>
 
-      <section class="intro" aria-label="Project highlights">
-        <div class="metric">
-          <strong>Vim keys</strong>
-          <span>Use familiar commands such as j, k, h, l, Ctrl-f, and Ctrl-b.</span>
-        </div>
-        <div class="metric">
-          <strong>Many formats</strong>
-          <span>Read PDF, EPUB, TXT, FB2, MOBI, CBZ, HTML, images, and more.</span>
-        </div>
-        <div class="metric">
-          <strong>Directory flow</strong>
-          <span>Browse folders like document outlines and open files in tabs.</span>
-        </div>
-      </section>
+            <div class="qs-tabs" data-tabgroup>
+              <div class="tabs" role="tablist">
+                <button class="tab is-active" role="tab" data-tab="linux" aria-selected="true">Linux</button>
+                <button class="tab" role="tab" data-tab="windows" aria-selected="false">Windows</button>
+              </div>
 
-      <section class="section" id="features" aria-labelledby="features-title">
-        <div class="section-heading">
-          <p class="eyebrow">Designed for readers who stay on the keyboard</p>
-          <h2 id="features-title">Fast commands, calm pages.</h2>
-        </div>
-        <div class="feature-grid">
-          <article class="feature">
-            <span class="feature-icon" aria-hidden="true">42</span>
-            <h3>Counted motion</h3>
-            <p>Type a number before a command to move exactly as far as you mean, from a single page to a long jump.</p>
-          </article>
-          <article class="feature">
-            <span class="feature-icon" aria-hidden="true">/</span>
-            <h3>Directory navigation</h3>
-            <p>Open a folder, move through entries with Vim keys, expand directories, and launch documents in tabs.</p>
-          </article>
-          <article class="feature">
-            <span class="feature-icon" aria-hidden="true">#</span>
-            <h3>Annotations</h3>
-            <p>Mark, comment, underline, and keep reading without leaving the document-centered workflow.</p>
-          </article>
-          <article class="feature">
-            <span class="feature-icon" aria-hidden="true">:</span>
-            <h3>Search and command line</h3>
-            <p>Use modal commands and completion to find content, jump through files, and control the viewer directly.</p>
-          </article>
-        </div>
-      </section>
+              <div class="tabpanel is-active" data-panel="linux">
+                <div class="code">
+                  <div class="code-bar"><span class="mono">bash · Fedora / Debian / Ubuntu</span><button class="copy" type="button" aria-label="Copy">Copy</button></div>
+<pre><code><span class="c-comment"># 1. install dependencies</span>
+sudo dnf install qt6-qtbase-devel quazip-qt6-devel cmake gcc-c++   <span class="c-comment"># Fedora</span>
+sudo apt install qt6-base-dev libquazip1-qt6-dev cmake g++         <span class="c-comment"># Debian / Ubuntu</span>
 
-      <section class="showcase" id="art" aria-labelledby="art-title">
-        <div class="section-heading">
-          <p class="eyebrow">Interface mood</p>
-          <h2 id="art-title">Document control without visual noise.</h2>
-        </div>
-        <div class="art-grid" aria-hidden="true">
-          <div class="poster poster-large">
-            <span class="poster-kicker">normal mode</span>
-            <strong>j</strong>
-            <strong>k</strong>
-            <strong>h</strong>
-            <strong>l</strong>
-            <p>move with intent</p>
-          </div>
-          <div class="poster poster-lines">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-            <em></em>
-            <b>:search</b>
-          </div>
-          <div class="poster poster-stack">
-            <span>PDF</span>
-            <span>EPUB</span>
-            <span>TXT</span>
-            <span>HTML</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="build" id="build" aria-labelledby="build-title">
-        <div class="build-copy">
-          <p class="eyebrow">Build from source</p>
-          <h2 id="build-title">Qt6, CMake, and a straight path to install.</h2>
-          <p>
-            apvlv builds with CMake and uses Qt6 plus Quazip, with optional
-            engines such as Poppler, MuPDF, and Tesseract for richer document
-            support.
-          </p>
-        </div>
-        <div class="terminal" aria-label="Build commands">
-          <pre><code>cmake -B build -S .
+<span class="c-comment"># 2. configure &amp; build</span>
+cmake -B build -S .
 cmake --build build
-cmake --install build</code></pre>
+
+<span class="c-comment"># 3. install &amp; read</span>
+sudo cmake --install build
+apvlv ~/library/manual.pdf</code></pre>
+                </div>
+              </div>
+
+              <div class="tabpanel" data-panel="windows">
+                <div class="code">
+                  <div class="code-bar"><span class="mono">PowerShell · Windows</span><button class="copy" type="button" aria-label="Copy">Copy</button></div>
+<pre><code><span class="c-comment"># 1. install Qt6 and vcpkg dependencies (quazip, etc.)</span>
+
+<span class="c-comment"># 2. configure &amp; build (Release)</span>
+cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=&lt;vcpkg&gt;\scripts\buildsystems\vcpkg.cmake
+cmake --build build --config Release
+
+<span class="c-comment"># 3. install &amp; read</span>
+cmake --install build
+.\apvlv.exe manual.pdf</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section class="links" aria-label="Repository links">
-        <a href="manual.html">
-          <span>Manual</span>
-          <strong>Read commands, settings, and prompt usage</strong>
-        </a>
-        <a href="https://github.com/naihe2010/apvlv/actions/workflows/cmake-multi-platform.yml">
-          <span>CI status</span>
-          <strong>Multi-platform CMake builds</strong>
-        </a>
-        <a href="https://github.com/naihe2010/apvlv/releases">
-          <span>Releases</span>
-          <strong>Download packages and source archives</strong>
-        </a>
+      <!-- ============== CTA ============== -->
+      <section class="section cta-section">
+        <div class="container">
+          <div class="cta">
+            <h2 data-en="Put your hands on the keys." data-zh="把双手放回键盘。">Put your hands on the keys.</h2>
+            <p data-en="apvlv is free software (GPL-2.0). Read the source, file an issue, send a patch, or just download a build and start reading." data-zh="apvlv 是 GPL-2.0 许可的自由软件。欢迎阅读源码、提交 issue、发送补丁，或直接下载构建版本开始阅读。">
+              apvlv is free software (GPL-2.0). Read the source, file an issue, send a patch, or just download a build and start reading.
+            </p>
+            <div class="cta-actions">
+              <a class="btn btn-primary" href="https://github.com/naihe2010/apvlv" target="_blank" rel="noopener">
+                <span data-en="Star on GitHub" data-zh="在 GitHub Star">Star on GitHub</span>
+              </a>
+              <a class="btn btn-ghost" href="#build">
+                <span data-en="Build from source" data-zh="从源码构建">Build from source</span>
+              </a>
+            </div>
+          </div>
+        </div>
       </section>
     </main>
 
-    <footer class="site-footer">
-      <p>apvlv is maintained by Alf and contributors.</p>
-      <a href="mailto:naihe2010@126.com">naihe2010@126.com</a>
+    <footer class="footer">
+      <div class="container footer-inner">
+        <div>
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="5" y="3" width="14" height="18" rx="2.5" stroke="currentColor" stroke-width="1.8" />
+                <path d="M8.5 8h7M8.5 12h7M8.5 16h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              </svg>
+            </span>
+            <span class="brand-name">apvlv</span>
+          </div>
+          <p class="footer-tag" data-en="Vim-like document viewer · Qt6 · GPL-2.0" data-zh="类 Vim 文档阅读器 · Qt6 · GPL-2.0">Vim-like document viewer · Qt6 · GPL-2.0</p>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <h5 data-en="Project" data-zh="项目">Project</h5>
+            <a href="https://github.com/naihe2010/apvlv" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://github.com/naihe2010/apvlv/issues" target="_blank" rel="noopener" data-en="Issues" data-zh="问题反馈">Issues</a>
+            <a href="https://github.com/naihe2010/apvlv/releases" target="_blank" rel="noopener" data-en="Releases" data-zh="发布">Releases</a>
+            <a href="https://github.com/naihe2010/apvlv/actions/workflows/cmake-multi-platform.yml" target="_blank" rel="noopener" data-en="CI status" data-zh="CI 状态">CI status</a>
+          </div>
+          <div>
+            <h5 data-en="Docs" data-zh="文档">Docs</h5>
+            <a href="#commands" data-en="Commands" data-zh="按键命令">Commands</a>
+            <a href="#settings" data-en="Settings" data-zh="配置">Settings</a>
+            <a href="#prompt" data-en="Prompt" data-zh="命令行">Prompt</a>
+            <a href="https://github.com/naihe2010/apvlv/blob/master/apvlv.1" target="_blank" rel="noopener" data-en="Man page" data-zh="man 手册">Man page</a>
+          </div>
+          <div>
+            <h5 data-en="Related" data-zh="相关">Related</h5>
+            <a href="https://pwmt.org/projects/zathura/" target="_blank" rel="noopener">zathura</a>
+            <a href="https://mupdf.com/" target="_blank" rel="noopener">MuPDF</a>
+            <a href="https://poppler.freedesktop.org/" target="_blank" rel="noopener">Poppler</a>
+          </div>
+        </div>
+      </div>
+      <div class="container footer-bottom">
+        <span data-en="© 2026 apvlv — maintained by Alf and contributors. GPL-2.0 licensed." data-zh="© 2026 apvlv —— 由 Alf 及贡献者维护。GPL-2.0 许可证。">© 2026 apvlv — maintained by Alf and contributors. GPL-2.0 licensed.</span>
+        <span class="footer-build mono">Authors · Alf, Stefan Ritter, Daniel Friesel</span>
+      </div>
     </footer>
+
+    <script src="./assets/js/main.js"></script>
   </body>
 </html>
