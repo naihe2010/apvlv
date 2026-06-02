@@ -90,17 +90,19 @@ if(LUPDATE STREQUAL "LUPDATE-NOTFOUND")
     find_program(LRELEASE lrelease-qt6 HINTS "${_qt_bin_dir}")
 endif()
 
-file(GLOB cppfiles *.cc)
-add_custom_target(apvlv_lupdate
-    COMMAND ${LUPDATE} -locations none -target-language zh_CN
-    ${cppfiles} -ts ${CMAKE_SOURCE_DIR}/zh_CN.ts
-)
-add_custom_target(apvlv_lrelease
-    COMMAND ${LRELEASE} ${CMAKE_SOURCE_DIR}/zh_CN.ts
-    -qm ${CMAKE_SOURCE_DIR}/share/doc/apvlv/translations/zh_CN.qm
-)
-add_dependencies(apvlv_lrelease apvlv_lupdate)
-add_dependencies(apvlv apvlv_lrelease)
+if(LUPDATE AND LRELEASE)
+    file(GLOB cppfiles *.cc)
+    add_custom_target(apvlv_lupdate
+        COMMAND ${LUPDATE} -locations none -target-language zh_CN
+        ${cppfiles} -ts ${CMAKE_SOURCE_DIR}/zh_CN.ts
+    )
+    add_custom_target(apvlv_lrelease
+        COMMAND ${LRELEASE} ${CMAKE_SOURCE_DIR}/zh_CN.ts
+        -qm ${CMAKE_SOURCE_DIR}/share/doc/apvlv/translations/zh_CN.qm
+    )
+    add_dependencies(apvlv_lrelease apvlv_lupdate)
+    add_dependencies(apvlv apvlv_lrelease)
+endif()
 
 # Installation
 install(TARGETS apvlv DESTINATION bin)

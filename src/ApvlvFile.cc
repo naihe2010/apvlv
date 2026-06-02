@@ -146,7 +146,9 @@ FileFactory::findMatchClass (const std::string &filename)
 
   for (auto const &cls : cls_list)
     {
-      if (strcasecmp (cls.first.c_str (), cls_name.c_str ()) == 0)
+      if (QString::fromStdString (cls.first)
+              .compare (QString::fromStdString (cls_name), Qt::CaseInsensitive)
+          == 0)
         return cls;
     }
 

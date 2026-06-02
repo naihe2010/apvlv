@@ -19,6 +19,18 @@ function Test-Command {
     return [bool](Get-Command $Command -ErrorAction SilentlyContinue)
 }
 
+function Invoke-Checked {
+    param([scriptblock]$Action, [string]$ErrorMessage)
+    & $Action
+    if ($LASTEXITCODE -ne 0) { Write-Error-Exit $ErrorMessage }
+}
+
+function Use-Location {
+    param([string]$Path, [scriptblock]$Action)
+    Push-Location $Path
+    try { & $Action } finally { Pop-Location }
+}
+
 function Get-VisualStudio {
     $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
     $instances = @()
@@ -127,50 +139,33 @@ if (!(Test-Path $BuildDir)) {
 if (!(Test-Path $VcpkgRoot) -or !(Test-Path "$VcpkgRoot\.git")) {
     Write-Host "Cloning vcpkg..." -ForegroundColor Green
     if (Test-Path $VcpkgRoot) { Remove-Item -Recurse -Force $VcpkgRoot }
-    Push-Location $BuildDir
-    try {
-        git clone https://github.com/microsoft/vcpkg vcpkg
-        if ($LASTEXITCODE -ne 0) { Write-Error-Exit "Failed to clone vcpkg" }
-    } finally {
-        Pop-Location
+    Use-Location $BuildDir {
+        Invoke-Checked { git clone https://github.com/microsoft/vcpkg vcpkg } "Failed to clone vcpkg"
     }
 } else {
     Write-Host "Updating vcpkg..." -ForegroundColor Green
-    Push-Location "$VcpkgRoot"
-    try {
+    Use-Location $VcpkgRoot {
         $isShallow = (& git rev-parse --is-shallow-repository).Trim()
         if ($isShallow -eq "true") {
-            git fetch --unshallow
-            if ($LASTEXITCODE -ne 0) { Write-Error-Exit "Failed to unshallow vcpkg repository" }
+            Invoke-Checked { git fetch --unshallow } "Failed to unshallow vcpkg repository"
         }
-        git pull --ff-only
-        if ($LASTEXITCODE -ne 0) { Write-Error-Exit "Failed to update vcpkg" }
-    } finally {
-        Pop-Location
+        Invoke-Checked { git pull --ff-only } "Failed to update vcpkg"
     }
 }
 
 if (!(Test-Path "$VcpkgRoot\vcpkg.exe")) {
     Write-Host "Bootstrapping vcpkg..." -ForegroundColor Green
-    Push-Location "$VcpkgRoot"
-    try {
-        .\bootstrap-vcpkg.bat
-        if ($LASTEXITCODE -ne 0) { Write-Error-Exit "Failed to bootstrap vcpkg" }
-    } finally {
-        Pop-Location
+    Use-Location $VcpkgRoot {
+        Invoke-Checked { .\bootstrap-vcpkg.bat } "Failed to bootstrap vcpkg"
     }
 }
 
 Write-Host "Installing vcpkg dependencies..." -ForegroundColor Green
 $env:VCPKG_INSTALLED_DIR = $VcpkgInstalledDir
-Push-Location "$SrcDir"
-try {
-    $installArgs = @("install", "--triplet=x64-windows", "--clean-after-build", "--x-install-root=$VcpkgInstalledDir")
-    if ($VcpkgBuildTreesPath) { $installArgs += "--x-buildtrees-root=$VcpkgBuildTreesPath" }
-    & "$VcpkgRoot\vcpkg.exe" $installArgs
-    if ($LASTEXITCODE -ne 0) { Write-Error-Exit "Failed to install dependencies" }
-} finally {
-    Pop-Location
+$installArgs = @("install", "--triplet=x64-windows", "--clean-after-build", "--x-install-root=$VcpkgInstalledDir")
+if ($VcpkgBuildTreesPath) { $installArgs += "--x-buildtrees-root=$VcpkgBuildTreesPath" }
+Use-Location $SrcDir {
+    Invoke-Checked { & "$VcpkgRoot\vcpkg.exe" $installArgs } "Failed to install dependencies"
 }
 Remove-Item Env:VCPKG_INSTALLED_DIR -ErrorAction SilentlyContinue
 
@@ -183,21 +178,18 @@ if (Test-Path $BuildDirPath) {
 New-Item -ItemType Directory -Path $BuildDirPath | Out-Null
 
 Write-Host "Configuring with CMake..." -ForegroundColor Green
-Push-Location "$BuildDirPath"
-try {
-    cmake "$SrcDir" `
-      -DCMAKE_TOOLCHAIN_FILE="$VcpkgRoot\scripts\buildsystems\vcpkg.cmake" `
-      -DVCPKG_TARGET_TRIPLET=x64-windows `
-      -DCMAKE_BUILD_TYPE=$BuildType `
-      -G "$($vs.Generator)" `
-      -A x64
-    if ($LASTEXITCODE -ne 0) { Write-Error-Exit "CMake configuration failed" }
+$ParallelJobs = [Math]::Min([Environment]::ProcessorCount, 8)
+Use-Location $BuildDirPath {
+    Invoke-Checked {
+        cmake "$SrcDir" `
+          -DCMAKE_TOOLCHAIN_FILE="$VcpkgRoot\scripts\buildsystems\vcpkg.cmake" `
+          -DVCPKG_TARGET_TRIPLET=x64-windows `
+          -DCMAKE_BUILD_TYPE=$BuildType `
+          -G "$($vs.Generator)" `
+          -A x64
+    } "CMake configuration failed"
     Write-Host "Building project..." -ForegroundColor Green
-    $ParallelJobs = [Math]::Min([Environment]::ProcessorCount, 8)
-    cmake --build . --config $BuildType --parallel $ParallelJobs
-    if ($LASTEXITCODE -ne 0) { Write-Error-Exit "Build failed" }
-} finally {
-    Pop-Location
+    Invoke-Checked { cmake --build . --config $BuildType --parallel $ParallelJobs } "Build failed"
 }
 
 Write-Host "Build completed successfully!" -ForegroundColor Green

@@ -8,10 +8,15 @@ on:
   pull_request:
     branches: ["master"]
 
+env:
+  VCPKG_COMMIT: d015e31e90838a4c9dfa3eed45979bc70d9357fc
+
 jobs:
   build-linux:
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container }}
+    env:
+      VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
     strategy:
       # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
@@ -20,20 +25,28 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            container: fedora:43
+            container: fedora:44
           - os: ubuntu-latest
             container: debian:13
           - os: ubuntu-latest
-            container: rockylinux:9
+            container: rockylinux/rockylinux:10
           - os: ubuntu-latest
             container: archlinux:latest
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Prepare (Fedora 43)
-        if: matrix.container == 'fedora:43'
+      - name: Export GitHub Actions cache environment variables
+        if: matrix.container == 'rockylinux/rockylinux:10'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Prepare (Fedora 44)
+        if: matrix.container == 'fedora:44'
         run: |
           dnf install -y cmake cmark gcc-c++ \
             qt6-qtbase-devel qt6-qtwebengine-devel \
@@ -41,6 +54,7 @@ jobs:
             quazip-qt6-devel poppler-qt6-devel \
             cmark-devel djvulibre-devel \
             mupdf-devel tesseract-devel \
+            mujs-devel gumbo-parser-devel openjpeg2-devel jbig2dec-devel \
             man ghostscript qt6-linguist \
             rpmbuild
           mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
@@ -61,20 +75,41 @@ jobs:
           export PATH=/usr/lib/qt6/bin:$PATH
           mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
-      - name: Prepare (RockyLinux 9)
-        if: matrix.container == 'rockylinux:9'
+      - name: Prepare (RockyLinux 10)
+        if: matrix.container == 'rockylinux/rockylinux:10'
         run: |
           dnf install -y epel-release
           dnf config-manager --enable crb devel
-          dnf install -y --nogpgcheck https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-$(rpm -E %rhel).noarch.rpm
-          dnf install -y --nogpgcheck https://mirrors.rpmfusion.org/nonfree/el/rpmfusion-nonfree-release-$(rpm -E %rhel).noarch.rpm
-          dnf install -y cmake cmark gcc-c++ \
+          dnf install -y cmake gcc-c++ make ninja-build git jq \
+            zip unzip tar perl python3 pkgconfig \
+            autoconf automake libtool autoconf-archive \
             qt6-qtbase-devel qt6-qtwebengine-devel \
-            qt6-qtpdf-devel libreofficekit-devel \
-            cmark-devel djvulibre-devel \
-            mupdf-devel tesseract-devel \
-            man ghostscript qt6-linguist
-            # quazip-qt6-devel poppler-qt6-devel
+            qt6-qt5compat-devel \
+            qt6-qtpdf-devel \
+            cmark cmark-devel djvulibre-devel \
+            tesseract-devel \
+            man ghostscript
+          git clone https://github.com/microsoft/vcpkg /opt/vcpkg
+          git -C /opt/vcpkg checkout "$VCPKG_COMMIT"
+          /opt/vcpkg/bootstrap-vcpkg.sh -disableMetrics
+          overlay="$GITHUB_WORKSPACE/vcpkg-overlay-ports"
+          for p in quazip; do
+            mkdir -p "$overlay/$p"
+            cp -r /opt/vcpkg/ports/$p/. "$overlay/$p/"
+            f="$overlay/$p/vcpkg.json"
+            jq -f "$GITHUB_WORKSPACE/ci/strip-quazip-qt-deps.jq" "$f" > "$f.tmp"
+            mv "$f.tmp" "$f"
+          done
+          ( cd /opt/vcpkg && ./vcpkg install --triplet=x64-linux-dynamic --overlay-ports="$overlay" libmupdf quazip )
+          vlib=/opt/vcpkg/installed/x64-linux-dynamic
+          {
+            echo "PKG_CONFIG_PATH=$vlib/lib/pkgconfig:$PKG_CONFIG_PATH"
+            echo "CMAKE_PREFIX_PATH=$vlib:$CMAKE_PREFIX_PATH"
+            echo "LIBRARY_PATH=$vlib/lib:$LIBRARY_PATH"
+            echo "LD_LIBRARY_PATH=$vlib/lib:$LD_LIBRARY_PATH"
+            echo "CPLUS_INCLUDE_PATH=$vlib/include:$CPLUS_INCLUDE_PATH"
+            echo "APVLV_WITH_OFFICE=OFF"
+          } >> "$GITHUB_ENV"
           mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
       - name: Prepare (Arch Linux)
@@ -82,7 +117,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm
           pacman -S --noconfirm base-devel cmake make gcc \
-            qt6-base qt6-webengine \
+            qt6-base qt6-webengine qt6-5compat \
             libreoffice-fresh-sdk jdk-openjdk \
             quazip-qt6 poppler-qt6 \
             pkg-config \
@@ -95,16 +130,78 @@ jobs:
       - name: Build (Linux)
         run: |
           test -d /usr/lib/qt6/bin && export PATH=/usr/lib/qt6/bin:$PATH
-          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
-          cmake --build build
+          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DAPVLV_WITH_OFFICE=${APVLV_WITH_OFFICE:-ON}
+          cmake --build build --parallel $(nproc)
 
   build-windows:
     name: Build (Windows)
     runs-on: windows-latest
+    env:
+      VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Build with script
-        run: ./scripts/build.ps1
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v8
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.*'
+          host: windows
+          target: desktop
+          arch: win64_msvc2022_64
+          modules: qtwebengine qtpdf qt5compat qtpositioning qtwebchannel qtactiveqt
+          cache: true
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install dependencies with vcpkg
+        shell: pwsh
+        run: |
+          if (-not (Test-Path C:\vcpkg\vcpkg.exe)) {
+            git clone https://github.com/microsoft/vcpkg C:\vcpkg
+            git -C C:\vcpkg checkout $env:VCPKG_COMMIT
+            & C:\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+          }
+          $overlay = "$env:GITHUB_WORKSPACE\vcpkg-overlay-ports"
+          New-Item -ItemType Directory -Force -Path "$overlay\quazip" | Out-Null
+          Copy-Item -Recurse -Force C:\vcpkg\ports\quazip\* "$overlay\quazip\"
+          $f = "$overlay\quazip\vcpkg.json"
+          jq -f "$env:GITHUB_WORKSPACE\ci\strip-quazip-qt-deps.jq" $f | Set-Content "$f.tmp"
+          Move-Item -Force "$f.tmp" $f
+          if (-not $env:QT_ROOT_DIR) { throw "QT_ROOT_DIR is not set" }
+          $qt = ($env:QT_ROOT_DIR).Replace('\', '/')
+          $triplet = "$env:GITHUB_WORKSPACE\vcpkg-overlay-triplets\x64-windows.cmake"
+          (Get-Content $triplet -Raw).Replace('$ENV{QT_ROOT_DIR}', $qt) | Set-Content $triplet
+          Push-Location C:\vcpkg
+          & C:\vcpkg\vcpkg.exe install --triplet x64-windows `
+            --overlay-ports="$overlay" `
+            --overlay-triplets="$env:GITHUB_WORKSPACE\vcpkg-overlay-triplets" `
+            libmupdf quazip cmark tesseract
+          $code = $LASTEXITCODE
+          Pop-Location
+          if ($code -ne 0) { exit 1 }
+
+      - name: Build (Windows)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path share\doc\apvlv\translations | Out-Null
+          cmake -B build -S . -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake `
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            -DVCPKG_OVERLAY_TRIPLETS="$env:GITHUB_WORKSPACE\vcpkg-overlay-triplets" `
+            -DVCPKG_MANIFEST_MODE=OFF `
+            -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR" `
+            -DAPVLV_WITH_DJVU=OFF `
+            -DAPVLV_WITH_POPPLER=OFF
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          cmake --build build --parallel
 

@@ -2,9 +2,8 @@
 
 if(WIN32 AND APVLV_WITH_OFFICE)
     message(STATUS "Enable MSOffice as office file engine")
-    find_package(Qt6AxContainer REQUIRED)
-    include_directories(${Qt6AxContainer_INCLUDE_DIRS})
-    list(APVLV_ENGINE_LIBRARIES ${Qt6AxContainer_LIBRARIES} Shlwapi.lib)
+    find_package(Qt6 REQUIRED COMPONENTS AxContainer)
+    list(APPEND APVLV_ENGINE_LIBRARIES Qt6::AxContainer Shlwapi.lib)
     list(APPEND APVLV_ENGINE_HEADERS file/ApvlvAxOffice.h)
     list(APPEND APVLV_ENGINE_SOURCES file/ApvlvAxOffice.cc)
 elseif(NOT WIN32 AND APVLV_WITH_OFFICE)

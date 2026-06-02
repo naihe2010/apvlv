@@ -580,7 +580,7 @@ Directory::tag ()
     }
 
   filesystem::path file_path{ cur->path };
-  string filename = file_path.filename ();
+  string filename = file_path.filename ().string ();
   auto ans = NoteDialog::getTag (filename, note->tag (), mTags);
   if (ans.isEmpty ())
     {

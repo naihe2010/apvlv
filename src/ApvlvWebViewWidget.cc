@@ -121,7 +121,7 @@ WebViewWidget::loadJavaScriptFromDir (const std::string &dir)
           auto contents = file.readAll ();
 
           auto script = QWebEngineScript{};
-          script.setName (QString::fromStdString (path.filename ()));
+          script.setName (QString::fromStdString (path.filename ().string ()));
           script.setSourceCode (contents);
           script.setInjectionPoint (QWebEngineScript::DocumentCreation);
           script.setWorldId (QWebEngineScript::MainWorld);

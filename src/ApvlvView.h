@@ -33,6 +33,7 @@
 #include <QMenuBar>
 #include <QTabWidget>
 #include <QVBoxLayout>
+#include <chrono>
 #include <iosfwd>
 #include <iostream>
 #include <sstream>

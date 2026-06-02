@@ -29,6 +29,8 @@
 #include <cmark.h>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 
 #include "ApvlvFile.h"
 #include "ApvlvMarkdown.h"
@@ -109,7 +111,8 @@ Comment::fromMarkdownNode (MarkdownNode *node)
   p = i->childAt (0);
   t = p->childAt (0);
   struct tm tm{};
-  strptime (t->literal.c_str (), "%a %b %d %H:%M:%S %Y", &tm);
+  std::istringstream ss (t->literal);
+  ss >> std::get_time (&tm, "%a %b %d %H:%M:%S %Y");
   time = std::mktime (&tm);
 }
 
@@ -508,7 +511,8 @@ Note::notePathOfPath (std::string_view sv)
     filename = filename.substr (1);
   if (filename[1] == ':')
     filename[1] = '-';
-  auto path = NotesDir + filesystem::path::preferred_separator + filename;
+  auto path
+      = NotesDir + (char)filesystem::path::preferred_separator + filename;
   return path + ".md";
 }
 

@@ -28,6 +28,7 @@
 #ifndef _APVLV_NOTE_H_
 #define _APVLV_NOTE_H_
 
+#include <chrono>
 #include <map>
 #include <sstream>
 #include <string>
