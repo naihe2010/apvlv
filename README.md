@@ -33,28 +33,40 @@ What's more import is apvlv can support view a directory as content of a pdf/epu
 
 # Build
 
-1. Using cmake to generate Makefile.
-   
-   ```
-   cmake .
-   ```
-2. Execute make.
-   
-   ```
-   make
-   ```
+## Linux
+
+Install the dependencies from your distribution (Qt6, quazip-qt6, cmark, and
+optionally mupdf, poppler-qt6, djvulibre, tesseract, libreofficekit), then:
+
+```
+cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+```
+
+`scripts/build.sh` is a thin wrapper around these two commands (`scripts/build.sh debug` for a debug build).
+
+## Windows
+
+Install Qt 6 and set `QT_ROOT_DIR` to its directory, then run from a Developer
+PowerShell:
+
+```
+scripts/build.ps1
+```
+
+It bootstraps vcpkg, installs the C/C++ dependencies, and configures CMake.
 
 # Install
 
 + Make a package and install it.
   
   ```
-  make package
+  cmake --build build --target package
   ```
 + Or install it directly.
   
   ```
-  sudo make install
+  sudo cmake --install build
   ```
 
 # License
