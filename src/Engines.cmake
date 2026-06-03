@@ -52,7 +52,7 @@ if(APVLV_WITH_POPPLER)
       # Fallback to direct library name
       list(APPEND APVLV_ENGINE_LIBRARIES poppler)
     endif()
-  elseif()
+  else()
     message(STATUS "Enable Poppler engine")
     include_directories(${POPPLER_INCLUDE_DIRS})
     list(APPEND APVLV_ENGINE_HEADERS file/ApvlvPopplerPdf.h)

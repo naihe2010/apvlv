@@ -109,6 +109,7 @@ jobs:
             echo "LD_LIBRARY_PATH=$vlib/lib:$LD_LIBRARY_PATH"
             echo "CPLUS_INCLUDE_PATH=$vlib/include:$CPLUS_INCLUDE_PATH"
             echo "APVLV_WITH_OFFICE=OFF"
+            echo "APVLV_WITH_POPPLER=OFF"
           } >> "$GITHUB_ENV"
           mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
@@ -130,7 +131,9 @@ jobs:
       - name: Build (Linux)
         run: |
           test -d /usr/lib/qt6/bin && export PATH=/usr/lib/qt6/bin:$PATH
-          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DAPVLV_WITH_OFFICE=${APVLV_WITH_OFFICE:-ON}
+          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+            -DAPVLV_WITH_OFFICE=${APVLV_WITH_OFFICE:-ON} \
+            -DAPVLV_WITH_POPPLER=${APVLV_WITH_POPPLER:-ON}
           cmake --build build --parallel $(nproc)
 
   build-windows:
