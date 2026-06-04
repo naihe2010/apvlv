@@ -15,8 +15,6 @@ jobs:
   build-linux:
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container }}
-    env:
-      VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
     strategy:
       # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
@@ -37,13 +35,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v5
 
-      - name: Export GitHub Actions cache environment variables
+      - name: Cache vcpkg archives (RockyLinux)
         if: matrix.container == 'rockylinux/rockylinux:10'
-        uses: actions/github-script@v8
+        uses: actions/cache@v4
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          path: ~/.cache/vcpkg/archives
+          key: vcpkg-rocky-${{ env.VCPKG_COMMIT }}-${{ hashFiles('ci/strip-quazip-qt-deps.jq') }}
+          restore-keys: |
+            vcpkg-rocky-${{ env.VCPKG_COMMIT }}-
 
       - name: Prepare (Fedora 44)
         if: matrix.container == 'fedora:44'
@@ -57,7 +56,6 @@ jobs:
             mujs-devel gumbo-parser-devel openjpeg2-devel jbig2dec-devel \
             man ghostscript qt6-linguist \
             rpmbuild
-          mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
       - name: Prepare (Debian 13)
         if: matrix.container == 'debian:13'
@@ -73,7 +71,6 @@ jobs:
             man groff ghostscript qt6-tools-dev qt6-l10n-tools \
             pkg-config
           export PATH=/usr/lib/qt6/bin:$PATH
-          mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
       - name: Prepare (RockyLinux 10)
         if: matrix.container == 'rockylinux/rockylinux:10'
@@ -111,7 +108,6 @@ jobs:
             echo "APVLV_WITH_OFFICE=OFF"
             echo "APVLV_WITH_POPPLER=OFF"
           } >> "$GITHUB_ENV"
-          mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
       - name: Prepare (Arch Linux)
         if: matrix.container == 'archlinux:latest'
@@ -126,7 +122,6 @@ jobs:
             mupdf mujs tesseract \
             man-db groff ghostscript qt6-tools \
             gtk3
-          mkdir -p $GITHUB_WORKSPACE/share/doc/apvlv/translations
 
       - name: Build (Linux)
         run: |
@@ -139,18 +134,9 @@ jobs:
   build-windows:
     name: Build (Windows)
     runs-on: windows-latest
-    env:
-      VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
     steps:
       - name: Checkout Code
         uses: actions/checkout@v5
-
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v8
-        with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
@@ -165,46 +151,15 @@ jobs:
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install dependencies with vcpkg
-        shell: pwsh
-        run: |
-          if (-not (Test-Path C:\vcpkg\vcpkg.exe)) {
-            git clone https://github.com/microsoft/vcpkg C:\vcpkg
-            git -C C:\vcpkg checkout $env:VCPKG_COMMIT
-            & C:\vcpkg\bootstrap-vcpkg.bat -disableMetrics
-          }
-          $overlay = "$env:GITHUB_WORKSPACE\vcpkg-overlay-ports"
-          New-Item -ItemType Directory -Force -Path "$overlay\quazip" | Out-Null
-          Copy-Item -Recurse -Force C:\vcpkg\ports\quazip\* "$overlay\quazip\"
-          $f = "$overlay\quazip\vcpkg.json"
-          jq -f "$env:GITHUB_WORKSPACE\ci\strip-quazip-qt-deps.jq" $f | Set-Content "$f.tmp"
-          Move-Item -Force "$f.tmp" $f
-          if (-not $env:QT_ROOT_DIR) { throw "QT_ROOT_DIR is not set" }
-          $qt = ($env:QT_ROOT_DIR).Replace('\', '/')
-          $triplet = "$env:GITHUB_WORKSPACE\vcpkg-overlay-triplets\x64-windows.cmake"
-          (Get-Content $triplet -Raw).Replace('$ENV{QT_ROOT_DIR}', $qt) | Set-Content $triplet
-          Push-Location C:\vcpkg
-          & C:\vcpkg\vcpkg.exe install --triplet x64-windows `
-            --overlay-ports="$overlay" `
-            --overlay-triplets="$env:GITHUB_WORKSPACE\vcpkg-overlay-triplets" `
-            libmupdf quazip cmark tesseract
-          $code = $LASTEXITCODE
-          Pop-Location
-          if ($code -ne 0) { exit 1 }
+      - name: Cache vcpkg archives
+        uses: actions/cache@v4
+        with:
+          path: ~/AppData/Local/vcpkg/archives
+          key: vcpkg-windows-${{ env.VCPKG_COMMIT }}-${{ hashFiles('scripts/build.ps1', 'ci/strip-quazip-qt-deps.jq', 'vcpkg-overlay-triplets/x64-windows.cmake') }}
+          restore-keys: |
+            vcpkg-windows-${{ env.VCPKG_COMMIT }}-
 
       - name: Build (Windows)
         shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path share\doc\apvlv\translations | Out-Null
-          cmake -B build -S . -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake `
-            -DVCPKG_TARGET_TRIPLET=x64-windows `
-            -DVCPKG_OVERLAY_TRIPLETS="$env:GITHUB_WORKSPACE\vcpkg-overlay-triplets" `
-            -DVCPKG_MANIFEST_MODE=OFF `
-            -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR" `
-            -DAPVLV_WITH_DJVU=OFF `
-            -DAPVLV_WITH_POPPLER=OFF
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          cmake --build build --parallel
+        run: scripts/build.ps1 -VcpkgCommit $env:VCPKG_COMMIT
 
