@@ -47,14 +47,15 @@ cmake --build build --parallel
 
 ## Windows
 
-Install Qt 6 and set `QT_ROOT_DIR` to its directory, then run from a Developer
-PowerShell:
+Install Qt 6 and `jq`, set `QT_ROOT_DIR` to the Qt directory, then run from a
+Developer PowerShell:
 
 ```
 scripts/build.ps1
 ```
 
-It bootstraps vcpkg, installs the C/C++ dependencies, and configures CMake.
+It bootstraps vcpkg, installs the C/C++ dependencies, configures CMake, and
+builds. This is the same recipe the Windows CI runs.
 
 # Install
 

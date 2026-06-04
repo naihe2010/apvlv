@@ -3,7 +3,6 @@
 # Include source and engine configurations
 include(${CMAKE_CURRENT_SOURCE_DIR}/Sources.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/Engines.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/WindowsEngines.cmake)
 
 # Setup include directories
 include_directories(
@@ -83,6 +82,7 @@ else()
 endif()
 
 # Translation setup
+file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/share/doc/apvlv/translations)
 find_program(LUPDATE lupdate HINTS "${_qt_bin_dir}")
 find_program(LRELEASE lrelease HINTS "${_qt_bin_dir}")
 if(LUPDATE STREQUAL "LUPDATE-NOTFOUND")
