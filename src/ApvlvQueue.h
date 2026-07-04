@@ -69,7 +69,7 @@ public:
     return true;
   }
 
-  void
+  bool
   empty ()
   {
     std::lock_guard<std::mutex> lock (mMutex);

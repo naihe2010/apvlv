@@ -52,8 +52,9 @@ ApvlvInfo::loadFile (std::string_view file)
         {
           auto p = line.c_str ();
 
-          if (*p != '\''              /* the ' */
-              || !isdigit (*(p + 1))) /* the digit */
+          if (*p != '\'' /* the ' */
+              || !isdigit (
+                  static_cast<unsigned char> (*(p + 1)))) /* the digit */
             {
               continue;
             }
@@ -150,7 +151,7 @@ ApvlvInfo::addPosition (const char *str)
       return false;
     }
 
-  while (*p != '\0' && !isdigit (*p))
+  while (*p != '\0' && !isdigit (static_cast<unsigned char> (*p)))
     {
       p++;
     }
@@ -160,7 +161,7 @@ ApvlvInfo::addPosition (const char *str)
   s = strchr (p, ':');
   for (; s && p < s; ++p)
     {
-      if (!isdigit (*p))
+      if (!isdigit (static_cast<unsigned char> (*p)))
         {
           break;
         }
@@ -181,7 +182,7 @@ ApvlvInfo::addPosition (const char *str)
       return false;
     }
 
-  while (*p != '\0' && !isdigit (*p))
+  while (*p != '\0' && !isdigit (static_cast<unsigned char> (*p)))
     {
       p++;
     }
@@ -193,7 +194,7 @@ ApvlvInfo::addPosition (const char *str)
       return false;
     }
 
-  while (*p != '\0' && isspace (*p))
+  while (*p != '\0' && isspace (static_cast<unsigned char> (*p)))
     {
       p++;
     }

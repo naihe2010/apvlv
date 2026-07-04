@@ -46,8 +46,8 @@ public:
   ~OCR ();
 
   std::unique_ptr<TextAreaVector> getTextArea (const QPixmap &pixmap);
-  std::unique_ptr<char> getTextFromPixmap (const QPixmap &pixmap,
-                                           QRect area = QRect ());
+  std::unique_ptr<char[]> getTextFromPixmap (const QPixmap &pixmap,
+                                             QRect area = QRect ());
 
 private:
   TessBaseAPI mTessBaseAPI;

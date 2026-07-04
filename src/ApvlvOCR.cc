@@ -51,21 +51,21 @@ OCR::getTextArea (const QPixmap &pixmap)
   return nullptr;
 }
 
-std::unique_ptr<char>
+std::unique_ptr<char[]>
 OCR::getTextFromPixmap (const QPixmap &pixmap, QRect area)
 {
   auto image = pixmap.toImage ();
   image = image.convertToFormat (QImage::Format_RGB888);
   mTessBaseAPI.SetImage (image.bits (), image.width (), image.height (), 3,
                          static_cast<int> (image.bytesPerLine ()));
-  auto text = mTessBaseAPI.GetUTF8Text ();
   if (area.isValid ())
     {
       mTessBaseAPI.SetRectangle (area.left (), area.top (), area.width (),
                                  area.height ());
     }
+  auto text = mTessBaseAPI.GetUTF8Text ();
   mTessBaseAPI.Clear ();
-  return unique_ptr<char> (text);
+  return unique_ptr<char[]> (text);
 }
 
 }

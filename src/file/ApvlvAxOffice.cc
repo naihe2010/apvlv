@@ -50,6 +50,13 @@ ApvlvOfficeWord::load (const string &filename)
   mApp = new QAxWidget ("Word.Application");
   mApp->setProperty ("Visible", false);
   mDocs = mApp->querySubObject ("Documents");
+  if (mDocs == nullptr)
+    {
+      mApp->dynamicCall ("Quit()");
+      delete mApp;
+      mApp = nullptr;
+      return false;
+    }
   mDoc = mDocs->querySubObject (
       "OpenNoRepairDialog(const QString&, bool, bool, bool)", qname, false,
       true, false);
@@ -57,6 +64,7 @@ ApvlvOfficeWord::load (const string &filename)
     {
       mApp->dynamicCall ("Quit()");
       delete mApp;
+      mApp = nullptr;
       return false;
     }
   return true;
@@ -236,12 +244,20 @@ ApvlvPowerPoint::load (const string &filename)
   mApp = new QAxWidget ("PowerPoint.Application");
   mApp->setProperty ("Visible", false);
   mDocs = mApp->querySubObject ("Presentations");
+  if (mDocs == nullptr)
+    {
+      mApp->dynamicCall ("Quit()");
+      delete mApp;
+      mApp = nullptr;
+      return false;
+    }
   mDoc = mDocs->querySubObject ("Open(const QString&, bool, bool, bool)",
                                 qname, true, false, false);
   if (mDoc == nullptr)
     {
       mApp->dynamicCall ("Quit()");
       delete mApp;
+      mApp = nullptr;
       return false;
     }
   return true;

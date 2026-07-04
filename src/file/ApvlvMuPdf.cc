@@ -135,6 +135,8 @@ ApvlvMuPDF::pageHighlight (int pn, const ApvlvPoint &pa, const ApvlvPoint &pb)
   auto options = fz_stext_options{};
   auto text_page
       = fz_new_stext_page_from_page_number (mContext, mDoc, pn, &options);
+  if (text_page == nullptr)
+    return nullopt;
   auto fa = fz_point{ static_cast<float> (pa.x), static_cast<float> (pa.y) };
   auto fb = fz_point{ static_cast<float> (pb.x), static_cast<float> (pb.y) };
   std::array<fz_quad, 1024> quad_array;
@@ -159,6 +161,8 @@ ApvlvMuPDF::pageText (int pn, const Rectangle &rect, string &text)
 {
   auto text_page
       = fz_new_stext_page_from_page_number (mContext, mDoc, pn, nullptr);
+  if (text_page == nullptr)
+    return false;
   auto fzrect = fz_rect{
     .x0 = static_cast<float> (rect.p1x),
     .y0 = static_cast<float> (rect.p1y),
@@ -213,7 +217,7 @@ ApvlvMuPDF::pageRenderComments (int pn, fz_pixmap *pixmap,
       ApvlvPoint pa{ comment.begin.x, comment.begin.y };
       ApvlvPoint pb{ comment.end.x, comment.end.y };
       auto rect_list = pageHighlight (pn, pa, pb);
-      if (rect_list->empty ())
+      if (!rect_list.has_value () || rect_list->empty ())
         continue;
 
       for (auto const &rect : rect_list.value ())

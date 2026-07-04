@@ -415,7 +415,7 @@ Markdown::saveToStream (std::ostream &os)
   os << text;
   free (text);
   cmark_node_free (doc);
-  return false;
+  return true;
 }
 
 MarkdownNode *

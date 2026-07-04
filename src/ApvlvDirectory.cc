@@ -193,7 +193,8 @@ Directory::setIndex (const FileIndex &index)
     }
 
   auto cur_index = currentItemFileIndex ();
-  if (mIndex.type == DIR && cur_index->type == FILE && index.type == FILE)
+  if (cur_index && mIndex.type == DIR && cur_index->type == FILE
+      && index.type == FILE)
     {
       if (cur_index->mChildrenIndex.empty ())
         {
@@ -573,7 +574,8 @@ Directory::tag ()
     {
       if (note->load (path) == false)
         {
-          auto msg = QString (tr ("load note of %s error")).arg (cur->path.c_str());
+          auto msg = QString (tr ("load note of %s error"))
+                         .arg (cur->path.c_str ());
           QMessageBox::warning (nullptr, tr ("error"), msg);
           return;
         }

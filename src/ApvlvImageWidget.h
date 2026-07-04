@@ -114,7 +114,7 @@ public:
 
 #ifdef APVLV_WITH_OCR
   void ocrDisplay (bool replace);
-  std::unique_ptr<char> ocrGetText ();
+  std::unique_ptr<char[]> ocrGetText ();
 #endif
 
 private:

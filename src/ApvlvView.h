@@ -112,7 +112,7 @@ public:
 
   bool run (const char *str);
 
-  bool loadFile (const std::string &filename);
+  ApvlvFrame *loadFile (const std::string &filename);
 
   bool loadDir (const std::string &path);
 

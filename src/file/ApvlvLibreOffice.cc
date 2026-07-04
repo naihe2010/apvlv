@@ -116,12 +116,11 @@ ApvlvOFFICE::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
   lock_guard<mutex> lk (mLokMutex);
   mDoc->setPart (pn);
   QTemporaryFile file;
-  if (file.open ())
-    {
-      mDoc->saveAs (file.fileName ().toStdString ().c_str (), "png");
-      *pix = QImage (file.fileName (), "png");
-      file.close ();
-    }
+  if (!file.open ())
+    return false;
+  mDoc->saveAs (file.fileName ().toStdString ().c_str (), "png");
+  *pix = QImage (file.fileName (), "png");
+  file.close ();
   return true;
 }
 

@@ -62,7 +62,7 @@ public:
   void requestStarted (QWebEngineUrlRequestJob *job) override;
 
 private:
-  File *mFile;
+  File *mFile{ nullptr };
   QByteArray mArray;
   QBuffer mBuffer;
 

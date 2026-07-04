@@ -208,20 +208,12 @@ grep (const string &source, const string &text, bool is_case, bool is_regex)
   if (is_regex == true)
     {
       regex regex_1{ text };
-      const sregex_token_iterator end;
-      sregex_token_iterator iter;
-      vector<string> regex_texts;
-      while ((iter = regex_token_iterator (source.begin (), source.end (),
-                                           regex_1))
-             != end)
+      const sregex_iterator end;
+      for (sregex_iterator iter (source.begin (), source.end (), regex_1);
+           iter != end; ++iter)
         {
-          regex_texts.push_back (iter->str ());
-        }
-      size_t pos = 0;
-      for (auto const &r_text : regex_texts)
-        {
-          pos = source.find (r_text, pos);
-          pair res{ pos, r_text.size () };
+          pair res{ static_cast<size_t> (iter->position ()),
+                    static_cast<size_t> (iter->length ()) };
           results.emplace_back (std::move (res));
         }
     }

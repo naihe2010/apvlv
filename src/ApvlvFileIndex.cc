@@ -50,12 +50,12 @@ FileIndex::loadDirectory (const string &path1)
                path1,
                filesystem::directory_options::follow_directory_symlink))
         {
+          auto entrypath = canonicalPath (entry.path ().string ());
           if (entry.is_directory ())
             {
-              auto index
-                  = FileIndex (entry.path ().filename ().string (), 0,
-                               entry.path ().string (), FileIndexType::DIR);
-              index.loadDirectory (entry.path ().string ());
+              auto index = FileIndex (entry.path ().filename ().string (), 0,
+                                      entrypath, FileIndexType::DIR);
+              index.loadDirectory (entrypath);
               auto last = entry.last_write_time ();
               index.mtime = filesystemTimeToMSeconds (last);
               if (!index.mChildrenIndex.empty ())
@@ -70,8 +70,7 @@ FileIndex::loadDirectory (const string &path1)
                   != exts.cend ())
                 {
                   auto index = FileIndex (entry.path ().filename ().string (),
-                                          0, entry.path ().string (),
-                                          FileIndexType::FILE);
+                                          0, entrypath, FileIndexType::FILE);
                   index.size = static_cast<int64_t> (entry.file_size ());
                   auto last = entry.last_write_time ();
                   index.mtime = filesystemTimeToMSeconds (last);

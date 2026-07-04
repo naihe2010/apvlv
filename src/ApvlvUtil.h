@@ -76,6 +76,8 @@ xmlContentGetAttributeValue (const char *content, size_t length,
 
 std::string filenameExtension (const std::string &filename);
 
+std::string canonicalPath (const std::string &path);
+
 void imageArgb32ToRgb32 (QImage &image, int left, int top, int right,
                          int bottom);
 

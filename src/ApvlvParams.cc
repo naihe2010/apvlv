@@ -94,7 +94,7 @@ ApvlvParams::loadFile (const std::string &filename)
       stringstream is (str);
 
       is >> crap;
-      if (crap[0] == '\"' || crap.empty ())
+      if (crap.empty () || crap[0] == '\"')
         {
           continue;
         }
@@ -135,7 +135,8 @@ ApvlvParams::loadFile (const std::string &filename)
 
           getline (is, data);
 
-          while (!data.empty () && isspace (data[0]))
+          while (!data.empty ()
+                 && isspace (static_cast<unsigned char> (data[0])))
             data.erase (0, 1);
 
           if (!argu.empty () && !data.empty ())

@@ -104,7 +104,8 @@ ApvlvLog::logMessage (QtMsgType type, const QMessageLogContext &context,
     {
       auto filename = QFileInfo (context.file).fileName ().toStdString ();
       log += QString::asprintf ("%s:%d ", filename.c_str (), context.line);
-      log += QString::asprintf ("%s ", context.function);
+      log += QString::asprintf ("%s ",
+                                context.function ? context.function : "");
     }
   log += msg;
 

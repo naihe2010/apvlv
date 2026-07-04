@@ -395,15 +395,13 @@ ApvlvView::newTab (ApvlvFrame *core)
   return true;
 }
 
-bool
+ApvlvFrame *
 ApvlvView::loadFile (const std::string &filename)
 {
-  auto abpath = filesystem::absolute (filename).string ();
-
   ApvlvWindow *win = currentWindow ();
   ApvlvFrame *ndoc = nullptr;
 
-  auto optndoc = hasLoaded (abpath);
+  auto optndoc = hasLoaded (filename);
   if (!optndoc)
     {
       ndoc = new ApvlvFrame (this);
@@ -425,18 +423,17 @@ ApvlvView::loadFile (const std::string &filename)
       updateTabName ();
     }
 
-  return ndoc != nullptr;
+  return optndoc.value_or (nullptr);
 }
 
 void
 ApvlvView::loadFileOnPage (const string &filename, int pn)
 {
-  auto cdoc = currentFrame ();
-  if (cdoc)
+  if (currentFrame ())
     {
-      if (loadFile (filename))
+      if (auto ndoc = loadFile (filename))
         {
-          cdoc->showPage (pn, 0.0);
+          ndoc->showPage (pn, 0.0);
         }
     }
 }
@@ -444,9 +441,10 @@ ApvlvView::loadFileOnPage (const string &filename, int pn)
 optional<ApvlvFrame *>
 ApvlvView::hasLoaded (string_view abpath)
 {
+  auto canon = canonicalPath (std::string (abpath));
   for (auto &core : mDocs)
     {
-      if (!core->inuse () && abpath == core->filename ())
+      if (!core->inuse () && canon == core->filename ())
         {
           return make_optional<ApvlvFrame *> (core.get ());
         }
@@ -815,6 +813,7 @@ ApvlvView::subProcess (int times, uint keyval)
     case 'Z':
       if (keyval == 'Z')
         quit (true);
+      break;
 
     case ctrlValue ('w'):
       if (keyval == 'q' || keyval == ctrlValue ('Q'))
@@ -1019,7 +1018,7 @@ ApvlvView::runCommand (const char *str)
             }
           else if (filesystem::is_regular_file (subcmd))
             {
-              ret = loadFile (subcmd);
+              ret = loadFile (subcmd) != nullptr;
             }
           else
             {
@@ -1326,10 +1325,10 @@ void
 ApvlvView::eraseChild (ApvlvView *view)
 {
   auto itr = mChildren.begin ();
-  while (*itr != view && itr != mChildren.end ())
+  while (itr != mChildren.end () && *itr != view)
     itr++;
 
-  if (*itr == view)
+  if (itr != mChildren.end ())
     {
       mChildren.erase (itr);
     }

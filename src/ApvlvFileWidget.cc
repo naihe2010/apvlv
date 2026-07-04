@@ -46,6 +46,8 @@ FileWidget::scrollRate ()
     return mScrollValue;
 
   double maxv = mValScrollBar->maximum () - mValScrollBar->minimum ();
+  if (maxv <= 0.0)
+    return 0.00;
   double val = mValScrollBar->value () / maxv;
   if (val > 1.0)
     {
@@ -155,13 +157,13 @@ FileWidget::scrollLeft (int times)
   auto const hl_pixels = ApvlvParams::instance ()->getIntOrDefault (
       "hl_pixels", APVLV_HL_PIXELS_DEFAULT);
   auto val = mHalScrollBar->value () - hl_pixels * times;
-  if (val > mHalScrollBar->minimumWidth ())
+  if (val > mHalScrollBar->minimum ())
     {
       mHalScrollBar->setValue (val);
     }
   else
     {
-      mHalScrollBar->setValue (mHalScrollBar->minimumWidth ());
+      mHalScrollBar->setValue (mHalScrollBar->minimum ());
     }
 }
 
@@ -174,14 +176,13 @@ FileWidget::scrollRight (int times)
   auto const hl_pixels = ApvlvParams::instance ()->getIntOrDefault (
       "hl_pixels", APVLV_HL_PIXELS_DEFAULT);
   auto val = mHalScrollBar->value () + hl_pixels * times;
-  if (val + mHalScrollBar->width () < mHalScrollBar->maximumWidth ())
+  if (val < mHalScrollBar->maximum ())
     {
       mHalScrollBar->setValue (val);
     }
   else
     {
-      mHalScrollBar->setValue (mHalScrollBar->maximumWidth ()
-                               - mHalScrollBar->width ());
+      mHalScrollBar->setValue (mHalScrollBar->maximum ());
     }
 }
 

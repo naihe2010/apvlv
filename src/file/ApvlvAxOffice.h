@@ -48,9 +48,9 @@ public:
   }
 
 protected:
-  QAxWidget *mApp;
-  QAxObject *mDocs;
-  QAxObject *mDoc;
+  QAxWidget *mApp{ nullptr };
+  QAxObject *mDocs{ nullptr };
+  QAxObject *mDoc{ nullptr };
 };
 
 class ApvlvOfficeWord : public File, public AxOffice

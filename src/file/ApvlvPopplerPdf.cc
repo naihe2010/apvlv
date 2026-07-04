@@ -64,7 +64,11 @@ ApvlvPopplerPDF::load (const string &filename)
 SizeF
 ApvlvPopplerPDF::pageSizeF (int pn, int rot)
 {
+  if (mDoc == nullptr)
+    return { 0.0f, 0.0f };
   auto page = mDoc->page (pn);
+  if (page == nullptr)
+    return { 0.0f, 0.0f };
   auto qsize = page->pageSizeF ();
   if (rot == 0 || rot == 180)
     {
@@ -107,7 +111,11 @@ ApvlvPopplerPDF::pageSearch (int pn, const char *str)
 bool
 ApvlvPopplerPDF::pageIsOnlyImage (int pn)
 {
+  if (mDoc == nullptr)
+    return true;
   auto page = mDoc->page (pn);
+  if (page == nullptr)
+    return true;
   auto list = page->textList ();
   return list.empty ();
 }
@@ -130,6 +138,8 @@ ApvlvPopplerPDF::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
     prot = Poppler::Page::Rotate270;
 
   auto page = mDoc->page (pn);
+  if (page == nullptr)
+    return false;
   auto size = page->pageSizeF ();
   auto image = page->renderToImage (xres, yres, 0, 0, size.width () * zm,
                                     size.height () * zm, prot);
@@ -155,8 +165,9 @@ ApvlvPopplerPDF::generateChildrenIndex (FileIndex &root_index,
 {
   for (auto const &outline : outlines)
     {
+      auto dest = outline.destination ();
       FileIndex index{ outline.name ().toStdString (),
-                       outline.destination ()->pageNumber () - 1, "",
+                       dest ? dest->pageNumber () - 1 : 0, "",
                        FileIndexType::PAGE };
       auto child_outlines = outline.children ();
       generateChildrenIndex (index, child_outlines);

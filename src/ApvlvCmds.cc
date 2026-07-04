@@ -60,13 +60,12 @@ static int
 keyToControlChar (QKeyEvent *key)
 {
   int char_key = key->key ();
-  if (key->modifiers () & Qt::ShiftModifier)
+  if (char_key >= 0 && char_key <= 0xff)
     {
-      char_key = toupper (char_key);
-    }
-  else
-    {
-      char_key = tolower (char_key);
+      if (key->modifiers () & Qt::ShiftModifier)
+        char_key = toupper (char_key);
+      else
+        char_key = tolower (char_key);
     }
   if (key->modifiers () & ControlModifier)
     char_key = ctrlValue (char_key);
@@ -121,7 +120,7 @@ Command::push (string_view sv, CmdType type)
   mPreCount = 1;
 
   auto s = sv.data ();
-  if (isdigit (*s))
+  if (isdigit (static_cast<unsigned char> (*s)))
     {
       mHasPreCount = true;
       mPreCount = (signed int)strtol (s, nullptr, 10);
@@ -129,7 +128,7 @@ Command::push (string_view sv, CmdType type)
         {
           s++;
         }
-      while (isdigit (*s));
+      while (isdigit (static_cast<unsigned char> (*s)));
     }
 
   if (*s == ':' || *s == '/' || *s == '?')
@@ -201,7 +200,7 @@ Command::append (const char *s)
 
   len = strlen (s);
 
-  if (len >= 4 && *s == '<' && (*e != '\0' && *(s + 2) != '-'))
+  if (len >= 4 && *s == '<' && e != nullptr && *(s + 2) != '-')
     {
       e++;
       for (const auto &it : mKeyMap)
@@ -339,7 +338,7 @@ ApvlvCmds::append (QKeyEvent *gev)
       if (r == CmdReturn::NO_MATCH)
         {
           process (mCmdHead.get ());
-          mCmdHead.release ();
+          mCmdHead.reset ();
           mState = CmdState::CMD_OK;
         }
     }
@@ -349,7 +348,7 @@ ApvlvCmds::append (QKeyEvent *gev)
 
   if (mState == CmdState::CMD_OK)
     {
-      if (isdigit (int (gev->key ())) && gev->key () != '0')
+      if (gev->key () >= '1' && gev->key () <= '9')
         {
           auto c = char (gev->key ());
           mCountString += c;
@@ -361,7 +360,7 @@ ApvlvCmds::append (QKeyEvent *gev)
 
   else if (mState == CmdState::GETTING_COUNT)
     {
-      if (isdigit (int (gev->key ())))
+      if (gev->key () >= '0' && gev->key () <= '9')
         {
           auto c = char (gev->key ());
           mCountString += c;
@@ -441,7 +440,7 @@ ApvlvCmds::isMapCommand (CommandKeyList *ack)
       else
         {
           uint i;
-          for (i = 0; i < ack->size (); ++i)
+          for (i = 0; i < ack->size () && i < mMap.first.size (); ++i)
             {
               if ((*ack)[i] != mMap.first[i])
                 break;
@@ -470,7 +469,7 @@ ApvlvCmds::timeoutCallback ()
   if (mCmdHead != nullptr)
     {
       process (mCmdHead.get ());
-      mCmdHead.release ();
+      mCmdHead.reset ();
     }
   mState = CmdState::CMD_OK;
 }

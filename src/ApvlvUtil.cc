@@ -209,6 +209,23 @@ filenameExtension (const string &filename)
   return ext;
 }
 
+string
+canonicalPath (const string &path)
+{
+  if (path.empty ())
+    return path;
+
+  error_code ec;
+  auto canon = filesystem::weakly_canonical (path, ec);
+  if (ec)
+    {
+      canon = filesystem::absolute (path, ec);
+      if (ec)
+        return path;
+    }
+  return canon.string ();
+}
+
 void
 imageArgb32ToRgb32 (QImage &image, int left, int top, int right, int bottom)
 {

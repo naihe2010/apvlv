@@ -613,6 +613,7 @@ ApvlvFrame::process (int has, int ct, uint key)
           mView->promptCommand (char (key));
           return CmdReturn::NEED_MORE;
         }
+      break;
     case 'H':
       mWidget->scrollTo (0.0, 0.0);
       break;
@@ -903,20 +904,21 @@ bool
 ApvlvFrame::loadFile (const std::string &file, bool check,
                       bool show_directory)
 {
-  if (check && file == mFilestr)
+  auto abspath = canonicalPath (file);
+  if (check && abspath == mFilestr)
     {
       return false;
     }
 
   saveLastPosition (mFilestr);
 
-  mFile = FileFactory::loadFile (file);
+  mFile = FileFactory::loadFile (abspath);
 
   if (mFile)
     {
       emit indexGenerited (mFile->getIndex ());
 
-      mFilestr = file;
+      mFilestr = abspath;
 
       if (mFile->sum () <= 1)
         {
@@ -925,7 +927,7 @@ ApvlvFrame::loadFile (const std::string &file, bool check,
 
       setWidget (mFile->getDisplayType ());
 
-      loadLastPosition (file);
+      loadLastPosition (abspath);
 
       setActive (true);
 
@@ -938,7 +940,7 @@ ApvlvFrame::loadFile (const std::string &file, bool check,
           QObject::connect (mWatcher.get (), SIGNAL (fileChanged ()), this,
                             SLOT (changed_cb ()));
 
-          auto systempath = filesystem::path (file);
+          auto systempath = filesystem::path (abspath);
           if (filesystem::is_symlink (systempath))
             {
               auto realname = filesystem::read_symlink (systempath).string ();
@@ -949,7 +951,7 @@ ApvlvFrame::loadFile (const std::string &file, bool check,
             }
           else
             {
-              mWatcher->addPath (QString::fromLocal8Bit (file));
+              mWatcher->addPath (QString::fromLocal8Bit (abspath));
             }
         }
     }

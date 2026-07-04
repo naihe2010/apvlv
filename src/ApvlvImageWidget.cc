@@ -148,10 +148,15 @@ ImageContainer::redraw ()
 pair<ApvlvPoint, ApvlvPoint>
 ImageContainer::selectionRange ()
 {
-  double left = mPressPosition.x () / mImageWidget->zoomrate ();
-  double top = mPressPosition.y () / mImageWidget->zoomrate ();
-  double right = mMovePosition.x () / mImageWidget->zoomrate ();
-  double bottom = mMovePosition.y () / mImageWidget->zoomrate ();
+  double zr = mImageWidget->zoomrate ();
+  double x1 = mPressPosition.x () / zr;
+  double y1 = mPressPosition.y () / zr;
+  double x2 = mMovePosition.x () / zr;
+  double y2 = mMovePosition.y () / zr;
+  double left = x1 < x2 ? x1 : x2;
+  double right = x1 < x2 ? x2 : x1;
+  double top = y1 < y2 ? y1 : y2;
+  double bottom = y1 < y2 ? y2 : y1;
   return { { left, top }, { right, bottom } };
 }
 
@@ -316,7 +321,7 @@ ApvlvImage::ocrDisplay (bool is_ocr)
     }
 }
 
-std::unique_ptr<char>
+std::unique_ptr<char[]>
 ApvlvImage::ocrGetText ()
 {
   auto image = mImageContainer.pixmap ();

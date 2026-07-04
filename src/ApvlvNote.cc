@@ -68,6 +68,8 @@ Location::fromMarkdownNode (MarkdownNode *node)
       auto end = str.find ("]]");
       path = str.substr (pos + 2, end - pos - 2);
       anchor = str.substr (end + 2);
+      if (!anchor.empty () && anchor[0] == '#')
+        anchor.erase (0, 1);
     }
 }
 
@@ -505,11 +507,12 @@ Note::notePathOfPath (std::string_view sv)
 {
   auto homedir = QDir::home ().filesystemAbsolutePath ().string ();
   string filename = string (sv);
-  if (filename.find (homedir) == 0)
+  if (filename.find (homedir) == 0 && filename.size () > homedir.size ())
     filename = filename.substr (homedir.size () + 1);
-  if (filename[0] == filesystem::path::preferred_separator)
+  if (!filename.empty ()
+      && filename[0] == filesystem::path::preferred_separator)
     filename = filename.substr (1);
-  if (filename[1] == ':')
+  if (filename.size () > 1 && filename[1] == ':')
     filename[1] = '-';
   auto path
       = NotesDir + (char)filesystem::path::preferred_separator + filename;

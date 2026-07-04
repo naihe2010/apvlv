@@ -104,6 +104,8 @@ ApvlvEPUB::pageSearch (int pn, const char *s)
 {
   auto qpath = QString::fromLocal8Bit (mPages[pn]);
   auto content = getZipFileContents (qpath);
+  if (!content)
+    return nullptr;
   auto html = content->toStdString ();
   auto pos = html.find (s);
   if (pos == string::npos)
@@ -310,32 +312,33 @@ ApvlvEPUB::ncxNodeSetIndex (QXmlStreamReader *xml, const string &element_name,
           if (xml->name ().toString () == "content")
             {
               string srcstr = xmlStreamGetAttributeValue (xml, "src");
-              if (srcstr.empty ())
-                continue;
-
-              if (ncxfile.find ('/') != string::npos)
+              if (!srcstr.empty ())
                 {
-                  auto ncxdir
-                      = filesystem::path (ncxfile).parent_path ().string ();
-                  srcstr = string (ncxdir) + '/' + srcstr;
-                }
-
-              index.path = srcstr;
-
-              auto href = srcstr;
-              if (srcstr.find ('#') != string::npos)
-                {
-                  index.anchor = srcstr.substr (srcstr.find ('#'));
-                  href = srcstr.substr (0, srcstr.find ('#'));
-                }
-
-              for (decltype (mPages.size ()) ind = 0; ind < mPages.size ();
-                   ++ind)
-                {
-                  if (mPages[ind] == href)
+                  if (ncxfile.find ('/') != string::npos)
                     {
-                      index.page = int (ind);
-                      break;
+                      auto ncxdir = filesystem::path (ncxfile)
+                                        .parent_path ()
+                                        .string ();
+                      srcstr = string (ncxdir) + '/' + srcstr;
+                    }
+
+                  index.path = srcstr;
+
+                  auto href = srcstr;
+                  if (srcstr.find ('#') != string::npos)
+                    {
+                      index.anchor = srcstr.substr (srcstr.find ('#'));
+                      href = srcstr.substr (0, srcstr.find ('#'));
+                    }
+
+                  for (decltype (mPages.size ()) ind = 0;
+                       ind < mPages.size (); ++ind)
+                    {
+                      if (mPages[ind] == href)
+                        {
+                          index.page = int (ind);
+                          break;
+                        }
                     }
                 }
 

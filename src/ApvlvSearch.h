@@ -67,9 +67,9 @@ public:
   operator== (SearchOptions const &opt, SearchOptions const &other)
   {
     return opt.mText == other.mText
-           && opt.mCaseSensitive != other.mCaseSensitive
-           && opt.mRegex != other.mRegex && opt.mTypes != other.mTypes
-           && opt.mFromDir != other.mFromDir;
+           && opt.mCaseSensitive == other.mCaseSensitive
+           && opt.mRegex == other.mRegex && opt.mTypes == other.mTypes
+           && opt.mFromDir == other.mFromDir;
   }
 
   std::string mText;

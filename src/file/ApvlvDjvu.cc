@@ -94,14 +94,14 @@ ApvlvDJVU::load (const string &filename)
 
 ApvlvDJVU::~ApvlvDJVU ()
 {
-  if (mContext)
-    {
-      ddjvu_context_release (mContext);
-    }
-
   if (mDoc)
     {
       ddjvu_document_release (mDoc);
+    }
+
+  if (mContext)
+    {
+      ddjvu_context_release (mContext);
     }
 }
 
@@ -110,7 +110,7 @@ ApvlvDJVU::pageSizeF (int pn, int rot)
 {
   ddjvu_status_t t;
   ddjvu_pageinfo_t info;
-  while ((t = ddjvu_document_get_pageinfo (mDoc, 0, &info)) < DDJVU_JOB_OK)
+  while ((t = ddjvu_document_get_pageinfo (mDoc, pn, &info)) < DDJVU_JOB_OK)
     {
       handleDdjvuMessages (mContext, true);
     }
@@ -156,7 +156,7 @@ ApvlvDJVU::pageRenderToImage (int pn, double zm, int rot, QImage *pix)
       = ddjvu_format_create (DDJVU_FORMAT_RGB24, 0, nullptr);
   ddjvu_format_set_row_order (format, true);
 
-  auto psize = 3 * ix * iy;
+  auto psize = static_cast<size_t> (3) * ix * iy;
   auto buffer = make_unique<char[]> (psize);
 
   int retry = 0;

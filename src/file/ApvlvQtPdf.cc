@@ -202,6 +202,8 @@ ApvlvPDF::pageRenderComments (int pn, QImage *img,
       for (auto const &link : links)
         {
           auto rects = link.rectangles ();
+          if (rects.isEmpty ())
+            continue;
           auto brect = rects[0];
           auto erect = rects[rects.count () - 1];
           painter.drawLine (brect.x (), brect.y () + brect.height (),

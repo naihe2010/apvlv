@@ -146,8 +146,8 @@ FileFactory::findMatchClass (const std::string &filename)
 
   for (auto const &cls : cls_list)
     {
-      if (QString::fromStdString (cls.first)
-              .compare (QString::fromStdString (cls_name), Qt::CaseInsensitive)
+      if (QString::fromStdString (cls.first).compare (
+              QString::fromStdString (cls_name), Qt::CaseInsensitive)
           == 0)
         return cls;
     }
@@ -279,6 +279,8 @@ optional<QByteArray>
 File::pathContent (const string &path)
 {
   auto words = QString::fromLocal8Bit (path).split ("-");
+  if (words.size () < 3)
+    return nullopt;
   int pn = words[0].toInt ();
   double zm = words[1].toDouble ();
   int rot = words[2].toInt ();
