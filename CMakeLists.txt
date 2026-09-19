@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(apvlv VERSION 0.7.0)
+project(apvlv VERSION 0.7.1)
 
 # vcpkg integration
 if(DEFINED CMAKE_TOOLCHAIN_FILE)
