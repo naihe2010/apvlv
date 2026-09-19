@@ -134,6 +134,7 @@ ApvlvFrame::inuse ()
 bool
 ApvlvFrame::loadUri (const string &uri)
 {
+  mFilestr = uri;
   mFile = make_unique<ApvlvWEB> ();
   mFile->load (uri);
   setWidget (mFile->getDisplayType ());

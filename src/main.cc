@@ -204,7 +204,8 @@ main (int argc, char *argv[])
       path = paths.front ();
       paths.pop_front ();
     }
-  if (!filesystem::is_regular_file (path) && !filesystem::is_directory (path))
+  if (!isWebUrl (path) && !filesystem::is_regular_file (path)
+      && !filesystem::is_directory (path))
     {
       qFatal () << "File '" << path << "' is not readable.";
       return 1;

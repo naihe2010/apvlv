@@ -340,6 +340,14 @@ ApvlvView::dired ()
 bool
 ApvlvView::newTab (const std::string &filename)
 {
+  if (isWebUrl (filename))
+    {
+      auto ndoc = new ApvlvFrame (this);
+      ndoc->loadUri (filename);
+      regLoaded (ndoc);
+      return newTab (ndoc);
+    }
+
   auto docname = filename;
   if (filesystem::is_directory (filename))
     {
@@ -388,6 +396,8 @@ ApvlvView::newTab (ApvlvFrame *core)
       = core->filename ()
             ? filesystem::path (core->filename ()).filename ().string ()
             : "NONE";
+  if (basename.empty ())
+    basename = core->filename ();
   auto pos = mTabContainer.currentIndex () + 1;
   mTabContainer.insertTab (pos, win, QString::fromLocal8Bit (basename));
   mTabContainer.setCurrentIndex (pos);
@@ -1012,7 +1022,11 @@ ApvlvView::runCommand (const char *str)
                 }
             }
 
-          if (filesystem::is_directory (subcmd))
+          if (isWebUrl (subcmd))
+            {
+              ret = currentFrame ()->loadUri (subcmd);
+            }
+          else if (filesystem::is_directory (subcmd))
             {
               ret = loadDir (subcmd);
             }

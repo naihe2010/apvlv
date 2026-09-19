@@ -54,6 +54,8 @@ extern std::string UserScriptDir;
 
 void getRuntimePaths ();
 
+bool isWebUrl (const std::string &path);
+
 #ifdef WIN32
 const char PATH_SEP_C = '\\';
 const char *const PATH_SEP_S = "\\";

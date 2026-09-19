@@ -105,6 +105,12 @@ getXdgOrCachePath (const QString &appdir)
     }
 }
 
+bool
+isWebUrl (const string &path)
+{
+  return path.starts_with ("http://") || path.starts_with ("https://");
+}
+
 void
 getRuntimePaths ()
 {
