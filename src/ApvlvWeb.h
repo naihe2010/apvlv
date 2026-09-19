@@ -48,7 +48,7 @@ public:
   FileWidget *
   getWidget () override
   {
-    auto wid = new WebViewWidget ();
+    auto wid = new WebViewWidget (true);
     wid->setFile (this);
     wid->setInternalScroll (true);
     return wid;

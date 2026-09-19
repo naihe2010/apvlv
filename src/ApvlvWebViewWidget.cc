@@ -30,6 +30,7 @@
 #include <sstream>
 
 #include <QClipboard>
+#include <QCoreApplication>
 #include <QFile>
 #include <QInputDialog>
 #include <QWebEngineScriptCollection>
@@ -63,11 +64,36 @@ ApvlvSchemeHandler::requestStarted (QWebEngineUrlRequestJob *job)
   emit webpageUpdated (key);
 }
 
-WebView::WebView ()
+QWebEngineProfile *
+WebView::sessionProfile ()
 {
-  mProfile.setHttpCacheType (QWebEngineProfile::NoCache);
-  mProfile.installUrlSchemeHandler ("apvlv", &mSchemeHandler);
-  mPage = make_unique<QWebEnginePage> (&mProfile);
+  static QWebEngineProfile *profile = [] ()
+    {
+      auto prof = new QWebEngineProfile (QStringLiteral ("apvlv"),
+                                         QCoreApplication::instance ());
+      prof->setPersistentStoragePath (QString::fromLocal8Bit (WebDataDir));
+      prof->setCachePath (QString::fromLocal8Bit (WebDataDir));
+      prof->setPersistentCookiesPolicy (
+          QWebEngineProfile::ForcePersistentCookies);
+      prof->setHttpCacheType (QWebEngineProfile::DiskHttpCache);
+      return prof;
+    }();
+  return profile;
+}
+
+WebView::WebView (bool persistent)
+{
+  if (persistent)
+    {
+      mPage = make_unique<QWebEnginePage> (sessionProfile ());
+    }
+  else
+    {
+      mOwnProfile = make_unique<QWebEngineProfile> ();
+      mOwnProfile->setHttpCacheType (QWebEngineProfile::NoCache);
+      mOwnProfile->installUrlSchemeHandler ("apvlv", &mSchemeHandler);
+      mPage = make_unique<QWebEnginePage> (mOwnProfile.get ());
+    }
   setPage (mPage.get ());
 
   mCopyAction.setText (tr ("Copy"));
@@ -86,7 +112,7 @@ WebView::WebView ()
   mMenu.addAction (&mCommentAction);
 }
 
-WebViewWidget::WebViewWidget ()
+WebViewWidget::WebViewWidget (bool persistent) : mWebView (persistent)
 {
   QObject::connect (&mWebView, SIGNAL (loadFinished (bool)), this,
                     SLOT (webviewLoadFinished (bool)));

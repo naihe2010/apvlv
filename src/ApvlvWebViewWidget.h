@@ -74,7 +74,8 @@ class WebView : public QWebEngineView
 {
   Q_OBJECT
 public:
-  WebView ();
+  explicit WebView (bool persistent = false);
+  static QWebEngineProfile *sessionProfile ();
   void
   setFile (File *file)
   {
@@ -85,7 +86,7 @@ protected:
   void contextMenuEvent (QContextMenuEvent *event) override;
 
 private:
-  QWebEngineProfile mProfile;
+  std::unique_ptr<QWebEngineProfile> mOwnProfile;
   std::unique_ptr<QWebEnginePage> mPage;
   ApvlvSchemeHandler mSchemeHandler;
   QMenu mMenu;
@@ -112,7 +113,7 @@ class WebViewWidget : public FileWidget
 {
   Q_OBJECT
 public:
-  WebViewWidget ();
+  explicit WebViewWidget (bool persistent = false);
 
   [[nodiscard]] QWidget *
   widget () override
@@ -155,7 +156,7 @@ public:
   }
 
 private:
-  WebView mWebView{};
+  WebView mWebView;
   bool mIsInternalScroll{ false };
   bool mIsScrollUp{ false };
   QWebEngineFindTextResult mSearchResult;

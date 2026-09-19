@@ -54,6 +54,7 @@ string SessionFile;
 string LogFile;
 string NotesDir;
 string UserScriptDir;
+string WebDataDir;
 
 static void
 getXdgOrHomeIni (const QString &appdir)
@@ -103,6 +104,9 @@ getXdgOrCachePath (const QString &appdir)
     {
       SessionFile = homedir + "/.cache/apvlvinfo";
     }
+
+  WebDataDir = filesystem::path (SessionFile).parent_path ().string ()
+               + "/apvlv-webengine";
 }
 
 bool

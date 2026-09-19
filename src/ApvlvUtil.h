@@ -51,6 +51,7 @@ extern std::string SessionFile;
 extern std::string LogFile;
 extern std::string NotesDir;
 extern std::string UserScriptDir;
+extern std::string WebDataDir;
 
 void getRuntimePaths ();
 
