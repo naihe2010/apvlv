@@ -219,12 +219,14 @@ grep (const string &source, const string &text, bool is_case, bool is_regex)
     }
   else
     {
+      string nsource;
+      string ntext;
       auto p_source = &source;
       auto p_text = &text;
       if (is_case == false)
         {
-          auto nsource = source;
-          auto ntext = text;
+          nsource = source;
+          ntext = text;
           std::ranges::transform (nsource, nsource.begin (), ::tolower);
           std::ranges::transform (ntext, ntext.begin (), ::tolower);
           p_source = &nsource;

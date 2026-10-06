@@ -33,6 +33,8 @@
 #include <QCoreApplication>
 #include <QFile>
 #include <QInputDialog>
+#include <QJsonArray>
+#include <QJsonDocument>
 #include <QWebEngineScriptCollection>
 #include <qevent.h>
 
@@ -321,12 +323,15 @@ WebView::getSelectionPosition () const
               && result.typeId () == QMetaType::QVariantList)
             {
               auto offsets = result.toList ();
-              begin = offsets[0].toInt ();
-              end = offsets[1].toInt ();
-              qDebug () << "Begin offset:" << offsets[0].toInt ();
-              qDebug () << "End offset:" << offsets[1].toInt ();
-              loop.quit ();
+              if (offsets.size () >= 2)
+                {
+                  begin = offsets[0].toInt ();
+                  end = offsets[1].toInt ();
+                  qDebug () << "Begin offset:" << begin;
+                  qDebug () << "End offset:" << end;
+                }
             }
+          loop.quit ();
         });
   loop.exec ();
   return std::make_pair (begin, end);
@@ -336,10 +341,10 @@ void
 WebView::underLinePosition (int begin, int end, const std::string &tooltip)
 {
   qDebug () << "underLinePosition" << begin << " -> " << end;
-  QString src = QString ("underlineByOffset(%1, %2, '%3');")
-    .arg (begin)
-    .arg (end)
-    .arg (tooltip.c_str());
+  QJsonArray args{ begin, end, QString::fromStdString (tooltip) };
+  auto json = QJsonDocument (args).toJson (QJsonDocument::Compact);
+  auto src = QString ("underlineByOffset(...%1);")
+               .arg (QString::fromUtf8 (json));
   mPage->runJavaScript (src);
 }
 
