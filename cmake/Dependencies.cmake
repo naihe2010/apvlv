@@ -40,15 +40,45 @@ else()
     
     # Optional dependencies for Unix
     if(APVLV_WITH_POPPLER)
-        pkg_check_modules(POPPLER poppler-qt6)
+        pkg_check_modules(POPPLER REQUIRED poppler-qt6)
     endif()
 
     if(APVLV_WITH_MUPDF)
         pkg_check_modules(MUPDF mupdf)
+        if(MUPDF_FOUND)
+            set(MUPDF_RESOLVED_LIBRARIES "")
+            foreach(library IN LISTS MUPDF_STATIC_LIBRARIES)
+                find_library(MUPDF_${library}_LIBRARY NAMES ${library}
+                    HINTS ${MUPDF_STATIC_LIBRARY_DIRS}
+                        ${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES}
+                        ${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}
+                )
+                if(NOT MUPDF_${library}_LIBRARY)
+                    message(FATAL_ERROR "MuPDF requires the ${library} development library")
+                endif()
+                list(APPEND MUPDF_RESOLVED_LIBRARIES ${MUPDF_${library}_LIBRARY})
+            endforeach()
+        else()
+            find_package(unofficial-libmupdf CONFIG REQUIRED)
+            set(MUPDF_LIBRARIES unofficial::libmupdf::libmupdf)
+        endif()
+    endif()
+
+    if(APVLV_WITH_DJVU)
+        pkg_check_modules(DJVU REQUIRED IMPORTED_TARGET ddjvuapi)
+        set(DJVU_LIBRARIES PkgConfig::DJVU)
+    endif()
+
+    if(APVLV_WITH_OFFICE)
+        find_path(LIBREOFFICEKIT_INCLUDE_DIRS LibreOfficeKit/LibreOfficeKit.hxx)
+        find_library(LIBREOFFICEKIT_LIBRARIES NAMES libreofficekitgtk)
+        if(NOT LIBREOFFICEKIT_INCLUDE_DIRS OR NOT LIBREOFFICEKIT_LIBRARIES)
+            message(FATAL_ERROR "Office support requires LibreOfficeKit development headers and library")
+        endif()
     endif()
 
     if(APVLV_WITH_OCR)
-        pkg_check_modules(TESSERACT tesseract)
+        pkg_check_modules(TESSERACT REQUIRED tesseract)
     endif()
 endif()
 
